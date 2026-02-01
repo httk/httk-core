@@ -1,3 +1,10 @@
-# httk-module
+# httk-core
 
-Description of the module
+This is the central lightweight "stub" dependency of all httk2 modules.
+It:
+
+* Sets up the `httk` package prefix
+* Provides a few convinience functions under `httk.core`.
+* Sets up some user-friedly helpers under the `httk` package itself, such as `load`, which allows "loading anything" to which httk2 modules can register handlers.
+
+Other modules, e.g., `httk-io` installs under the httk package prefix and can be used as, e.g. `import httk.io`.
