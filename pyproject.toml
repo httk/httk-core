@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "httk-core"
-version = "1.0.0"
+version = "2.0.0"
 description = "httk2 core functionality"
 readme = "README.md"
 requires-python = ">=3.10"
