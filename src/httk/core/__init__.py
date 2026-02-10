@@ -15,7 +15,9 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from pkgutil import extend_path
-__path__ = extend_path(__path__, __name__)  # type: ignore[name-defined]
+from .core._discovery import _discover_register_modules as _discover_register_modules
+subpackages = _discover_register_modules()
 
 from .load import load, register_loader
+
+__all__ = ["load", "register_loader"]
