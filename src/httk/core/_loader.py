@@ -15,26 +15,24 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import importlib
-import importlib.util
-import pkgutil
+from pathlib import Path
+from typing import Any
 
-_DONE = False
+from ._plugins import PluginRegistry
 
+_loaders = PluginRegistry()
 
-def autoregister() -> None:
-    global _DONE
-    if _DONE:
-        return
-    _DONE = True
+def register_loader(*, name: str, loader: str, extensions: tuple[str, ...]) -> None:
+    for ext in extensions:
+        _loaders.register(key=ext.lower(), handler=loader, name=name)
 
-    import httk  # ensures httk.__path__ is set
+def load(filename: str, **kwargs: Any) -> Any:
+    ext = Path(filename).suffix.lower()
+    if ext:
+        return _loaders.dispatch(ext, filename, **kwargs)
+    else:
+        raise Exception("Could not determine file type.")
 
-    prefix = httk.__name__ + "."
-    for m in pkgutil.iter_modules(httk.__path__, prefix):
-        if not m.ispkg:
-            continue
-        reg_name = m.name + "._register"  # e.g. httk.io._register
-        if importlib.util.find_spec(reg_name) is None:
-            continue
-        importlib.import_module(reg_name)
+def known_extensions() -> list[str]:
+    return _loaders.keys()
+

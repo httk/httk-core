@@ -15,9 +15,29 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .core._discovery import _discover_register_modules as _discover_register_modules
-subpackages = _discover_register_modules()
+import pkgutil
 
-from .load import load, register_loader
+import httk
+from ._discover import discover_and_register
 
-__all__ = ["load", "register_loader"]
+discover_and_register()
+
+def _discover_modules():
+    prefix = httk.__name__ + "."
+
+    names = [
+        m.name
+        for m in pkgutil.iter_modules(
+            httk.__path__,
+            prefix
+        )
+        if m.ispkg
+    ]
+
+    return names
+
+subpackages = _discover_modules()
+
+from ._loader import load
+
+__all__ = ["load", "subpackages"]

@@ -15,24 +15,18 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from pathlib import Path
-from typing import Any
+import importlib, importlib.util, pkgutil
 
-from .plugins import PluginRegistry
+def discover_and_register():
+    import httk.handlers
 
-_loaders = PluginRegistry()
+    prefix = "httk.handlers."
+    for m in pkgutil.iter_modules(httk.handlers.__path__, prefix):
+        if not m.ispkg:
+            continue
 
-def register_loader(*, name: str, loader: str, extensions: tuple[str, ...]) -> None:
-    for ext in extensions:
-        _loaders.register(key=ext.lower(), handler=loader, name=name)
+        spec = importlib.util.find_spec(m.name)
+        if spec is None:
+            continue
 
-def load(filename: str, **kwargs: Any) -> Any:
-    ext = Path(filename).suffix.lower()
-    if ext:
-        return _loaders.dispatch(ext, filename, **kwargs)
-    else:
-        raise Exception("Could not deterine file type.")
-
-def known_extensions() -> list[str]:
-    return _loaders.keys()
-
+        mod = importlib.import_module(m.name)  # imports only that handler package chain

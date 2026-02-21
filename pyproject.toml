@@ -18,3 +18,22 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[project.optional-dependencies]
+dev = [
+  "black",
+  "ruff",
+  "pytest",
+  "isort",
+  "pyright",
+  "mypy"
+]
+docs = [
+  "sphinx",
+  "furo",
+  "myst-parser",
+  "myst-nb",
+  "sphinx-autodoc-typehints",
+  "sphinx-copybutton",
+  "sphinx-autoapi"
+]
