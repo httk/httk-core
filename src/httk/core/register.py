@@ -18,11 +18,13 @@
 from pathlib import Path
 from typing import Any
 
-from .register import loaders
+from ._plugins import PluginRegistry
 
-def load(filename: str, **kwargs: Any) -> Any:
-    ext = Path(filename).suffix.lower()
-    if ext:
-        return loaders.dispatch(ext, filename, **kwargs)
-    else:
-        raise Exception("Could not determine file type.")
+loaders = PluginRegistry()
+
+def register_loader(*, name: str, loader: str, extensions: tuple[str, ...]) -> None:
+    for ext in extensions:
+        loaders.register(key=ext.lower(), handler=loader, name=name)
+
+def known_extensions() -> list[str]:
+    return loaders.keys()
