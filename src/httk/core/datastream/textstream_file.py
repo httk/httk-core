@@ -10,7 +10,7 @@ class TextstreamFile(TextstreamCommon, TextstreamBackend):
     Backend for file-based (io.TextIOBase-conforming) streaming text data
     """
 
-    _f: io.TextIOBase
+    _f: io.TextIOBase | None
 
     # mypy does not allow to type annotate __new__ as `Self | None` for some reason
     def __new__(cls, obj: io.TextIOBase, **hints: Any) -> Any:

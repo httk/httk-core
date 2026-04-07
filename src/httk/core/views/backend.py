@@ -18,7 +18,7 @@ class Backend(Generic[T_Backend], ABC):
     """
 
     # Subclasses must implement this class variable, which only appear as a type annotation here
-    backend_classes: ClassVar[list[type[T_Backend]]]
+    backend_classes: ClassVar[list[type["Backend[Any]"]]]
 
     @classmethod
     def create(cls: type[Self], obj: Any, **hints: Any) -> Self:

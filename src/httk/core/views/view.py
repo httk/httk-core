@@ -25,7 +25,7 @@ class View(Generic[T_Backend]):
     # Python typing, and mypy in particular, have trouble with variables being assigned abstract base classes
     _backend_base_cls: ClassVar[Any]  # Subclass of Backend that defines a set of backends for similar data
     _view_base_cls: ClassVar[Any]  # Subclass of view that defines a set of views of similar data
-    _backend: T_Backend | None
+    _backend: T_Backend
 
     @classmethod
     def _prepare_backend(

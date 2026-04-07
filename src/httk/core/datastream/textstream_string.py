@@ -11,7 +11,7 @@ class TextstreamString(TextstreamCommon, TextstreamBackend):
     """
 
     s: str
-    _f: io.StringIO | None
+    _f: io.TextIOBase | None
     _closed: bool
 
     # Cannot type annotate __new__ as `Self | None` for some reason
