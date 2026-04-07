@@ -40,4 +40,4 @@ test:
 test_fastfail:
 	$(PYTHON) -m pytest -q -x
 
-ci: format-check lint typecheck test_fastfail
+ci: format-check lint typecheck typecheck_pyright test_fastfail

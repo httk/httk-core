@@ -54,8 +54,9 @@ class TextstreamFileView(TextstreamView, io.TextIOBase, TextstreamAPI):
     def flush(self) -> None:
         if self.closed:
             raise ValueError("I/O operation on closed file.")
-        if hasattr(self._backend, "flush"):
-            self._backend.flush()
+        flush = getattr(self._backend, "flush", None)
+        if flush:
+            flush()
 
     def read(self, size: int | None = -1) -> str:
         if self.closed:
@@ -166,20 +167,22 @@ class TextstreamFileView(TextstreamView, io.TextIOBase, TextstreamAPI):
     def seek(self, offset: int, whence: int = io.SEEK_SET) -> int:
         if self.closed:
             raise ValueError("I/O operation on closed file.")
-        if not hasattr(self._backend, "seek"):
+        seek = getattr(self._backend, "seek", None)
+        if not seek:
             raise io.UnsupportedOperation("underlying stream is not seekable")
 
-        pos = self._backend.seek(offset, whence)
+        pos = seek(offset, whence)
         self._readline_buffer = ""
         return pos
 
     def tell(self) -> int:
         if self.closed:
             raise ValueError("I/O operation on closed file.")
-        if not hasattr(self._backend, "tell"):
+        tell = getattr(self._backend, "tell")
+        if not tell:
             raise io.UnsupportedOperation("underlying stream does not support tell()")
 
-        pos = self._backend.tell()
+        pos = tell()
         return pos - len(self._readline_buffer)
 
     def detach(self) -> NoReturn:
