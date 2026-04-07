@@ -7,10 +7,17 @@ name = "httk-core"
 version = "2.0.0"
 description = "httk2 core functionality"
 readme = "README.md"
-requires-python = ">=3.10"
+license = "AGPL-3.0+"
+requires-python = ">=3.11"
 authors = [{ name = "Rickard Armiento", email = "rickard-gpg@armiento.net" }]
-
 dependencies = [
+]
+keywords = [
+]
+classifiers = [
+  "Intended Audience :: Science/Research",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
 ]
 
 [tool.setuptools]
@@ -21,9 +28,9 @@ where = ["src"]
 
 [project.optional-dependencies]
 dev = [
+  "pytest>=8.0",
   "black",
   "ruff",
-  "pytest",
   "isort",
   "pyright",
   "mypy"
@@ -37,3 +44,35 @@ docs = [
   "sphinx-copybutton",
   "sphinx-autoapi"
 ]
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.isort]
+profile = "black"
+
+[tool.ruff]
+target-version = "py311"
+src = ["src", "examples"]
+
+[tool.black]
+target-version = ["py311"]
+line-length = 120
+skip-string-normalization = true
+
+[tool.pyright]
+pythonVersion = "3.11"
+include = ["src", "examples"]
+reportMissingImports = true
+extraPaths = []
+
+[tool.mypy]
+python_version = "3.11"
+files = ["src", "examples"]
+mypy_path = ["src"]
+namespace_packages = true
+explicit_package_bases = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = ["yaml", "markdown", "docutils", "docutils.*"]
+ignore_missing_imports = true
