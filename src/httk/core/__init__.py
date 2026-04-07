@@ -21,6 +21,27 @@ import httk
 
 from ._discover import discover_and_register
 from ._loader import load
+from .datastream import (
+    BytestreamBackend,
+    BytestreamBytes,
+    BytestreamBytesView,
+    BytestreamFile,
+    BytestreamFilename,
+    BytestreamFilenameView,
+    BytestreamFileView,
+    BytestreamLike,
+    BytestreamView,
+    TextstreamBackend,
+    TextstreamFile,
+    TextstreamFilename,
+    TextstreamFilenameView,
+    TextstreamFileView,
+    TextstreamLike,
+    TextstreamString,
+    TextstreamStringView,
+    TextstreamView,
+)
+from .views import Backend, View, unwrap
 
 discover_and_register()
 
@@ -33,4 +54,28 @@ def _discover_modules():
 
 subpackages = _discover_modules()
 
-__all__ = ["load", "subpackages"]
+__all__ = [
+    "load",
+    "subpackages",
+    "Backend",
+    "View",
+    "unwrap",
+    "BytestreamView",
+    "BytestreamFileView",
+    "BytestreamFilenameView",
+    "BytestreamBytesView",
+    "BytestreamBackend",
+    "BytestreamFile",
+    "BytestreamFilename",
+    "BytestreamBytes",
+    "BytestreamLike",
+    "TextstreamView",
+    "TextstreamFileView",
+    "TextstreamFilenameView",
+    "TextstreamStringView",
+    "TextstreamBackend",
+    "TextstreamFile",
+    "TextstreamFilename",
+    "TextstreamString",
+    "TextstreamLike",
+]
