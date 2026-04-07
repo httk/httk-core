@@ -2,6 +2,7 @@ import io
 import os
 from abc import ABC, abstractmethod
 
+
 class TextstreamCommon(ABC):
     """
     Common superclass for many of the implementations of backends for streaming text data.
@@ -13,7 +14,7 @@ class TextstreamCommon(ABC):
     @abstractmethod
     def _ensure_f(self) -> io.TextIOBase:
         pass
-    
+
     def unwrap(self) -> io.TextIOBase:
         return self._ensure_f()
 

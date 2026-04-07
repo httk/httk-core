@@ -1,6 +1,6 @@
 import io
 from pathlib import Path
-from typing import Any, Self
+from typing import Any
 
 from ._textstream_common import TextstreamCommon
 from .textstream_backend import TextstreamBackend
@@ -15,7 +15,8 @@ class TextstreamFilename(TextstreamCommon, TextstreamBackend):
     _f: io.TextIOBase | None
     _closed: bool
 
-    def __new__(cls, filename: str | Path, **hints: Any) -> Self | None:
+    # mypy does not allow to type annotate __new__ as `Self | None` for some reason
+    def __new__(cls, filename: str | Path, **hints: Any) -> Any:
         if not isinstance(filename, str | Path):
             return None
         if hints and hints.get("kind", "filename") != "filename":

@@ -4,7 +4,7 @@ from ..views import Backend
 from .textstream_api import TextstreamAPI
 
 
-class TextstreamBackend(Backend, TextstreamAPI):
+class TextstreamBackend(Backend["TextstreamBackend"], TextstreamAPI):
     """
     Abstract base class for all backends of streaming text data.
     """

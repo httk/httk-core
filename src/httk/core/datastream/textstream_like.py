@@ -1,4 +1,6 @@
+import io
 from pathlib import Path
+from typing import TypeAlias
 
 from .textstream_backend import TextstreamBackend
 from .textstream_view import TextstreamView

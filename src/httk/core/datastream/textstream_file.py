@@ -1,5 +1,5 @@
 import io
-from typing import Any, Self
+from typing import Any
 
 from ._textstream_common import TextstreamCommon
 from .textstream_backend import TextstreamBackend
@@ -12,7 +12,8 @@ class TextstreamFile(TextstreamCommon, TextstreamBackend):
 
     _f: io.TextIOBase
 
-    def __new__(cls, obj: io.TextIOBase, **hints: Any) -> Self | None:
+    # mypy does not allow to type annotate __new__ as `Self | None` for some reason
+    def __new__(cls, obj: io.TextIOBase, **hints: Any) -> Any:
         if not isinstance(obj, io.TextIOBase):
             return None
         if hints and hints.get("kind", "file") != "file":
@@ -30,7 +31,7 @@ class TextstreamFile(TextstreamCommon, TextstreamBackend):
     @property
     def name(self) -> str | None:
         self._ensure_f()
-        return cast(str | None, getattr(self._f, "name", None))
+        return getattr(self._f, "name", None)
 
     @property
     def closed(self) -> bool:
