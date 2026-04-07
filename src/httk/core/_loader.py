@@ -20,6 +20,7 @@ from typing import Any
 
 from .register import loaders
 
+
 def load(filename: str, **kwargs: Any) -> Any:
     ext = Path(filename).suffix.lower()
     if ext:
