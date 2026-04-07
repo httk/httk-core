@@ -1,7 +1,10 @@
-from typing import Any, ClassVar, Self, cast
+from abc import ABC
+from typing import Any, ClassVar, Generic, Self, TypeVar, cast
+
+T_Backend = TypeVar("T_Backend", bound="Backend")
 
 
-class Backend:
+class Backend(Generic[T_Backend], ABC):
     """
     Abstract base class to be subclassed into classes that keep track of alternative
     representations of certain types of data, all adhering to a common API interface.
@@ -14,7 +17,8 @@ class Backend:
     A set of backends are meant to be combined with a set of Views.
     """
 
-    backend_classes: ClassVar[list[type["Backend"]]] = []
+    # Subclasses must implement this class variable, which only appear as a type annotation here
+    backend_classes: ClassVar[list[type[T_Backend]]]
 
     @classmethod
     def create(cls: type[Self], obj: Any, **hints: Any) -> Self:
@@ -34,6 +38,9 @@ class Backend:
             if instance is not None:
                 return cast(Self, instance)
         raise TypeError(f"Cannot represent {type(obj)} as {cls.__name__}")
+
+    def __init__(self, backend, **hints) -> None:
+        pass
 
     def unwrap(self) -> Any:
         """

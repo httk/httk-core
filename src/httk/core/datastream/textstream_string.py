@@ -1,5 +1,5 @@
 import io
-from typing import Any, Self
+from typing import Any
 
 from ._textstream_common import TextstreamCommon
 from .textstream_backend import TextstreamBackend
@@ -14,7 +14,8 @@ class TextstreamString(TextstreamCommon, TextstreamBackend):
     _f: io.StringIO | None
     _closed: bool
 
-    def __new__(cls, content: str, **hints: Any) -> Self | None:
+    # Cannot type annotate __new__ as `Self | None` for some reason
+    def __new__(cls, content: str, **hints: Any) -> Any:
         if not isinstance(content, str):
             return None
         if hints and hints.get("kind", "content") != "content":

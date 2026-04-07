@@ -32,4 +32,4 @@ def discover_and_register():
         if spec is None:
             continue
 
-        mod = importlib.import_module(m.name)  # imports only that handler package chain
+        _mod = importlib.import_module(m.name)  # imports only that handler package chain

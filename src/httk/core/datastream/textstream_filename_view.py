@@ -2,6 +2,7 @@ from typing import Any, Self
 
 from ..views import unwrap
 from .textstream_backend import TextstreamBackend
+from .textstream_like import TextstreamLike
 from .textstream_view import TextstreamView
 
 
@@ -17,17 +18,17 @@ class TextstreamFilenameView(TextstreamView, str):
 
     _backend: TextstreamBackend
 
-    def __new__(cls, obj: "TextstreamLike", **hints: Any) -> Self:
+    def __new__(cls, obj: TextstreamLike, **hints: Any) -> Self:
         if isinstance(obj, cls):
             return obj
-        backend = cls._prepare_backend(TextstreamBackend, TextstreamView, obj, hints)
+        backend = cls._prepare_backend(obj, hints)
         if backend.name is None:
             raise TypeError("This backend cannot be represented as a filename (no underlying filename)")
         instance = super().__new__(cls, backend.name)
         instance._backend = backend
         return instance
 
-    def __init__(self, obj: "TextstreamLike", **hints: Any) -> None:
+    def __init__(self, obj: TextstreamLike, **hints: Any) -> None:
         super().__init__()
 
     def unwrap(self) -> Any:

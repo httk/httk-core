@@ -2,6 +2,7 @@ from typing import Any, Self
 
 from ..views import unwrap
 from .textstream_backend import TextstreamBackend
+from .textstream_like import TextstreamLike
 from .textstream_view import TextstreamView
 
 
@@ -15,16 +16,16 @@ class TextstreamStringView(TextstreamView, str):
 
     _backend: TextstreamBackend
 
-    def __new__(cls, obj: "TextstreamLike", **hints: Any) -> Self:
+    def __new__(cls, obj: TextstreamLike, **hints: Any) -> Self:
         if isinstance(obj, cls):
             return obj
-        backend = cls._prepare_backend(TextstreamBackend, TextstreamView, obj, hints)
+        backend = cls._prepare_backend(obj, hints)
         instance = super().__new__(cls, backend.read())
         instance._backend = backend
         return instance
 
-    def __init__(self, obj: "TextstreamLike", **hints: Any) -> None:
-        super().__init__(obj)
+    def __init__(self, obj: TextstreamLike, **hints: Any) -> None:
+        super().__init__()
 
     def unwrap(self) -> Any:
         return unwrap(self._backend)

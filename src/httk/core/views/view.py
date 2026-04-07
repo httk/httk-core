@@ -1,12 +1,12 @@
-from typing import Any, TypeVar, cast
+from typing import Any, ClassVar, Generic, TypeVar
 
 from .backend import Backend
 from .unwrap import unwrap
 
-B = TypeVar("B", bound="Backend")
+T_Backend = TypeVar("T_Backend", bound="Backend")
 
 
-class View:
+class View(Generic[T_Backend]):
     """
     A set of views allow manipulating data and state of a backend through different interfaces.
     Hence, creating a View from a Backend, or from another View, allows to read and operate on the data through the interface of that view,
@@ -22,14 +22,17 @@ class View:
     Such functions should start with creating a View on the passed data, giving them access to the data in a single desired format.
     """
 
+    # Python typing, and mypy in particular, have trouble with variables being assigned abstract base classes
+    _backend_base_cls: ClassVar[Any]  # Subclass of Backend that defines a set of backends for similar data
+    _view_base_cls: ClassVar[Any]  # Subclass of view that defines a set of views of similar data
+    _backend: T_Backend | None
+
     @classmethod
     def _prepare_backend(
         cls,
-        backend_cls: type[B],
-        view_cls: Any,
         obj: Any,
         hints: dict[str, Any],
-    ) -> B:
+    ) -> T_Backend:
         """
         Normalize an arbitrary backend/view/raw object into a backend suitable for constructing a view.
 
@@ -40,16 +43,11 @@ class View:
 
         `hints` are forwarded for backend selection/disambiguation.
         """
-        if isinstance(obj, view_cls):
-            return cast(B, obj._backend)
-        if not isinstance(obj, backend_cls):
-            return backend_cls.create(obj, **hints)
+        if isinstance(obj, cls._view_base_cls):
+            return obj._backend
+        if not isinstance(obj, cls._backend_base_cls):
+            return cls._backend_base_cls.create(obj, **hints)
         return obj
-
-    def __init__(self, backend, **hints) -> None:
-        # For some basic types we need to initialize the backend already in __new__, don't override those cases
-        if not hasattr(self, '_backend'):
-            self._backend = backend
 
     def unwrap(self) -> Any:
         """

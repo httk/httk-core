@@ -20,20 +20,17 @@ import pkgutil
 import httk
 
 from ._discover import discover_and_register
+from ._loader import load
 
 discover_and_register()
 
 
 def _discover_modules():
     prefix = httk.__name__ + "."
-
     names = [m.name for m in pkgutil.iter_modules(httk.__path__, prefix) if m.ispkg]
-
     return names
 
 
 subpackages = _discover_modules()
-
-from ._loader import load
 
 __all__ = ["load", "subpackages"]

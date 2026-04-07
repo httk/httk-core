@@ -1,8 +1,10 @@
 import io
 from typing import Any, Iterator, NoReturn, Self
 
+from ..views import unwrap
 from .textstream_api import TextstreamAPI
 from .textstream_backend import TextstreamBackend
+from .textstream_like import TextstreamLike
 from .textstream_view import TextstreamView
 
 
@@ -14,20 +16,20 @@ class TextstreamFileView(TextstreamView, io.TextIOBase, TextstreamAPI):
     _backend: TextstreamBackend
     _readline_buffer: str
 
-    def __new__(cls, obj: "TextstreamLike", **hints: Any) -> Self:
+    def __new__(cls, obj: TextstreamLike, **hints: Any) -> Self:
         if isinstance(obj, cls):
             return obj
-        backend = cls._prepare_backend(TextstreamBackend, TextstreamView, obj, hints)
+        backend = cls._prepare_backend(obj, hints)
         instance = super().__new__(cls)
         instance._backend = backend
         instance._readline_buffer = ""
         return instance
 
-    def __init__(self, obj: "TextstreamLike", **hints: Any) -> None:
+    def __init__(self, obj: TextstreamLike, **hints: Any) -> None:
         pass
 
     def unwrap(self) -> Any:
-        return unwrap_if_possible(self._backend)
+        return unwrap(self._backend)
 
     @property
     def name(self) -> str | None:
@@ -53,13 +55,13 @@ class TextstreamFileView(TextstreamView, io.TextIOBase, TextstreamAPI):
         if self.closed:
             raise ValueError("I/O operation on closed file.")
         if hasattr(self._backend, "flush"):
-            self._backend.flush()  # type: ignore[attr-defined]
+            self._backend.flush()
 
-    def read(self, size: int = -1) -> str:
+    def read(self, size: int | None = -1) -> str:
         if self.closed:
             raise ValueError("I/O operation on closed file.")
 
-        if size < 0:
+        if size is None or size < 0:
             if self._readline_buffer:
                 prefix = self._readline_buffer
                 self._readline_buffer = ""
@@ -80,11 +82,13 @@ class TextstreamFileView(TextstreamView, io.TextIOBase, TextstreamAPI):
 
         return self._backend.read(size)
 
-    def readline(self, size: int = -1) -> str:
+    def readline(self, size: int | None = -1) -> str:  # type: ignore[override] ## https://github.com/python/mypy/issues/9643
         if self.closed:
             raise ValueError("I/O operation on closed file.")
         if size == 0:
             return ""
+        if size is None:
+            size = -1
 
         parts: list[str] = []
         total = 0
@@ -132,7 +136,7 @@ class TextstreamFileView(TextstreamView, io.TextIOBase, TextstreamAPI):
 
         return "".join(parts)
 
-    def readlines(self, hint: int = -1) -> list[str]:
+    def readlines(self, hint: int = -1) -> list[str]:  # type: ignore[override] ## https://github.com/python/mypy/issues/9643
         if self.closed:
             raise ValueError("I/O operation on closed file.")
 
@@ -150,10 +154,10 @@ class TextstreamFileView(TextstreamView, io.TextIOBase, TextstreamAPI):
 
         return lines
 
-    def __iter__(self) -> Iterator[str]:
+    def __iter__(self) -> Iterator[str]:  # type: ignore[override] ## https://github.com/python/mypy/issues/9643
         return self
 
-    def __next__(self) -> str:
+    def __next__(self) -> str:  # type: ignore[override] ## https://github.com/python/mypy/issues/9643
         line = self.readline()
         if line == "":
             raise StopIteration
@@ -165,9 +169,9 @@ class TextstreamFileView(TextstreamView, io.TextIOBase, TextstreamAPI):
         if not hasattr(self._backend, "seek"):
             raise io.UnsupportedOperation("underlying stream is not seekable")
 
-        pos = self._backend.seek(offset, whence)  # type: ignore[attr-defined]
+        pos = self._backend.seek(offset, whence)
         self._readline_buffer = ""
-        return cast(int, pos)
+        return pos
 
     def tell(self) -> int:
         if self.closed:
@@ -175,20 +179,20 @@ class TextstreamFileView(TextstreamView, io.TextIOBase, TextstreamAPI):
         if not hasattr(self._backend, "tell"):
             raise io.UnsupportedOperation("underlying stream does not support tell()")
 
-        pos = self._backend.tell()  # type: ignore[attr-defined]
-        return cast(int, pos) - len(self._readline_buffer)
+        pos = self._backend.tell()
+        return pos - len(self._readline_buffer)
 
     def detach(self) -> NoReturn:
         raise io.UnsupportedOperation("detach")
 
     @property
-    def encoding(self) -> str | None:
-        return cast(str | None, getattr(self._backend, "encoding", None))
+    def encoding(self) -> str | None:  # type: ignore[override] ## these should not be writable
+        return getattr(self._backend, "encoding", None)
 
     @property
-    def errors(self) -> str | None:
-        return cast(str | None, getattr(self._backend, "errors", None))
+    def errors(self) -> str | None:  # type: ignore[override] ## these should not be writable
+        return getattr(self._backend, "errors", None)
 
     @property
-    def newlines(self) -> str | tuple[str, ...] | None:
-        return cast(str | tuple[str, ...] | None, getattr(self._backend, "newlines", None))
+    def newlines(self) -> str | tuple[str, ...] | None:  # type: ignore[override] ## these should not be writable
+        return getattr(self._backend, "newlines", None)
