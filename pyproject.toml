@@ -26,6 +26,9 @@ package-dir = {"" = "src"}
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+"httk.core" = ["py.typed"]
+
 [project.optional-dependencies]
 dev = [
   "pytest>=8.0",
