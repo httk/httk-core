@@ -1,4 +1,5 @@
 import io
+import urllib.request
 from pathlib import Path
 
 import pytest
@@ -11,13 +12,21 @@ from httk.core.datastream import (
     BytestreamFileView,
     BytestreamFilename,
     BytestreamFilenameView,
+    BytestreamRequest,
+    BytestreamRequestView,
+    BytestreamURL,
+    BytestreamURLView,
     TextstreamBackend,
     TextstreamFile,
     TextstreamFileView,
     TextstreamFilename,
     TextstreamFilenameView,
+    TextstreamRequest,
+    TextstreamRequestView,
     TextstreamString,
     TextstreamStringView,
+    TextstreamURL,
+    TextstreamURLView,
 )
 from httk.core.views import unwrap
 
@@ -281,3 +290,161 @@ def test_bytestream_unwrap_for_views_and_non_views(tmp_path: Path) -> None:
     assert unwrapped_bytes_stream.read() == b""
 
     assert unwrap({"k": "v"}) == {"k": "v"}
+
+
+# --- Request/URL backends and views (urllib-based, using file:// URLs, no network) ---
+
+
+def test_textstream_request_backend_auto_dispatch_and_lazy_read(tmp_path: Path) -> None:
+    p = tmp_path / "req.txt"
+    p.write_text("request-body\n")
+    uri = p.as_uri()
+
+    backend = TextstreamBackend.create(urllib.request.Request(uri))
+    assert isinstance(backend, TextstreamRequest)
+    assert backend.name is None
+    assert backend.url == uri
+    assert backend.read() == "request-body\n"
+
+
+def test_bytestream_request_backend_auto_dispatch_and_lazy_read(tmp_path: Path) -> None:
+    p = tmp_path / "req.bin"
+    p.write_bytes(b"request-body\n")
+    uri = p.as_uri()
+
+    backend = BytestreamBackend.create(urllib.request.Request(uri))
+    assert isinstance(backend, BytestreamRequest)
+    assert backend.name is None
+    assert backend.url == uri
+    assert backend.read() == b"request-body\n"
+
+
+def test_textstream_url_backend_requires_explicit_kind_hint(tmp_path: Path) -> None:
+    p = tmp_path / "url.txt"
+    p.write_text("url-body\n")
+    uri = p.as_uri()
+
+    url_backend = TextstreamBackend.create(uri, kind="url")
+    assert isinstance(url_backend, TextstreamURL)
+    assert url_backend.name is None
+    assert url_backend.url == uri
+    assert url_backend.read() == "url-body\n"
+
+    # Regression guard: without the hint a URL string still dispatches to *Filename.
+    default_backend = TextstreamBackend.create(uri)
+    assert isinstance(default_backend, TextstreamFilename)
+
+    with pytest.raises(TypeError):
+        TextstreamBackend.create("no-scheme", kind="url")
+
+
+def test_bytestream_url_backend_requires_explicit_kind_hint(tmp_path: Path) -> None:
+    p = tmp_path / "url.bin"
+    p.write_bytes(b"url-body\n")
+    uri = p.as_uri()
+
+    url_backend = BytestreamBackend.create(uri, kind="url")
+    assert isinstance(url_backend, BytestreamURL)
+    assert url_backend.read() == b"url-body\n"
+
+    default_backend = BytestreamBackend.create(uri)
+    assert isinstance(default_backend, BytestreamFilename)
+
+    with pytest.raises(TypeError):
+        BytestreamBackend.create("no-scheme", kind="url")
+
+
+def test_filename_view_raises_for_url_backend(tmp_path: Path) -> None:
+    p = tmp_path / "no-filename.txt"
+    p.write_text("data\n")
+    uri = p.as_uri()
+
+    text_url = TextstreamBackend.create(uri, kind="url")
+    with pytest.raises(TypeError):
+        TextstreamFilenameView(text_url)
+
+    bytes_url = BytestreamBackend.create(uri, kind="url")
+    with pytest.raises(TypeError):
+        BytestreamFilenameView(bytes_url)
+
+
+def test_url_view_from_url_and_request_backends_and_type_error(tmp_path: Path) -> None:
+    p = tmp_path / "urlview.txt"
+    p.write_text("uv\n")
+    uri = p.as_uri()
+
+    text_url = TextstreamBackend.create(uri, kind="url")
+    url_view = TextstreamURLView(text_url)
+    assert isinstance(url_view, str)
+    assert url_view == uri
+
+    request_backend = TextstreamBackend.create(urllib.request.Request(uri))
+    assert TextstreamURLView(request_backend) == uri
+
+    with pytest.raises(TypeError):
+        TextstreamURLView(TextstreamString("no url here"))
+
+    bytes_url = BytestreamBackend.create(uri, kind="url")
+    assert BytestreamURLView(bytes_url) == uri
+    with pytest.raises(TypeError):
+        BytestreamURLView(BytestreamBytes(b"no url here"))
+
+
+def test_request_view_is_request_with_matching_url_and_copies_headers(tmp_path: Path) -> None:
+    p = tmp_path / "reqview.txt"
+    p.write_text("rv\n")
+    uri = p.as_uri()
+
+    url_backend = TextstreamBackend.create(uri, kind="url")
+    request_view = TextstreamRequestView(url_backend)
+    assert isinstance(request_view, urllib.request.Request)
+    assert request_view.full_url == uri
+
+    original = urllib.request.Request(uri, headers={"X-Test": "yes"})
+    request_backend = TextstreamBackend.create(original)
+    copied_view = TextstreamRequestView(request_backend)
+    assert copied_view.full_url == uri
+    assert copied_view.headers == original.headers
+
+    # Rewrapping an existing request view returns the same object (no re-init).
+    assert TextstreamRequestView(copied_view) is copied_view
+
+
+def test_bytestream_request_view_from_url_backend(tmp_path: Path) -> None:
+    p = tmp_path / "b-reqview.bin"
+    p.write_bytes(b"rv\n")
+    uri = p.as_uri()
+
+    url_backend = BytestreamBackend.create(uri, kind="url")
+    request_view = BytestreamRequestView(url_backend)
+    assert isinstance(request_view, urllib.request.Request)
+    assert request_view.full_url == uri
+
+
+def test_textstream_url_decoding_default_utf8_and_encoding_hint(tmp_path: Path) -> None:
+    utf8_path = tmp_path / "utf8.txt"
+    utf8_path.write_text("héllo\n", encoding="utf-8")
+    utf8_backend = TextstreamBackend.create(utf8_path.as_uri(), kind="url")
+    assert utf8_backend.read() == "héllo\n"
+
+    latin_path = tmp_path / "latin.txt"
+    latin_path.write_bytes("café\n".encode("latin-1"))
+    latin_backend = TextstreamBackend.create(latin_path.as_uri(), kind="url", encoding="latin-1")
+    assert latin_backend.read() == "café\n"
+
+
+def test_request_backend_close_without_fetch_then_read_raises(tmp_path: Path) -> None:
+    p = tmp_path / "lazy.txt"
+    p.write_text("never-read\n")
+    uri = p.as_uri()
+
+    backend = TextstreamBackend.create(urllib.request.Request(uri))
+    backend.close()
+    assert backend.closed
+    with pytest.raises(ValueError):
+        backend.read()
+
+    bytes_backend = BytestreamBackend.create(uri, kind="url")
+    bytes_backend.close()
+    with pytest.raises(ValueError):
+        bytes_backend.read()

@@ -1,5 +1,6 @@
 import io
 import pathlib
+import urllib.request
 
 from . import bytestream_backend, bytestream_view
 
@@ -12,4 +13,5 @@ type BytestreamLike = (
     | bytearray
     | str
     | pathlib.Path
+    | urllib.request.Request
 )
