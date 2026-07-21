@@ -15,16 +15,16 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from pathlib import Path
-from typing import Any
 
 from ._plugins import PluginRegistry
 
 loaders = PluginRegistry()
 
+
 def register_loader(*, name: str, loader: str, extensions: tuple[str, ...]) -> None:
     for ext in extensions:
         loaders.register(key=ext.lower(), handler=loader, name=name)
+
 
 def known_extensions() -> list[str]:
     return loaders.keys()

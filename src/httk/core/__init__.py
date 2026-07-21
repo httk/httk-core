@@ -18,26 +18,84 @@
 import pkgutil
 
 import httk
-from ._discover import discover_and_register
 
-discover_and_register()
+from . import _discover
+from .datastream import (
+    BytestreamBackend,
+    BytestreamBytes,
+    BytestreamBytesView,
+    BytestreamCommon,
+    BytestreamFile,
+    BytestreamFilename,
+    BytestreamFilenameView,
+    BytestreamFileView,
+    BytestreamLike,
+    BytestreamRequest,
+    BytestreamRequestView,
+    BytestreamURL,
+    BytestreamURLView,
+    BytestreamView,
+    TextstreamBackend,
+    TextstreamCommon,
+    TextstreamFile,
+    TextstreamFilename,
+    TextstreamFilenameView,
+    TextstreamFileView,
+    TextstreamLike,
+    TextstreamRequest,
+    TextstreamRequestView,
+    TextstreamString,
+    TextstreamStringView,
+    TextstreamURL,
+    TextstreamURLView,
+    TextstreamView,
+)
+from .loading import load
+from .views import Backend, View, unwrap
+
+_discover.discover_and_register()
+
 
 def _discover_modules():
     prefix = httk.__name__ + "."
-
-    names = [
-        m.name
-        for m in pkgutil.iter_modules(
-            httk.__path__,
-            prefix
-        )
-        if m.ispkg
-    ]
-
+    names = [m.name for m in pkgutil.iter_modules(httk.__path__, prefix) if m.ispkg]
     return names
+
 
 subpackages = _discover_modules()
 
-from ._loader import load
-
-__all__ = ["load", "subpackages"]
+__all__ = [
+    "load",
+    "subpackages",
+    "Backend",
+    "View",
+    "unwrap",
+    "BytestreamView",
+    "BytestreamFileView",
+    "BytestreamFilenameView",
+    "BytestreamBytesView",
+    "BytestreamRequestView",
+    "BytestreamURLView",
+    "BytestreamBackend",
+    "BytestreamCommon",
+    "BytestreamFile",
+    "BytestreamFilename",
+    "BytestreamBytes",
+    "BytestreamRequest",
+    "BytestreamURL",
+    "BytestreamLike",
+    "TextstreamView",
+    "TextstreamFileView",
+    "TextstreamFilenameView",
+    "TextstreamStringView",
+    "TextstreamRequestView",
+    "TextstreamURLView",
+    "TextstreamBackend",
+    "TextstreamCommon",
+    "TextstreamFile",
+    "TextstreamFilename",
+    "TextstreamString",
+    "TextstreamRequest",
+    "TextstreamURL",
+    "TextstreamLike",
+]

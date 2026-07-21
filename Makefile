@@ -1,16 +1,15 @@
 PYTHON ?= python3
 
-.PHONY: docs docs-clean format format-check typecheck_pyright typecheck lint
+.PHONY: docs docs-live docs-clean clean format format-check typecheck typecheck_pyright lint test test_fastfail audit
 
-docs:
-	$(PYTHON) -m sphinx -b html -W --keep-going docs docs/_build/html
+docs: docs-clean
+	$(PYTHON) -m sphinx -E -a -b html -W --keep-going docs docs/_build/html
 
 docs-live:
 	sphinx-autobuild docs docs/_build/html
 
 docs-clean:
 	rm -rf docs/_build docs/reference/autoapi
-
 
 clean: docs-clean
 	find . -name "*.pyc" -print0 | xargs -0 rm -f
@@ -23,9 +22,11 @@ format:
 	$(PYTHON) -m black src examples
 
 format-check:
-	$(PYTHON) -m ruff check src examples
 	$(PYTHON) -m isort --check-only src examples
 	$(PYTHON) -m black --check src examples
+
+lint:
+	$(PYTHON) -m ruff check src examples
 
 typecheck_pyright:
 	$(PYTHON) -m pyright
@@ -33,5 +34,10 @@ typecheck_pyright:
 typecheck:
 	$(PYTHON) -m mypy
 
-lint:
-	$(PYTHON) -m ruff check src examples
+test:
+	$(PYTHON) -m pytest
+
+test_fastfail:
+	$(PYTHON) -m pytest -q -x
+
+ci: format-check lint typecheck typecheck_pyright test_fastfail

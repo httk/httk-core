@@ -17,7 +17,7 @@
 
 from dataclasses import dataclass
 from importlib import import_module
-from typing import Any, Callable, Iterable, Mapping
+from typing import Any, Callable
 
 CallableRef = str | Callable[..., Any]
 
@@ -53,6 +53,7 @@ class PluginSpec:
     - `key`: selection key (e.g., a file extension like ".cif", or a format name like "cif")
     - `handler`: callable or "module:callable" reference (lazy)
     """
+
     key: str
     handler: CallableRef
     name: str | None = None  # optional display name
@@ -92,5 +93,3 @@ class PluginRegistry:
         spec = self.require(key)
         fn = resolve_callable(spec.handler)
         return fn(*args, **kwargs)
-
-
