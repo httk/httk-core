@@ -21,7 +21,7 @@ format:
 	$(PYTHON) -m isort src examples
 	$(PYTHON) -m black src examples
 
-format-check:
+format-check: lint
 	$(PYTHON) -m isort --check-only src examples
 	$(PYTHON) -m black --check src examples
 
@@ -40,4 +40,8 @@ test:
 test_fastfail:
 	$(PYTHON) -m pytest -q -x
 
-ci: format-check lint typecheck typecheck_pyright test_fastfail
+check: format-check typecheck typecheck_pyright test
+
+ci: format-check typecheck typecheck_pyright test_fastfail
+
+
