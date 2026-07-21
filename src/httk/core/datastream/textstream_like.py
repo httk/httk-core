@@ -1,5 +1,6 @@
 import io
 import pathlib
+import urllib.request
 
 from . import textstream_backend, textstream_view
 
@@ -10,4 +11,5 @@ type TextstreamLike = (
     | io.StringIO
     | str
     | pathlib.Path
+    | urllib.request.Request
 )
