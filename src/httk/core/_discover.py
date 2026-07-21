@@ -15,7 +15,10 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import importlib, importlib.util, pkgutil
+import importlib
+import importlib.util
+import pkgutil
+
 
 def discover_and_register():
     import httk.handlers
@@ -29,4 +32,4 @@ def discover_and_register():
         if spec is None:
             continue
 
-        mod = importlib.import_module(m.name)  # imports only that handler package chain
+        _mod = importlib.import_module(m.name)  # imports only that handler package chain

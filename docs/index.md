@@ -6,6 +6,8 @@
 :class: tip
 
 - **API reference**: {doc}`reference/index`
+- **Views and backends guide**: {doc}`view_backend_pattern`
+- **Datastream guide**: {doc}`datastreams`
 - **Examples notebook**: {doc}`notebooks/examples`
 ````
 
@@ -21,7 +23,7 @@ python -m pip install -e .
 ## Usage (tiny example)
 
 ```python
-from httk-core import subpackages
+from httk.core import subpackages
 
 print(subpackages)
 ```
@@ -31,5 +33,7 @@ print(subpackages)
 :caption: Documentation
 
 reference/index
+view_backend_pattern
+datastreams
 notebooks/examples
 ```
