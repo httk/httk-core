@@ -19,12 +19,12 @@ import pkgutil
 
 import httk
 
-from ._discover import discover_and_register
-from ._loader import load
+from . import _discover
 from .datastream import (
     BytestreamBackend,
     BytestreamBytes,
     BytestreamBytesView,
+    BytestreamCommon,
     BytestreamFile,
     BytestreamFilename,
     BytestreamFilenameView,
@@ -32,6 +32,7 @@ from .datastream import (
     BytestreamLike,
     BytestreamView,
     TextstreamBackend,
+    TextstreamCommon,
     TextstreamFile,
     TextstreamFilename,
     TextstreamFilenameView,
@@ -41,9 +42,10 @@ from .datastream import (
     TextstreamStringView,
     TextstreamView,
 )
+from .loading import load
 from .views import Backend, View, unwrap
 
-discover_and_register()
+_discover.discover_and_register()
 
 
 def _discover_modules():
@@ -65,6 +67,7 @@ __all__ = [
     "BytestreamFilenameView",
     "BytestreamBytesView",
     "BytestreamBackend",
+    "BytestreamCommon",
     "BytestreamFile",
     "BytestreamFilename",
     "BytestreamBytes",
@@ -74,6 +77,7 @@ __all__ = [
     "TextstreamFilenameView",
     "TextstreamStringView",
     "TextstreamBackend",
+    "TextstreamCommon",
     "TextstreamFile",
     "TextstreamFilename",
     "TextstreamString",

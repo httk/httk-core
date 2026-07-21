@@ -2,8 +2,8 @@ PYTHON ?= python3
 
 .PHONY: docs docs-live docs-clean clean format format-check typecheck typecheck_pyright lint test test_fastfail audit
 
-docs:
-	$(PYTHON) -m sphinx -b html -W --keep-going docs docs/_build/html
+docs: docs-clean
+	$(PYTHON) -m sphinx -E -a -b html -W --keep-going docs docs/_build/html
 
 docs-live:
 	sphinx-autobuild docs docs/_build/html

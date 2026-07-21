@@ -8,7 +8,7 @@ version = "2.0.0"
 description = "httk2 core functionality"
 readme = "README.md"
 license = "AGPL-3.0+"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 authors = [{ name = "Rickard Armiento", email = "rickard-gpg@armiento.net" }]
 dependencies = [
 ]
@@ -54,22 +54,22 @@ testpaths = ["tests"]
 profile = "black"
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py312"
 src = ["src", "examples"]
 
 [tool.black]
-target-version = ["py311"]
+target-version = ["py312"]
 line-length = 120
 skip-string-normalization = true
 
 [tool.pyright]
-pythonVersion = "3.11"
+pythonVersion = "3.12"
 include = ["src", "examples"]
 reportMissingImports = true
 extraPaths = []
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 files = ["src", "examples"]
 mypy_path = ["src"]
 namespace_packages = true

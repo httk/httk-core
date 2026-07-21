@@ -1,10 +1,8 @@
 from abc import ABC
-from typing import Any, ClassVar, Generic, Self, TypeVar, cast
-
-T_Backend = TypeVar("T_Backend", bound="Backend")
+from typing import Any, ClassVar, Self, cast
 
 
-class Backend(Generic[T_Backend], ABC):
+class Backend[BackendT: Backend](ABC):
     """
     Abstract base class to be subclassed into classes that keep track of alternative
     representations of certain types of data, all adhering to a common API interface.
