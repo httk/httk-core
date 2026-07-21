@@ -1,5 +1,3 @@
-import os
-import sys
 import warnings
 from datetime import date
 
@@ -12,8 +10,8 @@ copyright = f"{date.today().year}, {author}"
 
 extensions = [
     # Core API docs
-    "sphinx.ext.autodoc",        # pull docstrings :contentReference[oaicite:4]{index=4}
-    "sphinx.ext.autosummary",    # API summary tables + stub gen :contentReference[oaicite:5]{index=5}
+    "sphinx.ext.autodoc",        # pull docstrings
+    "sphinx.ext.autosummary",    # API summary tables + stub gen
     "sphinx.ext.napoleon",       # Google/NumPy docstrings
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
@@ -24,7 +22,7 @@ extensions = [
     "sphinx_copybutton",
 
     # Markdown + notebooks
-    "myst_nb",                   # .ipynb support :contentReference[oaicite:6]{index=6}
+    "myst_nb",                   # .ipynb support
 
     "autoapi.extension",
 ]
@@ -64,7 +62,7 @@ myst_heading_anchors = 3
 # myst-nb config: don't execute notebooks during docs build by default
 nb_execution_mode = "off"
 
-html_theme = "furo"  # modern theme :contentReference[oaicite:7]{index=7}
+html_theme = "furo"
 html_theme_options = {
     "sidebar_hide_name": False,
     "navigation_with_keys": True,
@@ -87,13 +85,12 @@ autoapi_ignore = []  # include everything
 
 autoapi_type = "python"
 autoapi_dirs = ["../src/httk"]
-autoapi_add_toctree_entry = False
+autoapi_add_toctree_entry = True
 autoapi_keep_files = True
 autoapi_member_order = "bysource"
 autoapi_python_class_content = "module"  # docstring under class, not merged from __init__
 autoapi_python_use_implicit_namespaces = True
-autoapi_ignore = []
-#autoapi_template_dir = "_templates/autoapi"
+autoapi_template_dir = "_templates/autoapi"
 
 nitpicky = True
 nitpick_ignore = [
@@ -115,4 +112,3 @@ def skip_member(app, what, name, obj, skip, options):
 
 def setup(sphinx):
     sphinx.connect('autoapi-skip-member', skip_member)
-

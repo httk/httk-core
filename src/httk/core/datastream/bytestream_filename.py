@@ -2,8 +2,8 @@ import io
 from pathlib import Path
 from typing import Any
 
-from ._bytestream_common import BytestreamCommon
 from .bytestream_backend import BytestreamBackend
+from .bytestream_common import BytestreamCommon
 
 
 class BytestreamFilename(BytestreamCommon, BytestreamBackend):

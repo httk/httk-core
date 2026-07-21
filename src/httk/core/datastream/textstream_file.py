@@ -1,8 +1,8 @@
 import io
 from typing import Any
 
-from ._textstream_common import TextstreamCommon
 from .textstream_backend import TextstreamBackend
+from .textstream_common import TextstreamCommon
 
 
 class TextstreamFile(TextstreamCommon, TextstreamBackend):

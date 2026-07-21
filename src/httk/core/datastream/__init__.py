@@ -1,6 +1,7 @@
 from .bytestream_backend import BytestreamBackend
 from .bytestream_bytes import BytestreamBytes
 from .bytestream_bytes_view import BytestreamBytesView
+from .bytestream_common import BytestreamCommon
 from .bytestream_file import BytestreamFile
 from .bytestream_file_view import BytestreamFileView
 from .bytestream_filename import BytestreamFilename
@@ -8,6 +9,7 @@ from .bytestream_filename_view import BytestreamFilenameView
 from .bytestream_like import BytestreamLike
 from .bytestream_view import BytestreamView
 from .textstream_backend import TextstreamBackend
+from .textstream_common import TextstreamCommon
 from .textstream_file import TextstreamFile
 from .textstream_file_view import TextstreamFileView
 from .textstream_filename import TextstreamFilename
@@ -26,6 +28,7 @@ __all__ = [
     "BytestreamFilenameView",
     "BytestreamBytesView",
     "BytestreamBackend",
+    "BytestreamCommon",
     "BytestreamFile",
     "BytestreamFilename",
     "BytestreamBytes",
@@ -35,6 +38,7 @@ __all__ = [
     "TextstreamFilenameView",
     "TextstreamStringView",
     "TextstreamBackend",
+    "TextstreamCommon",
     "TextstreamFile",
     "TextstreamFilename",
     "TextstreamString",

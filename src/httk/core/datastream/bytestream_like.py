@@ -1,8 +1,15 @@
 import io
-from pathlib import Path
-from typing import TypeAlias
+import pathlib
 
-from .bytestream_backend import BytestreamBackend
-from .bytestream_view import BytestreamView
+from . import bytestream_backend, bytestream_view
 
-BytestreamLike: TypeAlias = BytestreamBackend | BytestreamView | io.IOBase | io.BytesIO | bytes | bytearray | str | Path
+type BytestreamLike = (
+    bytestream_backend.BytestreamBackend
+    | bytestream_view.BytestreamView
+    | io.IOBase
+    | io.BytesIO
+    | bytes
+    | bytearray
+    | str
+    | pathlib.Path
+)

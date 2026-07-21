@@ -9,4 +9,4 @@ class TextstreamBackend(Backend["TextstreamBackend"], TextstreamAPI):
     Abstract base class for all backends of streaming text data.
     """
 
-    backend_classes: ClassVar[list[type["Backend[Any]"]]]
+    backend_classes: ClassVar[list[type[Backend[Any]]]]

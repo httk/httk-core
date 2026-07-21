@@ -2,8 +2,8 @@ import io
 from pathlib import Path
 from typing import Any
 
-from ._textstream_common import TextstreamCommon
 from .textstream_backend import TextstreamBackend
+from .textstream_common import TextstreamCommon
 
 
 class TextstreamFilename(TextstreamCommon, TextstreamBackend):

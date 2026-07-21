@@ -1,12 +1,10 @@
-from typing import Any, ClassVar, Generic, TypeVar
+from typing import Any, ClassVar
 
 from .backend import Backend
-from .unwrap import unwrap
-
-T_Backend = TypeVar("T_Backend", bound="Backend")
+from .unwrapping import unwrap
 
 
-class View(Generic[T_Backend]):
+class View[BackendT: Backend]:
     """
     A set of views allow manipulating data and state of a backend through different interfaces.
     Hence, creating a View from a Backend, or from another View, allows to read and operate on the data through the interface of that view,
@@ -25,14 +23,14 @@ class View(Generic[T_Backend]):
     # Python typing, and mypy in particular, have trouble with variables being assigned abstract base classes
     _backend_base_cls: ClassVar[Any]  # Subclass of Backend that defines a set of backends for similar data
     _view_base_cls: ClassVar[Any]  # Subclass of view that defines a set of views of similar data
-    _backend: T_Backend
+    _backend: BackendT
 
     @classmethod
     def _prepare_backend(
         cls,
         obj: Any,
         hints: dict[str, Any],
-    ) -> T_Backend:
+    ) -> BackendT:
         """
         Normalize an arbitrary backend/view/raw object into a backend suitable for constructing a view.
 

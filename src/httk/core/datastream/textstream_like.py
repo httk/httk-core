@@ -1,10 +1,13 @@
 import io
-from pathlib import Path
-from typing import TypeAlias
+import pathlib
 
-from .textstream_backend import TextstreamBackend
-from .textstream_view import TextstreamView
+from . import textstream_backend, textstream_view
 
-# TextstreamView: TypeAlias = TextstreamFileView | TextstreamFilenameView | TextstreamStringView
-# TextstreamImplementation: TypeAlias = TextstreamFile | TextstreamFilename | TextstreamString
-TextstreamLike: TypeAlias = TextstreamBackend | TextstreamView | io.TextIOBase | io.StringIO | str | Path
+type TextstreamLike = (
+    textstream_backend.TextstreamBackend
+    | textstream_view.TextstreamView
+    | io.TextIOBase
+    | io.StringIO
+    | str
+    | pathlib.Path
+)

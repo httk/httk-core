@@ -1,8 +1,8 @@
 import io
 from typing import Any
 
-from ._bytestream_common import BytestreamCommon
 from .bytestream_backend import BytestreamBackend
+from .bytestream_common import BytestreamCommon
 
 
 class BytestreamBytes(BytestreamCommon, BytestreamBackend):
