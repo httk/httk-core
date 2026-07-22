@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "httk-core"
 version = "2.0.0"
-description = "httk2 core functionality"
+description = "httk₂ core functionality"
 readme = "README.md"
 license = "AGPL-3.0-or-later"
 license-files = ["LICENSE"]
