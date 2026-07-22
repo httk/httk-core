@@ -20,6 +20,7 @@ import pkgutil
 import httk
 
 from . import _discover
+from .dataloader import DataLoader, DataRecord, DatasetMeta, DecodeObjectCallback
 from .datastream import (
     BytestreamBackend,
     BytestreamBytes,
@@ -67,6 +68,10 @@ subpackages = _discover_modules()
 __all__ = [
     "load",
     "subpackages",
+    "DataLoader",
+    "DataRecord",
+    "DatasetMeta",
+    "DecodeObjectCallback",
     "Backend",
     "View",
     "unwrap",
