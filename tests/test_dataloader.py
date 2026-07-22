@@ -1,3 +1,4 @@
+import gzip
 import json
 import pickle
 from pathlib import Path
@@ -218,7 +219,29 @@ def test_structured_doc_tolerates_missing_data_key(tmp_path: Path) -> None:
 
 def test_load_from_file_url_source(tmp_path: Path) -> None:
     p = _write_json(tmp_path, "via_url.json", _structured_doc())
-    loader = DataLoader("file_url_source", p.as_uri(), kind="url")
+    # A bare file:// URL string is auto-recognized as a URL (no kind="url" needed).
+    loader = DataLoader("file_url_source", p.as_uri())
     assert loader.data.spacegroups[1]["symbol"] == "P-1"
     assert loader.meta is not None
     assert loader.meta.id == "https://example.org/symmetry_basics"
+
+
+def test_load_from_gzipped_json(tmp_path: Path) -> None:
+    p = tmp_path / "symmetry.json.gz"
+    with gzip.open(p, "wt", encoding="utf-8") as f:
+        json.dump(_structured_doc(), f)
+
+    loader = DataLoader("gzip_structured", p)
+    assert loader.data.spacegroups[0]["symbol"] == "P1"
+    assert loader.meta is not None
+    assert loader.meta.id == "https://example.org/symmetry_basics"
+
+
+def test_load_from_gzipped_json_via_file_url(tmp_path: Path) -> None:
+    p = tmp_path / "sym_url.json.gz"
+    with gzip.open(p, "wt", encoding="utf-8") as f:
+        json.dump({"a": 1, "b": [2, 3]}, f)
+
+    # Extension is taken from the URL path; the stream layer decompresses transparently.
+    loader = DataLoader("gzip_via_url", p.as_uri())
+    assert loader.data == {"a": 1, "b": [2, 3]}

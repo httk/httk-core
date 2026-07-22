@@ -12,6 +12,7 @@ from .bytestream_request_view import BytestreamRequestView
 from .bytestream_url import BytestreamURL
 from .bytestream_url_view import BytestreamURLView
 from .bytestream_view import BytestreamView
+from .compression import CompressionCodec, known_compressions, register_compression
 from .textstream_backend import TextstreamBackend
 from .textstream_common import TextstreamCommon
 from .textstream_file import TextstreamFile
@@ -27,19 +28,21 @@ from .textstream_url import TextstreamURL
 from .textstream_url_view import TextstreamURLView
 from .textstream_view import TextstreamView
 
+# *URL backends precede *Filename/*String so a bare scheme'd string dispatches to a URL;
+# an explicit kind= hint still forces the intended interpretation either way.
 BytestreamBackend.backend_classes = [
     BytestreamFile,
-    BytestreamFilename,
-    BytestreamBytes,
     BytestreamRequest,
     BytestreamURL,
+    BytestreamFilename,
+    BytestreamBytes,
 ]
 TextstreamBackend.backend_classes = [
     TextstreamFile,
-    TextstreamFilename,
-    TextstreamString,
     TextstreamRequest,
     TextstreamURL,
+    TextstreamFilename,
+    TextstreamString,
 ]
 
 __all__ = [
@@ -71,4 +74,7 @@ __all__ = [
     "TextstreamRequest",
     "TextstreamURL",
     "TextstreamLike",
+    "CompressionCodec",
+    "register_compression",
+    "known_compressions",
 ]

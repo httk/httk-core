@@ -1,9 +1,11 @@
 import io
+import urllib.parse
 import urllib.request
 from typing import Any, cast
 
 from .bytestream_backend import BytestreamBackend
 from .bytestream_common import BytestreamCommon
+from .compression import open_compressed, validate_compression
 
 
 class BytestreamRequest(BytestreamCommon, BytestreamBackend):
@@ -13,7 +15,9 @@ class BytestreamRequest(BytestreamCommon, BytestreamBackend):
 
     _request: urllib.request.Request
     _timeout: float | None
+    _compression: str
     _f: io.IOBase | None
+    _underlying: io.IOBase | None
     _closed: bool
 
     # mypy does not allow to type annotate __new__ as `Self | None` for some reason
@@ -27,7 +31,10 @@ class BytestreamRequest(BytestreamCommon, BytestreamBackend):
     def __init__(self, request: urllib.request.Request, **hints: Any) -> None:
         self._request = request
         self._timeout = hints.get("timeout")
+        self._compression = hints.get("compression", "auto")
+        validate_compression(self._compression)
         self._f = None
+        self._underlying = None
         self._closed = False
 
     def _ensure_f(self) -> io.IOBase:
@@ -38,7 +45,11 @@ class BytestreamRequest(BytestreamCommon, BytestreamBackend):
                 resp = urllib.request.urlopen(self._request)
             else:
                 resp = urllib.request.urlopen(self._request, timeout=self._timeout)
-            self._f = cast(io.IOBase, resp)
+            raw = cast(io.IOBase, resp)
+            name = urllib.parse.urlsplit(self._request.full_url).path
+            opened = open_compressed(raw, compression=self._compression, name=name)
+            self._underlying = raw if opened is not raw else None
+            self._f = opened
         return self._f
 
     @property

@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Any, ClassVar
 
 from .datastream import TextstreamFileView, TextstreamLike
+from .datastream.compression import split_compression_suffix
 
 type DecodeObjectCallback = Callable[[dict[str, Any], str], Any]
 """Callback invoked as ``(dict_obj, jsonld_url)`` that returns the value to use in place of
@@ -179,10 +180,13 @@ class DataLoader:
     their ``source`` and ``decode_object`` arguments are ignored. Keeping identifiers unique
     is the caller's responsibility. Not thread-safe.
 
-    Format is resolved from the source name: a ``.json`` name is parsed as JSON; any other
-    recognizable suffix raises ``ValueError``; a source with no determinable name is treated
-    as JSON. A ``str``/``Path`` source is interpreted as a filename by default; pass
-    ``kind="content"`` or ``kind="url"`` through the keyword hints as usual.
+    Format is resolved from the source name after stripping any compression suffix: a ``.json``
+    name (e.g. ``data.json`` or ``data.json.gz``) is parsed as JSON; any other recognizable
+    suffix raises ``ValueError``; a source with no determinable name is treated as JSON.
+    Compression is handled transparently by the stream layer, so ``.json.gz`` and similar load
+    directly. A ``str``/``Path`` source is interpreted as a filename unless its scheme marks it
+    as a URL (``http``, ``https``, ``ftp``, ``file``); pass ``kind="content"`` for literal
+    content or ``kind="filename"``/``kind="url"`` to force an interpretation.
 
     Example:
         symmetry_basics = DataLoader("symmetry_basics", "data/spacegroup_symbols.json")
@@ -224,7 +228,8 @@ class DataLoader:
 
         name = self._resolve_name()
         if name is not None:
-            suffix = Path(name).suffix.lower()
+            base, _ = split_compression_suffix(name)
+            suffix = Path(base).suffix.lower()
             if suffix not in ("", ".json"):
                 raise ValueError(f"unsupported data format: {suffix}")
 

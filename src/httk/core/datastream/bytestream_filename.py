@@ -4,6 +4,7 @@ from typing import Any
 
 from .bytestream_backend import BytestreamBackend
 from .bytestream_common import BytestreamCommon
+from .compression import open_compressed, validate_compression
 
 
 class BytestreamFilename(BytestreamCommon, BytestreamBackend):
@@ -12,7 +13,9 @@ class BytestreamFilename(BytestreamCommon, BytestreamBackend):
     """
 
     _filename: str
+    _compression: str
     _f: io.IOBase | None
+    _underlying: io.IOBase | None
     _closed: bool
 
     # mypy does not allow to type annotate __new__ as `Self | None` for some reason
@@ -25,14 +28,20 @@ class BytestreamFilename(BytestreamCommon, BytestreamBackend):
 
     def __init__(self, filename: str | Path, **hints: Any) -> None:
         self._filename = str(filename)
+        self._compression = hints.get("compression", "extension")
+        validate_compression(self._compression)
         self._f = None
+        self._underlying = None
         self._closed = False
 
     def _ensure_f(self) -> io.IOBase:
         if self._closed:
             raise ValueError("I/O operation on closed stream")
         if self._f is None:
-            self._f = open(self._filename, "rb")
+            raw = open(self._filename, "rb")
+            opened = open_compressed(raw, compression=self._compression, name=self._filename)
+            self._underlying = raw if opened is not raw else None
+            self._f = opened
         return self._f
 
     @property

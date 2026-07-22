@@ -1,7 +1,9 @@
 import io
+import urllib.parse
 import urllib.request
 from typing import Any, cast
 
+from .compression import open_compressed, validate_compression
 from .textstream_backend import TextstreamBackend
 from .textstream_common import TextstreamCommon
 
@@ -14,7 +16,9 @@ class TextstreamRequest(TextstreamCommon, TextstreamBackend):
     _request: urllib.request.Request
     _timeout: float | None
     _encoding: str | None
+    _compression: str
     _f: io.TextIOBase | None
+    _underlying: io.IOBase | None
     _closed: bool
 
     # mypy does not allow to type annotate __new__ as `Self | None` for some reason
@@ -29,7 +33,10 @@ class TextstreamRequest(TextstreamCommon, TextstreamBackend):
         self._request = request
         self._timeout = hints.get("timeout")
         self._encoding = hints.get("encoding")
+        self._compression = hints.get("compression", "auto")
+        validate_compression(self._compression)
         self._f = None
+        self._underlying = None
         self._closed = False
 
     def _ensure_f(self) -> io.TextIOBase:
@@ -41,7 +48,11 @@ class TextstreamRequest(TextstreamCommon, TextstreamBackend):
             else:
                 resp = urllib.request.urlopen(self._request, timeout=self._timeout)
             encoding = self._encoding or resp.headers.get_content_charset() or "utf-8"
-            self._f = io.TextIOWrapper(cast(io.BufferedReader, resp), encoding=encoding)
+            raw = cast(io.IOBase, resp)
+            name = urllib.parse.urlsplit(self._request.full_url).path
+            decompressed = open_compressed(raw, compression=self._compression, name=name)
+            self._underlying = raw if decompressed is not raw else None
+            self._f = io.TextIOWrapper(cast(io.BufferedReader, decompressed), encoding=encoding)
         return self._f
 
     @property

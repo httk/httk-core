@@ -1,3 +1,4 @@
+import gzip
 import io
 import urllib.request
 from pathlib import Path
@@ -319,7 +320,7 @@ def test_bytestream_request_backend_auto_dispatch_and_lazy_read(tmp_path: Path) 
     assert backend.read() == b"request-body\n"
 
 
-def test_textstream_url_backend_requires_explicit_kind_hint(tmp_path: Path) -> None:
+def test_textstream_url_backend_auto_recognizes_scheme_and_kind_overrides(tmp_path: Path) -> None:
     p = tmp_path / "url.txt"
     p.write_text("url-body\n")
     uri = p.as_uri()
@@ -330,15 +331,23 @@ def test_textstream_url_backend_requires_explicit_kind_hint(tmp_path: Path) -> N
     assert url_backend.url == uri
     assert url_backend.read() == "url-body\n"
 
-    # Regression guard: without the hint a URL string still dispatches to *Filename.
-    default_backend = TextstreamBackend.create(uri)
-    assert isinstance(default_backend, TextstreamFilename)
+    # A bare scheme'd string is auto-recognized as a URL (no kind hint needed).
+    auto_backend = TextstreamBackend.create(uri)
+    assert isinstance(auto_backend, TextstreamURL)
+    assert auto_backend.read() == "url-body\n"
+
+    # kind="filename" still forces a filename interpretation of the same string.
+    forced_filename = TextstreamBackend.create(uri, kind="filename")
+    assert isinstance(forced_filename, TextstreamFilename)
+
+    # A schemeless string is a filename by default.
+    assert isinstance(TextstreamBackend.create(str(p)), TextstreamFilename)
 
     with pytest.raises(TypeError):
         TextstreamBackend.create("no-scheme", kind="url")
 
 
-def test_bytestream_url_backend_requires_explicit_kind_hint(tmp_path: Path) -> None:
+def test_bytestream_url_backend_auto_recognizes_scheme_and_kind_overrides(tmp_path: Path) -> None:
     p = tmp_path / "url.bin"
     p.write_bytes(b"url-body\n")
     uri = p.as_uri()
@@ -347,8 +356,14 @@ def test_bytestream_url_backend_requires_explicit_kind_hint(tmp_path: Path) -> N
     assert isinstance(url_backend, BytestreamURL)
     assert url_backend.read() == b"url-body\n"
 
-    default_backend = BytestreamBackend.create(uri)
-    assert isinstance(default_backend, BytestreamFilename)
+    auto_backend = BytestreamBackend.create(uri)
+    assert isinstance(auto_backend, BytestreamURL)
+    assert auto_backend.read() == b"url-body\n"
+
+    forced_filename = BytestreamBackend.create(uri, kind="filename")
+    assert isinstance(forced_filename, BytestreamFilename)
+
+    assert isinstance(BytestreamBackend.create(str(p)), BytestreamFilename)
 
     with pytest.raises(TypeError):
         BytestreamBackend.create("no-scheme", kind="url")
@@ -448,3 +463,84 @@ def test_request_backend_close_without_fetch_then_read_raises(tmp_path: Path) ->
     bytes_backend.close()
     with pytest.raises(ValueError):
         bytes_backend.read()
+
+
+# --- Compression layer through the byte/text backends and views ---
+
+
+def test_bytestream_filename_decompresses_by_extension_default(tmp_path: Path) -> None:
+    p = tmp_path / "payload.bin.gz"
+    with gzip.open(p, "wb") as f:
+        f.write(b"decompressed-bytes")
+    assert BytestreamBytesView(str(p)) == b"decompressed-bytes"
+
+
+def test_bytestream_filename_hidden_gzip_needs_auto_or_codec(tmp_path: Path) -> None:
+    raw = gzip.compress(b"hidden")
+    p = tmp_path / "payload.bin"  # extension does not reveal the compression
+    p.write_bytes(raw)
+
+    # Default "extension" trusts the (non-compression) suffix: bytes are left compressed.
+    assert BytestreamBytesView(str(p)) == raw
+    assert BytestreamBytesView(str(p), compression="none") == raw
+
+    # Sniffing or forcing the codec decompresses.
+    assert BytestreamBytesView(str(p), compression="auto") == b"hidden"
+    assert BytestreamBytesView(str(p), compression="detect") == b"hidden"
+    assert BytestreamBytesView(str(p), compression="gzip") == b"hidden"
+
+
+def test_bytestream_bytes_sniffs_gzip_by_default() -> None:
+    raw = gzip.compress(b"in-memory")
+    assert BytestreamBytesView(raw) == b"in-memory"
+    assert BytestreamBytesView(raw, compression="none") == raw
+
+
+def test_bytestream_unknown_codec_raises_eagerly(tmp_path: Path) -> None:
+    p = tmp_path / "x.bin"
+    p.write_bytes(b"x")
+    with pytest.raises(ValueError):
+        BytestreamBytesView(str(p), compression="zstd")
+
+
+def test_textstream_string_rejects_non_noop_compression() -> None:
+    with pytest.raises(ValueError):
+        TextstreamString("x", kind="content", compression="gzip")
+    with pytest.raises(ValueError):
+        TextstreamString("x", kind="content", compression="detect")
+    # No-op modes are silently accepted for text-native sources.
+    assert TextstreamString("x", kind="content", compression="none").read() == "x"
+
+
+def test_textstream_filename_gz_with_encoding_hint(tmp_path: Path) -> None:
+    p = tmp_path / "note.txt.gz"
+    with gzip.open(p, "wb") as f:
+        f.write("café\n".encode("latin-1"))
+    view = TextstreamFileView(str(p), encoding="latin-1")
+    assert view.read() == "café\n"
+
+
+def test_textstream_filename_defaults_to_utf8(tmp_path: Path) -> None:
+    p = tmp_path / "uni.txt"
+    p.write_text("héllo\n", encoding="utf-8")
+    assert TextstreamStringView(str(p)) == "héllo\n"
+
+
+def test_bytestream_file_object_sniffs_when_auto(tmp_path: Path) -> None:
+    p = tmp_path / "opened.bin"
+    with gzip.open(p, "wb") as f:
+        f.write(b"through-open-file")
+    with p.open("rb") as fobj:
+        assert BytestreamBytesView(fobj) == b"through-open-file"
+
+
+def test_compression_close_releases_underlying_file(tmp_path: Path) -> None:
+    p = tmp_path / "close.bin.gz"
+    with gzip.open(p, "wb") as f:
+        f.write(b"data")
+    backend = BytestreamBackend.create(str(p))
+    assert backend.read() == b"data"
+    backend.close()
+    assert backend.closed
+    # The raw file underneath the gzip wrapper is closed too.
+    assert backend._underlying is not None and backend._underlying.closed
