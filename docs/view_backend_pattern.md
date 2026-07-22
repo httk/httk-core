@@ -1,6 +1,6 @@
 # Views and Backends
 
-This page explains a core `httk` v2 design pattern used in `httk.core.datastream` and intended to generalize to other domains (for example, structures).
+This page explains a core *httk₂* design pattern used in `httk.core.datastream` and intended to generalize to other domains (for example, structures).
 For detailed datastream usage and API-oriented examples, see {doc}`datastreams`.
 
 ## The Pattern

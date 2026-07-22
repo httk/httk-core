@@ -1,6 +1,9 @@
 # *httk-core*
 
-*httk-core* is a thin module providing core functionality for *httk* version 2.
+This site documents specifically the *httk-core* module. For the full
+documentation of *httk₂* as a whole, see [docs.httk.org](https://docs.httk.org).
+
+*httk-core* is a thin module providing core functionality for *httk₂*.
 
 ```{admonition} Quick links
 :class: tip
