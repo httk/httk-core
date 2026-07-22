@@ -68,9 +68,11 @@ html_theme_options = {
     "navigation_with_keys": True,
 }
 
-# Optional: helpful external linking (edit as needed)
+# External references resolve against inventories vendored in docs/_inventories/
+# so docs builds need no network access; link targets still point at the live
+# sites. Refresh the committed inventories with `make docs-inventories`.
 intersphinx_mapping = {
-    "python": ("https://docs.python.org/3", None),
+    "python": ("https://docs.python.org/3", "_inventories/python.inv"),
 }
 
 autoapi_options = [

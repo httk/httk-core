@@ -5,7 +5,7 @@ DIST_DIR ?= dist
 # between httk repositories (read by docs/conf.py via HTTK_DOCS_BASE_URL).
 DOCS_BASE_URL ?= https://docs.httk.org
 
-.PHONY: docs docs-live docs-clean clean dist-clean dist dist-check release-check format format-check typecheck typecheck_pyright lint test test_fastfail audit
+.PHONY: docs docs-live docs-clean docs-inventories clean dist-clean dist dist-check release-check format format-check typecheck typecheck_pyright lint test test_fastfail audit
 
 docs: docs-clean
 	HTTK_DOCS_BASE_URL=$(DOCS_BASE_URL) $(PYTHON) -m sphinx -E -a -b html -W --keep-going docs docs/_build/html
@@ -15,6 +15,11 @@ docs-live:
 
 docs-clean:
 	rm -rf docs/_build docs/reference/autoapi
+
+# Refresh the committed intersphinx inventories (the one docs task that uses the
+# network); docs builds themselves resolve against these vendored files offline.
+docs-inventories:
+	curl -fsSL https://docs.python.org/3/objects.inv -o docs/_inventories/python.inv
 
 dist-clean:
 	rm -rf build $(DIST_DIR) src/httk_core.egg-info
