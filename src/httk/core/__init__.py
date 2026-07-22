@@ -36,6 +36,7 @@ from .datastream import (
     BytestreamURL,
     BytestreamURLView,
     BytestreamView,
+    CompressionCodec,
     TextstreamBackend,
     TextstreamCommon,
     TextstreamFile,
@@ -50,6 +51,8 @@ from .datastream import (
     TextstreamURL,
     TextstreamURLView,
     TextstreamView,
+    known_compressions,
+    register_compression,
 )
 from .loading import load
 from .views import Backend, View, unwrap
@@ -103,4 +106,7 @@ __all__ = [
     "TextstreamRequest",
     "TextstreamURL",
     "TextstreamLike",
+    "CompressionCodec",
+    "register_compression",
+    "known_compressions",
 ]

@@ -10,6 +10,7 @@ class BytestreamCommon(ABC):
     """
 
     _f: io.IOBase | None
+    _underlying: io.IOBase | None
     _closed: bool
 
     @abstractmethod
@@ -25,6 +26,9 @@ class BytestreamCommon(ABC):
     def close(self) -> None:
         if self._f is not None and not self._f.closed:
             self._f.close()
+        # A decompression wrapper does not close the source stream it reads from, so close it too.
+        if self._underlying is not None and self._underlying is not self._f and not self._underlying.closed:
+            self._underlying.close()
         self._closed = True
 
     def seek(self, offset: int, whence: int = os.SEEK_SET) -> int:

@@ -3,6 +3,7 @@ from typing import Any
 
 from .bytestream_backend import BytestreamBackend
 from .bytestream_common import BytestreamCommon
+from .compression import open_compressed, validate_compression
 
 
 class BytestreamFile(BytestreamCommon, BytestreamBackend):
@@ -10,7 +11,11 @@ class BytestreamFile(BytestreamCommon, BytestreamBackend):
     Backend for file-based (io.IOBase-conforming) streaming byte data.
     """
 
+    _source: io.IOBase
+    _compression: str
     _f: io.IOBase | None
+    _underlying: io.IOBase | None
+    _closed: bool
 
     # mypy does not allow to type annotate __new__ as `Self | None` for some reason
     def __new__(cls, obj: io.IOBase, **hints: Any) -> Any:
@@ -21,18 +26,28 @@ class BytestreamFile(BytestreamCommon, BytestreamBackend):
         return super().__new__(cls)
 
     def __init__(self, obj: io.IOBase, **hints: Any) -> None:
-        self._f = obj
+        self._source = obj
+        self._compression = hints.get("compression", "auto")
+        validate_compression(self._compression)
+        self._f = None
+        # We adopt (and hence close) the caller's stream; keep it here so close() reaches it
+        # even when a decompression wrapper is layered on top and when no read ever happens.
+        self._underlying = obj
+        self._closed = False
 
     def _ensure_f(self) -> io.IOBase:
-        if self._f is None or self._f.closed:
+        if self._closed or self._source.closed:
             raise ValueError("I/O operation on closed stream")
+        if self._f is None:
+            name = getattr(self._source, "name", None)
+            self._f = open_compressed(self._source, compression=self._compression, name=name)
         return self._f
 
     @property
     def name(self) -> str | None:
         self._ensure_f()
-        return getattr(self._f, "name", None)
+        return getattr(self._source, "name", None)
 
     @property
     def closed(self) -> bool:
-        return self._f is None or self._f.closed
+        return self._closed or self._source.closed

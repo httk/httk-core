@@ -1,6 +1,7 @@
 import io
 from typing import Any
 
+from .compression import reject_text_native_compression
 from .textstream_backend import TextstreamBackend
 from .textstream_common import TextstreamCommon
 
@@ -12,6 +13,7 @@ class TextstreamString(TextstreamCommon, TextstreamBackend):
 
     s: str
     _f: io.TextIOBase | None
+    _underlying: io.IOBase | None
     _closed: bool
 
     # Cannot type annotate __new__ as `Self | None` for some reason
@@ -23,8 +25,10 @@ class TextstreamString(TextstreamCommon, TextstreamBackend):
         return super().__new__(cls)
 
     def __init__(self, content: str, **hints: Any) -> None:
+        reject_text_native_compression(hints.get("compression"))
         self.s = content
         self._f = None
+        self._underlying = None
         self._closed = False
 
     def _ensure_f(self) -> io.TextIOBase:

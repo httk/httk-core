@@ -1,6 +1,7 @@
 import io
 from typing import Any
 
+from .compression import reject_text_native_compression
 from .textstream_backend import TextstreamBackend
 from .textstream_common import TextstreamCommon
 
@@ -11,6 +12,8 @@ class TextstreamFile(TextstreamCommon, TextstreamBackend):
     """
 
     _f: io.TextIOBase | None
+    _underlying: io.IOBase | None
+    _closed: bool
 
     # mypy does not allow to type annotate __new__ as `Self | None` for some reason
     def __new__(cls, obj: io.TextIOBase, **hints: Any) -> Any:
@@ -21,7 +24,11 @@ class TextstreamFile(TextstreamCommon, TextstreamBackend):
         return super().__new__(cls)
 
     def __init__(self, obj: io.TextIOBase, **hints: Any) -> None:
+        reject_text_native_compression(hints.get("compression"))
         self._f = obj
+        # Compression cannot layer under an already-decoded text stream, so nothing to chain-close.
+        self._underlying = None
+        self._closed = False
 
     def _ensure_f(self) -> io.TextIOBase:
         if self._f is None or self._f.closed:

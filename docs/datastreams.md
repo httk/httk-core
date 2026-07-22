@@ -46,8 +46,8 @@ TextstreamStringView("line1\nline2\n", kind="content")
 # remote content via a urllib request object
 TextstreamStringView(urllib.request.Request("https://example.com/data.txt"))
 
-# remote content via a URL string (requires explicit kind="url")
-TextstreamStringView("https://example.com/data.txt", kind="url")
+# remote content via a URL string (auto-recognized by its scheme; kind="url" also forces it)
+TextstreamStringView("https://example.com/data.txt")
 ```
 
 ### Example: String-Oriented Function
@@ -81,10 +81,10 @@ Use `TextstreamFileView` when line-by-line processing is natural and you do not 
 ### Textstream Notes
 
 - `TextstreamStringView` is eager: it reads remaining stream content immediately.
-- `str` input is ambiguous and defaults to filename resolution unless `kind="content"` or `kind="url"` is passed.
+- A bare `str` whose scheme is `http`, `https`, `ftp`, or `file` is treated as a URL; any other `str` defaults to filename resolution. Pass `kind="content"` for literal content or `kind="filename"`/`kind="url"` to force an interpretation.
 - `TextstreamFilenameView` requires an underlying name; it raises `TypeError` when no filename exists.
-- Remote text is decoded using the `encoding` hint if given, else the HTTP Content-Type charset, else utf-8.
-- See [Remote Content (Request / URL)](#remote-content-request-url) for shared remote-fetch behavior.
+- Remote text is decoded using the `encoding` hint if given, else the HTTP Content-Type charset, else utf-8. `TextstreamFilename` reads local files as utf-8 by default; pass `encoding` to override.
+- See [Remote Content (Request / URL)](#remote-content-request-url) for shared remote-fetch behavior and [Compressed Content](#compressed-content) for transparent decompression.
 
 ## Bytestream
 
@@ -115,8 +115,8 @@ BytestreamBytesView(bytearray([0, 1, 2]))
 # remote content via a urllib request object
 BytestreamBytesView(urllib.request.Request("https://example.com/payload.bin"))
 
-# remote content via a URL string (requires explicit kind="url")
-BytestreamBytesView("https://example.com/payload.bin", kind="url")
+# remote content via a URL string (auto-recognized by its scheme; kind="url" also forces it)
+BytestreamBytesView("https://example.com/payload.bin")
 ```
 
 ### Example: Bytes-Oriented Function
@@ -147,8 +147,9 @@ def first_chunk(blike: BytestreamLike, size: int = 4096, **hints: object) -> byt
 
 - `BytestreamBytesView` is eager: it reads remaining stream content immediately.
 - `BytestreamFilenameView` requires an underlying name and raises `TypeError` if unavailable.
+- A bare `str` whose scheme is `http`, `https`, `ftp`, or `file` is treated as a URL; any other `str` defaults to a filename.
 - For explicit interpretation when needed, pass `kind="filename"`, `kind="file"`, `kind="content"`, `kind="request"`, or `kind="url"`.
-- See [Remote Content (Request / URL)](#remote-content-request-url) for shared remote-fetch behavior.
+- See [Remote Content (Request / URL)](#remote-content-request-url) for shared remote-fetch behavior and [Compressed Content](#compressed-content) for transparent decompression.
 
 ## Remote Content (Request / URL)
 
@@ -156,9 +157,10 @@ Both families can fetch remote content through Python's built-in `urllib.request
 
 - A `urllib.request.Request` object is unambiguous and is accepted directly anywhere a `*Like` is accepted.
   Use a `Request` when you need headers, a method, or a request body; it is passed to `urllib.request.urlopen` as-is.
-- A URL passed as a plain `str` is only interpreted as a URL with an explicit `kind="url"` hint.
-  This is deliberate: a bare string always means a filename (or content), so handing untrusted strings
-  to `*Like`-accepting functions never triggers implicit network access.
+- A URL passed as a plain `str` is auto-recognized when its scheme is one of `http`, `https`, `ftp`, or `file`.
+  A schemeless string still means a filename (or, with `kind="content"`, literal content). Pass `kind="url"` to
+  force URL interpretation of a string, or `kind="filename"` to force a scheme'd string to be treated as a filename
+  (for example, so a local file literally named like a URL is not fetched over the network).
 
 Remote backends fetch lazily: the connection is opened on first read, not when the backend or view is
 created. Note that `unwrap()` also opens the connection, since it returns the underlying response object.
@@ -181,6 +183,68 @@ req = TextstreamRequestView("https://example.com/data.txt", kind="url")
 with urllib.request.urlopen(req) as resp:
     ...
 ```
+
+## Compressed Content
+
+Compression is an orthogonal layer *below* the backends: it turns a compressed byte stream into
+an uncompressed one (and, for text, before decoding), independently of where the bytes come from.
+The same codecs therefore apply to filenames, open files, raw bytes, and remote responses, so a
+`data.json.gz` filename or a gzipped URL loads with no extra ceremony. The stdlib codecs `gzip`,
+`bzip2`, `xz`, and `lzma` are built in.
+
+A `compression` hint (parallel to `kind`) selects how a codec is chosen:
+
+- `"auto"` — use the filename extension if it is a known compression suffix, otherwise sniff the
+  leading magic bytes.
+- `"detect"` — always sniff the magic bytes, ignoring the extension.
+- `"extension"` — decide from the name only; never sniff.
+- `"none"` — no decompression.
+- a registered codec name (e.g. `"gzip"`) — force that codec; an unknown name raises `ValueError`.
+
+Defaults depend on the source: filename-based backends default to `"extension"` (a `data.json.gz`
+name decompresses, a compressed file with a plain name does not unless you ask); all other
+byte-producing sources — open files, raw bytes, `Request`, and URL strings — default to `"auto"`.
+Resolution is lazy: like the rest of the stream layer, the extension check or magic sniff only runs
+on the first read, and sniffing never consumes data. Compression does not apply to text-native
+sources (an already-open text stream or a literal string); for those, only the no-op modes are
+accepted and a codec name or `"detect"` raises `ValueError`.
+
+```python
+import gzip
+
+from httk.core import BytestreamBytesView, DataLoader
+
+# Transparent: extension recognized, decompressed on read.
+DataLoader("symmetry", "data/spacegroups.json.gz")
+
+# In-memory gzip is sniffed by default ("auto").
+BytestreamBytesView(gzip.compress(b"payload"))  # -> b"payload"
+
+# Force or disable decompression explicitly.
+BytestreamBytesView("blob.dat", compression="gzip")
+BytestreamBytesView("archive.gz", compression="none")  # raw compressed bytes
+```
+
+Register additional codecs (for example, a third-party `zstd`) with `register_compression`;
+`known_compressions()` lists the registered names.
+
+```python
+import io
+
+from httk.core import CompressionCodec, register_compression
+
+register_compression(
+    CompressionCodec(
+        name="zstd",
+        extensions=(".zst",),
+        magics=(b"\x28\xb5\x2f\xfd",),
+        open_stream=lambda stream: io.BytesIO(...),  # return a decompressed binary stream
+    )
+)
+```
+
+Archives (`.tar.*`, `.zip`), write-side compression, and HTTP `Content-Encoding` negotiation are
+out of scope for this layer.
 
 ## Shared Behavior and `unwrap`
 
