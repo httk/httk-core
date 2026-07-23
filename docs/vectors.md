@@ -729,6 +729,49 @@ module subclasses `numpy.ndarray`, so it cannot even be imported without numpy).
 the exact library and the frac/native family — works unchanged, and dispatch just never selects a
 numpy backend.
 
+### The numeric presentation (`NumericVector`)
+
+The backends above each commit to one container type. One level up sits a convenience presentation
+for callers who do not need exact arithmetic and simply want plain numpy numbers to compute with.
+`to_numeric(obj)` delivers exactly that, and `NumericVector` is the generic name for what comes out:
+a base-class `float64` `numpy.ndarray` for a tensor, a plain `float` for a scalar (shape `()`) —
+never a view subclass, never a 0-d array.
+
+The numeric presentation is **numpy-backed**, so a caller always knows the concrete type it gets.
+numpy is an optional dependency of *httk-core* (the `httk-core[numpy]` extra), so `to_numeric`
+**requires numpy** and raises `ImportError` (naming the extra) when it is not installed — uniformly,
+regardless of the input shape. The one exception is `to_numeric_scalar`, which converts a single
+value to a `float`: that needs no numpy and so works unconditionally.
+
+```python
+import fractions
+import numpy
+from httk.core import FracVector, SurdVector, to_numeric, to_numeric_scalar
+
+F = fractions.Fraction
+
+cell = FracVector.create([["8.04", "0.0", "0.0"],
+                          ["0.0", "3.72", "0.0"],
+                          ["0.0", "0.0", "7.38"]])
+
+# A tensor becomes a plain float64 ndarray (the base class, not a view subclass):
+arr = to_numeric(cell)
+assert type(arr) is numpy.ndarray
+assert arr.dtype == numpy.float64
+assert arr.tolist() == cell.to_floats()
+
+# A scalar — an exact rational or radical — becomes a plain float, never a 0-d array:
+assert to_numeric(F(1, 4)) == 0.25
+assert type(to_numeric(SurdVector.sqrt_of(2))) is float
+
+# to_numeric_scalar is the numpy-free single-value helper:
+assert to_numeric_scalar("1/3") == to_numeric(F(1, 3))
+```
+
+Use `to_numeric` when you just want numpy numbers; reach for a specific view (`VectorNumpyView`,
+`VectorNativeView`) when you need control over the exact container type, the numpy `dtype=`, or the
+leaf codec.
+
 ### `unwrap`
 
 `unwrap(obj)` returns the most raw representation available: the wrapped `FracVector` for a frac
