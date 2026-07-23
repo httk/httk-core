@@ -5,7 +5,7 @@ DIST_DIR ?= dist
 # between httk repositories (read by docs/conf.py via HTTK_DOCS_BASE_URL).
 DOCS_BASE_URL ?= https://docs.httk.org
 
-.PHONY: docs docs-live docs-clean docs-inventories clean dist-clean dist dist-check release-check format format-check typecheck typecheck_pyright lint test test_fastfail audit
+.PHONY: docs docs-live docs-clean docs-inventories optimade-defs clean dist-clean dist dist-check release-check format format-check typecheck typecheck_pyright lint test test_fastfail audit
 
 docs: docs-clean
 	HTTK_DOCS_BASE_URL=$(DOCS_BASE_URL) $(PYTHON) -m sphinx -E -a -b html -W --keep-going docs docs/_build/html
@@ -21,6 +21,15 @@ docs-clean:
 docs-inventories:
 	curl -fsSL https://docs.python.org/3/objects.inv -o docs/_inventories/python.inv
 	curl -fsSL https://numpy.org/doc/stable/objects.inv -o docs/_inventories/numpy.inv
+
+# Refresh the vendored OPTIMADE standard entry-type definitions (the one source
+# task that uses the network); the checked-in copies under
+# src/httk/core/optimade_defs/ are the authoritative supported versions.
+optimade-defs:
+	curl -fsSL https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/references.json -o src/httk/core/optimade_defs/references.json
+	curl -fsSL https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files.json -o src/httk/core/optimade_defs/files.json
+	curl -fsSL https://schemas.optimade.org/defs/v1.3/entrytypes/optimade/calculations.json -o src/httk/core/optimade_defs/calculations.json
+	curl -fsSL https://raw.githubusercontent.com/Materials-Consortia/schemas/master/LICENSE -o src/httk/core/optimade_defs/LICENSE
 
 dist-clean:
 	rm -rf build $(DIST_DIR) src/httk_core.egg-info

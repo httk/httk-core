@@ -55,7 +55,21 @@ from .datastream import (
     register_compression,
 )
 from .entry_provider import EntryProvider
+from .entry_types import (
+    Calculation,
+    CalculationEntryProvider,
+    File,
+    FileEntryProvider,
+    Reference,
+    ReferenceEntryProvider,
+)
 from .loading import load
+from .property_definitions import (
+    EntryTypeDefinition,
+    PropertyDefinition,
+    load_entry_type_definition,
+    standard_entry_type,
+)
 from .register import known_entry_providers, register_entry_provider
 from .vectors import (
     FracScalar,
@@ -106,6 +120,16 @@ __all__ = [
     "EntryProvider",
     "register_entry_provider",
     "known_entry_providers",
+    "PropertyDefinition",
+    "EntryTypeDefinition",
+    "load_entry_type_definition",
+    "standard_entry_type",
+    "Reference",
+    "File",
+    "Calculation",
+    "ReferenceEntryProvider",
+    "FileEntryProvider",
+    "CalculationEntryProvider",
     "DataLoader",
     "DataRecord",
     "DatasetMeta",
