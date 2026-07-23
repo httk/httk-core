@@ -4,6 +4,7 @@ The minimal canonical vector interface shared by all vector backends and views.
 
 import fractions
 from abc import ABC, abstractmethod
+from typing import Any
 
 # The canonical interchange is exactness-preserving: a (possibly nested) tuple of
 # fractions.Fraction, or a bare Fraction for a scalar. Every representation can produce this
@@ -20,6 +21,13 @@ class VectorAPI(ABC):
     produces from its own native representation and every vector view builds its presentation
     from, together with the ``dim`` shape tuple. This is the single interchange format; there is
     no pairwise conversion between backends.
+
+    On top of the two abstract accessors it provides the guaranteed float renderings
+    :meth:`to_floats` and :meth:`to_float`, derived from the ``fractions`` hub — so *whatever*
+    object the family hands you, ``.to_floats()`` works. (The exact value types
+    :class:`~httk.core.vectors.fracvector.FracVector` and
+    :class:`~httk.core.vectors.surdvector.SurdVector` honor the same contract with their own
+    implementations.)
     """
 
     @property
@@ -31,3 +39,25 @@ class VectorAPI(ABC):
     @abstractmethod
     def dim(self) -> tuple[int, ...]:
         raise NotImplementedError
+
+    def to_floats(self) -> Any:
+        """
+        The value as (possibly nested) plain lists of ``float`` — a bare ``float`` for a scalar.
+
+        Derived from the exact ``fractions`` hub; nested lists match the
+        ``numpy.ndarray.tolist()`` convention and are directly JSON-serializable.
+        """
+
+        def rec(node: Fractions) -> Any:
+            if isinstance(node, tuple):
+                return [rec(e) for e in node]
+            return float(node)
+
+        return rec(self.fractions)
+
+    def to_float(self) -> float:
+        """The scalar value as a plain ``float``; raises :class:`TypeError` on a non-scalar."""
+        value = self.fractions
+        if isinstance(value, tuple):
+            raise TypeError(f"to_float: expected a scalar, got shape {self.dim}")
+        return float(value)

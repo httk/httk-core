@@ -481,6 +481,26 @@ exposes `.fractions` (a nested tuple of `fractions.Fraction`, or a bare `Fractio
 and `.dim`. Because numpy float64 values are themselves binary rationals, even a numpy array
 produces `.fractions` *exactly*.
 
+On top of the hub, the `VectorAPI` contract guarantees the float renderings `to_floats()`
+(nested plain-`float` **lists**, matching the `numpy.ndarray.tolist()` convention and directly
+JSON-serializable; a bare `float` for a scalar) and `to_float()` (scalars only) on every backend —
+and the exact value types `FracVector` and `SurdVector` honor the same contract with their own
+implementations, with `float(...)` additionally working on every exact scalar (`FracVector`,
+`SurdScalar`). So *whatever* object the family hands you, `.to_floats()` works — domain libraries
+built on the family (e.g. *httk₂*'s atomistic structures) therefore return exact vector objects
+from their accessors and add no ad-hoc float-conversion methods of their own:
+
+```python
+import fractions
+from httk.core import FracVector, SurdVector
+from httk.core.vectors import VectorBackend
+
+assert FracVector.create([["1/2", "1/4"]]).to_floats() == [[0.5, 0.25]]
+assert VectorBackend.create([[1, 2], [3, 4]]).to_floats() == [[1.0, 2.0], [3.0, 4.0]]
+assert float(SurdVector.sqrt_of(4)) == 2.0                       # exact scalars support float()
+assert SurdVector.sqrt_of(2).to_float() == float(SurdVector.sqrt_of(2))
+```
+
 The `surd` backend is the one representation whose values are not all rational, so it sits at the
 edges of that exactness table asymmetrically. A **rational → surd** conversion is exact (every
 rational is the radicand-1 term of a surd), and a `VectorSurdView` of a frac/native/numpy backend
