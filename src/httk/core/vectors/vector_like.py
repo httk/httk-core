@@ -4,7 +4,7 @@ The accepted-input union for vector functions.
 
 from typing import TYPE_CHECKING, Any
 
-from . import fracvector, vector_backend, vector_view
+from . import fracvector, surdvector, vector_backend, vector_view
 
 if TYPE_CHECKING:
     import numpy
@@ -15,6 +15,7 @@ type VectorLike = (
     vector_backend.VectorBackend
     | vector_view.VectorView
     | fracvector.FracVector
+    | surdvector.SurdVector
     | tuple[Any, ...]
     | list[Any]
     | "numpy.ndarray"

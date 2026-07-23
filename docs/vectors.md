@@ -269,6 +269,135 @@ assert vectormath.sqrt(FracVector.create([4, 9])).simplify() == FracVector.creat
 assert vectormath.floor(2.7) == 2
 ```
 
+## Exact radicals: `SurdVector`
+
+Symmetry lives in **fractional** coordinates, and there it needs no radicals: point-group
+operations are integer matrices and translations are rational, so `FracVector` closes the whole
+algebra exactly. Radicals appear only when you move to a **Cartesian** frame — the hexagonal basis
+carries a $\sqrt3$, Cartesian rotations carry $\sqrt2$/$\sqrt3$, and a bond length is
+$\sqrt{\text{rational}}$ under a rational metric. `SurdVector` is the exact-arithmetic model for
+that Cartesian layer: it closes the rationals *and* the square roots of arbitrary positive
+rationals under `+`, `-`, `*`, `/`. Its values form the field
+$\mathbb{Q}[\sqrt n : n\ \text{squarefree}]$ — finite sums $\sum_r q_r\sqrt r$ with rational
+coefficients — stored canonically as a `{squarefree radicand → rational coefficient}` map (unique,
+because the $\sqrt r$ are linearly independent over $\mathbb{Q}$), so equality and zero-detection
+are exact.
+
+```{admonition} Purpose boundary — magnitudes vs. linear structure
+:class: important
+
+For pure **magnitude** questions — comparing, sorting, or equating distances — stay with the
+*squared* representation: a squared length `lengthsqr` is rational and a Gram/metric matrix
+`G = B*B.T()` is rational, so "is bond A shorter than bond B?" is an exact rational comparison,
+already fully supported by `FracVector`, and it is the cheaper recommended fast path.
+
+Reach for `SurdVector` only when radicals sit inside **additive / linear** structure, where
+squaring fails: components are signed and additive so $(a+b)^2\neq a^2+b^2$ (the cross term is
+itself a radical); a metric fixes a basis only up to an orthogonal transformation, so squaring
+discards orientation and chirality; and even scalar sums are not closed, $(\sqrt2+\sqrt3)^2 =
+5+2\sqrt6$. `SurdVector` composes *with* the squared strategy rather than replacing it: whenever a
+value lands back in the rationals its canonical form collapses to the plain rational again.
+```
+
+### Square roots, products, and the nested-radical limit
+
+`SurdVector.sqrt_of(q)` takes the exact square root of any nonnegative rational — a plain rational
+when `q` is a perfect square, otherwise a canonical single-radical surd. Products combine radicands
+($\sqrt r\,\sqrt s = c\,\sqrt t$), and a value that squares back to a rational *is* rational again:
+
+```python
+import fractions
+from httk.core import SurdVector
+
+F = fractions.Fraction
+
+assert SurdVector.sqrt_of(8) == SurdVector.from_radicand_map({2: 2})       # 2*sqrt(2)
+assert SurdVector.sqrt_of(F(4, 9)) == SurdVector.create(F(2, 3))           # perfect square: rational
+assert SurdVector.sqrt_of(F(1, 2)) == SurdVector.sqrt_of(2) * SurdVector.create(F(1, 2))  # sqrt(2)/2
+assert SurdVector.sqrt_of(2) * SurdVector.sqrt_of(3) == SurdVector.sqrt_of(6)
+assert SurdVector.sqrt_of(2) * SurdVector.sqrt_of(2) == SurdVector.create(2)
+assert str(SurdVector.sqrt_of(3) * SurdVector.create(F(1, 2))) == "(1/2)*sqrt(3)"
+```
+
+The field is closed under `+`, `-`, `*`, and full `/` (division rationalizes the denominator by
+iterated conjugation), but **not** under `sqrt` of a surd — there are no nested radicals. So
+`length()` is exact precisely when `lengthsqr()` is rational, and it raises otherwise:
+
+```python
+from httk.core import SurdVector
+
+# 1/(1 + sqrt2 + sqrt3) is a genuine field inverse (verify by multiplying back):
+d = SurdVector.one() + SurdVector.sqrt_of(2) + SurdVector.sqrt_of(3)
+assert (SurdVector.one() / d) * d == SurdVector.one()
+```
+
+### Exact comparison
+
+Ordering and sign are decided **exactly**, by refining rational bounds on each $\sqrt r$ until the
+sign resolves (a nonzero surd is never zero, so this always terminates):
+
+```python
+from httk.core import SurdVector
+
+lhs = SurdVector.sqrt_of(2) + SurdVector.sqrt_of(3)   # ~3.1463
+rhs = SurdVector.sqrt_of(10)                          # ~3.1623
+assert lhs < rhs
+```
+
+### A hexagonal Cartesian basis
+
+The standard hexagonal basis $B = \begin{bmatrix} a & 0 & 0\\ -a/2 & a\sqrt3/2 & 0\\ 0 & 0 & c\end{bmatrix}$
+has rational `a`, `c` but an irrational entry $a\sqrt3/2$. Its determinant, inverse, and the metric
+$G = B\,B^\mathsf{T}$ are all exact, and a Cartesian bond length comes back as an exact radical:
+
+```python
+import fractions
+from httk.core import FracVector, SurdVector
+
+F = fractions.Fraction
+a, c = F(3), F(5)
+
+# Assemble B from its rational part (radicand 1) and its sqrt(3) part (radicand 3):
+B = SurdVector.from_radicand_map({
+    1: [[a, 0, 0], [-a / 2, 0, 0], [0, 0, c]],
+    3: [[0, 0, 0], [0, a / 2, 0], [0, 0, 0]],
+})
+
+identity = SurdVector.create(FracVector.eye((3, 3)))
+assert B.det() == SurdVector.from_radicand_map({3: F(45, 2)})   # (45/2)*sqrt(3)
+assert B * B.inv() == identity                                  # exact inverse
+assert (B * B.T()).is_rational                                  # the metric is rational
+
+# The second basis row is a Cartesian vector of exact length a:
+row1 = SurdVector.from_radicand_map({1: [-a / 2, 0, 0], 3: [0, a / 2, 0]})
+assert row1.lengthsqr() == SurdVector.create(a * a)
+assert row1.length() == SurdVector.create(a)
+
+# A vector whose squared length is irrational (3 + 2*sqrt(2)) has a nested-radical length:
+v = SurdVector.from_radicand_map({1: [1, 0, 0], 2: [1, 0, 0]})
+assert not v.lengthsqr().is_rational
+try:
+    v.length()
+    raise AssertionError("expected a ValueError")
+except ValueError:
+    pass
+```
+
+### Decimal rendering
+
+A `SurdScalar` renders as a correctly-rounded `Decimal`, reusing the same `exactmath` Ziv machinery
+as {doc}`exactmath`: a rational surd renders its exact finite expansion, an irrational one is
+correctly rounded to the requested significant digits, and repeated calls are identical:
+
+```python
+import decimal
+from httk.core import SurdVector
+
+assert SurdVector.sqrt_of(2).to_decimal(digits=30) == decimal.Decimal("1.41421356237309504880168872421")
+assert SurdVector.sqrt_of(8).to_decimal(digits=6) == decimal.Decimal("2.82843")
+assert SurdVector.sqrt_of(9).to_decimal(digits=30) == decimal.Decimal("3")   # rational: exact
+```
+
 ## Representations and views
 
 Vectors get the same backend/view treatment as the rest of *httk₂*. A **backend** wraps one
@@ -278,6 +407,7 @@ accept the `VectorLike` union and normalize immediately to the view they want.
 | kind       | backend         | view                | the view *is a* ...            |
 | ---------- | --------------- | ------------------- | ------------------------------ |
 | `"frac"`   | `VectorFrac`    | `VectorFracView`    | `FracVector` (exact algebra)   |
+| `"surd"`   | `VectorSurd`    | `VectorSurdView`    | `SurdVector` (exact radicals)  |
 | `"native"` | `VectorNative`  | `VectorNativeView`  | nested `tuple` (exact leaves)  |
 | `"numpy"`  | `VectorNumpy`   | `VectorNumpyView`   | `numpy.ndarray` (float64)      |
 
@@ -303,6 +433,35 @@ The canonical interchange between representations is **exactness-preserving**: e
 exposes `.fractions` (a nested tuple of `fractions.Fraction`, or a bare `Fraction` for a scalar)
 and `.dim`. Because numpy float64 values are themselves binary rationals, even a numpy array
 produces `.fractions` *exactly*.
+
+The `surd` backend is the one representation whose values are not all rational, so it sits at the
+edges of that exactness table asymmetrically. A **rational → surd** conversion is exact (every
+rational is the radicand-1 term of a surd), and a `VectorSurdView` of a frac/native/numpy backend
+therefore round-trips exactly:
+
+```python
+import fractions
+from httk.core import SurdVector, VectorSurdView
+from httk.core.vectors import VectorBackend, VectorSurd
+from httk.core.views import unwrap
+
+# Dispatch by input type; VectorSurd wraps a SurdVector exactly:
+assert isinstance(VectorBackend.create(SurdVector.sqrt_of(2)), VectorSurd)
+
+# rational -> surd view is exact:
+view = VectorSurdView([["1/3", "2/5"]])
+assert view == SurdVector.create([["1/3", "2/5"]]) and view.is_rational
+
+# unwrap returns the exact original SurdVector, radicals intact:
+surd = SurdVector.sqrt_of(2)
+assert unwrap(VectorSurd(surd)) is surd
+```
+
+Going the other way, a genuinely **irrational surd → rational** representation (its `.fractions`
+hub, or any frac/native/numpy view) is **lossy but deterministic**: the value is reduced to a
+reproducible rational approximation at the active decimal-context precision plus a small guard, and
+the exact original is always recoverable from the backend via `unwrap`. Its lossiness row therefore
+reads: rational → surd exact; surd → rational lossy-deterministic (exact original recoverable).
 
 ### Element types (leaves)
 

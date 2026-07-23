@@ -62,6 +62,8 @@ from .vectors import (
     FracVector,
     LeafCodec,
     MutableFracVector,
+    SurdScalar,
+    SurdVector,
     VectorAPI,
     VectorBackend,
     VectorFrac,
@@ -69,6 +71,8 @@ from .vectors import (
     VectorLike,
     VectorNative,
     VectorNativeView,
+    VectorSurd,
+    VectorSurdView,
     VectorView,
 )
 from .vectors import _numpy_available as _vectors_numpy_available
@@ -139,6 +143,8 @@ __all__ = [
     "FracVector",
     "FracScalar",
     "MutableFracVector",
+    "SurdVector",
+    "SurdScalar",
     "LeafCodec",
     "register_leaf_codec",
     "known_leaf_codecs",
@@ -147,8 +153,10 @@ __all__ = [
     "VectorView",
     "VectorFrac",
     "VectorNative",
+    "VectorSurd",
     "VectorFracView",
     "VectorNativeView",
+    "VectorSurdView",
     "VectorLike",
 ]
 

@@ -78,6 +78,24 @@ exactmath.sqrt(Fraction(9, 4))               # Fraction(3, 2) — exact
 exactmath.integer_sqrt(10**20)               # 10000000000 — exact integer sqrt
 ```
 
+### Exact square roots as surds (`exact=True`)
+
+For an irrational square root, `exact=True` overrides the output-domain rule entirely and returns
+the value *symbolically* — as a {py:class}`~httk.core.vectors.surdvector.SurdScalar`, an element of
+the squarefree-radical field, with **no** approximation:
+
+```python
+import fractions
+from httk.core import SurdVector
+
+root2 = exactmath.sqrt(fractions.Fraction(2), exact=True)
+assert root2 * root2 == SurdVector.create(2)                       # squares back to exactly 2
+assert exactmath.sqrt(fractions.Fraction(9, 4), exact=True) == SurdVector.create(fractions.Fraction(3, 2))
+```
+
+See {doc}`vectors` ("Exact radicals: `SurdVector`") for the field itself — exact Cartesian
+crystallographic geometry, exact comparison, and the nested-radical limit.
+
 The trigonometric functions accept `degrees=True` to interpret their argument
 in degrees (`cos`, `sin`, ...) or to return degrees (`asin`, `acos`, `atan`,
 `atan2`). `atan2` follows the quadrant conventions of {py:func}`math.atan2`:

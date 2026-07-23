@@ -12,11 +12,14 @@ import pytest
 
 from httk.core.vectors import (
     FracVector,
+    SurdVector,
     VectorBackend,
     VectorFrac,
     VectorFracView,
     VectorNative,
     VectorNativeView,
+    VectorSurd,
+    VectorSurdView,
 )
 from httk.core.views import unwrap
 
@@ -217,6 +220,52 @@ def test_native_view_leaf_applies_across_backends() -> None:
     assert from_native == ((0,),) == from_frac  # 1/2 -> 0 by half-even
 
 
+# ------------------------------------------------------------------ surd backend/view
+
+
+def test_dispatch_surdvector_to_surd() -> None:
+    backend = VectorBackend.create(SurdVector.sqrt_of(2))
+    assert isinstance(backend, VectorSurd)
+
+
+def test_surd_unwrap_is_exact() -> None:
+    s = SurdVector.sqrt_of(2)
+    assert unwrap(VectorSurd(s)) is s
+
+
+def test_native_to_surd_view_exact_round_trip() -> None:
+    # Rationals embed exactly at radicand 1, so native -> surd -> native is exact.
+    v = VectorSurdView([["1/3", "2/5"], ["3/7", "4/9"]])
+    assert isinstance(v, SurdVector)
+    assert v == SurdVector.create([["1/3", "2/5"], ["3/7", "4/9"]])
+    assert v.is_rational
+
+
+def test_surd_view_of_surd_backend_keeps_exact_value() -> None:
+    s = SurdVector.sqrt_of(2)
+    backend = VectorSurd(s)
+    view = VectorSurdView(backend)
+    assert view == s
+    assert unwrap(view) is s  # the exact original SurdVector
+
+
+def test_surd_backend_fractions_hub_rational_is_exact() -> None:
+    backend = VectorBackend.create(SurdVector.create([["1/3", "2/3"]]))
+    assert backend.fractions == ((F(1, 3), F(2, 3)),)
+
+
+def test_surd_backend_fractions_hub_irrational_is_deterministic() -> None:
+    # An irrational surd is reduced to a deterministic (lossy) rational approximation.
+    backend = VectorBackend.create(SurdVector.from_radicand_map({2: [[1, 2]]}))
+    assert backend.fractions == backend.fractions  # same every call
+    assert backend.dim == (1, 2)
+
+
+def test_surd_view_rewrap_identity() -> None:
+    v = VectorSurdView([[1, 2], [3, 4]])
+    assert VectorSurdView(v) is v
+
+
 # ------------------------------------------------------------------ numpy views (skipped if absent)
 
 
@@ -298,7 +347,7 @@ def test_dispatch_and_import_work_without_numpy() -> None:
         "assert c._vectors_numpy_available is False\n"
         "assert not hasattr(c, 'VectorNumpy')\n"
         "names = [b.__name__ for b in VectorBackend.backend_classes]\n"
-        "assert names == ['VectorFrac', 'VectorNative'], names\n"
+        "assert names == ['VectorFrac', 'VectorSurd', 'VectorNative'], names\n"
         "b = VectorBackend.create([[1, 2], [3, 4]])\n"
         "assert isinstance(b, VectorNative)\n"
         "import fractions as fr\n"
