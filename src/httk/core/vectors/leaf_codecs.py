@@ -24,6 +24,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
+from httk.core.vectors.exactmath import _finite_decimal_expansion
+
 
 @dataclass(frozen=True)
 class LeafCodec:
@@ -173,28 +175,14 @@ def _decimal_from_fraction(value: fractions.Fraction, digits: int | None = None)
     significant digits (default: the active :func:`decimal.getcontext` precision) with round-half-
     even. Never raises on data.
     """
-    num = value.numerator
-    den = value.denominator
-    stripped = den
-    twos = 0
-    fives = 0
-    while stripped % 2 == 0:
-        stripped //= 2
-        twos += 1
-    while stripped % 5 == 0:
-        stripped //= 5
-        fives += 1
-    if stripped == 1:
-        # Finite decimal expansion: scale numerator and denominator to a power of ten and build
-        # the Decimal from its exact digit tuple (no context rounding involved).
-        scale = max(twos, fives)
-        scaled = num * 2 ** (scale - twos) * 5 ** (scale - fives)
-        sign = 0 if scaled >= 0 else 1
-        digit_tuple = tuple(int(c) for c in str(abs(scaled)))
-        return decimal.Decimal((sign, digit_tuple, -scale))
+    # The finite-expansion (2**a * 5**b) detection and exact construction is shared with the
+    # exact-math module (:func:`httk.core.vectors.exactmath._finite_decimal_expansion`).
+    finite = _finite_decimal_expansion(value)
+    if finite is not None:
+        return finite
     precision = decimal.getcontext().prec if digits is None else digits
     context = decimal.Context(prec=precision, rounding=decimal.ROUND_HALF_EVEN)
-    return context.divide(decimal.Decimal(num), decimal.Decimal(den))
+    return context.divide(decimal.Decimal(value.numerator), decimal.Decimal(value.denominator))
 
 
 register_leaf_codec(LeafCodec("exact", _exact_from_fraction, _check_no_options))

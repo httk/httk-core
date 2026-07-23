@@ -225,28 +225,34 @@ assert fv == m                          # mutable and immutable compare equal by
 `FracScalar` is the scalar specialization (a single `nom/denom`), used to make it explicit when a
 scalar fracvector is expected.
 
-## `fracmath` and `vectormath`
+## `exactmath` and `vectormath`
 
-See {doc}`fracmath` for the full standalone guide to the exact math functions.
+See {doc}`exactmath` for the full standalone guide to the exact math functions.
 
-The exact transcendental helpers live in `httk.core.vectors.fracmath`: rational approximations of
-`sqrt`/`cos`/`sin`/`exp`/`pi`/`log`/... on `fractions.Fraction`, each computed to a target
-precision `prec` (given as a `Fraction`). Results are exact rationals that approximate the true
-(generally irrational) value to within `prec`; perfect cases come back exactly.
+The exact transcendental helpers live in `httk.core.vectors.exactmath`: type-preserving
+`sqrt`/`cos`/`sin`/`exp`/`pi`/`log`/... . For `fractions.Fraction` input they return exact
+rationals computed to a target precision `prec` (given as a `Fraction`) that approximate the true
+(generally irrational) value to within `prec`; perfect cases come back exactly. For
+`decimal.Decimal` input (or when `digits=` is passed) they instead return a correctly-rounded
+`Decimal`.
 
 ```python
+import decimal
 import fractions
 import math
-from httk.core.vectors import fracmath
+from httk.core.vectors import exactmath
 
 F = fractions.Fraction
 
-assert fracmath.frac_sqrt(F(9, 4)) == F(3, 2)                      # perfect square: exact
-approx = fracmath.frac_sqrt(F(2), prec=F(1, 10**8))               # irrational: rational approx
+assert exactmath.sqrt(F(9, 4)) == F(3, 2)                      # perfect square: exact
+approx = exactmath.sqrt(F(2), prec=F(1, 10**8))               # irrational: rational approx
 assert abs(float(approx) - math.sqrt(2)) < 1e-8
 
-pi = fracmath.frac_pi(prec=F(1, 10**10))
+pi = exactmath.pi(prec=F(1, 10**10))
 assert abs(float(pi) - math.pi) < 1e-9
+
+# Decimal domain: correctly-rounded to a number of significant digits.
+assert exactmath.sqrt(decimal.Decimal(2), digits=12) == decimal.Decimal("1.41421356237")
 ```
 
 `httk.core.vectors.vectormath` provides `math`-style functional wrappers that dispatch to a

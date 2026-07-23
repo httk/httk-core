@@ -16,7 +16,7 @@ on the other.
 - **API reference**: {doc}`reference/index`
 - **Views and backends guide**: {doc}`view_backend_pattern`
 - **Datastream guide**: {doc}`datastreams`
-- **Exact math on rationals**: {doc}`fracmath`
+- **Exact math on rationals and decimals**: {doc}`exactmath`
 - **Vectors guide**: {doc}`vectors`
 - **Examples notebook**: {doc}`notebooks/examples`
 ````
@@ -46,6 +46,6 @@ reference/index
 view_backend_pattern
 datastreams
 vectors
-fracmath
+exactmath
 notebooks/examples
 ```
