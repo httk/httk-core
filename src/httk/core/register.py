@@ -28,3 +28,21 @@ def register_loader(*, name: str, loader: str, extensions: tuple[str, ...]) -> N
 
 def known_extensions() -> list[str]:
     return loaders.keys()
+
+
+entry_providers = PluginRegistry()
+
+
+def register_entry_provider(*, name: str, factory: str) -> None:
+    """Register an :class:`~httk.core.entry_provider.EntryProvider` factory under ``name``.
+
+    ``factory`` is a lazy ``"module:callable"`` reference to a callable that
+    constructs a provider (providers need data, so applications call the factory
+    themselves; the registry only records how to reach it). This mirrors
+    ``register_loader``.
+    """
+    entry_providers.register(key=name, handler=factory, name=name)
+
+
+def known_entry_providers() -> list[str]:
+    return entry_providers.keys()

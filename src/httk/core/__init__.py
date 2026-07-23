@@ -54,7 +54,9 @@ from .datastream import (
     known_compressions,
     register_compression,
 )
+from .entry_provider import EntryProvider
 from .loading import load
+from .register import known_entry_providers, register_entry_provider
 from .views import Backend, View, unwrap
 
 _discover.discover_and_register()
@@ -71,6 +73,9 @@ subpackages = _discover_modules()
 __all__ = [
     "load",
     "subpackages",
+    "EntryProvider",
+    "register_entry_provider",
+    "known_entry_providers",
     "DataLoader",
     "DataRecord",
     "DatasetMeta",
