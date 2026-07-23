@@ -28,6 +28,7 @@ math wrappers).
 from .fracvector import FracScalar, FracVector
 from .leaf_codecs import LeafCodec, known_leaf_codecs, register_leaf_codec
 from .mutablefracvector import MutableFracVector
+from .numeric import NumericVector, numpy_available, to_numeric, to_numeric_scalar
 from .surdvector import SurdScalar, SurdVector
 from .vector_api import VectorAPI
 from .vector_backend import VectorBackend
@@ -73,6 +74,10 @@ __all__ = [
     "VectorNativeView",
     "VectorSurdView",
     "VectorLike",
+    "NumericVector",
+    "to_numeric",
+    "to_numeric_scalar",
+    "numpy_available",
 ]
 
 if _numpy_available:

@@ -62,6 +62,7 @@ from .vectors import (
     FracVector,
     LeafCodec,
     MutableFracVector,
+    NumericVector,
     SurdScalar,
     SurdVector,
     VectorAPI,
@@ -78,7 +79,10 @@ from .vectors import (
 from .vectors import _numpy_available as _vectors_numpy_available
 from .vectors import (
     known_leaf_codecs,
+    numpy_available,
     register_leaf_codec,
+    to_numeric,
+    to_numeric_scalar,
 )
 from .views import Backend, View, unwrap
 
@@ -158,6 +162,10 @@ __all__ = [
     "VectorNativeView",
     "VectorSurdView",
     "VectorLike",
+    "NumericVector",
+    "to_numeric",
+    "to_numeric_scalar",
+    "numpy_available",
 ]
 
 if _vectors_numpy_available:
