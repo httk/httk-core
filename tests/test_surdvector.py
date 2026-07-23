@@ -279,3 +279,103 @@ def test_to_fractions_approx_is_within_prec() -> None:
     approx = s2._scalar_approx(prec)
     assert abs(approx * approx - 2) < F(1, 10**15)  # very close to sqrt(2)
     assert abs(float(approx) - math.sqrt(2)) < 1e-19
+
+
+# --------------------------------------------------------------- Niven degree trigonometry
+
+
+# cos 15 = (sqrt6 + sqrt2)/4, cos 75 = (sqrt6 - sqrt2)/4 (the 15-degree family);
+# cos 36 = (1 + sqrt5)/4, cos 72 = (sqrt5 - 1)/4 (the 36-degree family).
+_C15 = (SurdVector.sqrt_of(6) + SurdVector.sqrt_of(2)) / 4
+_C75 = (SurdVector.sqrt_of(6) - SurdVector.sqrt_of(2)) / 4
+_C36 = (SurdVector.one() + SurdVector.sqrt_of(5)) / 4
+_C72 = (SurdVector.sqrt_of(5) - SurdVector.one()) / 4
+
+# The full special-angle table over [0, 180]: exact cos/sin as SurdScalars. A sin entry of None
+# marks the 36-family asymmetry: cos(36k) is an exact surd but sin(36k) = cos(90 - 36k) is not.
+_NIVEN_TABLE = {
+    0: (SurdVector.one(), SurdVector.create(0)),
+    15: (_C15, _C75),
+    30: (SurdVector.sqrt_of(3) / 2, SurdVector.create(F(1, 2))),
+    36: (_C36, None),
+    45: (SurdVector.sqrt_of(2) / 2, SurdVector.sqrt_of(2) / 2),
+    60: (SurdVector.create(F(1, 2)), SurdVector.sqrt_of(3) / 2),
+    72: (_C72, None),
+    75: (_C75, _C15),
+    90: (SurdVector.create(0), SurdVector.one()),
+    105: (-_C75, _C15),
+    108: (-_C72, None),
+    120: (SurdVector.create(F(-1, 2)), SurdVector.sqrt_of(3) / 2),
+    135: (-SurdVector.sqrt_of(2) / 2, SurdVector.sqrt_of(2) / 2),
+    144: (-_C36, None),
+    150: (-SurdVector.sqrt_of(3) / 2, SurdVector.create(F(1, 2))),
+    165: (-_C15, _C75),
+    180: (SurdVector.create(-1), SurdVector.create(0)),
+}
+
+
+def test_niven_cos_sin_forward_full_table() -> None:
+    for angle, (cos_exp, sin_exp) in _NIVEN_TABLE.items():
+        assert SurdScalar.cos_degrees(angle) == cos_exp, angle
+        if sin_exp is None:
+            assert SurdScalar.sin_degrees(angle) is None, angle
+        else:
+            assert SurdScalar.sin_degrees(angle) == sin_exp, angle
+
+
+def test_niven_symmetry_and_reduction_cases() -> None:
+    # Reduction mod 360 and sign symmetry: cos is even and 360-periodic, sin is odd.
+    assert SurdScalar.cos_degrees(210) == -SurdVector.sqrt_of(3) / 2
+    assert SurdScalar.cos_degrees(300) == SurdVector.create(F(1, 2))
+    assert SurdScalar.cos_degrees(-60) == SurdScalar.cos_degrees(60)
+    assert SurdScalar.cos_degrees(390) == SurdScalar.cos_degrees(30)
+    assert SurdScalar.sin_degrees(210) == SurdVector.create(F(-1, 2))
+    assert SurdScalar.sin_degrees(-60) == -SurdScalar.sin_degrees(60)
+    # Accepts int, Fraction and numeric strings.
+    assert SurdScalar.cos_degrees(F(60)) == SurdScalar.cos_degrees("60")
+
+
+def test_niven_reverse_round_trip() -> None:
+    for angle, (cos_exp, _sin_exp) in _NIVEN_TABLE.items():
+        assert cos_exp._as_scalar().acos_degrees() == F(angle), angle
+        # forward-then-reverse is the identity over [0, 180]
+        assert SurdScalar.cos_degrees(angle)._as_scalar().acos_degrees() == F(angle)  # type: ignore[union-attr]
+
+
+def test_niven_none_for_non_special_angles() -> None:
+    # 20 degrees and 1/3 degree are multiples of neither 15 nor 36 -> None (a proof).
+    assert SurdScalar.cos_degrees(20) is None
+    assert SurdScalar.sin_degrees(20) is None
+    assert SurdScalar.cos_degrees(F(1, 3)) is None
+    # 54 = 90 - 36 is in neither family, so sin of the 36-family is not a surd:
+    assert SurdScalar.cos_degrees(54) is None
+    assert SurdScalar.sin_degrees(36) is None
+    # A cosine value not in the table reverses to None.
+    assert SurdVector.create(F(1, 3))._as_scalar().acos_degrees() is None
+
+
+def test_niven_acos_domain_error() -> None:
+    with pytest.raises(ValueError, match="domain"):
+        SurdVector.create(2)._as_scalar().acos_degrees()
+    with pytest.raises(ValueError, match="domain"):
+        (SurdVector.sqrt_of(2) + SurdVector.one())._as_scalar().acos_degrees()
+
+
+def test_niven_pythagorean_identity_exact() -> None:
+    # Every multiple of 15 has both cos and sin exact in the field.
+    for angle in range(0, 360, 15):
+        c = SurdScalar.cos_degrees(angle)
+        s = SurdScalar.sin_degrees(angle)
+        assert c is not None and s is not None
+        assert c * c + s * s == SurdVector.one(), angle
+
+
+def test_niven_36_family_golden_identities() -> None:
+    # cos 36 - cos 72 == 1/2 and cos 36 * cos 72 == 1/4 (golden-ratio identities), exactly:
+    assert _C36 - _C72 == SurdVector.create(F(1, 2))
+    assert _C36 * _C72 == SurdVector.create(F(1, 4))
+    # Reverse lookup covers the 15- and 36-families:
+    assert _C36._as_scalar().acos_degrees() == F(36)
+    assert _C15._as_scalar().acos_degrees() == F(15)
+    assert (-_C72)._as_scalar().acos_degrees() == F(108)
+    assert _C75._as_scalar().acos_degrees() == F(75)
