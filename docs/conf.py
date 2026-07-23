@@ -73,6 +73,7 @@ html_theme_options = {
 # sites. Refresh the committed inventories with `make docs-inventories`.
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", "_inventories/python.inv"),
+    "numpy": ("https://numpy.org/doc/stable/", "_inventories/numpy.inv"),
 }
 
 autoapi_options = [

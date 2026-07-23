@@ -57,7 +57,24 @@ from .datastream import (
 from .entry_provider import EntryProvider
 from .loading import load
 from .register import known_entry_providers, register_entry_provider
+from .vectors import (
+    FracScalar,
+    FracVector,
+    MutableFracVector,
+    VectorAPI,
+    VectorBackend,
+    VectorFrac,
+    VectorFracView,
+    VectorLike,
+    VectorNative,
+    VectorNativeView,
+    VectorView,
+)
+from .vectors import _numpy_available as _vectors_numpy_available
 from .views import Backend, View, unwrap
+
+if _vectors_numpy_available:
+    from .vectors import VectorNumpy, VectorNumpyView
 
 _discover.discover_and_register()
 
@@ -114,4 +131,18 @@ __all__ = [
     "CompressionCodec",
     "register_compression",
     "known_compressions",
+    "FracVector",
+    "FracScalar",
+    "MutableFracVector",
+    "VectorAPI",
+    "VectorBackend",
+    "VectorView",
+    "VectorFrac",
+    "VectorNative",
+    "VectorFracView",
+    "VectorNativeView",
+    "VectorLike",
 ]
+
+if _vectors_numpy_available:
+    __all__ += ["VectorNumpy", "VectorNumpyView"]
