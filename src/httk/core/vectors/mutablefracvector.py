@@ -209,12 +209,18 @@ class MutableFracVector(FracVector):
         if det_nom == 0:
             raise Exception("FracVector.inverse: cannot take inverse of singular matrix.")
 
+        # The adjugate must be scaled by the ORIGINAL denominator (one factor of self.denom
+        # falls out of the 1/self.denom**2 in the cofactors, cancelling against the self.denom**3
+        # in the determinant). The legacy code reassigned self.denom *before* reading it into m,
+        # so it scaled by the determinant instead -- leaving self a factor det_nom/orig_denom off
+        # from FracVector.inv(). Capture the original denominator first.
+        orig_denom = self.denom
         if det_nom < 0:
             self.denom = -det_nom
-            m = -self.denom
+            m = -orig_denom
         else:
             self.denom = det_nom
-            m = self.denom
+            m = orig_denom
 
         A = self.noms
         self.noms = [
@@ -243,9 +249,9 @@ class MutableFracVector(FracVector):
         if self.denom != 1:
             gcd = self._reduce_over_noms(lambda x, y: calc_gcd(x, abs(y)), initializer=self.denom)
             if gcd != 1:
-                # Note: preserved legacy behavior. This uses true division, so the denominator
-                # becomes a float here (a latent legacy bug); FracVector.simplify uses // instead.
-                self.denom = self.denom / gcd
+                # Integer division keeps the denominator an int, matching FracVector.simplify().
+                # (The legacy code used true division here, which turned self.denom into a float.)
+                self.denom = self.denom // gcd
                 self._inmap_over_noms(lambda x: int(x / gcd))
 
     def set_set_denominator(self, resolution: int = 1000000000) -> None:

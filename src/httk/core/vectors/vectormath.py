@@ -56,11 +56,18 @@ def copysign(x: Any, y: Any, **args: Any) -> Any:
 
 def sign(x: Any, **args: Any) -> Any:
     """
-    Return the sign of x, equivalent to copysign(1, x).
+    Return the sign of x: -1, 0, or 1 (the numpy convention, so sign(0) == 0).
 
     (For vectors applied to each element.)
     """
-    return copysign(1, x)
+    try:
+        return x.sign(**args)
+    except AttributeError:
+        if x > 0:
+            return 1
+        if x < 0:
+            return -1
+        return 0
 
 
 def fabs(x: Any, **args: Any) -> Any:
@@ -108,8 +115,16 @@ def frexp(x: Any, **args: Any) -> Any:
     Return the mantissa and exponent of x as the pair (m, e). m is a float and e is an integer
     such that x == m * 2**e exactly. If x is zero, returns (0.0, 0), otherwise 0.5 <= abs(m) < 1.
 
+    This decomposition is only meaningful for binary floating-point values; exact
+    rational types such as FracVector do not support it — convert with
+    ``to_floats()``/``to_float()`` first (a clear TypeError is raised otherwise).
+
     (For vectors applied to each element and returns tuples nested in lists.)
     """
+    if hasattr(x, "to_floats") and not hasattr(x, "frexp"):
+        raise TypeError(
+            "frexp is only meaningful for binary floating-point values; convert with to_floats()/to_float() first"
+        )
     try:
         return x.frexp(**args)
     except AttributeError:
@@ -171,16 +186,16 @@ def isanynan(x: Any, **args: Any) -> Any:
         return math.isnan(x, **args)
 
 
-def ldexp(x: Any, **args: Any) -> Any:
+def ldexp(x: Any, i: int, **args: Any) -> Any:
     """
     Return x * (2**i). This is essentially the inverse of function frexp().
 
     (For vectors applied to each element.)
     """
     try:
-        return x.ldexp(**args)
+        return x.ldexp(i, **args)
     except AttributeError:
-        return math.ldexp(x, **args)  # type: ignore[call-arg]
+        return math.ldexp(x, i, **args)
 
 
 def modf(x: Any, **args: Any) -> Any:
@@ -326,18 +341,19 @@ def atan(x: Any, **args: Any) -> Any:
         return math.atan(x, **args)
 
 
-def atan2(x: Any, y: Any, **args: Any) -> Any:
+def atan2(y: Any, x: Any, **args: Any) -> Any:
     """
-    Return atan(y / x), in radians. The result is between -pi and pi. The point of atan2() is
-    that the signs of both inputs are known to it, so it can compute the correct quadrant for
-    the angle.
+    Return atan(y / x), in radians, with the standard ``atan2(y, x)`` argument order
+    used by :func:`math.atan2`, numpy, and :func:`httk.core.vectors.fracmath.frac_atan2`.
+    The result is between -pi and pi. The point of atan2() is that the signs of both
+    inputs are known to it, so it can compute the correct quadrant for the angle.
 
     (For vectors applied to each element.)
     """
     try:
-        return x.atan2(y, **args)
+        return y.atan2(x, **args)
     except AttributeError:
-        return math.atan2(x, y, **args)
+        return math.atan2(y, x, **args)
 
 
 def cos(x: Any, **args: Any) -> Any:
@@ -420,9 +436,9 @@ def acosh(x: Any, **args: Any) -> Any:
     (For vectors applied to each element.)
     """
     try:
-        return x.cosh(**args)
+        return x.acosh(**args)
     except AttributeError:
-        return math.cosh(x, **args)
+        return math.acosh(x, **args)
 
 
 def asinh(x: Any, **args: Any) -> Any:
@@ -432,9 +448,9 @@ def asinh(x: Any, **args: Any) -> Any:
     (For vectors applied to each element.)
     """
     try:
-        return x.sinh(**args)
+        return x.asinh(**args)
     except AttributeError:
-        return math.sinh(x, **args)
+        return math.asinh(x, **args)
 
 
 def atanh(x: Any, **args: Any) -> Any:
@@ -444,9 +460,9 @@ def atanh(x: Any, **args: Any) -> Any:
     (For vectors applied to each element.)
     """
     try:
-        return x.tanh(**args)
+        return x.atanh(**args)
     except AttributeError:
-        return math.tanh(x, **args)
+        return math.atanh(x, **args)
 
 
 def cosh(x: Any, **args: Any) -> Any:

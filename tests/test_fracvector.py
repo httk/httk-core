@@ -333,3 +333,192 @@ def test_get_stackedinsert_rename() -> None:
 def test_immutable_setitem_raises() -> None:
     with pytest.raises(Exception):
         FracVector.create([1, 2, 3])[0] = 5
+
+
+# ------------------------------------------------------------------ from_tuple / to_tuple round-trip
+
+
+@pytest.mark.parametrize(
+    "v",
+    [
+        FracVector.create([[1, 2, 3], [4, 5, 6]], 7),
+        FracVector.create([1, 2, 3]),
+        FracScalar.create("3/4"),
+        FracVector.create([[["1/3", "2/5"]], [["3/7", "4/9"]]]),
+    ],
+)
+def test_from_tuple_inverts_to_tuple(v: FracVector) -> None:
+    # Corrected: legacy from_tuple used t[1:], double-wrapping noms, so it never round-tripped.
+    assert FracVector.from_tuple(v.to_tuple()) == v
+    rebuilt = FracVector.from_tuple(v.to_tuple())
+    assert rebuilt.noms == v.noms
+    assert rebuilt.denom == v.denom
+
+
+# ------------------------------------------------------------------ stacked helpers (corrected)
+
+
+def test_get_stacked_adds_leading_axis() -> None:
+    # Corrected: legacy wrapped `other` in an extra list, giving a ragged result.
+    assert FracVector.create([1, 2, 3]).get_stacked([4, 5, 6]) == FracVector.create([[1, 2, 3], [4, 5, 6]])
+    assert FracVector.create([1, 2, 3]).get_prestacked([4, 5, 6]) == FracVector.create([[4, 5, 6], [1, 2, 3]])
+
+
+def test_get_stacked_matrices() -> None:
+    a = FracVector.create([[1, 2], [3, 4]])
+    b = FracVector.create([[5, 6], [7, 8]])
+    stacked = a.get_stacked(b)
+    assert stacked.dim == (2, 2, 2)
+    assert stacked[0] == a and stacked[1] == b
+
+
+# ------------------------------------------------------------------ use() live to_FracVector path
+
+
+class _HasToFracVector:
+    def to_FracVector(self) -> FracVector:
+        return FracVector.create([[1, 2], [3, 4]])
+
+
+def test_use_returns_plain_fracvector_unchanged() -> None:
+    v = FracVector.create([1, 2, 3])
+    assert FracVector.use(v) is v
+
+
+def test_use_converts_via_to_fracvector() -> None:
+    # Live fast path: an object exposing to_FracVector() is converted through it.
+    result = FracVector.use(_HasToFracVector())
+    assert isinstance(result, FracVector)
+    assert result == FracVector.create([[1, 2], [3, 4]])
+
+
+def test_use_converts_mutable_to_immutable() -> None:
+    from httk.core.vectors import MutableFracVector
+
+    m = MutableFracVector.from_FracVector(FracVector.create([[1, 2], [3, 4]]))
+    result = FracVector.use(m)
+    assert type(result) is FracVector
+    assert result == m
+
+
+def test_use_falls_back_to_create_for_plain_sequence() -> None:
+    assert FracVector.use([[1, 2], [3, 4]]) == FracVector.create([[1, 2], [3, 4]])
+
+
+# ------------------------------------------------------------------ __pow__ (corrected negatives / scalar 0)
+
+
+def test_pow_negative_matrix_beyond_minus_one() -> None:
+    a = FracVector.create([[2, 3, 5], [3, 5, 4], [4, 6, 7]])
+    inv = a.inv()
+    # Corrected: legacy multiplied by self (not the inverse), collapsing A**-2 to the identity.
+    assert (a**-2).simplify() == inv.mul(inv).simplify()
+    assert (a**-3).simplify() == inv.mul(inv).mul(inv).simplify()
+    assert (a ** -2).simplify() != FracVector.eye((3, 3))
+
+
+def test_pow_zero_scalar_and_fracscalar() -> None:
+    assert FracVector.create("2/3") ** 0 == 1
+    # Corrected: FracScalar ** 0 used to crash (single-arg constructor needs two arguments).
+    s = FracScalar.create("2/3") ** 0
+    assert s == 1
+
+
+def test_pow_zero_matrix_is_identity() -> None:
+    assert FracVector.create([[1, 2], [3, 4]]) ** 0 == FracVector.eye((2, 2))
+
+
+# ------------------------------------------------------------------ mutable/immutable equality (corrected)
+
+
+def test_equality_across_list_and_tuple_noms() -> None:
+    from httk.core.vectors import MutableFracVector
+
+    fv = FracVector.create([[1, 2], [3, 4]])
+    mv = MutableFracVector.from_FracVector(fv)
+    # Corrected: nested list vs nested tuple never compared equal before.
+    assert mv == fv
+    assert fv == mv
+    assert mv == FracVector([[2, 4], [6, 8]], 2)  # equal value, different denom
+    assert mv != FracVector.create([[1, 2], [3, 5]])
+
+
+# ------------------------------------------------------------------ chain / division-by-zero
+
+
+def test_create_chain_flattens_outer_dimension() -> None:
+    assert FracVector.create([[1, 2, 3], [4, 5, 6]], chain=True) == FracVector.create([1, 2, 3, 4, 5, 6])
+
+
+def test_division_by_zero_raises_on_use() -> None:
+    quotient = FracVector.create("1/2") / FracVector.create("0")
+    with pytest.raises(ZeroDivisionError):
+        quotient.to_fraction()
+
+
+# ------------------------------------------------------------------ argmax / nargmax semantics
+
+
+def test_nargmax_nargmin_collect_all_ties() -> None:
+    a = FracVector.create([[1, 7, 3], [7, 2, 7]])
+    assert sorted(a.nargmax()) == sorted([(0, 1), (1, 0), (1, 2)])
+    assert a.nargmin() == [(0, 0)]
+    # argmax returns a single (first) index of the maximum.
+    assert a.argmax() in a.nargmax()
+
+
+# ------------------------------------------------------------------ property-style laws
+
+
+_MATS = [
+    FracVector.create([[2, 3, 5], [3, 5, 4], [4, 6, 7]]),
+    FracVector.create([[1, 0, 2], [0, 3, 0], [4, 0, 1]]),
+    FracVector.create([["1/2", "1/3", 0], [0, "2/5", 1], [1, 0, "3/7"]]),
+]
+
+
+@pytest.mark.parametrize("a", _MATS)
+def test_inverse_law(a: FracVector) -> None:
+    assert (a * a.inv()).simplify() == FracVector.eye((3, 3))
+    assert (a.inv() * a).simplify() == FracVector.eye((3, 3))
+
+
+def test_matmul_associativity() -> None:
+    a, b, c = _MATS
+    assert ((a * b) * c).simplify() == (a * (b * c)).simplify()
+
+
+@pytest.mark.parametrize("a", _MATS)
+def test_transpose_involution(a: FracVector) -> None:
+    assert a.T().T() == a
+
+
+@pytest.mark.parametrize("a", _MATS)
+def test_simplify_idempotent_and_value_preserving(a: FracVector) -> None:
+    s = a.simplify()
+    assert s == a
+    assert s.simplify() == s
+    assert s.simplify().denom == s.denom
+
+
+def test_create_fast_matches_create() -> None:
+    import random
+
+    rng = random.Random(20240721)
+    for _ in range(60):
+        depth = rng.choice([2, 3])
+        if depth == 2:
+            data = [[rng.randint(-40, 40) for _ in range(3)] for _ in range(3)]
+        else:
+            data = [[[rng.randint(-9, 9) for _ in range(2)] for _ in range(2)] for _ in range(2)]
+        cd = rng.randint(1, 24)
+
+        def as_fraction(node: object) -> object:
+            if isinstance(node, list):
+                return [as_fraction(x) for x in node]
+            return F(node, cd)  # type: ignore[arg-type]
+
+        fast = FracVector.create_fast(data, common_denom=cd)
+        slow = FracVector.create(as_fraction(data))
+        assert fast.simplify() == slow.simplify()
+        assert fast.simplify().denom == slow.simplify().denom
