@@ -1,38 +1,50 @@
 """
-A view presenting any vector backend as nested tuples with exact leaves.
+A view presenting any vector backend as nested tuples, with a selectable leaf codec.
 """
 
 from typing import Any, Self
 
 from httk.core.views import unwrap
 
-from .vector_api import Fractions
+from .leaf_codecs import apply_leaf_codec, leaf_codec_for_name, validate_leaf_codec
 from .vector_backend import VectorBackend
 from .vector_like import VectorLike
+from .vector_native import VectorNative
 from .vector_view import VectorView
 
 
-def _to_native(node: Fractions) -> Any:
+def _tupleize(node: Any) -> Any:
     """
-    Convert the exact ``fractions`` interchange into nested tuples with exact leaves: an ``int``
-    when the value is integral, otherwise a :class:`fractions.Fraction`. Never a float.
+    Present nested data as nested tuples, tuple-izing every list/tuple container but leaving leaf
+    objects **untouched** — the identical ``int``/``float``/:class:`decimal.Decimal`/... instances.
     """
-    if isinstance(node, tuple):
-        return tuple(_to_native(e) for e in node)
-    if node.denominator == 1:
-        return int(node)
+    if isinstance(node, (list, tuple)):
+        return tuple(_tupleize(e) for e in node)
     return node
 
 
 class VectorNativeView(VectorView, tuple):
     """
-    A view presenting an underlying vector backend as nested tuples.
+    A view presenting an underlying vector backend as nested tuples, with a selectable *leaf codec*.
 
-    This view is a genuine (possibly nested) ``tuple`` with **exact** leaves: an ``int`` when
-    the value is integral, otherwise a :class:`fractions.Fraction` — never a silent float. Users
-    who want floats should use the numpy view or
-    :meth:`~httk.core.vectors.fracvector.FracVector.to_floats`. A scalar source is presented as a
-    single-element tuple.
+    The leaf codec is the element-domain axis (see :mod:`httk.core.vectors.leaf_codecs`); it is
+    chosen with the ``leaf=`` hint plus any codec options (``rounding=``, ``digits=``, ...). There
+    are three modes:
+
+    - **preserve-original** (``leaf=None``, and the source is natively-held data): the backend's
+      original nested leaves are presented *verbatim* — the same objects, only containers tuple-ized
+      (``Decimal``\\ s in, the same ``Decimal``\\ s out). This fixes silent Fraction-ization of
+      natively-held data.
+    - **exact default** (``leaf=None``, source crossing from a frac/numpy backend): the ``"exact"``
+      codec — ``int`` when integral, else :class:`fractions.Fraction`, never a float (the historical
+      behavior).
+    - **explicit codec** (``leaf="int"``/``"float"``/``"decimal"``/``"fraction"``/...): every element
+      is converted from the backend's exact ``fractions`` interchange through that codec.
+
+    The codec name and its options are validated eagerly at construction (an unknown codec name or
+    invalid option raises :class:`ValueError`); a codec never raises on the *data* — a value it
+    cannot represent exactly takes the codec's documented default conversion, because the backend
+    keeps the exact original. A scalar source is presented as a single-element tuple.
     """
 
     _backend: VectorBackend
@@ -40,8 +52,17 @@ class VectorNativeView(VectorView, tuple):
     def __new__(cls, obj: VectorLike, **hints: Any) -> Self:
         if isinstance(obj, cls):
             return obj
+        leaf = hints.pop("leaf", None)
         backend = cls._prepare_backend(obj, hints)
-        native = _to_native(backend.fractions)
+        if leaf is None:
+            if isinstance(backend, VectorNative):
+                native = _tupleize(backend.native)
+            else:
+                native = apply_leaf_codec(leaf_codec_for_name("exact"), backend.fractions)
+        else:
+            options = {k: v for k, v in hints.items() if k != "kind"}
+            codec = validate_leaf_codec(leaf, options)
+            native = apply_leaf_codec(codec, backend.fractions, **options)
         if isinstance(native, tuple):
             instance = super().__new__(cls, native)
         else:

@@ -60,6 +60,7 @@ from .register import known_entry_providers, register_entry_provider
 from .vectors import (
     FracScalar,
     FracVector,
+    LeafCodec,
     MutableFracVector,
     VectorAPI,
     VectorBackend,
@@ -71,6 +72,10 @@ from .vectors import (
     VectorView,
 )
 from .vectors import _numpy_available as _vectors_numpy_available
+from .vectors import (
+    known_leaf_codecs,
+    register_leaf_codec,
+)
 from .views import Backend, View, unwrap
 
 if _vectors_numpy_available:
@@ -134,6 +139,9 @@ __all__ = [
     "FracVector",
     "FracScalar",
     "MutableFracVector",
+    "LeafCodec",
+    "register_leaf_codec",
+    "known_leaf_codecs",
     "VectorAPI",
     "VectorBackend",
     "VectorView",

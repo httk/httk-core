@@ -286,15 +286,186 @@ assert isinstance(VectorBackend.create(FracVector.create([[1, 2], [3, 4]])), Vec
 # A frac view is a genuine FracVector, so the full exact algebra is available:
 assert VectorFracView([[2, 3, 5], [3, 5, 4], [4, 6, 7]]).det() == -3
 
-# A native view is a genuine nested tuple with exact leaves (int when integral, else Fraction):
+# A native view is a genuine nested tuple. By default it presents natively-held leaves verbatim
+# (see "Element types" below); a leaf codec, e.g. leaf="fraction", converts them:
 import fractions
-assert VectorNativeView([["1/3", "2/3"]]) == ((fractions.Fraction(1, 3), fractions.Fraction(2, 3)),)
+assert VectorNativeView([["1/3", "2/3"]]) == (("1/3", "2/3"),)
+assert VectorNativeView([["1/3", "2/3"]], leaf="fraction") == ((fractions.Fraction(1, 3), fractions.Fraction(2, 3)),)
 ```
 
 The canonical interchange between representations is **exactness-preserving**: every backend
 exposes `.fractions` (a nested tuple of `fractions.Fraction`, or a bare `Fraction` for a scalar)
 and `.dim`. Because numpy float64 values are themselves binary rationals, even a numpy array
 produces `.fractions` *exactly*.
+
+### Element types (leaves)
+
+The backends above choose the **container** (a `FracVector`, a nested `tuple`, a `numpy.ndarray`).
+A *leaf codec* chooses the orthogonal **element domain** — what a single leaf value is presented as
+(an `int`, a `fractions.Fraction`, a `float`, a `decimal.Decimal`, ...). The two axes are
+independent: any container can carry any leaf type. Leaf codecs live in
+`httk.core.vectors.leaf_codecs` and are an extensible registry, exactly like the compression codecs.
+
+The key policy is that **a view never raises on the data**. A backend always keeps the exact
+original, so any lossy view is fully recoverable simply by re-viewing; therefore a leaf codec that
+cannot represent a value exactly still produces a view, applying its *documented default
+conversion*. Only configuration errors — an unknown codec name or an invalid option — raise, and
+they raise eagerly at view construction.
+
+#### The preserve-original default
+
+The default native view of natively-held data now presents its leaves **verbatim** — the identical
+objects, with only the list/tuple containers tuple-ized. `Decimal`s in, the same `Decimal`s out; no
+silent Fraction-ization:
+
+```python
+import decimal
+from httk.core import VectorNativeView
+
+d = decimal.Decimal("1.5")
+nv = VectorNativeView([[d, 2], [3, 4]])
+assert nv == ((decimal.Decimal("1.5"), 2), (3, 4))
+assert nv[0][0] is d                    # the very same Decimal object
+assert [type(x) for x in nv[0]] == [decimal.Decimal, int]
+```
+
+Because the leaves are untouched, string leaves stay strings under the default — ask for a codec
+when you want them converted (see below). When the source instead *crosses* representations (a
+`frac` or `numpy` backend, which holds no native leaves to preserve), the default is the `"exact"`
+codec — `int` when integral, otherwise `Fraction`, never a float, exactly as before:
+
+```python
+import fractions
+from httk.core import FracVector, VectorNativeView
+
+crossed = VectorNativeView(FracVector.create([["1/3", "2/3"], [1, 2]]))
+assert crossed == ((fractions.Fraction(1, 3), fractions.Fraction(2, 3)), (1, 2))
+```
+
+#### Choosing a leaf codec
+
+Pass `leaf=` (plus any codec options) to convert every element from the backend's exact `fractions`
+hub. The built-ins:
+
+| `leaf=`      | leaf type            | exactness contract / default conversion                                   |
+| ------------ | -------------------- | ------------------------------------------------------------------------- |
+| `"exact"`    | `int` or `Fraction`  | always exact — `int` when integral, else `Fraction`                       |
+| `"fraction"` | `Fraction`           | always exact                                                              |
+| `"int"`      | `int`                | exact when integral; else `rounding=` (`"round"` half-even default)        |
+| `"float"`    | `float`              | inherently lossy: nearest IEEE-754 binary double                          |
+| `"decimal"`  | `Decimal`            | exact for `2**a * 5**b` denominators; else `digits=` sig. figs, half-even |
+
+The `"int"` codec's default rounding is nearest with ties to even (matching Python's `round` on a
+`Fraction`); `rounding=` also accepts `"floor"`, `"ceil"`, and `"trunc"`:
+
+```python
+from httk.core import FracVector, VectorNativeView
+
+halves = FracVector.create([["5/2", "7/2", "-5/2", "-7/2"]])
+assert VectorNativeView(halves, leaf="int") == ((2, 4, -2, -4),)                     # half-even
+assert VectorNativeView(halves, leaf="int", rounding="floor") == ((2, 3, -3, -4),)
+assert VectorNativeView(halves, leaf="int", rounding="ceil") == ((3, 4, -2, -3),)
+assert VectorNativeView(halves, leaf="int", rounding="trunc") == ((2, 3, -2, -3),)
+```
+
+The `"decimal"` codec is **exact** whenever the reduced denominator is of the form `2**a * 5**b` (a
+finite decimal expansion) — regardless of the active `decimal` context precision. Otherwise the
+value has no finite decimal expansion, so it is quantized to `digits=` significant digits (default:
+the active context precision) with round-half-even:
+
+```python
+import decimal
+from httk.core import FracVector, VectorNativeView
+
+# 1/8 has a finite expansion: exact.
+assert VectorNativeView(FracVector.create([["1/8"]]), leaf="decimal") == ((decimal.Decimal("0.125"),),)
+# 1/3 does not: quantized to the requested number of significant digits.
+assert VectorNativeView(FracVector.create([["1/3"]]), leaf="decimal", digits=6) == ((decimal.Decimal("0.333333"),),)
+```
+
+And `leaf="float"` is the lossy-by-design bridge to plain floats (`leaf="fraction"` converts the
+preserved strings from the first example):
+
+```python
+import fractions
+from httk.core import FracVector, VectorNativeView
+
+assert VectorNativeView(FracVector.create([["1/3"]]), leaf="float") == ((1.0 / 3.0,),)
+assert VectorNativeView([["1/3", "2/3"]], leaf="fraction") == ((fractions.Fraction(1, 3), fractions.Fraction(2, 3)),)
+```
+
+Only *configuration* errors raise, and eagerly — an unknown codec name or an option a codec does not
+accept:
+
+```python
+from httk.core import VectorNativeView
+
+for bad in [dict(leaf="nope"), dict(leaf="int", rounding="sideways"), dict(leaf="float", digits=3)]:
+    try:
+        VectorNativeView([[1, 2]], **bad)
+        raise AssertionError("expected a ValueError")
+    except ValueError:
+        pass
+```
+
+#### The invariant
+
+Viewing is non-destructive: after *any* lossy view, `unwrap()` still returns the identical original
+object, and a fresh exact view reproduces the exact values.
+
+```python
+import decimal
+from httk.core import VectorNative, VectorNativeView
+from httk.core.views import unwrap
+
+raw = [["1/3", decimal.Decimal("2.5"), 4]]
+backend = VectorNative(raw)
+
+lossy = VectorNativeView(backend, leaf="int")     # 1/3 -> 0, 5/2 -> 2 (half-even)
+assert lossy == ((0, 2, 4),)
+assert unwrap(backend) is raw                      # the original object, untouched
+import fractions
+assert VectorNativeView(backend, leaf="exact") == ((fractions.Fraction(1, 3), fractions.Fraction(5, 2), 4),)
+```
+
+#### Numpy dtypes
+
+The numpy view carries the same idea through `dtype=` (default `float64`). For an **integer** dtype,
+each element is rounded through the `"int"` codec's default (nearest, half-even) via the exact
+Fraction hub *before* the array is built — so numpy never silently truncates a fractional value:
+
+```python
+import numpy
+from httk.core import FracVector, VectorNumpyView
+
+exact = VectorNumpyView([[1, 2], [3, 4]], dtype=numpy.int64)
+assert exact.dtype == numpy.int64 and exact.tolist() == [[1, 2], [3, 4]]
+
+rounded = VectorNumpyView(FracVector.create([["1/2", "3/2", "5/2", "7/2"]]), dtype=numpy.int64)
+assert rounded.tolist() == [[0, 2, 2, 4]]          # half-even, not truncation
+```
+
+#### Registering a custom leaf codec
+
+A leaf codec is a `LeafCodec` — a name, a `from_fraction(value, **options)` conversion from the
+canonical `Fraction` hub, and an option validator — registered with `register_leaf_codec`. Once
+registered it is usable through the `leaf=` hint like any built-in:
+
+```python
+import fractions
+from httk.core import FracVector, LeafCodec, VectorNativeView, known_leaf_codecs, register_leaf_codec
+
+def _to_percent(value: fractions.Fraction) -> str:
+    return f"{float(value * 100):g}%"
+
+def _no_options(options: dict) -> None:
+    if options:
+        raise ValueError("percent codec takes no options")
+
+register_leaf_codec(LeafCodec("percent", _to_percent, _no_options))
+assert "percent" in known_leaf_codecs()
+assert VectorNativeView(FracVector.create([["1/4", "1/2"]]), leaf="percent") == (("25%", "50%"),)
+```
 
 ### The numpy view, exact capture, and lossiness
 

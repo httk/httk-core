@@ -67,6 +67,17 @@ class VectorNative(VectorBackend):
         self._raw = obj
         self._fracvector_cache = None
 
+    @property
+    def native(self) -> Any:
+        """
+        The original nested list/tuple this backend wraps, leaves untouched.
+
+        This is the same object returned by :meth:`unwrap`, exposed as a named accessor so the
+        native view can present a natively-held vector's leaves *verbatim* (its preserve-original
+        default) without reaching into private state.
+        """
+        return self._raw
+
     def _as_fracvector(self) -> FracVector:
         if self._fracvector_cache is None:
             self._fracvector_cache = FracVector.create(self._raw)

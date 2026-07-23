@@ -25,6 +25,7 @@ transcendentals on Fraction) and :mod:`httk.core.vectors.vectormath` (functional
 """
 
 from .fracvector import FracScalar, FracVector
+from .leaf_codecs import LeafCodec, known_leaf_codecs, register_leaf_codec
 from .mutablefracvector import MutableFracVector
 from .vector_api import VectorAPI
 from .vector_backend import VectorBackend
@@ -53,6 +54,9 @@ __all__ = [
     "FracVector",
     "FracScalar",
     "MutableFracVector",
+    "LeafCodec",
+    "register_leaf_codec",
+    "known_leaf_codecs",
     "VectorAPI",
     "VectorBackend",
     "VectorView",
