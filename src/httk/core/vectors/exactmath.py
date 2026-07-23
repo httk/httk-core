@@ -642,12 +642,16 @@ _ZIV_TIGHTEN = fractions.Fraction(1, 10**4)
 _ZIV_CAP = 64
 
 
-def _validate_decimal_params(digits: int | None, rounding: str) -> None:
-    """Validate Decimal-mode ``digits`` and ``rounding`` eagerly, raising :class:`ValueError`."""
+def _validate_decimal_params(digits: int | None, rounding: str, max_refinements: int | None = None) -> None:
+    """Validate Decimal-mode ``digits``, ``rounding``, and ``max_refinements`` eagerly."""
     if digits is not None and (not isinstance(digits, int) or isinstance(digits, bool) or digits <= 0):
         raise ValueError(f"invalid digits {digits!r}; expected a positive integer or None")
     if rounding not in _VALID_ROUNDINGS:
         raise ValueError(f"unknown rounding {rounding!r}; expected one of {list(_VALID_ROUNDINGS)}")
+    if max_refinements is not None and (
+        not isinstance(max_refinements, int) or isinstance(max_refinements, bool) or max_refinements < 0
+    ):
+        raise ValueError(f"invalid max_refinements {max_refinements!r}; expected a non-negative integer or None")
 
 
 def _ge_pow10(num: int, den: int, p: int) -> bool:
@@ -755,6 +759,7 @@ def _to_decimal(
     compute: Callable[[fractions.Fraction], tuple[fractions.Fraction, bool]],
     digits: int | None,
     rounding: str,
+    max_refinements: int | None = None,
 ) -> decimal.Decimal:
     """
     Render ``compute`` to a correctly-rounded Decimal using Ziv's adaptive strategy.
@@ -780,10 +785,20 @@ def _to_decimal(
     (rational) rounding boundary, so the interval always eventually disambiguates. The
     iteration bound below is therefore unreachable and guards only against implementation
     bugs.
+
+    Bounded-time mode: with ``max_refinements=k`` (a non-negative integer), at most ``k``
+    refinements are performed; if the interval is still ambiguous the *approximation itself*
+    is rounded deterministically and returned. The whole pipeline is exact integer
+    arithmetic, so this is a well-defined, platform-independent function of the inputs: the
+    result is correctly rounded unless the true value lies within
+    ``10**-(sig + 3 + 4*k)`` of a rounding boundary, in which case the returned value is the
+    deterministic rounding of the deterministic approximant — one of the two neighbouring
+    representables, i.e. off by at most one unit in the last place.
     """
     sig = decimal.getcontext().prec if digits is None else digits
     prec = fractions.Fraction(1, 10 ** (sig + _ZIV_GUARD_DIGITS))
-    for _ in range(_ZIV_CAP):
+    rounds = _ZIV_CAP if max_refinements is None else max_refinements + 1
+    for attempt in range(rounds):
         value, exact = compute(prec)
         if exact:
             finite = _finite_decimal_expansion(value)
@@ -794,6 +809,9 @@ def _to_decimal(
         high = _quantize_fraction(value + prec, sig, rounding)
         if low == high:
             return low
+        if max_refinements is not None and attempt == rounds - 1:
+            # Bounded-time exit: deterministically round the (deterministic) approximation.
+            return _quantize_fraction(value, sig, rounding)
         prec *= _ZIV_TIGHTEN
     raise RuntimeError(
         "exactmath: the Ziv refinement bound was reached, which the termination guarantee "
@@ -1011,6 +1029,7 @@ def sqrt(
     limit: bool = True,
     digits: int | None = None,
     rounding: str = "half_even",
+    max_refinements: int | None = None,
 ) -> fractions.Fraction | decimal.Decimal:
     """
     Return the square root of ``x``.
@@ -1022,9 +1041,9 @@ def sqrt(
     """
     if digits is None and not _is_decimal(x):
         return _frac_sqrt(fractions.Fraction(x), prec=prec, limit=limit)
-    _validate_decimal_params(digits, rounding)
+    _validate_decimal_params(digits, rounding, max_refinements)
     xf = fractions.Fraction(x)
-    return _to_decimal(lambda p: _sqrt_core(xf, p), digits, rounding)
+    return _to_decimal(lambda p: _sqrt_core(xf, p), digits, rounding, max_refinements)
 
 
 def cos(
@@ -1034,6 +1053,7 @@ def cos(
     degrees: bool = False,
     digits: int | None = None,
     rounding: str = "half_even",
+    max_refinements: int | None = None,
 ) -> fractions.Fraction | decimal.Decimal:
     """
     Return the cosine of ``x`` (radians unless ``degrees`` is True). See the module docstring for
@@ -1042,9 +1062,9 @@ def cos(
     """
     if digits is None and not _is_decimal(x):
         return _frac_cos(fractions.Fraction(x), prec=prec, limit=limit, degrees=degrees)
-    _validate_decimal_params(digits, rounding)
+    _validate_decimal_params(digits, rounding, max_refinements)
     xf = fractions.Fraction(x)
-    return _to_decimal(lambda p: _cos_core(xf, p, degrees), digits, rounding)
+    return _to_decimal(lambda p: _cos_core(xf, p, degrees), digits, rounding, max_refinements)
 
 
 def sin(
@@ -1054,6 +1074,7 @@ def sin(
     degrees: bool = False,
     digits: int | None = None,
     rounding: str = "half_even",
+    max_refinements: int | None = None,
 ) -> fractions.Fraction | decimal.Decimal:
     """
     Return the sine of ``x`` (radians unless ``degrees`` is True). See the module docstring for the
@@ -1061,9 +1082,9 @@ def sin(
     """
     if digits is None and not _is_decimal(x):
         return _frac_sin(fractions.Fraction(x), prec=prec, limit=limit, degrees=degrees)
-    _validate_decimal_params(digits, rounding)
+    _validate_decimal_params(digits, rounding, max_refinements)
     xf = fractions.Fraction(x)
-    return _to_decimal(lambda p: _sin_core(xf, p, degrees), digits, rounding)
+    return _to_decimal(lambda p: _sin_core(xf, p, degrees), digits, rounding, max_refinements)
 
 
 def tan(
@@ -1073,15 +1094,16 @@ def tan(
     limit: bool = True,
     digits: int | None = None,
     rounding: str = "half_even",
+    max_refinements: int | None = None,
 ) -> fractions.Fraction | decimal.Decimal:
     """
     Return the tangent of ``x``. See the module docstring for the type-preservation rule.
     """
     if digits is None and not _is_decimal(x):
         return _frac_tan(fractions.Fraction(x), degrees=degrees, prec=prec, limit=limit)
-    _validate_decimal_params(digits, rounding)
+    _validate_decimal_params(digits, rounding, max_refinements)
     xf = fractions.Fraction(x)
-    return _to_decimal(lambda p: _tan_core(xf, p, degrees), digits, rounding)
+    return _to_decimal(lambda p: _tan_core(xf, p, degrees), digits, rounding, max_refinements)
 
 
 def exp(
@@ -1090,15 +1112,16 @@ def exp(
     limit: bool = True,
     digits: int | None = None,
     rounding: str = "half_even",
+    max_refinements: int | None = None,
 ) -> fractions.Fraction | decimal.Decimal:
     """
     Return ``e`` raised to the power ``x``. See the module docstring for the type-preservation rule.
     """
     if digits is None and not _is_decimal(x):
         return _frac_exp(fractions.Fraction(x), prec=prec, limit=limit)
-    _validate_decimal_params(digits, rounding)
+    _validate_decimal_params(digits, rounding, max_refinements)
     xf = fractions.Fraction(x)
-    return _to_decimal(lambda p: _exp_core(xf, p), digits, rounding)
+    return _to_decimal(lambda p: _exp_core(xf, p), digits, rounding, max_refinements)
 
 
 def log(
@@ -1108,6 +1131,7 @@ def log(
     limit: bool = True,
     digits: int | None = None,
     rounding: str = "half_even",
+    max_refinements: int | None = None,
 ) -> fractions.Fraction | decimal.Decimal:
     """
     Return the logarithm of ``x`` to ``base`` (natural log when ``base`` is None). See the module
@@ -1115,10 +1139,10 @@ def log(
     """
     if digits is None and not _is_decimal(x, base):
         return _frac_log(fractions.Fraction(x), base=base, prec=prec, limit=limit)
-    _validate_decimal_params(digits, rounding)
+    _validate_decimal_params(digits, rounding, max_refinements)
     xf = fractions.Fraction(x)
     basef: fractions.Fraction | int | None = None if base is None else fractions.Fraction(base)
-    return _to_decimal(lambda p: _log_core(xf, basef, p), digits, rounding)
+    return _to_decimal(lambda p: _log_core(xf, basef, p), digits, rounding, max_refinements)
 
 
 def log10(
@@ -1127,6 +1151,7 @@ def log10(
     limit: bool = True,
     digits: int | None = None,
     rounding: str = "half_even",
+    max_refinements: int | None = None,
 ) -> fractions.Fraction | decimal.Decimal:
     """
     Return the base-10 logarithm of ``x``. See the module docstring for the type-preservation rule.
@@ -1141,6 +1166,7 @@ def asin(
     limit: bool = True,
     digits: int | None = None,
     rounding: str = "half_even",
+    max_refinements: int | None = None,
 ) -> fractions.Fraction | int | decimal.Decimal:
     """
     Return the arc sine of ``x`` (radians, or degrees if ``degrees``). See the module docstring for
@@ -1148,9 +1174,9 @@ def asin(
     """
     if digits is None and not _is_decimal(x):
         return _frac_asin(fractions.Fraction(x), degrees=degrees, prec=prec, limit=limit)
-    _validate_decimal_params(digits, rounding)
+    _validate_decimal_params(digits, rounding, max_refinements)
     xf = fractions.Fraction(x)
-    return _to_decimal(lambda p: _asin_core(xf, p, degrees), digits, rounding)
+    return _to_decimal(lambda p: _asin_core(xf, p, degrees), digits, rounding, max_refinements)
 
 
 def acos(
@@ -1160,6 +1186,7 @@ def acos(
     limit: bool = True,
     digits: int | None = None,
     rounding: str = "half_even",
+    max_refinements: int | None = None,
 ) -> fractions.Fraction | decimal.Decimal:
     """
     Return the arc cosine of ``x`` (radians, or degrees if ``degrees``). See the module docstring
@@ -1167,9 +1194,9 @@ def acos(
     """
     if digits is None and not _is_decimal(x):
         return _frac_acos(fractions.Fraction(x), degrees=degrees, prec=prec, limit=limit)
-    _validate_decimal_params(digits, rounding)
+    _validate_decimal_params(digits, rounding, max_refinements)
     xf = fractions.Fraction(x)
-    return _to_decimal(lambda p: _acos_core(xf, p, degrees), digits, rounding)
+    return _to_decimal(lambda p: _acos_core(xf, p, degrees), digits, rounding, max_refinements)
 
 
 def atan(
@@ -1179,6 +1206,7 @@ def atan(
     limit: bool = True,
     digits: int | None = None,
     rounding: str = "half_even",
+    max_refinements: int | None = None,
 ) -> fractions.Fraction | decimal.Decimal:
     """
     Return the arc tangent of ``x`` (radians, or degrees if ``degrees``). See the module docstring
@@ -1186,9 +1214,9 @@ def atan(
     """
     if digits is None and not _is_decimal(x):
         return _frac_atan(fractions.Fraction(x), degrees=degrees, prec=prec, limit=limit)
-    _validate_decimal_params(digits, rounding)
+    _validate_decimal_params(digits, rounding, max_refinements)
     xf = fractions.Fraction(x)
-    return _to_decimal(lambda p: _atan_core(xf, p, degrees), digits, rounding)
+    return _to_decimal(lambda p: _atan_core(xf, p, degrees), digits, rounding, max_refinements)
 
 
 def atan2(
@@ -1199,6 +1227,7 @@ def atan2(
     limit: bool = True,
     digits: int | None = None,
     rounding: str = "half_even",
+    max_refinements: int | None = None,
 ) -> fractions.Fraction | decimal.Decimal:
     """
     Return the arc tangent of ``y/x`` with :func:`math.atan2` quadrant conventions (radians, or
@@ -1207,10 +1236,10 @@ def atan2(
     """
     if digits is None and not _is_decimal(y, x):
         return _frac_atan2(fractions.Fraction(y), fractions.Fraction(x), degrees=degrees, prec=prec, limit=limit)
-    _validate_decimal_params(digits, rounding)
+    _validate_decimal_params(digits, rounding, max_refinements)
     yf = fractions.Fraction(y)
     xf = fractions.Fraction(x)
-    return _to_decimal(lambda p: _atan2_core(yf, xf, p, degrees), digits, rounding)
+    return _to_decimal(lambda p: _atan2_core(yf, xf, p, degrees), digits, rounding, max_refinements)
 
 
 def pi(
@@ -1218,6 +1247,7 @@ def pi(
     limit: bool = True,
     digits: int | None = None,
     rounding: str = "half_even",
+    max_refinements: int | None = None,
 ) -> fractions.Fraction | decimal.Decimal:
     """
     Return pi.
@@ -1228,5 +1258,5 @@ def pi(
     """
     if digits is None:
         return _frac_pi(prec=prec, limit=limit)
-    _validate_decimal_params(digits, rounding)
-    return _to_decimal(lambda p: (_frac_pi(prec=p, limit=False), False), digits, rounding)
+    _validate_decimal_params(digits, rounding, max_refinements)
+    return _to_decimal(lambda p: (_frac_pi(prec=p, limit=False), False), digits, rounding, max_refinements)

@@ -236,6 +236,33 @@ Every remaining value is therefore provably irrational, hence never exactly on a
 boundary, and the interval refinement always disambiguates in finitely many steps —
 deterministically, on every platform.
 
+### Bounded time without losing determinism
+
+Correct rounding has input-dependent cost: a value constructed to lie extremely close to a
+rounding boundary (e.g. `sqrt((1.25 + 1e-40)**2)` at two digits) forces many refinements
+before the interval clears the boundary. When a hard time bound matters more than
+correctness in that vanishing sliver, pass `max_refinements=k`: at most `k` refinements
+are performed, and if still ambiguous the *approximation itself* is rounded — the
+`StrictMath` philosophy of letting a frozen, exact algorithm define the function. The
+result is then correctly rounded unless the true value lies within `10**-(digits+3+4k)`
+of a boundary, in which case it is the deterministic rounding of the deterministic
+approximant — off by at most one unit in the last place, and identical on every platform,
+every time:
+
+```python
+import decimal
+import fractions
+from httk.core.vectors import exactmath
+
+boundary = fractions.Fraction(125, 100) + fractions.Fraction(1, 10**40)
+x = boundary * boundary
+assert exactmath.sqrt(x, digits=2) == decimal.Decimal("1.3")     # unbounded: correct
+fast = exactmath.sqrt(x, digits=2, max_refinements=0)            # bounded: one pass
+assert fast == exactmath.sqrt(x, digits=2, max_refinements=0)    # ... and repeatable
+```
+
+The default (`max_refinements=None`) keeps the guaranteed-correct behavior above.
+
 ## Using it with FracVector
 
 `FracVector`'s element-wise transcendental methods call these functions on each
