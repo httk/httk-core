@@ -60,6 +60,26 @@ from httk.core.vectors.fracmath import (
 type Noms = int | tuple[Noms, ...]
 
 
+def _noms_equal(a: Any, b: Any) -> bool:
+    """
+    Structural equality of two nested nominator sequences.
+
+    ``FracVector`` stores nominators as nested tuples while ``MutableFracVector`` stores them as
+    nested lists, and a nested ``list`` never compares ``==`` to an otherwise-identical nested
+    ``tuple``. This helper compares them tolerant of that difference while keeping the common
+    same-type case on the fast C-level ``==`` path.
+    """
+    if a == b:
+        return True
+    a_seq = isinstance(a, (list, tuple))
+    b_seq = isinstance(b, (list, tuple))
+    if a_seq and b_seq and type(a) is not type(b):
+        if len(a) != len(b):
+            return False
+        return all(_noms_equal(x, y) for x, y in zip(a, b))
+    return False
+
+
 class FracVector:
     """
     FracVector is a general *immutable* N-dimensional vector (tensor) class for performing
@@ -114,15 +134,17 @@ class FracVector:
         """
         Make sure the variable is a FracVector, and if not, convert it.
         """
+        # Live fast path: anything exposing to_FracVector() (e.g. a MutableFracVector) is
+        # converted through it into a plain FracVector. (The legacy code called cls.__init__
+        # on the result, which returned None, so this path never actually took effect.)
+        to_fracvector = getattr(old, "to_FracVector", None)
+        if to_fracvector is not None:
+            fracvec = to_fracvector()
+            return cls(fracvec.noms, fracvec.denom)
+        # A plain FracVector (no conversion of its own) is returned unchanged; anything else is
+        # built from scratch.
         if isinstance(old, FracVector):
             return old
-        # Note: the legacy fast path for objects exposing to_FracVector() was dead code
-        # (it always fell through to create); this preserves that observable behavior while
-        # still invoking to_FracVector() for any side effects.
-        try:
-            old.to_FracVector()
-        except Exception:
-            pass
         return cls.create(old)
 
     @classmethod
@@ -337,10 +359,24 @@ class FracVector:
         return self.__class__.create([other, self], chain=True)
 
     def get_stacked(self, other: Any) -> Self:
-        return self.__class__.create([self, [other]])
+        """
+        Return a new FracVector with ``other`` stacked after ``self`` along a new leading axis.
+
+        ``self`` and ``other`` must have the same shape; the result gains one extra outermost
+        dimension of size two (numpy ``stack``-like). E.g. stacking the row ``[1, 2, 3]`` with
+        ``[4, 5, 6]`` gives ``[[1, 2, 3], [4, 5, 6]]``. (The legacy version wrapped ``other`` in a
+        redundant extra list, producing a ragged, non-rectangular result.)
+        """
+        return self.__class__.create([self, other])
 
     def get_prestacked(self, other: Any) -> Self:
-        return self.__class__.create([[other], self])
+        """
+        Return a new FracVector with ``other`` stacked before ``self`` along a new leading axis.
+
+        The mirror of :meth:`get_stacked`: stacking ``[1, 2, 3]`` in front with ``[4, 5, 6]``
+        gives ``[[4, 5, 6], [1, 2, 3]]``.
+        """
+        return self.__class__.create([other, self])
 
     def get_stackedinsert(self, pos: int, other: Any) -> Self:
         return self.__class__.create([self[:pos], [other], self[pos:]], chain=True)
@@ -407,12 +443,12 @@ class FracVector:
         return cls.create(tuple_random(dims, minval=minnom, maxval=maxnom), denom)
 
     @classmethod
-    def from_tuple(cls, t: tuple[Any, ...]) -> Self:
+    def from_tuple(cls, t: tuple[int, Noms]) -> Self:
         """
-        Return a FracVector created from the tuple representation ``(denom, ...noms...)``,
-        as returned by the :meth:`to_tuple` method.
+        Return a FracVector created from the tuple representation ``(denom, noms)``, as returned
+        by the :meth:`to_tuple` method. ``from_tuple(v.to_tuple())`` reconstructs ``v`` exactly.
         """
-        return cls(t[1:], t[0])
+        return cls(t[1], t[0])
 
     @classmethod
     def from_floats(cls, data: Any, resolution: int = 2**32) -> Self:
@@ -873,6 +909,24 @@ class FracVector:
         # Python integer division really does floor, even for negative numbers
         return self.nom // self.denom
 
+    def modf(self) -> tuple["FracVector", "FracVector"]:
+        """
+        Return the fractional and integer parts of each element as the pair
+        ``(fractional, integer)`` of exact FracVectors sharing this vector's denominator.
+
+        Both parts carry the sign of the element and the integer part truncates toward
+        zero, matching the conventions of :func:`math.modf` (e.g. the value -5/2 splits
+        into -1/2 and -2).
+        """
+        denom = self.denom
+
+        def trunc_scaled(nom: int) -> int:
+            return (nom // denom if nom >= 0 else -((-nom) // denom)) * denom
+
+        integer_noms = self._map_over_noms(trunc_scaled)
+        fractional_noms = self._map_over_noms(lambda nom: nom - trunc_scaled(nom))
+        return (FracVector(fractional_noms, denom), FracVector(integer_noms, denom))
+
     def ceil(self) -> int:
         """
         Return the integer that is equal to or just above the value stored in a scalar FracVector.
@@ -1248,7 +1302,9 @@ class FracVector:
             return self.inv()
         if self.dim == ():
             if exp == 0:
-                return self.__class__(1)
+                # Pass both nom and denom so this also works for FracScalar, whose constructor
+                # requires two arguments (the legacy single-argument form crashed there).
+                return self.__class__(1, 1)
             if exp > 0:
                 return self.__class__(self.nom**exp, self.denom**exp)
             if exp < 0:
@@ -1262,9 +1318,12 @@ class FracVector:
                     a = a.mul(self)
                 return a
             if exp < 0:
-                a = self.inv()
+                # A^(-n) = (A^-1)^n: keep multiplying by the inverse, not by self. (The legacy
+                # loop multiplied by self, so e.g. A**-2 collapsed to the identity.)
+                inv = self.inv()
+                a = inv
                 for _ in range(-exp - 1):
-                    a = a.mul(self)
+                    a = a.mul(inv)
                 return a
             raise Exception("FracVector.__pow__: unreachable")
         else:
@@ -1316,10 +1375,10 @@ class FracVector:
         # Note: somewhat optimized for speed
         try:
             if self.denom == other.denom:
-                return self.noms == other.noms
+                return _noms_equal(self.noms, other.noms)
             else:
                 A, B, _ = self.set_common_denom(self, other)
-                return A.noms == B.noms
+                return _noms_equal(A.noms, B.noms)
         except AttributeError:
             if other is None:
                 return False
@@ -1331,10 +1390,10 @@ class FracVector:
                 return False
 
         if self.denom == other.denom:
-            return self.noms == other.noms
+            return _noms_equal(self.noms, other.noms)
         else:
             A, B, _ = self.set_common_denom(self, other)
-            return A.noms == B.noms
+            return _noms_equal(A.noms, B.noms)
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)

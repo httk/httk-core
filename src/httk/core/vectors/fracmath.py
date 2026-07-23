@@ -31,7 +31,7 @@ legacy code did so, but on Python 3.12 the standard library is used unconditiona
 import fractions
 from collections.abc import Iterator
 from functools import reduce
-from typing import Any, cast
+from typing import Any
 
 default_accuracy = fractions.Fraction(1, 10000000000)
 
@@ -356,6 +356,11 @@ def frac_log(
 
     Note: this fails for moderately large arguments (a known legacy limitation).
     """
+    # Coerce to exact Fraction up front. The legacy code left ``x`` (and ``base``, e.g. the
+    # integer 10 passed by frac_log10) as whatever type it arrived as, so the reciprocal ``1/x``
+    # below produced a float for an int argument and then crashed on ``x.numerator``.
+    x = fractions.Fraction(x)
+
     if x < 0:
         raise ValueError("frac_log: logarithm of negative number.")
     elif base == 1:
@@ -368,8 +373,7 @@ def frac_log(
     if base is None:
         log_base: fractions.Fraction | int = 1
     else:
-        # base may be an int here (e.g. from frac_log10); the recursion mirrors the legacy code.
-        log_base = frac_log(cast(fractions.Fraction, base), prec=prec, limit=limit)
+        log_base = frac_log(fractions.Fraction(base), prec=prec, limit=limit)
 
     if x > 1:
         inv = True

@@ -1,9 +1,10 @@
 """
 Tests for MutableFracVector: from/to FracVector, slice assignment, and the set_* mutators.
 
-The exact expected results are seeded from the legacy implementation, including its two
-preserved quirks: set_simplify makes the denominator a float, and set_inv uses the (already
-reassigned) denominator when scaling the adjugate.
+The exact expected results are seeded from the legacy implementation. Two legacy bugs have now
+been corrected (previously these tests pinned the buggy behavior): set_simplify keeps the
+denominator an int (integer division), and set_inv scales the adjugate by the original
+denominator so it agrees numerically with FracVector.inv().
 """
 
 import fractions
@@ -39,6 +40,25 @@ def test_slice_assignment_puts_on_common_denominator() -> None:
     assert m.to_FracVector().simplify() == FracVector.create([["1/2", "1/3"]])
 
 
+def test_slice_assignment_fancy_index_rows() -> None:
+    m = MutableFracVector.from_FracVector(FracVector.create([[1, 2, 3], [4, 5, 6], [7, 8, 9]]))
+    # Fancy (list-of-indices) selection in the first axis, single column in the second.
+    m[(0, 2), 1] = [20, 80]
+    assert m.noms == [[1, 20, 3], [4, 5, 6], [7, 80, 9]]
+
+
+def test_slice_assignment_fancy_index_with_slice() -> None:
+    m = MutableFracVector.from_FracVector(FracVector.create([[1, 2, 3], [4, 5, 6], [7, 8, 9]]))
+    m[(0, 2), 1:] = [[20, 30], [80, 90]]
+    assert m.noms == [[1, 20, 30], [4, 5, 6], [7, 80, 90]]
+
+
+def test_slice_assignment_full_column() -> None:
+    m = MutableFracVector.from_FracVector(FracVector.create([[1, 2], [3, 4], [5, 6]]))
+    m[:, 0] = [10, 30, 50]
+    assert m.noms == [[10, 2], [30, 4], [50, 6]]
+
+
 def test_set_negative() -> None:
     m = MutableFracVector.from_FracVector(FracVector.create([[1, 2], [3, 4]]))
     m.set_negative()
@@ -51,20 +71,40 @@ def test_set_transpose() -> None:
     assert m.noms == [[1, 4], [2, 5], [3, 6]]
 
 
-def test_set_inv_legacy_reference() -> None:
-    m = MutableFracVector.from_FracVector(FracVector.create([[2, 3, 5], [3, 5, 4], [4, 6, 7]]))
+def test_set_inv_matches_fracvector_inv() -> None:
+    a = FracVector.create([[2, 3, 5], [3, 5, 4], [4, 6, 7]])
+    m = MutableFracVector.from_FracVector(a)
     m.set_inv()
-    assert m.noms == [[-33, -27, 39], [15, 18, -21], [6, 0, -3]]
+    # Corrected behavior: numerically equal to FracVector.inv() (was 3x off in the legacy bug).
+    assert m.noms == [[-11, -9, 13], [5, 6, -7], [2, 0, -1]]
     assert m.denom == 3
+    assert m.to_FracVector() == a.inv()
 
 
-def test_set_simplify_makes_denominator_float_preserved_quirk() -> None:
+@pytest.mark.parametrize(
+    "data",
+    [
+        [[2, 3, 5], [3, 5, 4], [4, 6, 7]],
+        [[1, 2, 0], [0, 1, 3], [4, 0, 1]],
+        [[2, 0, 0], [0, 3, 0], [0, 0, 5]],
+        [[-2, 3, 1], [4, -1, 5], [1, 2, -3]],
+    ],
+)
+def test_set_inv_agrees_with_fracvector_inv_various(data: list[list[int]]) -> None:
+    a = FracVector.create(data)
+    m = MutableFracVector.from_FracVector(a)
+    m.set_inv()
+    assert m.to_FracVector().simplify() == a.inv().simplify()
+
+
+def test_set_simplify_keeps_integer_denominator() -> None:
     m = MutableFracVector([[2, 4, 6], [8, 10, 12]], 4)
     m.set_simplify()
     assert m.noms == [[1, 2, 3], [4, 5, 6]]
-    # Preserved legacy bug: true division makes the denominator a float.
-    assert m.denom == 2.0
-    assert isinstance(m.denom, float)
+    # Corrected behavior: integer division keeps the denominator an int, matching .simplify().
+    assert m.denom == 2
+    assert isinstance(m.denom, int)
+    assert m.to_FracVector() == FracVector([[2, 4, 6], [8, 10, 12]], 4).simplify()
 
 
 def test_set_normalize() -> None:

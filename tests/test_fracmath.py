@@ -83,6 +83,42 @@ def test_transcendentals_agree_with_math(fn, mathfn, arg) -> None:  # type: igno
     assert abs(float(fn(arg)) - mathfn(float(arg))) < 1e-6
 
 
+# The legacy frac_log algorithm is only practical for arguments reasonably close to 1 (its
+# docstring notes it "fails for moderately large arguments"), so these stay small/fast.
+_LOG_PREC = F(1, 10**8)
+
+
+@pytest.mark.parametrize(
+    "x, base",
+    [(F(8), 2), (F(4), 2), (F(5), 10), (F(9), 3), (F(1, 4), 2)],
+)
+def test_frac_log_with_integer_base(x: fractions.Fraction, base: int) -> None:
+    # Regression: an integer base (or the integer argument reached by recursion) used to make
+    # ``1/x`` a float and crash on ``x.numerator``. Now uses exact Fraction arithmetic.
+    value = float(fracmath.frac_log(x, base=base, prec=_LOG_PREC))
+    assert abs(value - math.log(float(x), base)) < 1e-6
+
+
+def test_frac_log10_matches_math_log10() -> None:
+    for x in [F(2), F(1, 3), F(3), F(7, 11)]:
+        assert abs(float(fracmath.frac_log10(x, prec=_LOG_PREC)) - math.log10(float(x))) < 1e-6
+
+
+def test_frac_log10_of_ten_is_exactly_one() -> None:
+    # 10**1 is exact via the base == x shortcut; higher powers of ten are within the algorithm's
+    # documented "moderately large argument" slow/inaccurate regime and are not exercised.
+    assert fracmath.frac_log10(F(10), prec=_LOG_PREC) == 1
+
+
+def test_frac_log_domain_errors() -> None:
+    with pytest.raises(ValueError):
+        fracmath.frac_log(F(-1))
+    with pytest.raises(ValueError):
+        fracmath.frac_log(F(0))
+    with pytest.raises(ValueError):
+        fracmath.frac_log(F(5), base=1)
+
+
 def test_frac_asin_agrees_and_exact_endpoints() -> None:
     assert abs(float(fracmath.frac_asin(F(1, 3))) - math.asin(1 / 3)) < 1e-6
     assert fracmath.frac_asin(F(0)) == F(0)
