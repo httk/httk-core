@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "httk-core"
-version = "2.0.1"
+version = "2.0.2"
 description = "httk₂ core functionality"
 readme = "README.md"
 license = "AGPL-3.0-or-later"
@@ -45,13 +45,15 @@ where = ["src"]
 "httk.core" = ["py.typed"]
 
 [project.optional-dependencies]
+numpy = ["numpy>=1.26"]
 dev = [
   "pytest>=8.0",
   "black",
   "ruff",
   "isort",
   "pyright",
-  "mypy"
+  "mypy",
+  "numpy>=1.26"
 ]
 docs = [
   "sphinx",
