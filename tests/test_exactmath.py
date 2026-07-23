@@ -346,3 +346,31 @@ def test_niven_special_values_are_exact_in_truncation_mode() -> None:
     assert exactmath.atan2(
         decimal.Decimal(-1), decimal.Decimal(1), degrees=True, digits=5, rounding="down"
     ) == decimal.Decimal("-45")
+
+
+# --------------------------------------------------------------- bounded-time mode
+
+
+def test_max_refinements_bounds_time_and_stays_deterministic() -> None:
+    # Adversarial construction: sqrt((1.25 + 1e-40)**2) at two significant digits sits
+    # 1e-40 above the half-even boundary 1.25. Correct rounding needs ~10 refinements;
+    # bounded mode stops early and deterministically rounds the approximant instead.
+    boundary = fractions.Fraction(125, 100) + fractions.Fraction(1, 10**40)
+    x = boundary * boundary
+    assert exactmath.sqrt(x, digits=2) == decimal.Decimal("1.3")  # unbounded: correct
+    bounded = exactmath.sqrt(x, digits=2, max_refinements=0)
+    # Within one ulp of the correct result, and perfectly repeatable:
+    assert bounded in (decimal.Decimal("1.2"), decimal.Decimal("1.3"))
+    assert bounded == exactmath.sqrt(x, digits=2, max_refinements=0)
+    # On non-adversarial values the bounded mode agrees with the correct result:
+    assert exactmath.sqrt(decimal.Decimal(2), digits=10, max_refinements=0) == exactmath.sqrt(
+        decimal.Decimal(2), digits=10
+    )
+    assert exactmath.pi(digits=20, max_refinements=1) == exactmath.pi(digits=20)
+
+
+def test_max_refinements_validation() -> None:
+    with pytest.raises(ValueError, match="max_refinements"):
+        exactmath.sqrt(decimal.Decimal(2), digits=5, max_refinements=-1)
+    with pytest.raises(ValueError, match="max_refinements"):
+        exactmath.sqrt(decimal.Decimal(2), digits=5, max_refinements=1.5)  # type: ignore[arg-type]
