@@ -28,6 +28,7 @@ from functools import reduce
 from math import gcd as calc_gcd
 from typing import Any, ClassVar, Self, cast
 
+from httk.core.vectors import exactmath
 from httk.core.vectors._nested import (
     nested_map_fractions_tuple,
     nested_map_list,
@@ -41,16 +42,9 @@ from httk.core.vectors._nested import (
     tuple_slice,
     tuple_zeros,
 )
-from httk.core.vectors.fracmath import (
+from httk.core.vectors.exactmath import (
     any_to_fraction,
     best_rational_in_interval,
-    frac_acos,
-    frac_asin,
-    frac_cos,
-    frac_exp,
-    frac_pi,
-    frac_sin,
-    frac_sqrt,
     string_to_val_and_delta,
 )
 
@@ -520,7 +514,7 @@ class FracVector:
         possible fractional approximations of ``data`` and then takes cos on that.
         """
         return cls._create_func(
-            data, frac_cos, find_best_rational=find_best_rational, degrees=degrees, limit=limit, prec=prec
+            data, exactmath.cos, find_best_rational=find_best_rational, degrees=degrees, limit=limit, prec=prec
         )
 
     @classmethod
@@ -540,7 +534,7 @@ class FracVector:
         This is not the same as ``FracVector.create(data).sin()``, which creates the best
         possible fractional approximations of ``data`` and then takes sin on that.
         """
-        return cls._create_func(data, frac_sin, degrees=degrees, limit=limit, prec=prec)
+        return cls._create_func(data, exactmath.sin, degrees=degrees, limit=limit, prec=prec)
 
     @classmethod
     def create_exp(
@@ -555,14 +549,14 @@ class FracVector:
         This is not the same as ``FracVector.create(data).exp()``, which creates the best
         possible fractional approximations of ``data`` and then takes exp on that.
         """
-        return cls._create_func(data, frac_exp, limit=limit, prec=prec)
+        return cls._create_func(data, exactmath.exp, limit=limit, prec=prec)
 
     @classmethod
     def pi(cls, prec: fractions.Fraction = fractions.Fraction(1, 1000000), limit: bool = False) -> Self:
         """
         Create a scalar FracVector with a rational approximation of pi to precision ``prec``.
         """
-        return cls.create(frac_pi(prec, limit=limit))
+        return cls.create(exactmath.pi(prec, limit=limit))
 
     #### Properties
 
@@ -1165,11 +1159,11 @@ class FracVector:
         """
         if prec is not None:
             fracs = self._map_over_noms(
-                lambda nom: frac_cos(fractions.Fraction(nom, self.denom), prec=prec, limit=limit, degrees=degrees)
+                lambda nom: exactmath.cos(fractions.Fraction(nom, self.denom), prec=prec, limit=limit, degrees=degrees)
             )
         else:
             fracs = self._map_over_noms(
-                lambda nom: frac_cos(fractions.Fraction(nom, self.denom), limit=limit, degrees=degrees)
+                lambda nom: exactmath.cos(fractions.Fraction(nom, self.denom), limit=limit, degrees=degrees)
             )
         return self.create(fracs)
 
@@ -1184,11 +1178,11 @@ class FracVector:
         """
         if prec is not None:
             fracs = self._map_over_noms(
-                lambda nom: frac_sin(fractions.Fraction(nom, self.denom), prec=prec, limit=limit, degrees=degrees)
+                lambda nom: exactmath.sin(fractions.Fraction(nom, self.denom), prec=prec, limit=limit, degrees=degrees)
             )
         else:
             fracs = self._map_over_noms(
-                lambda nom: frac_sin(fractions.Fraction(nom, self.denom), limit=limit, degrees=degrees)
+                lambda nom: exactmath.sin(fractions.Fraction(nom, self.denom), limit=limit, degrees=degrees)
             )
         return self.create(fracs)
 
@@ -1203,11 +1197,11 @@ class FracVector:
         """
         if prec is not None:
             fracs = self._map_over_noms(
-                lambda nom: frac_acos(fractions.Fraction(nom, self.denom), prec=prec, limit=limit, degrees=degrees)
+                lambda nom: exactmath.acos(fractions.Fraction(nom, self.denom), prec=prec, limit=limit, degrees=degrees)
             )
         else:
             fracs = self._map_over_noms(
-                lambda nom: frac_acos(fractions.Fraction(nom, self.denom), limit=limit, degrees=degrees)
+                lambda nom: exactmath.acos(fractions.Fraction(nom, self.denom), limit=limit, degrees=degrees)
             )
         return self.create(fracs)
 
@@ -1222,11 +1216,11 @@ class FracVector:
         """
         if prec is not None:
             fracs = self._map_over_noms(
-                lambda nom: frac_asin(fractions.Fraction(nom, self.denom), prec=prec, limit=limit, degrees=degrees)
+                lambda nom: exactmath.asin(fractions.Fraction(nom, self.denom), prec=prec, limit=limit, degrees=degrees)
             )
         else:
             fracs = self._map_over_noms(
-                lambda nom: frac_asin(fractions.Fraction(nom, self.denom), limit=limit, degrees=degrees)
+                lambda nom: exactmath.asin(fractions.Fraction(nom, self.denom), limit=limit, degrees=degrees)
             )
         return self.create(fracs)
 
@@ -1240,10 +1234,10 @@ class FracVector:
         """
         if prec is not None:
             fracs = self._map_over_noms(
-                lambda nom: frac_exp(fractions.Fraction(nom, self.denom), prec=prec, limit=limit)
+                lambda nom: exactmath.exp(fractions.Fraction(nom, self.denom), prec=prec, limit=limit)
             )
         else:
-            fracs = self._map_over_noms(lambda nom: frac_exp(fractions.Fraction(nom, self.denom), limit=limit))
+            fracs = self._map_over_noms(lambda nom: exactmath.exp(fractions.Fraction(nom, self.denom), limit=limit))
         return self.create(fracs)
 
     def sqrt(self, prec: fractions.Fraction | None = None, limit: bool = False) -> Self:
@@ -1256,10 +1250,10 @@ class FracVector:
         """
         if prec is not None:
             fracs = self._map_over_noms(
-                lambda nom: frac_sqrt(fractions.Fraction(nom, self.denom), prec=prec, limit=limit)
+                lambda nom: exactmath.sqrt(fractions.Fraction(nom, self.denom), prec=prec, limit=limit)
             )
         else:
-            fracs = self._map_over_noms(lambda nom: frac_sqrt(fractions.Fraction(nom, self.denom), limit=limit))
+            fracs = self._map_over_noms(lambda nom: exactmath.sqrt(fractions.Fraction(nom, self.denom), limit=limit))
         return self.create(fracs)
 
     #### Python special overloading

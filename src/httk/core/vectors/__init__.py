@@ -20,8 +20,9 @@ Exact-rational vectors (:class:`FracVector`/:class:`FracScalar`/:class:`MutableF
 the Vector backend/view family that lets the same tensor data be viewed as the exact
 representation, plain nested sequences, or (optionally) numpy arrays.
 
-The exact-math helpers live in the submodules :mod:`httk.core.vectors.fracmath` (exact
-transcendentals on Fraction) and :mod:`httk.core.vectors.vectormath` (functional math wrappers).
+The exact-math helpers live in the submodules :mod:`httk.core.vectors.exactmath` (type-preserving
+exact transcendentals on Fraction and Decimal) and :mod:`httk.core.vectors.vectormath` (functional
+math wrappers).
 """
 
 from .fracvector import FracScalar, FracVector
