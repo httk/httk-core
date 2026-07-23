@@ -30,6 +30,8 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterable, Mapping
 from typing import Any
 
+from .property_definitions import EntryTypeDefinition
+
 
 class EntryProvider(ABC):
     """Supplies described, queryable entry types as plain JSON-able records.
@@ -41,34 +43,43 @@ class EntryProvider(ABC):
 
     Three notions define the contract:
 
-    - **Descriptions** (:meth:`entry_types`) are plain dictionaries in the
-      OPTIMADE property-definition dialect — the schema language shared across
-      httk₂ modules. Each entry type maps to a dictionary with a ``description``
-      string and a ``properties`` mapping of property name to a property-info
-      dictionary (carrying at least ``description`` and a ``fulltype`` such as
-      ``"string"``, ``"integer"``, ``"float"``, or ``"list of string"``).
-      Producing these needs no imports: the dictionaries are structurally
-      compatible with a consumer's typed schema but are stated in neutral terms.
+    - **Definitions** (:meth:`entry_types`) are first-class
+      :class:`~httk.core.property_definitions.EntryTypeDefinition` objects — the
+      OPTIMADE property-definition model shared across httk₂ modules. A provider
+      obtains them from the vendored standards (via
+      :func:`~httk.core.property_definitions.standard_entry_type` or
+      :func:`~httk.core.property_definitions.load_entry_type_definition`) or
+      builds them from
+      :meth:`~httk.core.property_definitions.EntryTypeDefinition.from_optimade`
+      and :meth:`~httk.core.property_definitions.PropertyDefinition.from_simple`.
+      A standard definition typically describes more properties than a provider
+      serves; the served subset is exactly the property names in
+      :meth:`columns`.
     - **Columns** (:meth:`columns`) map each served property name to the key
       under which that property's value is found in a record. Every entry type's
-      column map MUST cover at least ``id`` and ``type``.
+      column map MUST cover at least ``id`` and ``type``, and every served name
+      MUST be described by the entry type's definition (custom properties must
+      therefore live in an
+      :meth:`~httk.core.property_definitions.EntryTypeDefinition.extended`
+      definition).
     - **Records** (:meth:`records`) are plain JSON-able mappings keyed by the
       column keys named in :meth:`columns` (values are strings, numbers,
       booleans, ``None``, or nested lists/dicts of the same).
 
-    A consumer combines the three: the descriptions become the served schema,
-    the columns drive both response-field extraction and filter handling, and
-    the records are loaded into a store the consumer queries.
+    A consumer combines the three: the definitions become the served schema, the
+    columns drive both response-field extraction and filter handling, and the
+    records are loaded into a store the consumer queries.
     """
 
     @abstractmethod
-    def entry_types(self) -> Mapping[str, dict[str, Any]]:
+    def entry_types(self) -> Mapping[str, EntryTypeDefinition]:
         """Return the served entry types keyed by name.
 
-        Each value is a description dictionary in the OPTIMADE
-        property-definition dialect: ``{"description": <str>, "properties":
-        {<property name>: <property-info dict>}}``. The property-info dictionary
-        for each property carries at least a ``description`` and a ``fulltype``.
+        Each value is an
+        :class:`~httk.core.property_definitions.EntryTypeDefinition` describing
+        the entry type and its properties. The subset a provider actually serves
+        is named by :meth:`columns`; a definition may describe more properties
+        than are served.
         """
         raise NotImplementedError
 

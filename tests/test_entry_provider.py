@@ -3,7 +3,13 @@
 from collections.abc import Iterable, Mapping
 from typing import Any
 
-from httk.core import EntryProvider, known_entry_providers, register_entry_provider
+from httk.core import (
+    EntryProvider,
+    EntryTypeDefinition,
+    PropertyDefinition,
+    known_entry_providers,
+    register_entry_provider,
+)
 from httk.core._plugins import resolve_callable
 from httk.core.register import entry_providers
 
@@ -11,16 +17,19 @@ from httk.core.register import entry_providers
 class ToyProvider(EntryProvider):
     """A minimal provider serving one ``widgets`` entry type."""
 
-    def entry_types(self) -> Mapping[str, dict[str, Any]]:
+    def entry_types(self) -> Mapping[str, EntryTypeDefinition]:
         return {
-            "widgets": {
-                "description": "A widgets entry.",
-                "properties": {
-                    "id": {"description": "The widget id.", "fulltype": "string"},
-                    "type": {"description": "The entry type.", "fulltype": "string"},
-                    "cogs": {"description": "Number of cogs.", "fulltype": "integer"},
+            "widgets": EntryTypeDefinition(
+                "widgets",
+                "A widgets entry.",
+                {
+                    "id": PropertyDefinition.from_simple("id", description="The widget id.", required_response=True),
+                    "type": PropertyDefinition.from_simple(
+                        "type", description="The entry type.", required_response=True
+                    ),
+                    "cogs": PropertyDefinition.from_simple("cogs", description="Number of cogs.", fulltype="integer"),
                 },
-            }
+            )
         }
 
     def columns(self, entry_type: str) -> Mapping[str, str]:

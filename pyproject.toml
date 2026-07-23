@@ -42,7 +42,7 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-"httk.core" = ["py.typed"]
+"httk.core" = ["py.typed", "optimade_defs/*"]
 
 [project.optional-dependencies]
 numpy = ["numpy>=1.26"]
