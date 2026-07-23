@@ -227,6 +227,8 @@ scalar fracvector is expected.
 
 ## `fracmath` and `vectormath`
 
+See {doc}`fracmath` for the full standalone guide to the exact math functions.
+
 The exact transcendental helpers live in `httk.core.vectors.fracmath`: rational approximations of
 `sqrt`/`cos`/`sin`/`exp`/`pi`/`log`/... on `fractions.Fraction`, each computed to a target
 precision `prec` (given as a `Fraction`). Results are exact rationals that approximate the true

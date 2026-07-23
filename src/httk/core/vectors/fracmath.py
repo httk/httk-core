@@ -579,22 +579,28 @@ def frac_atan2(
     limit: bool = True,
 ) -> fractions.Fraction:
     """
-    Return a rational approximation of the arc tangent of ``y/x`` in radians.
+    Return a rational approximation of the arc tangent of ``y/x`` (in radians, or
+    degrees if ``degrees`` is True) to precision ``prec``.
 
-    Unlike ``atan(y/x)``, the signs of both ``x`` and ``y`` are considered.
+    Unlike ``atan(y/x)``, the signs of both ``x`` and ``y`` are considered, following
+    the quadrant conventions of :func:`math.atan2` (so ``frac_atan2(0, -1)`` is pi and
+    ``frac_atan2(1, 0)`` is pi/2).
     """
     if x != 0:
         a = y and frac_atan(y / x, prec=prec, limit=limit) or fractions.Fraction(0)
         if x < 0:
-            if y > 0:
+            if y >= 0:
                 a += frac_pi(prec=prec, limit=limit)
             else:
                 a -= frac_pi(prec=prec, limit=limit)
-        return a
-
-    if y != 0:
-        return frac_atan(fractions.Fraction(0), prec=prec, limit=limit)
-    elif x < 0:
-        return frac_pi(prec=prec, limit=limit)
+    elif y > 0:
+        a = frac_pi(prec=prec, limit=limit) / 2
+    elif y < 0:
+        a = -frac_pi(prec=prec, limit=limit) / 2
     else:
-        return fractions.Fraction(0)
+        a = fractions.Fraction(0)
+    if degrees:
+        a = a * 180 / frac_pi(prec=prec, limit=limit)
+        if limit:
+            a = a.limit_denominator(int(1 / prec))
+    return a
