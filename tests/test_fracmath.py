@@ -134,3 +134,23 @@ def test_frac_cos_degrees() -> None:
 def test_returns_are_fractions() -> None:
     assert isinstance(fracmath.frac_cos(F(1, 3)), fractions.Fraction)
     assert isinstance(fracmath.frac_sqrt(F(2)), fractions.Fraction)
+
+
+# ------------------------------------------------------------- frac_atan2 fixes
+
+
+def test_frac_atan2_matches_math_atan2_in_all_quadrants_and_axes() -> None:
+    # Legacy bugs: atan2(+-1, 0) returned 0 instead of +-pi/2, and atan2(0, -1)
+    # returned -pi instead of +pi (math.atan2 convention).
+    for y, x in [(1, 1), (1, 0), (-1, 0), (0, -1), (0, 1), (1, -1), (-1, -1), (0, 0), (-1, 1)]:
+        got = float(fracmath.frac_atan2(fractions.Fraction(y), fractions.Fraction(x)))
+        assert abs(got - math.atan2(y, x)) < 1e-9, (y, x)
+
+
+def test_frac_atan2_degrees_flag_is_honored() -> None:
+    # Legacy bug: the degrees parameter was accepted but ignored.
+    # Axis cases cancel the pi approximation exactly; diagonals are approximations.
+    assert fracmath.frac_atan2(fractions.Fraction(1), fractions.Fraction(0), degrees=True) == 90
+    assert fracmath.frac_atan2(fractions.Fraction(-1), fractions.Fraction(0), degrees=True) == -90
+    assert fracmath.frac_atan2(fractions.Fraction(0), fractions.Fraction(-1), degrees=True) == 180
+    assert abs(float(fracmath.frac_atan2(fractions.Fraction(1), fractions.Fraction(1), degrees=True)) - 45) < 1e-8
