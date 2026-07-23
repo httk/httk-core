@@ -379,3 +379,10 @@ def test_niven_36_family_golden_identities() -> None:
     assert _C15._as_scalar().acos_degrees() == F(15)
     assert (-_C72)._as_scalar().acos_degrees() == F(108)
     assert _C75._as_scalar().acos_degrees() == F(75)
+
+
+def test_surdscalar_supports_float() -> None:
+    # float(x) on an exact scalar renders like to_float() (the deterministic approximation).
+    assert float(SurdVector.sqrt_of(4)) == 2.0
+    assert float(SurdVector.sqrt_of(2)) == SurdVector.sqrt_of(2).to_float()
+    assert float(SurdVector.create(F(-3, 2))._as_scalar()) == -1.5

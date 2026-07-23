@@ -361,3 +361,32 @@ def test_dispatch_and_import_work_without_numpy() -> None:
     )
     assert result.returncode == 0, result.stderr
     assert "OK" in result.stdout
+
+
+# --------------------------------------------------------------- the VectorAPI float contract
+
+
+def test_every_backend_renders_to_floats() -> None:
+    # to_floats()/to_float() are part of the VectorAPI contract, derived from the fractions hub,
+    # so whatever backend the family dispatches to, the float rendering works (nested lists).
+    frac_backend = VectorBackend.create(FracVector.create([["1/2", "1/4"]]))
+    native_backend = VectorBackend.create([[1, 2], [3, 4]])
+    assert frac_backend.to_floats() == [[0.5, 0.25]]
+    assert native_backend.to_floats() == [[1.0, 2.0], [3.0, 4.0]]
+    surd_backend = VectorBackend.create(SurdVector.create([[1, 0], [0, 2]]))
+    assert surd_backend.to_floats() == [[1.0, 0.0], [0.0, 2.0]]
+
+
+@requires_numpy
+def test_numpy_backend_renders_to_floats() -> None:
+    import numpy
+
+    backend = VectorBackend.create(numpy.array([[0.5, 0.25]]))
+    assert backend.to_floats() == [[0.5, 0.25]]
+
+
+def test_backend_to_float_scalar_contract() -> None:
+    scalar_backend = VectorBackend.create(FracVector.create("1/2"))
+    assert scalar_backend.to_float() == 0.5
+    with pytest.raises(TypeError, match="scalar"):
+        VectorBackend.create([[1, 2]]).to_float()

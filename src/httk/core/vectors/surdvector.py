@@ -770,6 +770,10 @@ class SurdScalar(SurdVector):
         """The value as a float (via a high-precision exact rational approximation)."""
         return float(self._scalar_approx(prec))
 
+    def __float__(self) -> float:
+        """``float(x)`` renders the scalar like :meth:`to_float` (default precision)."""
+        return self.to_float()
+
     def to_decimal(
         self,
         digits: int | None = None,
