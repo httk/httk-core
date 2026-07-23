@@ -29,6 +29,11 @@ Two output domains are supported, selected by a single documented rule:
     is passed; Fraction/int/str inputs otherwise get today's exact Fraction behavior with
     ``prec``/``limit`` semantics.
 
+One function additionally offers an exact-symbolic domain: :func:`sqrt` with ``exact=True``
+overrides the output-domain rule and returns the exact
+:class:`~httk.core.vectors.surdvector.SurdScalar` square root (an element of the squarefree-radical
+field :math:`\\mathbb{Q}[\\sqrt n]`), with no approximation.
+
 In the **Fraction** domain each function returns a rational (:class:`fractions.Fraction`)
 approximation to a target precision ``prec`` (the error bound), with ``limit`` controlling the
 result denominator — exactly as before. In the **Decimal** domain the same rational algorithms
@@ -1030,7 +1035,8 @@ def sqrt(
     digits: int | None = None,
     rounding: str = "half_even",
     max_refinements: int | None = None,
-) -> fractions.Fraction | decimal.Decimal:
+    exact: bool = False,
+) -> Any:
     """
     Return the square root of ``x``.
 
@@ -1038,7 +1044,18 @@ def sqrt(
     ``prec`` (exact for perfect squares), ``limit`` controlling the denominator. Decimal domain
     (Decimal input or ``digits=`` given): the correctly-rounded Decimal to ``digits`` significant
     digits under ``rounding``.
+
+    With ``exact=True`` the output-domain rule is overridden: the result is the **exact**
+    :class:`~httk.core.vectors.surdvector.SurdScalar` square root of ``x`` — an element of the
+    squarefree-radical field, with no approximation at all (``sqrt(2, exact=True)`` squares back to
+    exactly ``2``, ``sqrt(9/4, exact=True)`` is the rational ``3/2``). ``x`` must be a nonnegative
+    rational; ``prec``/``limit``/``digits``/``rounding`` are ignored in this mode.
     """
+    if exact:
+        # Lazy import to avoid an import cycle (surdvector imports from exactmath).
+        from httk.core.vectors.surdvector import SurdVector
+
+        return SurdVector.sqrt_of(fractions.Fraction(x))
     if digits is None and not _is_decimal(x):
         return _frac_sqrt(fractions.Fraction(x), prec=prec, limit=limit)
     _validate_decimal_params(digits, rounding, max_refinements)

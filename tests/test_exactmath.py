@@ -369,6 +369,33 @@ def test_max_refinements_bounds_time_and_stays_deterministic() -> None:
     assert exactmath.pi(digits=20, max_refinements=1) == exactmath.pi(digits=20)
 
 
+# ----------------------------------------------- exact=True surd domain
+
+
+def test_sqrt_exact_returns_surd_scalar() -> None:
+    from httk.core.vectors import SurdScalar, SurdVector
+
+    result = exactmath.sqrt(F(2), exact=True)
+    assert isinstance(result, SurdScalar)
+    # exact: squares back to precisely 2, no approximation
+    assert result * result == SurdVector.create(2)
+
+
+def test_sqrt_exact_perfect_square_is_rational_surd() -> None:
+    from httk.core.vectors import SurdVector
+
+    result = exactmath.sqrt(F(9, 4), exact=True)
+    assert result == SurdVector.create(F(3, 2))
+    assert result.is_rational
+
+
+def test_sqrt_exact_does_not_change_default_path() -> None:
+    # Without exact=, the type-preservation rule is untouched.
+    assert isinstance(exactmath.sqrt(F(2)), fractions.Fraction)
+    assert isinstance(exactmath.sqrt(D(2)), decimal.Decimal)
+    assert isinstance(exactmath.sqrt(F(2), digits=10), decimal.Decimal)
+
+
 def test_max_refinements_validation() -> None:
     with pytest.raises(ValueError, match="max_refinements"):
         exactmath.sqrt(decimal.Decimal(2), digits=5, max_refinements=-1)

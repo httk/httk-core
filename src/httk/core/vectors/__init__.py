@@ -28,6 +28,7 @@ math wrappers).
 from .fracvector import FracScalar, FracVector
 from .leaf_codecs import LeafCodec, known_leaf_codecs, register_leaf_codec
 from .mutablefracvector import MutableFracVector
+from .surdvector import SurdScalar, SurdVector
 from .vector_api import VectorAPI
 from .vector_backend import VectorBackend
 from .vector_frac import VectorFrac
@@ -35,6 +36,8 @@ from .vector_frac_view import VectorFracView
 from .vector_like import VectorLike
 from .vector_native import VectorNative
 from .vector_native_view import VectorNativeView
+from .vector_surd import VectorSurd
+from .vector_surd_view import VectorSurdView
 from .vector_view import VectorView
 
 # The numpy backend and view are optional. The numpy VIEW module subclasses numpy.ndarray at
@@ -46,15 +49,17 @@ try:
     from .vector_numpy_view import VectorNumpyView
 
     _numpy_available = True
-    VectorBackend.backend_classes = [VectorFrac, VectorNumpy, VectorNative]
+    VectorBackend.backend_classes = [VectorFrac, VectorSurd, VectorNumpy, VectorNative]
 except ImportError:
     _numpy_available = False
-    VectorBackend.backend_classes = [VectorFrac, VectorNative]
+    VectorBackend.backend_classes = [VectorFrac, VectorSurd, VectorNative]
 
 __all__ = [
     "FracVector",
     "FracScalar",
     "MutableFracVector",
+    "SurdVector",
+    "SurdScalar",
     "LeafCodec",
     "register_leaf_codec",
     "known_leaf_codecs",
@@ -63,8 +68,10 @@ __all__ = [
     "VectorView",
     "VectorFrac",
     "VectorNative",
+    "VectorSurd",
     "VectorFracView",
     "VectorNativeView",
+    "VectorSurdView",
     "VectorLike",
 ]
 
