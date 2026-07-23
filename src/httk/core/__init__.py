@@ -55,14 +55,7 @@ from .datastream import (
     register_compression,
 )
 from .entry_provider import EntryProvider
-from .entry_types import (
-    Calculation,
-    CalculationEntryProvider,
-    File,
-    FileEntryProvider,
-    Reference,
-    ReferenceEntryProvider,
-)
+from .entry_types import Calculation, File, Reference
 from .loading import load
 from .property_definitions import (
     EntryTypeDefinition,
@@ -127,9 +120,6 @@ __all__ = [
     "Reference",
     "File",
     "Calculation",
-    "ReferenceEntryProvider",
-    "FileEntryProvider",
-    "CalculationEntryProvider",
     "DataLoader",
     "DataRecord",
     "DatasetMeta",

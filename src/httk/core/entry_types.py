@@ -15,28 +15,25 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Data models and entry providers for the standard OPTIMADE entry types.
+"""Data models for the standard OPTIMADE entry types.
 
-This module pairs httk-core's vendored OPTIMADE standards (``references``,
-``files``, ``calculations``) with light frozen dataclasses that hold one
-record's worth of data, and with :class:`~httk.core.EntryProvider`
-implementations serving them:
+This module holds light frozen dataclasses that carry one record's worth of
+data for each of httk-core's vendored OPTIMADE standards (``references``,
+``files``, ``calculations``):
 
 - :class:`Reference`, :class:`File`, :class:`Calculation` — one immutable
   record each, with a field for every non-core property of the respective
-  standard (``id`` comes from the provider's mapping key; ``type`` is constant).
-- :class:`ReferenceEntryProvider`, :class:`FileEntryProvider`,
-  :class:`CalculationEntryProvider` — providers mapping ``{id: record}`` to the
-  neutral entry-provider contract, describing each entry type with its vendored
-  :class:`~httk.core.property_definitions.EntryTypeDefinition`.
+  standard (``id`` comes from a provider's mapping key; ``type`` is constant).
+
+These are the neutral top-level record models. The
+:class:`~httk.core.EntryProvider` implementations that serve them through the
+provider contract live in the *httk-data* module (``httk.data.entry_providers``),
+which imports these dataclasses; httk-core keeps only the stdlib-only models.
 """
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Mapping
 from dataclasses import dataclass, fields
 from typing import Any, Self
-
-from .entry_provider import EntryProvider
-from .property_definitions import EntryTypeDefinition, standard_entry_type
 
 
 @dataclass(frozen=True)
@@ -141,82 +138,3 @@ def _create(cls: type[Any], obj: Any) -> Any:
             raise ValueError("Unknown field(s) for " + cls.__name__ + ": " + ", ".join(sorted(unknown)) + ".")
         return cls(**obj)
     raise TypeError("Expected a " + cls.__name__ + " or a mapping, got " + type(obj).__name__ + ".")
-
-
-def _provider_columns(record_type: type[Any]) -> dict[str, str]:
-    """The served-property to record-column map for a standard entry type."""
-    columns = {"id": "__id", "type": "type"}
-    columns.update({field.name: field.name for field in fields(record_type)})
-    return columns
-
-
-def _provider_records(entry_type: str, record_type: type[Any], entries: Mapping[str, Any]) -> list[dict[str, Any]]:
-    """JSON-able records for a standard entry type, one per stored instance."""
-    field_names = [field.name for field in fields(record_type)]
-    records: list[dict[str, Any]] = []
-    for entry_id, record in entries.items():
-        row: dict[str, Any] = {"__id": entry_id, "type": entry_type}
-        for name in field_names:
-            row[name] = getattr(record, name)
-        records.append(row)
-    return records
-
-
-class ReferenceEntryProvider(EntryProvider):
-    """Serves OPTIMADE ``references`` from a mapping of id to :class:`Reference`."""
-
-    def __init__(self, entries: Mapping[str, "Reference | Mapping[str, Any]"]) -> None:
-        self._entries: dict[str, Reference] = {str(key): Reference.create(value) for key, value in entries.items()}
-
-    def entry_types(self) -> Mapping[str, EntryTypeDefinition]:
-        return {"references": standard_entry_type("references")}
-
-    def columns(self, entry_type: str) -> Mapping[str, str]:
-        if entry_type != "references":
-            raise KeyError("ReferenceEntryProvider serves only the 'references' entry type.")
-        return _provider_columns(Reference)
-
-    def records(self, entry_type: str) -> Iterable[Mapping[str, Any]]:
-        if entry_type != "references":
-            raise KeyError("ReferenceEntryProvider serves only the 'references' entry type.")
-        return _provider_records("references", Reference, self._entries)
-
-
-class FileEntryProvider(EntryProvider):
-    """Serves OPTIMADE ``files`` from a mapping of id to :class:`File`."""
-
-    def __init__(self, entries: Mapping[str, "File | Mapping[str, Any]"]) -> None:
-        self._entries: dict[str, File] = {str(key): File.create(value) for key, value in entries.items()}
-
-    def entry_types(self) -> Mapping[str, EntryTypeDefinition]:
-        return {"files": standard_entry_type("files")}
-
-    def columns(self, entry_type: str) -> Mapping[str, str]:
-        if entry_type != "files":
-            raise KeyError("FileEntryProvider serves only the 'files' entry type.")
-        return _provider_columns(File)
-
-    def records(self, entry_type: str) -> Iterable[Mapping[str, Any]]:
-        if entry_type != "files":
-            raise KeyError("FileEntryProvider serves only the 'files' entry type.")
-        return _provider_records("files", File, self._entries)
-
-
-class CalculationEntryProvider(EntryProvider):
-    """Serves OPTIMADE ``calculations`` from a mapping of id to :class:`Calculation`."""
-
-    def __init__(self, entries: Mapping[str, "Calculation | Mapping[str, Any]"]) -> None:
-        self._entries: dict[str, Calculation] = {str(key): Calculation.create(value) for key, value in entries.items()}
-
-    def entry_types(self) -> Mapping[str, EntryTypeDefinition]:
-        return {"calculations": standard_entry_type("calculations")}
-
-    def columns(self, entry_type: str) -> Mapping[str, str]:
-        if entry_type != "calculations":
-            raise KeyError("CalculationEntryProvider serves only the 'calculations' entry type.")
-        return _provider_columns(Calculation)
-
-    def records(self, entry_type: str) -> Iterable[Mapping[str, Any]]:
-        if entry_type != "calculations":
-            raise KeyError("CalculationEntryProvider serves only the 'calculations' entry type.")
-        return _provider_records("calculations", Calculation, self._entries)

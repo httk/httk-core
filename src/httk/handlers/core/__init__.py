@@ -15,16 +15,9 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Self-registration of httk-core's standard OPTIMADE entry providers.
-
-Imported during ``httk.core`` discovery, this package registers the providers
-for the standard entry types httk-core vendors (``references``, ``files``,
-``calculations``) as lazy factory references, mirroring the loader-registration
-pattern used by the other ``httk.handlers.*`` packages.
-"""
-
-from httk.core.register import register_entry_provider
-
-register_entry_provider(name="core-references", factory="httk.core.entry_types:ReferenceEntryProvider")
-register_entry_provider(name="core-files", factory="httk.core.entry_types:FileEntryProvider")
-register_entry_provider(name="core-calculations", factory="httk.core.entry_types:CalculationEntryProvider")
+# httk-core registers nothing itself: it defines the neutral EntryProvider
+# contract and its registry, plus the stdlib-only record models, but ships no
+# concrete providers. Domain modules (e.g. httk-data, httk-atomistic) provide
+# their own httk.handlers.* package that self-registers providers during
+# httk.core discovery. This package is kept (empty) so the httk.handlers.core
+# namespace exists for discovery.

@@ -3,7 +3,9 @@
 *httk-core* models OPTIMADE **property definitions** and **entry-type
 definitions** as first-class, immutable Python objects in
 `httk.core.property_definitions`, and pairs the standard entry types it vendors
-with ready-to-use data models and entry providers in `httk.core.entry_types`.
+with ready-to-use, stdlib-only data models in `httk.core.entry_types`. The
+`httk.core.EntryProvider` implementations that serve those models live in the
+*httk-data* module (a capability built on these core models).
 
 A *property definition* is a self-describing document: it carries a property's
 canonical `$id`, its OPTIMADE type and unit, its requirements, and a
@@ -108,42 +110,32 @@ except ValueError as exc:
     assert "_httk_" in str(exc)
 ```
 
-## Entry types and providers
+## Entry-type record models
 
-`httk.core.entry_types` provides a frozen dataclass and an
-`httk.core.EntryProvider` for each standard entry type. A provider maps
-`{id: record}` to the neutral contract: the definition becomes the served
-schema, `columns()` names the served subset, and `records()` yields JSON-able
-rows.
+`httk.core.entry_types` provides one frozen dataclass per standard entry type
+(`Reference`, `File`, `Calculation`), each carrying a field for every non-core
+property of its standard. `id` comes from a provider's mapping key and `type` is
+constant, so neither is a dataclass field. `create` accepts either an instance
+or a plain mapping (unknown keys are rejected), which is how a provider ingests
+records:
 
 ```python
-from httk.core import Reference, ReferenceEntryProvider
+from httk.core import Reference
 
-provider = ReferenceEntryProvider(
-    {
-        "ref-1": Reference(title="A study of gallium titanium compounds", doi="10.1234/demo.2021.1"),
-        "ref-2": {"title": "Silicon dioxide polymorphs revisited", "doi": "10.1234/demo.2019.7"},
-    }
+ref = Reference.create(
+    {"title": "A study of gallium titanium compounds", "doi": "10.1234/demo.2021.1"}
 )
+assert ref.title == "A study of gallium titanium compounds"
+assert ref.year is None  # every non-core property defaults to None
 
-entry_types = provider.entry_types()
-assert list(entry_types) == ["references"]
-
-columns = provider.columns("references")
-assert columns["id"] == "__id" and columns["type"] == "type"
-
-records = list(provider.records("references"))
-assert {r["__id"] for r in records} == {"ref-1", "ref-2"}
-assert records[0]["type"] == "references"
+# create() is idempotent on an existing instance:
+assert Reference.create(ref) is ref
 ```
 
-The three providers self-register (as `core-references`, `core-files`,
-`core-calculations`) when `httk.core` is imported, so a serving module can
-discover them through the registry:
-
-```python
-import httk.core
-from httk.core import known_entry_providers
-
-assert {"core-references", "core-files", "core-calculations"} <= set(known_entry_providers())
-```
+These models are deliberately stdlib-only. The `httk.core.EntryProvider`
+implementations that map `{id: record}` mappings of them onto the neutral
+provider contract — and self-register as `data-references`, `data-files`, and
+`data-calculations` — live in the *httk-data* module, together with
+property-definition validation built on the definitions above. That keeps
+httk-core a dependency-free layer of *contracts and models*, with the concrete
+*capabilities* provided by the modules built on top of it.
