@@ -25,6 +25,12 @@ docs-inventories:
 # Refresh the vendored OPTIMADE standard entry-type definitions (the one source
 # task that uses the network); the checked-in copies under
 # src/httk/core/optimade_defs/ are the authoritative supported versions.
+# Note: the OPTIMADE filter grammar vendored at
+# src/httk/core/optimade_filter/optimade_filter_grammar.ebnf is a transcription
+# of the grammar in the OPTIMADE specification appendix (upstream
+# machine-readable form: Materials-Consortia/OPTIMADE repo, grammar/). It is
+# refreshed manually (the formats differ, so there is no curl target); see
+# src/httk/core/optimade_filter/README.md for provenance.
 optimade-defs:
 	curl -fsSL https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/references.json -o src/httk/core/optimade_defs/references.json
 	curl -fsSL https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files.json -o src/httk/core/optimade_defs/files.json

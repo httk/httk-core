@@ -54,9 +54,15 @@ from .datastream import (
     known_compressions,
     register_compression,
 )
-from .entry_provider import EntryProvider
+from .entry_provider import EntryProvider, RelatedEntry
 from .entry_types import Calculation, File, Reference
 from .loading import load
+from .optimade_filter import (
+    FilterAst,
+    ParserError,
+    ParserSyntaxError,
+    parse_optimade_filter,
+)
 from .property_definitions import (
     EntryTypeDefinition,
     PropertyDefinition,
@@ -70,6 +76,8 @@ from .storage_markers import (
     STORAGE_INFO_ATTRIBUTE,
     DedupPolicy,
     Indexed,
+    Related,
+    RelationshipLink,
     Shape,
     Skip,
     StorageInfo,
@@ -123,6 +131,7 @@ __all__ = [
     "load",
     "subpackages",
     "EntryProvider",
+    "RelatedEntry",
     "register_entry_provider",
     "known_entry_providers",
     "PropertyDefinition",
@@ -134,6 +143,10 @@ __all__ = [
     "Reference",
     "File",
     "Calculation",
+    "FilterAst",
+    "parse_optimade_filter",
+    "ParserError",
+    "ParserSyntaxError",
     "DataLoader",
     "DataRecord",
     "DatasetMeta",
@@ -176,6 +189,8 @@ __all__ = [
     "Unique",
     "Skip",
     "Shape",
+    "Related",
+    "RelationshipLink",
     "DedupPolicy",
     "StorageInfo",
     "STORAGE_INFO_ATTRIBUTE",

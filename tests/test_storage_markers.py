@@ -9,6 +9,8 @@ import pytest
 from httk.core import (
     STORAGE_INFO_ATTRIBUTE,
     Indexed,
+    Related,
+    RelationshipLink,
     Shape,
     Skip,
     StorageInfo,
@@ -40,11 +42,58 @@ def test_shape_validation():
         Shape(3, 0)
 
 
+def test_related_defaults_and_equality():
+    marker = Related()
+    assert marker.role is None
+    assert marker.description is None
+    assert marker.serve is True
+    assert Related() == Related()
+    assert Related(role="input", description="d") == Related(role="input", description="d")
+    assert Related(role="input") != Related(role="output")
+    assert Related(serve=False).serve is False
+
+
+def test_related_is_frozen():
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        Related().role = "input"  # type: ignore[misc]
+
+
+def test_relationship_link_endpoints():
+    link = RelationshipLink("structure", "reference")
+    assert (link.source, link.target) == ("structure", "reference")
+    assert link.role is None and link.description is None
+    inverse = RelationshipLink("structure", None, role="output", description="Produced structure")
+    assert inverse.target is None
+    assert inverse.role == "output"
+    assert inverse.description == "Produced structure"
+    assert RelationshipLink(None, "reference").source is None
+
+
+def test_relationship_link_invariants():
+    with pytest.raises(ValueError):
+        RelationshipLink(None, None)
+    with pytest.raises(ValueError):
+        RelationshipLink("structure", "structure")
+
+
+def test_relationship_link_is_frozen():
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        RelationshipLink("a", "b").role = "input"  # type: ignore[misc]
+
+
 def test_storage_info_defaults():
     info = StorageInfo()
     assert info.table_name is None
     assert info.indexes == ()
     assert info.dedup == "content_id"
+    assert info.links == ()
+
+
+def test_storage_info_carries_links():
+    links = (RelationshipLink("structure", "reference", role="citation"),)
+    info = StorageInfo(dedup="by_value", links=links)
+    assert info.links == links
+    assert info.links[0].role == "citation"
 
 
 def test_storage_info_validation():

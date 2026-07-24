@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "httk-core"
-version = "2.1.0"
+version = "2.1.1"
 description = "httk₂ core functionality"
 readme = "README.md"
 license = "AGPL-3.0-or-later"
@@ -42,7 +42,7 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-"httk.core" = ["py.typed", "optimade_defs/*"]
+"httk.core" = ["py.typed", "optimade_defs/*", "optimade_filter/*.ebnf", "optimade_filter/README.md"]
 
 [project.optional-dependencies]
 numpy = ["numpy>=1.26"]
