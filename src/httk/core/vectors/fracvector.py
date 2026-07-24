@@ -609,10 +609,12 @@ class FracVector:
         """
 
         def to_floats_nan_check(x: Any, denom: int) -> float:
-            if math.isnan(x):
-                return x
-            else:
-                return float(fractions.Fraction(x, denom))
+            # A nominator is normally an exact (arbitrary-precision) int; guard the NaN
+            # test with an isinstance check so math.isnan() never tries to convert a very
+            # large exact integer to a float first (which would overflow).
+            if isinstance(x, float):
+                return x if math.isnan(x) else x / denom
+            return float(fractions.Fraction(x, denom))
 
         return nested_map_list(lambda x: to_floats_nan_check(x, self.denom), self.noms)
 
@@ -836,7 +838,7 @@ class FracVector:
             gcd = self._reduce_over_noms(lambda x, y: calc_gcd(x, abs(y)), initializer=self.denom)
             if gcd != 1:
                 denom = denom // gcd
-                noms = self._map_over_noms(lambda x: int(x / gcd))
+                noms = self._map_over_noms(lambda x: x // gcd)
 
         return self.__class__(noms, denom)
 
@@ -861,7 +863,7 @@ class FracVector:
                 raise Exception("FracVector.simplify_fast: only depth 1, 2 or 3 are supported, got depth " + str(depth))
             if gcd != 1:
                 denom = denom // gcd
-                noms = self._map_over_noms(lambda x: int(x / gcd))
+                noms = self._map_over_noms(lambda x: x // gcd)
 
         return self.__class__(noms, denom)
 

@@ -1,5 +1,7 @@
 """Tests for the OPTIMADE property/entry-type definition model."""
 
+from collections.abc import Iterator
+
 import pytest
 
 from httk.core import (
@@ -8,7 +10,10 @@ from httk.core import (
     load_entry_type_definition,
     standard_entry_type,
 )
-from httk.core.property_definitions import RECOGNIZED_PREFIXES
+from httk.core.property_definitions import (
+    known_definition_prefixes,
+    register_definition_prefix,
+)
 
 # --- Vendored standard definitions --------------------------------------------
 
@@ -176,7 +181,7 @@ def test_extended_unprefixed_rejected_unless_allowed() -> None:
     widget = PropertyDefinition.from_simple("cogwheels", description="w", fulltype="integer")
     with pytest.raises(ValueError) as excinfo:
         calc.extended({"cogwheels": widget})
-    assert all(prefix in str(excinfo.value) for prefix in RECOGNIZED_PREFIXES)
+    assert all(prefix in str(excinfo.value) for prefix in known_definition_prefixes())
     # allow_unprefixed lets it through:
     extended = calc.extended({"cogwheels": widget}, allow_unprefixed=True)
     assert "cogwheels" in extended.properties
@@ -189,3 +194,55 @@ def test_accessors() -> None:
     assert prop.nullable is False
     assert prop.unit == "inapplicable"
     assert isinstance(prop.description, str)
+
+
+# --- definition-prefix registry -----------------------------------------------
+
+
+@pytest.fixture
+def _clean_anyt_prefix() -> Iterator[None]:
+    from httk.core.property_definitions import _DEFINITION_PREFIXES
+
+    _DEFINITION_PREFIXES.pop("_anyt_", None)
+    try:
+        yield
+    finally:
+        _DEFINITION_PREFIXES.pop("_anyt_", None)
+
+
+def test_pre_registered_prefixes() -> None:
+    prefixes = known_definition_prefixes()
+    assert "_httk_" in prefixes
+    assert "_omdb_" in prefixes
+
+
+def test_omdb_prefix_byte_identical() -> None:
+    # _omdb_ historically resolves under the httk.org base with the "httk" label.
+    doc = PropertyDefinition.from_simple("_omdb_bandgap", description="gap", fulltype="float").as_optimade()
+    assert doc["$id"] == "https://httk.org/optimade/defs/properties/_omdb_bandgap"
+    assert doc["x-optimade-definition"]["label"] == "omdb_bandgap_httk"
+
+
+def test_register_prefix_gives_from_simple_id(_clean_anyt_prefix: None) -> None:
+    register_definition_prefix("_anyt_", "https://anyterial.se/optimade/defs/properties")
+    assert "_anyt_" in known_definition_prefixes()
+    doc = PropertyDefinition.from_simple("_anyt_wave_class", description="wave class", fulltype="string").as_optimade()
+    assert doc["$id"] == "https://anyterial.se/optimade/defs/properties/_anyt_wave_class"
+    assert doc["x-optimade-definition"]["label"] == "anyt_wave_class_anyt"
+
+
+def test_extended_accepts_registered_prefix_and_rejects_before(_clean_anyt_prefix: None) -> None:
+    calc = standard_entry_type("calculations")
+    prop = PropertyDefinition.from_simple("_anyt_wave_class", description="w", fulltype="string")
+    # Before registration the prefix is not recognized.
+    with pytest.raises(ValueError):
+        calc.extended({"_anyt_wave_class": prop})
+    register_definition_prefix("_anyt_", "https://anyterial.se/optimade/defs/properties")
+    extended = calc.extended({"_anyt_wave_class": prop})
+    assert "_anyt_wave_class" in extended.properties
+
+
+def test_register_prefix_rejects_invalid_format() -> None:
+    for bad in ("anyt", "_Anyt_", "_anyt", "anyt_", "__", "_an-t_"):
+        with pytest.raises(ValueError):
+            register_definition_prefix(bad, "https://example.org/defs")

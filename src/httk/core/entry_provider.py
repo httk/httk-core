@@ -103,3 +103,19 @@ class EntryProvider(ABC):
         ``None``, or nested lists/dicts of the same).
         """
         raise NotImplementedError
+
+    def relationships(self, entry_type: str) -> Mapping[str, Mapping[str, tuple[str, ...]]]:
+        """Return the related entries for each record of ``entry_type``.
+
+        The result maps an entry id to a mapping of *related entry type* to the
+        tuple of related entry ids, e.g.
+        ``{"struct-1": {"references": ("ref-1", "ref-2")}}``. This is the neutral
+        source of an OPTIMADE **relationships** block: a consumer turns each
+        related id into a resource identifier under the named related type, and
+        an ``include=<type>`` request then embeds those related resources. The
+        default implementation returns an empty mapping (no relationships); a
+        provider overrides it to declare them. Ids referring to records this
+        provider (or a sibling provider serving the related type) does not supply
+        are simply not resolvable by the consumer.
+        """
+        return {}

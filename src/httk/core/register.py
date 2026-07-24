@@ -18,16 +18,41 @@
 
 from ._plugins import PluginRegistry
 
+#: Loaders selected by file *extension* (keys are lower-case ``".ext"`` suffixes).
 loaders = PluginRegistry()
 
+#: Loaders selected by exact *basename* (keys are lower-case basenames such as
+#: ``"contcar"``). A separate key namespace from :data:`loaders` so an
+#: extension-less file (``POSCAR``, ``CONTCAR``) can still dispatch by name.
+loader_filenames = PluginRegistry()
 
-def register_loader(*, name: str, loader: str, extensions: tuple[str, ...]) -> None:
+
+def register_loader(
+    *,
+    name: str,
+    loader: str,
+    extensions: tuple[str, ...] = (),
+    filenames: tuple[str, ...] = (),
+) -> None:
+    """Register a loader under one or more file ``extensions`` and/or ``filenames``.
+
+    ``extensions`` are matched (case-insensitively) against a file's suffix, e.g.
+    ``".cif"``. ``filenames`` are exact basenames matched (case-insensitively)
+    against a file's name with any recognized compression suffix stripped, e.g.
+    ``"POSCAR"`` matches ``POSCAR``, ``poscar``, and ``POSCAR.bz2``.
+    """
     for ext in extensions:
         loaders.register(key=ext.lower(), handler=loader, name=name)
+    for filename in filenames:
+        loader_filenames.register(key=filename.lower(), handler=loader, name=name)
 
 
 def known_extensions() -> list[str]:
     return loaders.keys()
+
+
+def known_filenames() -> list[str]:
+    return loader_filenames.keys()
 
 
 entry_providers = PluginRegistry()
