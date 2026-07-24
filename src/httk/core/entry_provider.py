@@ -28,9 +28,37 @@ provider without depending on the domain module.
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterable, Mapping
+from dataclasses import dataclass
 from typing import Any
 
 from .property_definitions import EntryTypeDefinition
+
+
+@dataclass(frozen=True, slots=True)
+class RelatedEntry:
+    """One related entry of a record, as reported by :meth:`EntryProvider.relationships`.
+
+    Mirrors the OPTIMADE v1.3 relationships model: a related entry is named by
+    its entry type and id, optionally carrying the per-identifier metadata the
+    standard defines — ``description`` (the human-readable relationship
+    description introduced in OPTIMADE v1.2 as ``meta.description``) and
+    ``role`` (the machine-readable relationship role introduced in OPTIMADE
+    v1.3 as ``meta.role``, e.g. ``"input"``/``"output"`` for the
+    calculations↔files relationship). An absent ``role`` means exactly that —
+    no role is declared and no default is assumed.
+    """
+
+    entry_type: str
+    """The entry type of the related entry (e.g. ``"references"``)."""
+
+    id: str
+    """The id of the related entry."""
+
+    description: str | None = None
+    """A human-readable description of the relationship, if declared."""
+
+    role: str | None = None
+    """The machine-readable role of the relationship, if declared."""
 
 
 class EntryProvider(ABC):
@@ -69,6 +97,12 @@ class EntryProvider(ABC):
     A consumer combines the three: the definitions become the served schema, the
     columns drive both response-field extraction and filter handling, and the
     records are loaded into a store the consumer queries.
+
+    A provider may additionally declare **relationships**
+    (:meth:`relationships`): a flat tuple of :class:`~httk.core.RelatedEntry` values per
+    entry id, each naming a related entry (and optionally the relationship's
+    ``description``/``role`` metadata) that the consumer serves as the entry's
+    relationships block.
     """
 
     @abstractmethod
@@ -104,15 +138,18 @@ class EntryProvider(ABC):
         """
         raise NotImplementedError
 
-    def relationships(self, entry_type: str) -> Mapping[str, Mapping[str, tuple[str, ...]]]:
+    def relationships(self, entry_type: str) -> Mapping[str, tuple[RelatedEntry, ...]]:
         """Return the related entries for each record of ``entry_type``.
 
-        The result maps an entry id to a mapping of *related entry type* to the
-        tuple of related entry ids, e.g.
-        ``{"struct-1": {"references": ("ref-1", "ref-2")}}``. This is the neutral
-        source of an OPTIMADE **relationships** block: a consumer turns each
-        related id into a resource identifier under the named related type, and
-        an ``include=<type>`` request then embeds those related resources. The
+        The result maps an entry id to a flat tuple of :class:`~httk.core.RelatedEntry`
+        values, e.g. ``{"struct-1": (RelatedEntry("references", "ref-1"),
+        RelatedEntry("references", "ref-2", description="Cites the method"))}``.
+        Grouping the related entries by related entry type is the serving
+        layer's concern (JSON:API groups them at render time). This is the
+        neutral source of an OPTIMADE **relationships** block: a consumer turns
+        each related entry into a resource identifier under its entry type
+        (carrying the ``description``/``role`` metadata when present), and an
+        ``include=<type>`` request then embeds those related resources. The
         default implementation returns an empty mapping (no relationships); a
         provider overrides it to declare them. Ids referring to records this
         provider (or a sibling provider serving the related type) does not supply

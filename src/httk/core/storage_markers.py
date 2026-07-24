@@ -55,6 +55,8 @@ __all__ = [
     "Unique",
     "Skip",
     "Shape",
+    "Related",
+    "RelationshipLink",
     "DedupPolicy",
     "StorageInfo",
     "STORAGE_INFO_ATTRIBUTE",
@@ -117,6 +119,81 @@ class Shape:
 
 
 @dataclass(frozen=True)
+class Related:
+    """Field marker: relationship metadata for a reference or list-of-storable field.
+
+    Applies to a field holding another storable class (a *reference* field) or
+    a ``list``/``tuple`` of storable classes. When the field's target class is
+    served alongside the declaring class, the storage layer surfaces the field
+    as a relationship; this marker attaches the OPTIMADE per-identifier
+    metadata that flows into each emitted
+    :class:`~httk.core.entry_provider.RelatedEntry` — ``role`` (machine
+    readable, OPTIMADE v1.3 ``meta.role``) and ``description`` (human readable,
+    OPTIMADE v1.2 ``meta.description``). ``serve=False`` suppresses the field
+    as a relationship entirely.
+
+    Args:
+        role: The machine-readable relationship role, if any.
+        description: The human-readable relationship description, if any.
+        serve: Whether the field is served as a relationship at all.
+    """
+
+    role: str | None = None
+    description: str | None = None
+    serve: bool = True
+
+
+@dataclass(frozen=True)
+class RelationshipLink:
+    """Class-level relationship declaration: each stored row expresses one FROM→TO relationship.
+
+    Declared in :attr:`StorageInfo.links`. ``source`` and ``target`` each name
+    a reference field of the declaring class, or are ``None`` to mean *the
+    declaring class's own entry*: for every stored row, one relationship is
+    declared from the entry the source side resolves to, to the entry the
+    target side resolves to. The two canonical shapes:
+
+    - **join-object**: ``RelationshipLink("structure", "reference")`` on a
+      ``StructureRef`` join class — every ``StructureRef`` row relates its
+      ``structure`` to its ``reference`` (structures → references), without the
+      join class itself being served.
+    - **field-inverse**: ``RelationshipLink("structure", None, role="output")``
+      on a ``Calculation`` class — every ``Calculation`` row relates its
+      ``structure`` to the calculation itself (structures → calculations),
+      i.e. the inverse of the ``structure`` reference field.
+
+    ``role`` and ``description`` carry the same OPTIMADE per-identifier
+    metadata as :class:`Related` into each relationship the link declares.
+
+    Args:
+        source: The reference field naming the FROM-side entry, or ``None``
+            for the declaring class's own entry.
+        target: The reference field naming the TO-side entry, or ``None``
+            for the declaring class's own entry.
+        role: The machine-readable relationship role, if any.
+        description: The human-readable relationship description, if any.
+
+    Raises:
+        ValueError: If both endpoints are ``None`` (the link would relate every
+            entry to itself), or if ``source`` and ``target`` name the same
+            field.
+    """
+
+    source: str | None
+    target: str | None
+    role: str | None = None
+    description: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.source is None and self.target is None:
+            raise ValueError(
+                "RelationshipLink needs at least one named field endpoint (source and target are both None)"
+            )
+        if self.source is not None and self.source == self.target:
+            raise ValueError(f"RelationshipLink source and target must differ, both are {self.source!r}")
+
+
+@dataclass(frozen=True)
 class StorageInfo:
     """Optional class-level storage declaration for a storable dataclass.
 
@@ -129,11 +206,13 @@ class StorageInfo:
         table_name: Storage table name; ``None`` derives one from the class name.
         indexes: Composite indexes, each a tuple of field names.
         dedup: Deduplication policy applied when saving; see :data:`DedupPolicy`.
+        links: Class-level relationship declarations; see :class:`RelationshipLink`.
     """
 
     table_name: str | None = None
     indexes: tuple[tuple[str, ...], ...] = ()
     dedup: DedupPolicy = "content_id"
+    links: tuple[RelationshipLink, ...] = ()
 
     def __post_init__(self) -> None:
         if self.dedup not in _DEDUP_POLICIES:

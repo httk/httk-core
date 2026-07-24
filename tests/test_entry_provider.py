@@ -1,12 +1,16 @@
 """Tests for the EntryProvider contract and the provider registry."""
 
+import dataclasses
 from collections.abc import Iterable, Mapping
 from typing import Any
+
+import pytest
 
 from httk.core import (
     EntryProvider,
     EntryTypeDefinition,
     PropertyDefinition,
+    RelatedEntry,
     known_entry_providers,
     register_entry_provider,
 )
@@ -57,6 +61,30 @@ def test_toy_provider_satisfies_contract() -> None:
     for record in records:
         for column in columns.values():
             assert column in record
+
+
+def test_default_relationships_is_empty() -> None:
+    assert ToyProvider().relationships("widgets") == {}
+
+
+def test_related_entry_defaults_and_equality() -> None:
+    entry = RelatedEntry("references", "ref-1")
+    assert entry.entry_type == "references"
+    assert entry.id == "ref-1"
+    assert entry.description is None
+    assert entry.role is None
+    assert entry == RelatedEntry("references", "ref-1")
+    assert entry != RelatedEntry("references", "ref-2")
+    with_meta = RelatedEntry("files", "f-1", description="Input file", role="input")
+    assert with_meta == RelatedEntry("files", "f-1", description="Input file", role="input")
+    assert with_meta != entry
+
+
+def test_related_entry_is_frozen_with_slots() -> None:
+    entry = RelatedEntry("references", "ref-1")
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        entry.id = "ref-2"  # type: ignore[misc]
+    assert not hasattr(entry, "__dict__")  # slots
 
 
 def test_registration_and_factory_resolution_round_trip() -> None:
