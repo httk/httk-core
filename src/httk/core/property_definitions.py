@@ -50,20 +50,74 @@ entry types (such as ``calculations``) whose specification version is newer.
 
 import copy
 import json
+import re
 from collections.abc import Mapping
 from functools import lru_cache
 from importlib.resources import files
 from typing import Any, Self
 
-#: Property-name prefixes recognized as database-specific OPTIMADE extensions.
-#: A custom property served by a database MUST use such a prefix (see the
-#: OPTIMADE specification, "Database-Specific Properties").
-RECOGNIZED_PREFIXES: tuple[str, ...] = ("_httk_", "_omdb_")
-
 PROPERTY_DEFINITION_META_SCHEMA = "https://schemas.optimade.org/meta/v1.2/optimade/property_definition.json"
 
 _OPTIMADE_DEFS_BASE = "https://schemas.optimade.org/defs/v1.2/properties/optimade"
 _HTTK_DEFS_BASE = "https://httk.org/optimade/defs/properties"
+
+#: A valid definition prefix: a lower-case alphanumeric token wrapped in single
+#: underscores (e.g. ``_httk_``, ``_omdb_``, ``_anyt_``).
+_DEFINITION_PREFIX_PATTERN = re.compile(r"^_[a-z0-9]+_$")
+
+#: Registry of recognized database-specific property-name prefixes. Maps each
+#: prefix to ``(id_base, source_label)``: ``id_base`` is the URL base under which
+#: :meth:`PropertyDefinition.from_simple` synthesizes ``$id`` values for names
+#: carrying the prefix, and ``source_label`` is the token used in the generated
+#: ``x-optimade-definition.label``. See :func:`register_definition_prefix`.
+_DEFINITION_PREFIXES: dict[str, tuple[str, str]] = {}
+
+
+def register_definition_prefix(prefix: str, id_base: str) -> None:
+    """Register a database-specific OPTIMADE property-name ``prefix``.
+
+    A custom property served by a database MUST use such a prefix (see the
+    OPTIMADE specification, "Database-Specific Properties"). Once registered, a
+    property name carrying ``prefix`` gets its ``$id`` synthesized under
+    ``id_base`` by :meth:`PropertyDefinition.from_simple`, and
+    :meth:`EntryTypeDefinition.extended` accepts it as a custom property.
+
+    ``prefix`` must be a lower-case alphanumeric token wrapped in single
+    underscores (matching ``_[a-z0-9]+_``); anything else raises a clear
+    :class:`ValueError`. Re-registering an existing prefix overwrites its base.
+    """
+    if not _DEFINITION_PREFIX_PATTERN.match(prefix):
+        raise ValueError(
+            "Invalid definition prefix "
+            + repr(prefix)
+            + "; a definition prefix must be a lower-case alphanumeric token wrapped in single "
+            + "underscores, e.g. '_httk_'."
+        )
+    _DEFINITION_PREFIXES[prefix] = (id_base, prefix.strip("_"))
+
+
+def known_definition_prefixes() -> tuple[str, ...]:
+    """Return the registered database-specific property-name prefixes.
+
+    The tuple reflects the current state of the prefix registry (see
+    :func:`register_definition_prefix`); ``_httk_`` and ``_omdb_`` are
+    pre-registered.
+    """
+    return tuple(_DEFINITION_PREFIXES)
+
+
+def _matching_definition_prefix(name: str) -> str | None:
+    """Return the registered prefix ``name`` starts with, or ``None``."""
+    for prefix in _DEFINITION_PREFIXES:
+        if name.startswith(prefix):
+            return prefix
+    return None
+
+
+# Pre-registered prefixes. Both historically resolve under the httk.org base
+# with the "httk" source label (byte-identical to the previous behavior).
+_DEFINITION_PREFIXES["_httk_"] = (_HTTK_DEFS_BASE, "httk")
+_DEFINITION_PREFIXES["_omdb_"] = (_HTTK_DEFS_BASE, "httk")
 
 _ANGSTROM_UNIT_DEFINITION = {
     "symbol": "angstrom",
@@ -240,10 +294,11 @@ class PropertyDefinition:
         """Generate a property definition from a compact description.
 
         This mirrors the OPTIMADE property-definition generator: it emits the
-        ``$schema`` meta-schema reference, a synthesized ``$id`` (under
-        ``httk.org`` for names carrying a :data:`~httk.core.property_definitions.RECOGNIZED_PREFIXES` prefix,
-        under ``schemas.optimade.org`` otherwise, unless ``definition_id``
-        overrides it), a title, the ``description``, the OPTIMADE type derived
+        ``$schema`` meta-schema reference, a synthesized ``$id`` (under the base
+        registered for a matching prefix via
+        :func:`register_definition_prefix` — e.g. ``httk.org`` for ``_httk_`` /
+        ``_omdb_`` — under ``schemas.optimade.org`` otherwise, unless
+        ``definition_id`` overrides it), a title, the ``description``, the OPTIMADE type derived
         from ``fulltype`` (``"string"``, ``"integer"``, ``"float"``,
         ``"boolean"``, ``"timestamp"``, ``"dict"``, or ``"list of ..."``), the
         ``x-optimade-unit`` (with an ångström unit definition when
@@ -263,13 +318,14 @@ class PropertyDefinition:
         resolved_unit = unit if unit is not None else "dimensionless"
         nullable = not required_response
 
+        matched_prefix = _matching_definition_prefix(name)
         if definition_id is not None:
             resolved_id = definition_id
-        elif name.startswith(RECOGNIZED_PREFIXES):
-            resolved_id = f"{_HTTK_DEFS_BASE}/{name}"
+        elif matched_prefix is not None:
+            resolved_id = f"{_DEFINITION_PREFIXES[matched_prefix][0]}/{name}"
         else:
             resolved_id = f"{_OPTIMADE_DEFS_BASE}/{name}"
-        source = "httk" if name.startswith(RECOGNIZED_PREFIXES) else "optimade"
+        source = _DEFINITION_PREFIXES[matched_prefix][1] if matched_prefix is not None else "optimade"
 
         payload: dict[str, Any] = {
             "$schema": PROPERTY_DEFINITION_META_SCHEMA,
@@ -448,11 +504,13 @@ class EntryTypeDefinition:
 
         Each name in ``extra`` MUST be new (a collision with an existing
         property raises :class:`ValueError` naming it) and, unless
-        ``allow_unprefixed`` is set, MUST carry a :data:`~httk.core.property_definitions.RECOGNIZED_PREFIXES`
-        prefix (a database-specific custom property that does not is rejected
-        with a :class:`ValueError` explaining the OPTIMADE prefix rule).
+        ``allow_unprefixed`` is set, MUST carry a registered database-specific
+        prefix (see :func:`register_definition_prefix` /
+        :func:`known_definition_prefixes`); a custom property that does not is
+        rejected with a :class:`ValueError` explaining the OPTIMADE prefix rule.
         """
         merged = dict(self._properties)
+        recognized = known_definition_prefixes()
         for prop_name, definition in extra.items():
             if prop_name in merged:
                 raise ValueError(
@@ -462,14 +520,14 @@ class EntryTypeDefinition:
                     + prop_name
                     + "': a property with that name is already defined."
                 )
-            if not allow_unprefixed and not prop_name.startswith(RECOGNIZED_PREFIXES):
+            if not allow_unprefixed and not prop_name.startswith(recognized):
                 raise ValueError(
                     "Custom property '"
                     + prop_name
                     + "' on entry type '"
                     + self._name
                     + "' must use a database-specific prefix ("
-                    + ", ".join(RECOGNIZED_PREFIXES)
+                    + ", ".join(recognized)
                     + "); OPTIMADE reserves unprefixed names for standard properties."
                 )
             merged[prop_name] = definition

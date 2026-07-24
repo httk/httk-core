@@ -76,6 +76,39 @@ assert doc["x-optimade-type"] == "float"
 assert doc["type"] == ["number", "null"]
 ```
 
+## Registering a definition prefix
+
+The recognized database-specific prefixes are held in a small registry.
+`_httk_` and `_omdb_` are pre-registered (both under the `httk.org` base). A
+database serving its own custom properties registers its prefix once, giving the
+base URL under which those properties' `$id`s are minted; a prefix must be a
+lower-case alphanumeric token wrapped in single underscores:
+
+```python
+from httk.core import (
+    PropertyDefinition,
+    known_definition_prefixes,
+    register_definition_prefix,
+    standard_entry_type,
+)
+
+register_definition_prefix("_anyt_", "https://anyterial.se/optimade/defs/properties")
+assert "_anyt_" in known_definition_prefixes()
+
+# from_simple now routes the prefixed name's $id under the registered base:
+wave_class = PropertyDefinition.from_simple(
+    "_anyt_wave_class", description="Altermagnetic wave class.", fulltype="string"
+)
+assert wave_class.as_optimade()["$id"] == "https://anyterial.se/optimade/defs/properties/_anyt_wave_class"
+
+# ...and extended() accepts the newly registered prefix as a custom property:
+structures = standard_entry_type("references").extended({"_anyt_wave_class": wave_class})
+assert "_anyt_wave_class" in structures.properties
+```
+
+An invalid prefix (e.g. `"anyt"`, `"_Anyt_"`, `"anyt_"`) raises a clear
+`ValueError`, and re-registering an existing prefix overwrites its base.
+
 Per-deployment `sortable`/`response-default` flags are layered on separately, so
 the definition itself stays neutral:
 

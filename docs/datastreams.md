@@ -246,6 +246,55 @@ register_compression(
 Archives (`.tar.*`, `.zip`), write-side compression, and HTTP `Content-Encoding` negotiation are
 out of scope for this layer.
 
+## Loading files by type
+
+`httk.core.load(filename)` selects a loader for a file and calls it. Capability
+modules register loaders with `register_loader`, naming the file **extensions**
+and/or exact **basenames** they handle:
+
+```python
+from httk.core import load
+from httk.core.register import register_loader, known_extensions, known_filenames
+
+# A stand-in for a real loader (httk-io registers the CIF and POSCAR loaders).
+def _demo_loader(filename, **kwargs):
+    return {"loaded": filename}
+
+register_loader(
+    name="demo",
+    loader=_demo_loader,
+    extensions=(".demo",),
+    filenames=("DEMOCAR",),
+)
+
+assert ".demo" in known_extensions()
+assert "democar" in known_filenames()  # basenames are stored lower-cased
+```
+
+Dispatch strips at most **one** recognized compression suffix (`.gz`, `.bz2`,
+`.xz`, `.lzma`) to obtain an *inner* name, then matches that name's extension
+first and its exact basename second (both case-insensitively). The loader always
+receives the **original** filename, so it can open the still-compressed bytes
+through the datastream layer for transparent decompression:
+
+```python
+from httk.core import load
+from httk.core.register import register_loader
+
+def _demo_loader(filename, **kwargs):
+    return {"loaded": filename}
+
+register_loader(name="demo", loader=_demo_loader, extensions=(".demo",), filenames=("DEMOCAR",))
+
+# By extension, transparently through a compression suffix:
+assert load("/data/sample.demo.bz2") == {"loaded": "/data/sample.demo.bz2"}
+# By exact basename (an extension-less file), original path preserved:
+assert load("/data/DEMOCAR.gz") == {"loaded": "/data/DEMOCAR.gz"}
+```
+
+An unrecognized file raises a clear `ValueError` listing the known extensions
+and filenames.
+
 ## Shared Behavior and `unwrap`
 
 All views/backends share two important behaviors:

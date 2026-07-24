@@ -60,7 +60,9 @@ from .loading import load
 from .property_definitions import (
     EntryTypeDefinition,
     PropertyDefinition,
+    known_definition_prefixes,
     load_entry_type_definition,
+    register_definition_prefix,
     standard_entry_type,
 )
 from .register import known_entry_providers, register_entry_provider
@@ -117,6 +119,8 @@ __all__ = [
     "EntryTypeDefinition",
     "load_entry_type_definition",
     "standard_entry_type",
+    "register_definition_prefix",
+    "known_definition_prefixes",
     "Reference",
     "File",
     "Calculation",

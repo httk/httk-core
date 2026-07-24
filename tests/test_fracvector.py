@@ -522,3 +522,23 @@ def test_create_fast_matches_create() -> None:
         slow = FracVector.create(as_fraction(data))
         assert fast.simplify() == slow.simplify()
         assert fast.simplify().denom == slow.simplify().denom
+
+
+def test_simplify_huge_integers_no_float_overflow() -> None:
+    # Regression: simplify() used int(x / gcd) (float division), which overflowed for
+    # exact integers beyond the float range. Exact floor division must be used instead.
+    huge = 10**400
+    vector = FracVector.create_fast([[2 * huge, 4 * huge, 6 * huge]], common_denom=2)
+    simplified = vector.simplify()  # must not raise OverflowError
+    assert simplified == FracVector.create([[huge, 2 * huge, 3 * huge]])
+
+
+def test_to_floats_huge_integers_no_float_overflow() -> None:
+    # Regression: to_floats() called math.isnan(x) on each nominator, which converted
+    # very large exact integers to float first and overflowed. The ratio itself is finite.
+    vector = FracVector.create_fast([[3, 0]], common_denom=10**16)
+    floats = vector.to_floats()
+    assert floats[0][0] == float(fractions.Fraction(3, 10**16))
+    # A genuinely huge numerator/denominator whose ratio is order 1 renders finitely.
+    ratio = FracVector.create_fast([[7 * 10**350]], common_denom=2 * 10**350)
+    assert ratio.to_floats()[0][0] == 3.5
