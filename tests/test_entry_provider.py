@@ -36,7 +36,7 @@ class ToyProvider(EntryProvider):
             )
         }
 
-    def columns(self, entry_type: str) -> Mapping[str, str]:
+    def property_keys(self, entry_type: str) -> Mapping[str, str]:
         return {"id": "__id", "type": "type", "cogs": "cogs"}
 
     def records(self, entry_type: str) -> Iterable[Mapping[str, Any]]:
@@ -53,14 +53,31 @@ def make_toy_provider() -> ToyProvider:
 def test_toy_provider_satisfies_contract() -> None:
     provider = ToyProvider()
     assert set(provider.entry_types()) == {"widgets"}
-    columns = provider.columns("widgets")
-    assert "id" in columns and "type" in columns
+    property_keys = provider.property_keys("widgets")
+    assert "id" in property_keys and "type" in property_keys
     records = list(provider.records("widgets"))
     assert {r["__id"] for r in records} == {"w-1", "w-2"}
-    # Every column key is present in every record:
+    # Every record key is present in every record:
     for record in records:
-        for column in columns.values():
-            assert column in record
+        for key in property_keys.values():
+            assert key in record
+
+
+def test_stale_provider_defining_only_columns_cannot_be_instantiated() -> None:
+    """A pre-rename provider (``columns`` instead of ``property_keys``) fails loudly."""
+
+    class StaleProvider(EntryProvider):
+        def entry_types(self) -> Mapping[str, EntryTypeDefinition]:
+            return {}
+
+        def columns(self, entry_type: str) -> Mapping[str, str]:  # the pre-rename name
+            return {"id": "id", "type": "type"}
+
+        def records(self, entry_type: str) -> Iterable[Mapping[str, Any]]:
+            return []
+
+    with pytest.raises(TypeError, match="property_keys"):
+        StaleProvider()  # type: ignore[abstract]
 
 
 def test_default_relationships_is_empty() -> None:

@@ -203,13 +203,15 @@ class StorageInfo:
     external override for classes that cannot be modified.
 
     Args:
-        table_name: Storage table name; ``None`` derives one from the class name.
+        storage_name: The name this class is stored under; ``None`` derives one from
+            the class name. A relational backend uses it as the table name, a document
+            store as the collection name.
         indexes: Composite indexes, each a tuple of field names.
         dedup: Deduplication policy applied when saving; see :data:`DedupPolicy`.
         links: Class-level relationship declarations; see :class:`RelationshipLink`.
     """
 
-    table_name: str | None = None
+    storage_name: str | None = None
     indexes: tuple[tuple[str, ...], ...] = ()
     dedup: DedupPolicy = "content_id"
     links: tuple[RelationshipLink, ...] = ()

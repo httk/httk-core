@@ -17,9 +17,9 @@
 
 """The neutral entry-provider contract shared across httk₂ modules.
 
-An :class:`EntryProvider` supplies queryable *entry types* — named tables of
-records with described columns — to consumers that expose them, for example an
-OPTIMADE server. The contract is deliberately domain-neutral: nothing here is
+An :class:`EntryProvider` supplies queryable *entry types* — named collections
+of records with described properties — to consumers that expose them, for
+example an OPTIMADE server. The contract is deliberately domain-neutral: nothing here is
 specific to materials science (or to OPTIMADE). A materials module such as
 ``httk.atomistic`` implements a provider that serves its ``structures`` from
 this contract, and a serving module such as ``httk.optimade`` consumes any
@@ -66,7 +66,7 @@ class EntryProvider(ABC):
 
     A provider serves one or more *entry types*, each identified by a name (e.g.
     ``"structures"``). For every entry type it describes the entry type and its
-    properties, states how each served property maps to a record column, and
+    properties, states how each served property maps to a record key, and
     yields the records themselves.
 
     Three notions define the contract:
@@ -82,21 +82,21 @@ class EntryProvider(ABC):
       and :meth:`~httk.core.property_definitions.PropertyDefinition.from_simple`.
       A standard definition typically describes more properties than a provider
       serves; the served subset is exactly the property names in
-      :meth:`columns`.
-    - **Columns** (:meth:`columns`) map each served property name to the key
-      under which that property's value is found in a record. Every entry type's
-      column map MUST cover at least ``id`` and ``type``, and every served name
-      MUST be described by the entry type's definition (custom properties must
-      therefore live in an
+      :meth:`property_keys`.
+    - **Property keys** (:meth:`property_keys`) map each served property name to
+      the key under which that property's value is found in a record. Every entry
+      type's property-key map MUST cover at least ``id`` and ``type``, and every
+      served name MUST be described by the entry type's definition (custom
+      properties must therefore live in an
       :meth:`~httk.core.property_definitions.EntryTypeDefinition.extended`
       definition).
     - **Records** (:meth:`records`) are plain JSON-able mappings keyed by the
-      column keys named in :meth:`columns` (values are strings, numbers,
+      record keys named in :meth:`property_keys` (values are strings, numbers,
       booleans, ``None``, or nested lists/dicts of the same).
 
     A consumer combines the three: the definitions become the served schema, the
-    columns drive both response-field extraction and filter handling, and the
-    records are loaded into a store the consumer queries.
+    property keys drive both response-field extraction and filter handling, and
+    the records are loaded into a store the consumer queries.
 
     A provider may additionally declare **relationships**
     (:meth:`relationships`): a flat tuple of :class:`~httk.core.RelatedEntry` values per
@@ -112,14 +112,14 @@ class EntryProvider(ABC):
         Each value is an
         :class:`~httk.core.property_definitions.EntryTypeDefinition` describing
         the entry type and its properties. The subset a provider actually serves
-        is named by :meth:`columns`; a definition may describe more properties
-        than are served.
+        is named by :meth:`property_keys`; a definition may describe more
+        properties than are served.
         """
         raise NotImplementedError
 
     @abstractmethod
-    def columns(self, entry_type: str) -> Mapping[str, str]:
-        """Return the served-property-name to record-column-key map for ``entry_type``.
+    def property_keys(self, entry_type: str) -> Mapping[str, str]:
+        """Return the served-property-name to record-key map for ``entry_type``.
 
         The mapping MUST include entries for at least ``id`` and ``type``. Every
         key names a property described by :meth:`entry_types`; every value names
@@ -132,8 +132,8 @@ class EntryProvider(ABC):
     def records(self, entry_type: str) -> Iterable[Mapping[str, Any]]:
         """Yield the records for ``entry_type`` as plain JSON-able mappings.
 
-        Each record is a mapping keyed by the record-column keys named in
-        :meth:`columns`; values are JSON-able (strings, numbers, booleans,
+        Each record is a mapping keyed by the record keys named in
+        :meth:`property_keys`; values are JSON-able (strings, numbers, booleans,
         ``None``, or nested lists/dicts of the same).
         """
         raise NotImplementedError

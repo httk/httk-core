@@ -83,7 +83,7 @@ def test_relationship_link_is_frozen():
 
 def test_storage_info_defaults():
     info = StorageInfo()
-    assert info.table_name is None
+    assert info.storage_name is None
     assert info.indexes == ()
     assert info.dedup == "content_id"
     assert info.links == ()

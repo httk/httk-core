@@ -459,7 +459,7 @@ class EntryTypeDefinition:
     described property). A standard definition typically describes more
     properties than any given deployment serves; the served subset is chosen
     separately (an :class:`~httk.core.EntryProvider` names it through its
-    :meth:`~httk.core.EntryProvider.columns`).
+    :meth:`~httk.core.EntryProvider.property_keys`).
     """
 
     __slots__ = ("_name", "_description", "_properties")
