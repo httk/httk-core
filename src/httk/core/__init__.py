@@ -66,6 +66,16 @@ from .property_definitions import (
     standard_entry_type,
 )
 from .register import known_entry_providers, register_entry_provider
+from .storage_markers import (
+    STORAGE_INFO_ATTRIBUTE,
+    DedupPolicy,
+    Indexed,
+    Shape,
+    Skip,
+    StorageInfo,
+    Unique,
+    stored_property,
+)
 from .vectors import (
     FracScalar,
     FracVector,
@@ -162,6 +172,14 @@ __all__ = [
     "CompressionCodec",
     "register_compression",
     "known_compressions",
+    "Indexed",
+    "Unique",
+    "Skip",
+    "Shape",
+    "DedupPolicy",
+    "StorageInfo",
+    "STORAGE_INFO_ATTRIBUTE",
+    "stored_property",
     "FracVector",
     "FracScalar",
     "MutableFracVector",
