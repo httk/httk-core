@@ -19,6 +19,7 @@ on the other.
 - **OPTIMADE definitions & entry providers**: {doc}`optimade_definitions`
 - **Exact math on rationals and decimals**: {doc}`exactmath`
 - **Vectors guide**: {doc}`vectors`
+- **Runnable examples**: {doc}`examples/index`
 - **Examples notebook**: {doc}`notebooks/examples`
 ````
 
@@ -49,5 +50,6 @@ datastreams
 optimade_definitions
 vectors
 exactmath
+examples/index
 notebooks/examples
 ```

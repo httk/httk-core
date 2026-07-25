@@ -87,7 +87,9 @@ skip-string-normalization = true
 pythonVersion = "3.12"
 include = ["src", "examples"]
 reportMissingImports = true
-extraPaths = []
+# The examples import httk as an installed package would; point pyright at the
+# in-tree sources so they resolve without relying on an editable install.
+extraPaths = ["src"]
 
 [tool.mypy]
 python_version = "3.12"
