@@ -54,18 +54,14 @@ def decimal_precision(text: object) -> fractions.Fraction | None:
 
     Examples, all exact:
 
-    ==============  ==========  =========================================
-    literal         precision   why
-    ==============  ==========  =========================================
-    ``"0.123"``     ``1/1000``  three digits after the point
-    ``"-0.5"``      ``1/10``    the sign is not part of the claim
-    ``".25"``       ``1/100``   a leading point is still two digits
-    ``"5."``        ``1``       a trailing point states no fraction
-    ``"10"``        ``1``       an integer literal is precise to the unit
-    ``"1.2e-3"``    ``1/10000`` one digit, then scaled by the exponent
-    ``"1/3"``       ``None``    exact, not measured
-    ``"?"``         ``None``    no value at all
-    ==============  ==========  =========================================
+    * ``"0.123"`` -> ``1/1000`` — three digits after the point
+    * ``"-0.5"`` -> ``1/10`` — the sign is not part of the claim
+    * ``".25"`` -> ``1/100`` — a leading point is still two digits
+    * ``"5."`` -> ``1`` — a trailing point states no fraction
+    * ``"10"`` -> ``1`` — an integer literal is precise to the unit
+    * ``"1.2e-3"`` -> ``1/10000`` — one digit, then scaled by the exponent
+    * ``"1/3"`` -> ``None`` — exact, not measured
+    * ``"?"`` -> ``None`` — no value at all
     """
     if text is None:
         return None

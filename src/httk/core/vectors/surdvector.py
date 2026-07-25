@@ -566,10 +566,10 @@ class SurdVector:
 
     def __hash__(self) -> int:
         """
-        A hash consistent with :meth:`__eq__`.
+        A hash consistent with ``__eq__``.
 
         Delegates to each component's own hash rather than reaching for its raw
-        ``(denom, noms)`` pair. :meth:`__init__` canonicalizes the components and drops
+        ``(denom, noms)`` pair. The constructor canonicalizes the components and drops
         zero ones, so the component set is already unambiguous, but a coefficient's stored
         representation still is not — and :meth:`FracVector.__hash__` is the thing that
         knows how to reduce it. Going through it keeps the two classes from drifting apart.

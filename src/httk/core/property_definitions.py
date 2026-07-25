@@ -59,10 +59,14 @@ from typing import Any, Self
 PROPERTY_DEFINITION_META_SCHEMA = "https://schemas.optimade.org/meta/v1.2/optimade/property_definition.json"
 
 _OPTIMADE_DEFS_BASE = "https://schemas.optimade.org/defs/v1.2/properties/optimade"
-_HTTK_DEFS_BASE = "https://httk.org/optimade/defs/properties"
+#: Where a property that httk defines *ad hoc* gets its synthesized ``$id``. Distinct
+#: from the published-schema namespace at ``https://schemas.httk.org/defs/``: those are
+#: definitions that really are served from there, whereas these are generated on the fly
+#: by :meth:`PropertyDefinition.from_simple` and are not published anywhere.
+_HTTK_DEFS_BASE = "https://schemas.httk.org/ad-hoc/defs/properties"
 
 #: A valid definition prefix: a lower-case alphanumeric token wrapped in single
-#: underscores (e.g. ``_httk_``, ``_omdb_``, ``_anyt_``).
+#: underscores (e.g. ``_httk_``, ``_omdb_``, ``_exmpl_``).
 _DEFINITION_PREFIX_PATTERN = re.compile(r"^_[a-z0-9]+_$")
 
 #: Registry of recognized database-specific property-name prefixes. Maps each

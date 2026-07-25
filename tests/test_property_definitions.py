@@ -86,7 +86,7 @@ def test_from_simple_integer_optimade_id() -> None:
 def test_from_simple_httk_prefixed_id() -> None:
     prop = PropertyDefinition.from_simple("_httk_total_energy", description="Total energy", fulltype="float")
     doc = prop.as_optimade()
-    assert doc["$id"] == "https://httk.org/optimade/defs/properties/_httk_total_energy"
+    assert doc["$id"] == "https://schemas.httk.org/ad-hoc/defs/properties/_httk_total_energy"
     assert doc["type"] == ["number", "null"]
 
 
@@ -200,14 +200,14 @@ def test_accessors() -> None:
 
 
 @pytest.fixture
-def _clean_anyt_prefix() -> Iterator[None]:
+def _clean_example_prefix() -> Iterator[None]:
     from httk.core.property_definitions import _DEFINITION_PREFIXES
 
-    _DEFINITION_PREFIXES.pop("_anyt_", None)
+    _DEFINITION_PREFIXES.pop("_exmpl_", None)
     try:
         yield
     finally:
-        _DEFINITION_PREFIXES.pop("_anyt_", None)
+        _DEFINITION_PREFIXES.pop("_exmpl_", None)
 
 
 def test_pre_registered_prefixes() -> None:
@@ -217,32 +217,33 @@ def test_pre_registered_prefixes() -> None:
 
 
 def test_omdb_prefix_byte_identical() -> None:
-    # _omdb_ historically resolves under the httk.org base with the "httk" label.
+    # _omdb_ resolves under httk's own ad-hoc base, with the "httk" label: the registry
+    # maps it there deliberately rather than to a base of its own.
     doc = PropertyDefinition.from_simple("_omdb_bandgap", description="gap", fulltype="float").as_optimade()
-    assert doc["$id"] == "https://httk.org/optimade/defs/properties/_omdb_bandgap"
+    assert doc["$id"] == "https://schemas.httk.org/ad-hoc/defs/properties/_omdb_bandgap"
     assert doc["x-optimade-definition"]["label"] == "omdb_bandgap_httk"
 
 
-def test_register_prefix_gives_from_simple_id(_clean_anyt_prefix: None) -> None:
-    register_definition_prefix("_anyt_", "https://anyterial.se/optimade/defs/properties")
-    assert "_anyt_" in known_definition_prefixes()
-    doc = PropertyDefinition.from_simple("_anyt_wave_class", description="wave class", fulltype="string").as_optimade()
-    assert doc["$id"] == "https://anyterial.se/optimade/defs/properties/_anyt_wave_class"
-    assert doc["x-optimade-definition"]["label"] == "anyt_wave_class_anyt"
+def test_register_prefix_gives_from_simple_id(_clean_example_prefix: None) -> None:
+    register_definition_prefix("_exmpl_", "https://schemas.example.org/ad-hoc/defs/properties")
+    assert "_exmpl_" in known_definition_prefixes()
+    doc = PropertyDefinition.from_simple("_exmpl_wave_class", description="wave class", fulltype="string").as_optimade()
+    assert doc["$id"] == "https://schemas.example.org/ad-hoc/defs/properties/_exmpl_wave_class"
+    assert doc["x-optimade-definition"]["label"] == "exmpl_wave_class_exmpl"
 
 
-def test_extended_accepts_registered_prefix_and_rejects_before(_clean_anyt_prefix: None) -> None:
+def test_extended_accepts_registered_prefix_and_rejects_before(_clean_example_prefix: None) -> None:
     calc = standard_entry_type("calculations")
-    prop = PropertyDefinition.from_simple("_anyt_wave_class", description="w", fulltype="string")
+    prop = PropertyDefinition.from_simple("_exmpl_wave_class", description="w", fulltype="string")
     # Before registration the prefix is not recognized.
     with pytest.raises(ValueError):
-        calc.extended({"_anyt_wave_class": prop})
-    register_definition_prefix("_anyt_", "https://anyterial.se/optimade/defs/properties")
-    extended = calc.extended({"_anyt_wave_class": prop})
-    assert "_anyt_wave_class" in extended.properties
+        calc.extended({"_exmpl_wave_class": prop})
+    register_definition_prefix("_exmpl_", "https://schemas.example.org/ad-hoc/defs/properties")
+    extended = calc.extended({"_exmpl_wave_class": prop})
+    assert "_exmpl_wave_class" in extended.properties
 
 
 def test_register_prefix_rejects_invalid_format() -> None:
-    for bad in ("anyt", "_Anyt_", "_anyt", "anyt_", "__", "_an-t_"):
+    for bad in ("exmpl", "_Exmpl_", "_exmpl", "exmpl_", "__", "_ex-l_"):
         with pytest.raises(ValueError):
             register_definition_prefix(bad, "https://example.org/defs")

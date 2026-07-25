@@ -71,7 +71,7 @@ energy = PropertyDefinition.from_simple(
     fulltype="float",
 )
 doc = energy.as_optimade()
-assert doc["$id"] == "https://httk.org/optimade/defs/properties/_httk_total_energy"
+assert doc["$id"] == "https://schemas.httk.org/ad-hoc/defs/properties/_httk_total_energy"
 assert doc["x-optimade-type"] == "float"
 assert doc["type"] == ["number", "null"]
 ```
@@ -92,21 +92,21 @@ from httk.core import (
     standard_entry_type,
 )
 
-register_definition_prefix("_anyt_", "https://anyterial.se/optimade/defs/properties")
-assert "_anyt_" in known_definition_prefixes()
+register_definition_prefix("_exmpl_", "https://schemas.example.org/ad-hoc/defs/properties")
+assert "_exmpl_" in known_definition_prefixes()
 
 # from_simple now routes the prefixed name's $id under the registered base:
 wave_class = PropertyDefinition.from_simple(
-    "_anyt_wave_class", description="Altermagnetic wave class.", fulltype="string"
+    "_exmpl_wave_class", description="Altermagnetic wave class.", fulltype="string"
 )
-assert wave_class.as_optimade()["$id"] == "https://anyterial.se/optimade/defs/properties/_anyt_wave_class"
+assert wave_class.as_optimade()["$id"] == "https://schemas.example.org/ad-hoc/defs/properties/_exmpl_wave_class"
 
 # ...and extended() accepts the newly registered prefix as a custom property:
-structures = standard_entry_type("references").extended({"_anyt_wave_class": wave_class})
-assert "_anyt_wave_class" in structures.properties
+structures = standard_entry_type("references").extended({"_exmpl_wave_class": wave_class})
+assert "_exmpl_wave_class" in structures.properties
 ```
 
-An invalid prefix (e.g. `"anyt"`, `"_Anyt_"`, `"anyt_"`) raises a clear
+An invalid prefix (e.g. `"exmpl"`, `"_Exmpl_"`, `"exmpl_"`) raises a clear
 `ValueError`, and re-registering an existing prefix overwrites its base.
 
 Per-deployment `sortable`/`response-default` flags are layered on separately, so
