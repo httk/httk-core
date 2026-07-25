@@ -838,8 +838,8 @@ class FracVector:
         The result is *canonical*: two numerically equal FracVectors always simplify to the
         same ``(denom, noms)`` pair. That requires normalizing the sign as well as reducing
         by the greatest common divisor, since ``(1, 0, 0)/-2`` and ``(-1, 0, 0)/2`` are the
-        same value and neither is reducible. Canonicality is what :meth:`__hash__` relies
-        on to stay consistent with :meth:`__eq__`.
+        same value and neither is reducible. Canonicality is what ``__hash__`` relies
+        on to stay consistent with ``__eq__``.
         """
         noms = self.noms
         denom = self.denom
@@ -1370,12 +1370,12 @@ class FracVector:
 
     def __hash__(self) -> int:
         """
-        A hash consistent with :meth:`__eq__`, which compares *numerically*.
+        A hash consistent with ``__eq__``, which compares *numerically*.
 
         The stored ``(denom, noms)`` pair cannot be hashed directly: ``(1, 0, 0)/2`` and
         ``(2, 0, 0)/4`` are equal but represented differently, so hashing the raw pair
         would put equal vectors in different hash buckets and let a ``set`` or ``dict``
-        hold what are really duplicates. Hashing the canonical form from :meth:`simplify`
+        hold what are really duplicates. Hashing the canonical form from :meth:`FracVector.simplify`
         removes the ambiguity. The result is cached, since a FracVector is immutable.
         """
         if self._hash_cache is None:
