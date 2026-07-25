@@ -16,7 +16,15 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from ._plugins import PluginRegistry
+import re
+from collections.abc import Callable, Sequence
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, cast
+
+from ._plugins import PluginRegistry, resolve_callable
+
+if TYPE_CHECKING:
+    from .cli import CLIContext
 
 #: Loaders selected by file *extension* (keys are lower-case ``".ext"`` suffixes).
 loaders = PluginRegistry()
@@ -71,3 +79,65 @@ def register_entry_provider(*, name: str, factory: str) -> None:
 
 def known_entry_providers() -> list[str]:
     return entry_providers.keys()
+
+
+CLIHandler = Callable[[Sequence[str], "CLIContext"], int]
+
+
+@dataclass(frozen=True)
+class CLICommand:
+    """Registration metadata for one top-level :command:`httk` command."""
+
+    name: str
+    handler: str | Callable[..., Any]
+    summary: str
+
+    def resolve(self) -> CLIHandler:
+        """Import and return the registered command implementation."""
+
+        resolved = resolve_callable(self.handler)
+        return cast(CLIHandler, resolved)
+
+
+_CLI_NAME = re.compile(r"[a-z][a-z0-9]*(?:-[a-z0-9]+)*")
+_CLI_RESERVED = frozenset({"help", "version"})
+_cli_commands: dict[str, CLICommand] = {}
+
+
+def register_cli_command(name: str, handler: str | Callable[..., Any], summary: str) -> None:
+    """Register a lazy top-level :command:`httk` command.
+
+    A handler is either a callable or a lazy ``"module:callable"`` reference
+    with the contract ``(argv: Sequence[str], context: CLIContext) -> int``.
+    Names use lowercase, hyphen-separated command syntax. Registration is
+    intentionally strict: reserved names and duplicate registrations are
+    errors rather than order-dependent overrides.
+    """
+
+    if not isinstance(name, str) or _CLI_NAME.fullmatch(name) is None:
+        raise ValueError(f"invalid CLI command name: {name!r}")
+    if name in _CLI_RESERVED:
+        raise ValueError(f"reserved CLI command name: {name!r}")
+    if name in _cli_commands:
+        raise ValueError(f"CLI command is already registered: {name!r}")
+    if not callable(handler) and not isinstance(handler, str):
+        raise TypeError("CLI command handler must be callable or a 'module:callable' reference")
+    if isinstance(handler, str):
+        module_name, separator, attribute = handler.partition(":")
+        if not separator or not module_name or not attribute:
+            raise ValueError("lazy CLI command handler must use 'module:callable' syntax")
+    if not isinstance(summary, str) or not summary.strip() or "\n" in summary:
+        raise ValueError("CLI command summary must be a nonempty single line")
+    _cli_commands[name] = CLICommand(name=name, handler=handler, summary=summary.strip())
+
+
+def known_cli_commands() -> list[str]:
+    """Return registered top-level command names without resolving handlers."""
+
+    return sorted(_cli_commands)
+
+
+def cli_command(name: str) -> CLICommand | None:
+    """Return command metadata without importing its implementation."""
+
+    return _cli_commands.get(name)

@@ -16,6 +16,8 @@ It provides:
 - shared view/backend and data-stream primitives; and
 - plugin discovery and aggregate operations such as `httk.core.load`, to which
   other httk modules can register handlers.
+- the extensible `httk` executable, a lazy top-level command registry, and
+  stdlib-backed Ed25519 signing.
 
 Most users should install the [`httk2`](https://github.com/httk/httk2)
 metapackage, which selects a useful set of httk modules:

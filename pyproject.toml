@@ -35,6 +35,9 @@ Documentation = "https://docs.httk.org/httk-core/"
 Repository = "https://github.com/httk/httk-core"
 Issues = "https://github.com/httk/httk-core/issues"
 
+[project.scripts]
+httk = "httk.core.cli:main"
+
 [tool.setuptools]
 package-dir = {"" = "src"}
 
@@ -45,6 +48,7 @@ where = ["src"]
 "httk.core" = ["py.typed", "optimade_defs/*", "optimade_filter/*.ebnf", "optimade_filter/README.md"]
 
 [project.optional-dependencies]
+default = ["cryptography>=42"]
 numpy = ["numpy>=1.26"]
 dev = [
   "pytest>=8.0",

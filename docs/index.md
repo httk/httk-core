@@ -16,6 +16,7 @@ on the other.
 - **API reference**: {doc}`reference/index`
 - **Views and backends guide**: {doc}`view_backend_pattern`
 - **Datastream guide**: {doc}`datastreams`
+- **Extensible CLI and Ed25519 signing**: {doc}`cli_and_signing`
 - **OPTIMADE definitions & entry providers**: {doc}`optimade_definitions`
 - **Exact math on rationals and decimals**: {doc}`exactmath`
 - **Vectors guide**: {doc}`vectors`
@@ -47,6 +48,7 @@ print(subpackages)
 reference/index
 view_backend_pattern
 datastreams
+cli_and_signing
 optimade_definitions
 vectors
 exactmath
