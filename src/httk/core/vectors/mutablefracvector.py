@@ -22,7 +22,7 @@ A mutable, list-backed variant of :class:`~httk.core.vectors.fracvector.FracVect
 import operator
 from collections.abc import Callable
 from math import gcd as calc_gcd
-from typing import Any, ClassVar
+from typing import Any, ClassVar, NoReturn
 
 from httk.core.vectors._nested import (
     list_set_slice,
@@ -135,8 +135,21 @@ class MutableFracVector(FracVector):
 
     #### Python special overloads
 
-    def __hash__(self) -> int:
-        raise Exception("MutableFracVector.__hash__: Cannot (should not) use hash number of a mutable object.")
+    def __hash__(self) -> NoReturn:
+        """
+        Always raises: a mutable value must not be hashable.
+
+        Hashing one would let it be used as a dict key or set member and then mutated out
+        from under its own hash bucket. :class:`~httk.core.FracVector` is the immutable,
+        hashable counterpart — call :meth:`to_FracVector` first.
+
+        Raises :class:`TypeError` specifically, which is what Python's data model
+        prescribes for an unhashable type and what callers doing ``try: hash(x)`` expect.
+        """
+        raise TypeError(
+            "MutableFracVector is mutable and therefore unhashable; "
+            "call to_FracVector() for a hashable snapshot of its current value"
+        )
 
     def __setitem__(self, key: Any, values: Any) -> None:
         if not isinstance(key, tuple):

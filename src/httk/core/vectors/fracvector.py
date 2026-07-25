@@ -103,6 +103,9 @@ class FracVector:
     noms: Noms
     denom: int
     _dim: tuple[int, ...] | None
+    # Class-level default so subclasses that build instances through __new__ without
+    # running FracVector.__init__ (the view classes do) still have a defined cache slot.
+    _hash_cache: int | None = None
 
     #### Creation
 
@@ -122,6 +125,7 @@ class FracVector:
         self.noms = noms
         self.denom = denom
         self._dim = None
+        self._hash_cache = None
 
     @classmethod
     def use(cls, old: Any) -> "FracVector":
@@ -830,15 +834,25 @@ class FracVector:
         """
         Return a reduced FracVector. I.e., each element has the same numerical value but the
         new FracVector represents them using the smallest possible shared denominator.
+
+        The result is *canonical*: two numerically equal FracVectors always simplify to the
+        same ``(denom, noms)`` pair. That requires normalizing the sign as well as reducing
+        by the greatest common divisor, since ``(1, 0, 0)/-2`` and ``(-1, 0, 0)/2`` are the
+        same value and neither is reducible. Canonicality is what :meth:`__hash__` relies
+        on to stay consistent with :meth:`__eq__`.
         """
         noms = self.noms
         denom = self.denom
 
-        if self.denom != 1:
-            gcd = self._reduce_over_noms(lambda x, y: calc_gcd(x, abs(y)), initializer=self.denom)
-            if gcd != 1:
-                denom = denom // gcd
-                noms = self._map_over_noms(lambda x: x // gcd)
+        if denom != 1:
+            gcd = self._reduce_over_noms(lambda x, y: calc_gcd(x, abs(y)), initializer=abs(denom))
+            # Dividing through by a negative divisor reduces and flips the sign in one pass,
+            # which keeps this to a single traversal of the numerators. The division is
+            # always exact, since the divisor divides the denominator and every numerator.
+            divisor = gcd if denom > 0 else -gcd
+            if divisor != 1:
+                denom = denom // divisor
+                noms = self._map_over_noms(lambda x: x // divisor)
 
         return self.__class__(noms, denom)
 
@@ -1355,7 +1369,19 @@ class FracVector:
         return "(1/" + str(self.denom) + ")*" + str(self.noms)
 
     def __hash__(self) -> int:
-        return (self.denom, self.noms).__hash__()
+        """
+        A hash consistent with :meth:`__eq__`, which compares *numerically*.
+
+        The stored ``(denom, noms)`` pair cannot be hashed directly: ``(1, 0, 0)/2`` and
+        ``(2, 0, 0)/4`` are equal but represented differently, so hashing the raw pair
+        would put equal vectors in different hash buckets and let a ``set`` or ``dict``
+        hold what are really duplicates. Hashing the canonical form from :meth:`simplify`
+        removes the ambiguity. The result is cached, since a FracVector is immutable.
+        """
+        if self._hash_cache is None:
+            simplified = self.simplify()
+            self._hash_cache = hash((simplified.denom, simplified.noms))
+        return self._hash_cache
 
     def __neg__(self) -> Self:
         return self.__class__(self._map_over_noms(operator.neg), self.denom)

@@ -565,7 +565,16 @@ class SurdVector:
         return not result
 
     def __hash__(self) -> int:
-        items = tuple(sorted((radicand, comp.denom, comp.noms) for radicand, comp in self._components.items()))
+        """
+        A hash consistent with :meth:`__eq__`.
+
+        Delegates to each component's own hash rather than reaching for its raw
+        ``(denom, noms)`` pair. :meth:`__init__` canonicalizes the components and drops
+        zero ones, so the component set is already unambiguous, but a coefficient's stored
+        representation still is not — and :meth:`FracVector.__hash__` is the thing that
+        knows how to reduce it. Going through it keeps the two classes from drifting apart.
+        """
+        items = tuple(sorted((radicand, hash(comp)) for radicand, comp in self._components.items()))
         return hash((self._dim, items))
 
     def _term_str(self, radicand: int, comp: FracVector) -> str:
