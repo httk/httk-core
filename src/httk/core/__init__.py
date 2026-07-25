@@ -75,6 +75,7 @@ from .optimade_filter import (
     ParserSyntaxError,
     parse_optimade_filter,
 )
+from .precision import combined_precision, decimal_precision
 from .property_definitions import (
     EntryTypeDefinition,
     PropertyDefinition,
@@ -145,6 +146,8 @@ def _discover_modules():
 subpackages = _discover_modules()
 
 __all__ = [
+    "decimal_precision",
+    "combined_precision",
     "load",
     "subpackages",
     "EntryProvider",
