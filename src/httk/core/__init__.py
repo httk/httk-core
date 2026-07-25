@@ -20,6 +20,7 @@ import pkgutil
 import httk
 
 from . import _discover
+from .cli_context import CLIContext
 from .dataloader import DataLoader, DataRecord, DatasetMeta, DecodeObjectCallback
 from .datastream import (
     BytestreamBackend,
@@ -54,6 +55,17 @@ from .datastream import (
     known_compressions,
     register_compression,
 )
+from .ed25519 import (
+    derive_ed25519_public_key,
+    ed25519_backend_available,
+    ed25519_generate_seed,
+    ed25519_public_key,
+    ed25519_sign,
+    ed25519_verify,
+    generate_ed25519_seed,
+    sign_ed25519,
+    verify_ed25519,
+)
 from .entry_provider import EntryProvider, RelatedEntry
 from .entry_types import Calculation, File, Reference
 from .loading import load
@@ -71,7 +83,12 @@ from .property_definitions import (
     register_definition_prefix,
     standard_entry_type,
 )
-from .register import known_entry_providers, register_entry_provider
+from .register import (
+    known_cli_commands,
+    known_entry_providers,
+    register_cli_command,
+    register_entry_provider,
+)
 from .storage_markers import (
     STORAGE_INFO_ATTRIBUTE,
     DedupPolicy,
@@ -134,6 +151,18 @@ __all__ = [
     "RelatedEntry",
     "register_entry_provider",
     "known_entry_providers",
+    "CLIContext",
+    "register_cli_command",
+    "known_cli_commands",
+    "ed25519_generate_seed",
+    "ed25519_public_key",
+    "ed25519_sign",
+    "ed25519_verify",
+    "ed25519_backend_available",
+    "generate_ed25519_seed",
+    "derive_ed25519_public_key",
+    "sign_ed25519",
+    "verify_ed25519",
     "PropertyDefinition",
     "EntryTypeDefinition",
     "load_entry_type_definition",
