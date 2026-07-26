@@ -48,7 +48,10 @@ where = ["src"]
 "httk.core" = ["py.typed", "optimade_defs/*", "optimade_filter/*.ebnf", "optimade_filter/README.md"]
 
 [project.optional-dependencies]
-default = ["cryptography>=42"]
+default = [
+  "numpy>=1.26",
+  "cryptography>=42",
+]
 numpy = ["numpy>=1.26"]
 dev = [
   "pytest>=8.0",
