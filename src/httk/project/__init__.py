@@ -26,10 +26,12 @@ from .anchor import (
     pinned_project_key,
     project_public_key_path,
     read_project,
+    read_project_section,
     read_public_key_file,
     require_project,
     trust_project_key,
     trusted_project_keys,
+    write_project_section,
 )
 
 __all__ = [
@@ -47,8 +49,10 @@ __all__ = [
     "pinned_project_key",
     "project_public_key_path",
     "read_project",
+    "read_project_section",
     "read_public_key_file",
     "require_project",
     "trust_project_key",
     "trusted_project_keys",
+    "write_project_section",
 ]
