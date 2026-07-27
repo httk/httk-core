@@ -17,6 +17,7 @@ on the other.
 - **Views and backends guide**: {doc}`view_backend_pattern`
 - **Datastream guide**: {doc}`datastreams`
 - **Extensible CLI and Ed25519 signing**: {doc}`cli_and_signing`
+- **Projects and the anchor**: {doc}`project_anchor`
 - **OPTIMADE definitions & entry providers**: {doc}`optimade_definitions`
 - **Exact math on rationals and decimals**: {doc}`exactmath`
 - **Vectors guide**: {doc}`vectors`
@@ -49,6 +50,7 @@ reference/index
 view_backend_pattern
 datastreams
 cli_and_signing
+project_anchor
 optimade_definitions
 vectors
 exactmath
