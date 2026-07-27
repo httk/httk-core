@@ -15,9 +15,19 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# httk-core registers nothing itself: it defines the neutral EntryProvider
-# contract and its registry, plus the stdlib-only record models, but ships no
-# concrete providers. Domain modules (e.g. httk-data, httk-atomistic) provide
-# their own httk.handlers.* package that self-registers providers during
-# httk.core discovery. This package is kept (empty) so the httk.handlers.core
-# namespace exists for discovery.
+# httk-core ships no concrete EntryProvider: it defines the neutral contract and
+# its registry, plus the stdlib-only record models, and domain modules (e.g.
+# httk-data, httk-atomistic) provide their own httk.handlers.* package that
+# self-registers providers during httk.core discovery.
+#
+# The one command core registers itself is the umbrella `httk project`: the
+# project anchor lives in httk.project, so its command line is a built-in of a
+# core installation. The handler is a lazy "module:callable" reference, so root
+# help resolves nothing and `httk project` imports argparse only when it runs.
+from httk.core import register_cli_command
+
+register_cli_command(
+    "project",
+    "httk.project.cli:command",
+    "initialize and inspect httk projects",
+)
