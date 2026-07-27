@@ -79,6 +79,44 @@ def read_project(root: str | os.PathLike[str]) -> dict[str, object]:
     return value
 
 
+def read_project_section(root: str | os.PathLike[str], name: str) -> dict[str, object]:
+    """Return one named object member of ``project.json``, empty when absent.
+
+    A *section* is a top-level member of the project manifest that some layer
+    above the anchor owns — the workflow workspace registry, a campaign map —
+    and reads and writes as a whole. The anchor does not interpret the member;
+    it only guarantees that what a caller stores under a name comes back as the
+    object it was, and refuses a member that some other writer has left as a
+    non-object so a caller never silently reads a scalar as a mapping.
+    """
+
+    value = read_project(root).get(name, {})
+    if not isinstance(value, dict):
+        raise ValueError(f"project member {name!r} is not a JSON object")
+    return dict(value)
+
+
+def write_project_section(
+    root: str | os.PathLike[str],
+    name: str,
+    value: Mapping[str, object],
+) -> dict[str, object]:
+    """Store one named object member of ``project.json`` and return the metadata.
+
+    The write is an ordinary read-modify-write of the validated manifest, so the
+    members the anchor owns are preserved untouched and only the named section is
+    replaced. The section must be a mapping; the anchor stores its members
+    verbatim without interpreting them.
+    """
+
+    if not isinstance(value, Mapping):
+        raise ValueError(f"project member {name!r} must be a mapping")
+    metadata = read_project(root)
+    metadata[name] = dict(value)
+    write_json_atomic(Path(root).expanduser().resolve() / PROJECT_DIRECTORY / PROJECT_FILE, metadata)
+    return metadata
+
+
 def format_public_key(raw: bytes) -> str:
     """Return the recorded representation of one raw Ed25519 public key."""
 
