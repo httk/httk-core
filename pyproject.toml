@@ -54,6 +54,7 @@ namespaces = true
 
 [tool.setuptools.package-data]
 "httk.core" = ["py.typed", "optimade_defs/*", "optimade_filter/*.ebnf", "optimade_filter/README.md"]
+"httk.core.docs" = ["assets/*"]
 
 [project.optional-dependencies]
 default = [
