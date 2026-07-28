@@ -19,6 +19,7 @@
 import re
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from threading import Lock
 from typing import TYPE_CHECKING, Any, cast
 
 from ._plugins import PluginRegistry, resolve_callable
@@ -33,6 +34,17 @@ loaders = PluginRegistry()
 #: ``"contcar"``). A separate key namespace from :data:`loaders` so an
 #: extension-less file (``POSCAR``, ``CONTCAR``) can still dispatch by name.
 loader_filenames = PluginRegistry()
+
+#: Domain adapters selected by a loader's neutral payload ``"format"`` tag.
+format_adapters = PluginRegistry()
+_format_adapter_lock = Lock()
+
+
+def _same_callable_reference(left: str | Callable[..., Any], right: str | Callable[..., Any]) -> bool:
+    """Compare lazy references by value and callable registrations by identity."""
+    if isinstance(left, str) or isinstance(right, str):
+        return isinstance(left, str) and isinstance(right, str) and left == right
+    return left is right
 
 
 def register_loader(
@@ -61,6 +73,57 @@ def known_extensions() -> list[str]:
 
 def known_filenames() -> list[str]:
     return loader_filenames.keys()
+
+
+def register_format_adapter(
+    *,
+    name: str,
+    adapter: str | Callable[..., Any],
+    formats: Sequence[str],
+) -> None:
+    """Register one lazy adapter for each neutral payload format in ``formats``.
+
+    ``adapter`` may be a callable or a lazy ``"module:callable"`` reference.
+    A format tag has one owner: registering it again raises an error naming both
+    the existing and attempted registrants.
+    """
+    if isinstance(formats, str):
+        raise ValueError("formats must be a sequence of nonempty format-tag strings, not a string")
+    try:
+        format_tags = tuple(formats)
+    except TypeError as exc:
+        raise ValueError("formats must be a sequence of nonempty format-tag strings") from exc
+    seen: set[str] = set()
+    for format_tag in format_tags:
+        if not isinstance(format_tag, str) or not format_tag:
+            raise ValueError(f"format tags must be nonempty strings, got {format_tag!r}")
+        if format_tag in seen:
+            raise ValueError(f"format adapter format tag is listed more than once: {format_tag!r}")
+        seen.add(format_tag)
+    with _format_adapter_lock:
+        missing: list[str] = []
+        for format_tag in format_tags:
+            existing = format_adapters.get(format_tag)
+            if existing is None:
+                missing.append(format_tag)
+                continue
+            if existing.name == name and _same_callable_reference(existing.handler, adapter):
+                continue
+            raise ValueError(
+                f"format tag {format_tag!r} is already registered by {existing.name!r}; " f"cannot register {name!r}"
+            )
+        for format_tag in missing:
+            format_adapters.register(key=format_tag, handler=adapter, name=name)
+
+
+def known_format_adapters() -> dict[str, str]:
+    """Return format tags mapped to their registered adapter names."""
+    known: dict[str, str] = {}
+    for format_tag in format_adapters.keys():
+        spec = format_adapters.get(format_tag)
+        if spec is not None and spec.name is not None:
+            known[format_tag] = spec.name
+    return known
 
 
 entry_providers = PluginRegistry()

@@ -252,6 +252,12 @@ out of scope for this layer.
 modules register loaders with `register_loader`, naming the file **extensions**
 and/or exact **basenames** they handle:
 
+When an installed domain module has registered an adapter for the loader's
+neutral payload `"format"` tag, `load` applies that adapter and returns the
+domain object directly. Use `load(filename, raw=True)` to keep the neutral
+payload; mappings with unknown format tags and non-mapping results pass through
+unchanged.
+
 ```python
 from httk.core import load
 from httk.core.register import register_loader, known_extensions, known_filenames

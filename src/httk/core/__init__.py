@@ -87,8 +87,10 @@ from .property_definitions import (
 from .register import (
     known_cli_commands,
     known_entry_providers,
+    known_format_adapters,
     register_cli_command,
     register_entry_provider,
+    register_format_adapter,
 )
 from .storage_markers import (
     STORAGE_INFO_ATTRIBUTE,
@@ -155,6 +157,8 @@ __all__ = [
     "RelatedEntry",
     "register_entry_provider",
     "known_entry_providers",
+    "register_format_adapter",
+    "known_format_adapters",
     "CLIContext",
     "register_cli_command",
     "known_cli_commands",
