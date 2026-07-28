@@ -5,7 +5,7 @@ directory marked, at its root, by a small control directory that every command
 discovers by walking upward from wherever it is run. In *httk* that directory is
 `.httk-project` and its versioned manifest is `project.json`.
 
-The anchor lives in `httk.project`, so a *httk-core* installation has working
+The anchor lives in `httk.core.project`, so a *httk-core* installation has working
 projects on its own. Capabilities that build on a project — *httk-workflow*
 adds a workflow workspace, signed manifests, a doctor, and remotes — layer on
 top of the anchor without the anchor depending on them.
@@ -33,7 +33,7 @@ and which — and any rows an installed capability contributes.
 ## Discovering and reading a project
 
 ```python
-from httk.project import discover_project, read_project, require_project
+from httk.core.project import discover_project, read_project, require_project
 
 root = discover_project()          # the nearest project at or above the cwd, or None
 root = require_project()           # the same, but raises when there is none
@@ -45,7 +45,7 @@ legacy *httk* v1 `ht.project` directory, adopting the identities its old
 manifests were signed with:
 
 ```python
-from httk.project import initialize_project
+from httk.core.project import initialize_project
 
 metadata = initialize_project("campaign", name="My campaign")
 ```
@@ -58,7 +58,7 @@ trust anchor a signed manifest is checked against — never the key a manifest
 carries in its own header.
 
 ```python
-from httk.project import (
+from httk.core.project import (
     pin_project_key,        # adopt keys/project.pub as the trust anchor
     trust_project_key,      # adopt one further public key as an anchor
     pinned_project_key,     # the project's own pinned key, or None
@@ -78,7 +78,7 @@ registry that mirrors {func}`~httk.core.register_cli_command`, registering
 lazily from its `httk.handlers.*` package during core plugin discovery:
 
 ```python
-from httk.project.cli import (
+from httk.core.project.cli import (
     register_project_subcommand,   # add `httk project NAME ...`
     register_project_show_section, # add rows to `httk project show`
     ProjectShowSection,            # what a show section returns
@@ -92,5 +92,5 @@ build_parser, handler)` takes a builder that declares the subcommand's arguments
 and, for a leaf, the `(argv, context) -> int` handler that runs it; a group
 passes `handler=None` and sets the handler of each of its own nested leaves.
 `register_project_show_section(name, section)` takes a `section(root, verify=...)`
-returning a {class}`~httk.project.cli.ProjectShowSection` whose `json` is merged
+returning a {class}`~httk.core.project.cli.ProjectShowSection` whose `json` is merged
 into `show --json` and whose `rows` are appended to the human-readable listing.

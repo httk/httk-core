@@ -15,7 +15,7 @@ import pytest
 
 from httk.core import CLIContext, ed25519_generate_seed, ed25519_public_key
 from httk.core.cli import main
-from httk.project import (
+from httk.core.project import (
     PROJECT_DIRECTORY,
     PROJECT_FILE,
     canonical_public_key,
@@ -34,8 +34,8 @@ from httk.project import (
     trust_project_key,
     trusted_project_keys,
 )
-from httk.project import cli as project_cli
-from httk.project.cli import (
+from httk.core.project import cli as project_cli
+from httk.core.project.cli import (
     ProjectShowSection,
     build_parser,
     command,
