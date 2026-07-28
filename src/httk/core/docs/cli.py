@@ -29,6 +29,12 @@ from typing import Literal
 
 from httk.core.cli_context import CLIContext
 
+from .ecosystem import (
+    EcosystemManifestError,
+    build_ecosystem_manifest,
+    verify_ecosystem_manifest,
+    write_ecosystem_manifest,
+)
 from .gitsite import GitSiteError, commit_site
 from .inventories import InventoryError, fetch_inventory
 from .lockfile import (
@@ -44,7 +50,17 @@ from .sitetree import ImmutabilityError, compose_site
 
 __all__ = ["build_parser", "command"]
 
-_ERRORS = (OSError, ValueError, RuntimeError, LockError, InventoryError, ReleaseError, ImmutabilityError, GitSiteError)
+_ERRORS = (
+    OSError,
+    ValueError,
+    RuntimeError,
+    LockError,
+    InventoryError,
+    ReleaseError,
+    ImmutabilityError,
+    GitSiteError,
+    EcosystemManifestError,
+)
 
 
 def build_parser(program: str, project_dir: Path) -> argparse.ArgumentParser:
@@ -108,6 +124,13 @@ def build_parser(program: str, project_dir: Path) -> argparse.ArgumentParser:
     commit.add_argument("--repo", type=Path, help="repository directory (default: repository containing --site)")
     commit.add_argument("--branch", required=True)
     commit.add_argument("--message", required=True)
+
+    ecosystem = subparsers.add_parser("ecosystem-manifest", help="write or verify module checkout metadata")
+    ecosystem.set_defaults(handler=_handle_ecosystem_manifest, help_parser=ecosystem)
+    ecosystem.add_argument("--submodules-dir", required=True, type=Path)
+    ecosystem.add_argument("--out", type=Path, help="manifest output path")
+    ecosystem.add_argument("--verify", type=Path, help="verify an existing manifest instead of writing")
+    ecosystem.add_argument("--require-release-tags", action="store_true")
     return parser
 
 
@@ -268,6 +291,26 @@ def _handle_commit_site(arguments: argparse.Namespace, _context: CLIContext) -> 
         repository=arguments.repo,
     )
     print(f"committed {result.branch} as orphan {result.commit} (tree {result.tree})")
+    return 0
+
+
+def _handle_ecosystem_manifest(arguments: argparse.Namespace, _context: CLIContext) -> int:
+    if (arguments.out is None) == (arguments.verify is None):
+        raise EcosystemManifestError("ecosystem-manifest requires exactly one of --out or --verify")
+    if arguments.verify is not None:
+        verify_ecosystem_manifest(
+            arguments.submodules_dir,
+            arguments.verify,
+            require_release_tags=arguments.require_release_tags,
+        )
+        print(f"ecosystem manifest is current: {arguments.verify}")
+    else:
+        manifest = build_ecosystem_manifest(
+            arguments.submodules_dir,
+            require_release_tags=arguments.require_release_tags,
+        )
+        write_ecosystem_manifest(manifest, arguments.out)
+        print(f"wrote ecosystem manifest: {arguments.out}")
     return 0
 
 

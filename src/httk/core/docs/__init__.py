@@ -29,6 +29,13 @@ from .config import (
     VersioningConfig,
     load_versioning_config,
 )
+from .ecosystem import (
+    EcosystemManifestError,
+    build_ecosystem_manifest,
+    read_ecosystem_manifest,
+    verify_ecosystem_manifest,
+    write_ecosystem_manifest,
+)
 from .gitsite import CommitSiteResult, GitSiteError, GitUnavailableError, commit_site
 from .inventories import InventoryError, fetch_inventory, read_inventory_header
 from .lockfile import (
@@ -64,6 +71,7 @@ __all__ = [
     "CommitSiteResult",
     "ComposeError",
     "ConfigError",
+    "EcosystemManifestError",
     "ImmutabilityError",
     "InternalDependency",
     "InventoryError",
@@ -77,6 +85,7 @@ __all__ = [
     "VersioningConfig",
     "build_page_manifest",
     "build_version_manifest",
+    "build_ecosystem_manifest",
     "check_lock",
     "check_release",
     "compose_site",
@@ -95,8 +104,11 @@ __all__ = [
     "read_inventory_header",
     "read_lock_pins",
     "read_version_manifest",
+    "read_ecosystem_manifest",
     "root_redirect_html",
     "write_page_manifest",
     "write_root_redirect",
     "write_version_manifest",
+    "verify_ecosystem_manifest",
+    "write_ecosystem_manifest",
 ]

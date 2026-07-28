@@ -28,6 +28,24 @@ def test_config_unknown_key_names_file_and_key(tmp_path: Path) -> None:
         load_versioning_config(path)
 
 
+def test_config_accepts_empty_top_site_slug(tmp_path: Path) -> None:
+    path = tmp_path / "versioning.toml"
+    path.write_text('[site]\nslug = ""\nrepository-url = "https://docs.example.test"\n', encoding="utf-8")
+    assert load_versioning_config(path).slug == ""
+
+
+def test_config_rejects_empty_internal_dependency_slug(tmp_path: Path) -> None:
+    path = tmp_path / "versioning.toml"
+    path.write_text(
+        '[site]\nslug = "site"\nrepository-url = "https://example.test"\n'
+        '[[internal-dependency]]\ndistribution = "httk-core"\nslug = ""\n'
+        'repository-url = "https://example.test/core"\n',
+        encoding="utf-8",
+    )
+    with pytest.raises(ConfigError, match=r"internal-dependency\[0\]\.slug: must be a non-empty string"):
+        load_versioning_config(path)
+
+
 def test_config_missing_key_names_file_and_key(tmp_path: Path) -> None:
     path = tmp_path / "versioning.toml"
     path.write_text("[site]\nslug = \"x\"\n", encoding="utf-8")
