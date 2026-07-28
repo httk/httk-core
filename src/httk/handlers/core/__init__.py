@@ -21,13 +21,13 @@
 # self-registers providers during httk.core discovery.
 #
 # The one command core registers itself is the umbrella `httk project`: the
-# project anchor lives in httk.project, so its command line is a built-in of a
+# project anchor lives in httk.core.project, so its command line is a built-in of a
 # core installation. The handler is a lazy "module:callable" reference, so root
 # help resolves nothing and `httk project` imports argparse only when it runs.
 from httk.core import register_cli_command
 
 register_cli_command(
     "project",
-    "httk.project.cli:command",
+    "httk.core.project.cli:command",
     "initialize and inspect httk projects",
 )

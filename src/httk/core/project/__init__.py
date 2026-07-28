@@ -8,7 +8,7 @@ extensible :command:`httk project` command that operates on it. It creates no
 workflow workspace; that is layered on by a workflow installation.
 
 The anchor API is re-exported here for convenience; the command and its
-extension registry live in :mod:`httk.project.cli`.
+extension registry live in :mod:`httk.core.project.cli`.
 """
 
 from .anchor import (
