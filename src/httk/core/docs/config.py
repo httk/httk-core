@@ -129,7 +129,7 @@ def load_versioning_config(path: str | Path) -> VersioningConfig:
         dependencies.append(
             InternalDependency(
                 distribution=_string(dependency["distribution"], config_path, f"{key_prefix}.distribution"),
-                slug=_string(dependency["slug"], config_path, f"{key_prefix}.slug", allow_empty=True),
+                slug=_string(dependency["slug"], config_path, f"{key_prefix}.slug"),
                 repository_url=_string(dependency["repository-url"], config_path, f"{key_prefix}.repository-url"),
                 main_branch=_string(dependency.get("main-branch", "main"), config_path, f"{key_prefix}.main-branch"),
             )

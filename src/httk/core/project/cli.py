@@ -125,7 +125,7 @@ def register_project_show_section(name: str, section: CallableRef) -> None:
 
     *section* is a callable — or a ``"module:callable"`` reference — invoked as
     ``section(root, verify=...)`` with the discovered project root and expected
-    to return a :class:`ProjectShowSection`. Sections are rendered in stable
+    to return a :class:`~httk.core.project.cli.ProjectShowSection`. Sections are rendered in stable
     order by *name*; a duplicate name is an error.
     """
 
