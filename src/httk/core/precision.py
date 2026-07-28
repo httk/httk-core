@@ -11,7 +11,7 @@ It is not a relative precision and not a significant-figure count: ``0.0001`` an
 ``9999.9999`` both report ``1e-4``.
 
 This is deliberately a separate concept from the *arithmetic* precision in
-:mod:`~httk.core.vectors.exactmath`, which governs how far an inexact computation is
+:mod:`~httk.core.exactmath`, which governs how far an inexact computation is
 carried. This module is about what the source said; that one is about what we compute.
 """
 

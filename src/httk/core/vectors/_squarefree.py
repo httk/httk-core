@@ -23,7 +23,7 @@ This backs the canonicalization of radicands in
 squarefree.
 """
 
-from httk.core.vectors.exactmath import integer_sqrt
+from httk.core import exactmath
 
 
 def square_part(n: int) -> tuple[int, int]:
@@ -38,7 +38,7 @@ def square_part(n: int) -> tuple[int, int]:
     After all prime factors ``p <= n**(1/3)`` are removed, the remaining cofactor ``m`` has every
     prime factor greater than its own cube root, so it is one of ``1``, ``p``, ``p**2`` or
     ``p*q`` (distinct primes); only the ``p**2`` case is non-squarefree, and it is detected by an
-    exact integer square-root test (:func:`~httk.core.vectors.exactmath.integer_sqrt`). The whole
+    exact integer square-root test (:func:`~httk.core.exactmath.integer_sqrt`). The whole
     computation is exact integer arithmetic; at the tiny magnitudes that arise in crystallographic
     geometry (products of small squarefree radicands) it is trivial.
 
@@ -67,7 +67,7 @@ def square_part(n: int) -> tuple[int, int]:
     # Every prime factor of the remaining cofactor m now exceeds m**(1/3), so m is 1, p, p**2 or
     # p*q. Only p**2 is non-squarefree, detected as a perfect square.
     if m > 1:
-        root = integer_sqrt(m)
+        root = exactmath.integer_sqrt(m)
         if root * root == m:
             s *= root
         else:

@@ -229,7 +229,7 @@ scalar fracvector is expected.
 
 See {doc}`exactmath` for the full standalone guide to the exact math functions.
 
-The exact transcendental helpers live in `httk.core.vectors.exactmath`: type-preserving
+The exact transcendental helpers live in `httk.core.exactmath`: type-preserving
 `sqrt`/`cos`/`sin`/`exp`/`pi`/`log`/... . For `fractions.Fraction` input they return exact
 rationals computed to a target precision `prec` (given as a `Fraction`) that approximate the true
 (generally irrational) value to within `prec`; perfect cases come back exactly. For
@@ -240,7 +240,7 @@ rationals computed to a target precision `prec` (given as a `Fraction`) that app
 import decimal
 import fractions
 import math
-from httk.core.vectors import exactmath
+from httk.core import exactmath
 
 F = fractions.Fraction
 

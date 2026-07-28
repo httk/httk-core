@@ -23,16 +23,24 @@ This module provides the transcendental and helper functions used by
 integer/rational arithmetic, so results are platform-independent and deterministic by
 construction — no floating point is used anywhere in the computation.
 
-Two output domains are supported, selected by a single documented rule:
+Two output domains are supported, selected by a single documented rule. All scalar functions also
+accept ``ScalarLike`` and ``VectorLike`` inputs. Vectors are mapped elementwise and retain their
+shape: Fraction mode returns a ``FracVector``, while Decimal mode returns nested Decimal tuples.
+The entire vector is promoted when any leaf is Decimal or ``digits=`` is passed.
 
     The result is a :class:`decimal.Decimal` iff any numeric input is a Decimal OR ``digits=``
     is passed; Fraction/int/str inputs otherwise get today's exact Fraction behavior with
     ``prec``/``limit`` semantics.
 
-One function additionally offers an exact-symbolic domain: :func:`sqrt` with ``exact=True``
-overrides the output-domain rule and returns the exact
-:class:`~httk.core.vectors.surdvector.SurdScalar` square root (an element of the squarefree-radical
-field :math:`\\mathbb{Q}[\\sqrt n]`), with no approximation.
+The exact-symbolic domain is selected by ``exact=True`` on ``sqrt`` and degree-mode trigonometric
+functions. It returns exact squarefree-radical values (or exact inverse angles), with no
+approximation. Exact trigonometry is available only for the complete surd-cosine angle set:
+multiples of 15 and 36 degrees; unsupported values raise ``ValueError``. Exact inverse
+trigonometry accepts surd values and returns exact degree Fractions.
+
+When a genuinely irrational ``SurdScalar`` is used by ordinary Fraction-mode functions, it is
+reduced to the deterministic Fraction hub at the active Decimal context precision plus three guard
+digits. Exact symbolic operations preserve the surd and never use that lossy approximation.
 
 In the **Fraction** domain each function returns a rational (:class:`fractions.Fraction`)
 approximation to a target precision ``prec`` (the error bound), with ``limit`` controlling the
@@ -53,10 +61,22 @@ import decimal
 import fractions
 import math
 from collections.abc import Callable, Iterator
-from functools import reduce
+from functools import lru_cache, reduce
 from typing import Any
 
 default_accuracy = fractions.Fraction(1, 10000000000)
+
+from .vectors.scalar_like import (  # noqa: E402  # required during vector import cycle
+    ScalarLike,
+)
+from .vectors.vector_like import (  # noqa: E402  # required during vector import cycle
+    VectorLike,
+)
+
+_EXACT_ANGLE_MESSAGE = (
+    "exact degree-mode trigonometry is available only for the exact surd-cosine angle set "
+    "(multiples of 15° and 36°; the complete square-root extension of Niven's theorem)"
+)
 
 
 # Euler's algorithm, code from https://code.google.com/p/mpmath/issues/detail?id=55
@@ -118,21 +138,21 @@ def string_to_val_and_delta(
     """
     arg = arg.upper()
 
-    if arg.find('/') >= 0:
+    if arg.find("/") >= 0:
         return fractions.Fraction(arg), fractions.Fraction(0)
 
-    sd_start = arg.find('(')
+    sd_start = arg.find("(")
     if sd_start >= 0:
         infered_delta = False
-        sd_end = arg.find(')')
+        sd_end = arg.find(")")
         val = arg[:sd_start]
-        m, _e, _exp = val.partition('E')
+        m, _e, _exp = val.partition("E")
         sd = arg[sd_start + 1 : sd_end]
     elif min_accuracy is not None:
         infered_delta = True
         val = arg
-        m, _e, _exp = val.partition('E')
-        if arg.find('.') >= 0:
+        m, _e, _exp = val.partition("E")
+        if arg.find(".") >= 0:
             m = m + "0"
         else:
             m = m + ".0"
@@ -140,8 +160,8 @@ def string_to_val_and_delta(
     else:
         return fractions.Fraction(arg), fractions.Fraction(0)
     numdigits = reduce(lambda y, x: y + 1 if x.isdigit() else y, m, 0)
-    replacelist = list('0' * (numdigits - len(sd)) + sd)
-    delta = fractions.Fraction(''.join(replacelist.pop(0) if c.isdigit() else c for c in m))
+    replacelist = list("0" * (numdigits - len(sd)) + sd)
+    delta = fractions.Fraction("".join(replacelist.pop(0) if c.isdigit() else c for c in m))
     if infered_delta and min_accuracy is not None and delta > min_accuracy:
         delta = min_accuracy
     value = fractions.Fraction(val)
@@ -199,7 +219,9 @@ def integer_sqrt(n: int) -> int:
 
 
 def _frac_sqrt(
-    x: fractions.Fraction, prec: fractions.Fraction = default_accuracy, limit: bool = True
+    x: fractions.Fraction,
+    prec: fractions.Fraction = default_accuracy,
+    limit: bool = True,
 ) -> fractions.Fraction:
     """
     Return a rational approximation of the square root of ``x`` to precision ``prec``.
@@ -235,7 +257,10 @@ def _frac_sqrt(
 # pi, exp, cos, sin adapted from python documentation examples:
 # https://docs.python.org/2/library/decimal.html
 def _frac_cos(
-    x: fractions.Fraction, prec: fractions.Fraction = default_accuracy, limit: bool = True, degrees: bool = False
+    x: fractions.Fraction,
+    prec: fractions.Fraction = default_accuracy,
+    limit: bool = True,
+    degrees: bool = False,
 ) -> fractions.Fraction:
     """
     Return a rational approximation of the cosine of ``x`` to precision ``prec``.
@@ -277,7 +302,10 @@ def _frac_cos(
 
 
 def _frac_sin(
-    x: fractions.Fraction, prec: fractions.Fraction = default_accuracy, limit: bool = True, degrees: bool = False
+    x: fractions.Fraction,
+    prec: fractions.Fraction = default_accuracy,
+    limit: bool = True,
+    degrees: bool = False,
 ) -> fractions.Fraction:
     """
     Return a rational approximation of the sine of ``x`` to precision ``prec``.
@@ -317,7 +345,9 @@ def _frac_sin(
 
 
 def _frac_exp(
-    x: fractions.Fraction, prec: fractions.Fraction = default_accuracy, limit: bool = True
+    x: fractions.Fraction,
+    prec: fractions.Fraction = default_accuracy,
+    limit: bool = True,
 ) -> fractions.Fraction:
     """
     Return a rational approximation of ``e`` raised to the power of ``x`` to precision ``prec``.
@@ -453,7 +483,10 @@ def _frac_log(
 
 
 def _frac_tan(
-    x: fractions.Fraction, degrees: bool = False, prec: fractions.Fraction = default_accuracy, limit: bool = True
+    x: fractions.Fraction,
+    degrees: bool = False,
+    prec: fractions.Fraction = default_accuracy,
+    limit: bool = True,
 ) -> fractions.Fraction:
     """
     Return a rational approximation of the tangent of ``x`` to precision ``prec``.
@@ -465,7 +498,10 @@ def _frac_tan(
 
 
 def _frac_asin(
-    x: fractions.Fraction, degrees: bool = False, prec: fractions.Fraction = default_accuracy, limit: bool = True
+    x: fractions.Fraction,
+    degrees: bool = False,
+    prec: fractions.Fraction = default_accuracy,
+    limit: bool = True,
 ) -> fractions.Fraction | int:
     """
     Return a rational approximation of the arc sine (in radians, or degrees if ``degrees``
@@ -518,7 +554,10 @@ def _frac_asin(
 
 
 def _frac_acos(
-    x: fractions.Fraction, degrees: bool = False, prec: fractions.Fraction = default_accuracy, limit: bool = True
+    x: fractions.Fraction,
+    degrees: bool = False,
+    prec: fractions.Fraction = default_accuracy,
+    limit: bool = True,
 ) -> fractions.Fraction:
     """
     Return a rational approximation of the arc cosine (in radians, or degrees if
@@ -546,7 +585,10 @@ def _frac_acos(
 
 
 def _frac_atan(
-    x: fractions.Fraction, degrees: bool = False, prec: fractions.Fraction = default_accuracy, limit: bool = True
+    x: fractions.Fraction,
+    degrees: bool = False,
+    prec: fractions.Fraction = default_accuracy,
+    limit: bool = True,
 ) -> fractions.Fraction:
     """
     Return a rational approximation of the arc tangent (in radians, or degrees if
@@ -942,7 +984,9 @@ def _rational_log(x: fractions.Fraction, base: fractions.Fraction) -> fractions.
 
 
 def _log_core(
-    x: fractions.Fraction, base: fractions.Fraction | int | None, prec: fractions.Fraction
+    x: fractions.Fraction,
+    base: fractions.Fraction | int | None,
+    prec: fractions.Fraction,
 ) -> tuple[fractions.Fraction, bool]:
     if x == 1:
         return fractions.Fraction(0), True
@@ -996,7 +1040,10 @@ def _atan_core(x: fractions.Fraction, prec: fractions.Fraction, degrees: bool) -
 
 
 def _atan2_core(
-    y: fractions.Fraction, x: fractions.Fraction, prec: fractions.Fraction, degrees: bool
+    y: fractions.Fraction,
+    x: fractions.Fraction,
+    prec: fractions.Fraction,
+    degrees: bool,
 ) -> tuple[fractions.Fraction, bool]:
     if x > 0 and y == 0:
         return fractions.Fraction(0), True
@@ -1024,12 +1071,288 @@ def _atan2_core(
 # --------------------------------------------------------------------------------------------
 
 
+def _coerce(x: Any) -> tuple[fractions.Fraction, bool]:
+    """Coerce one scalar input to the rational hub and report Decimal promotion."""
+    x = _unwrap_scalar_backend(x)
+    if isinstance(x, decimal.Decimal):
+        return fractions.Fraction(x), True
+    if isinstance(x, (int, float, str, fractions.Fraction)):
+        # Fraction(float) intentionally embeds the float's exact binary value. Strings use the
+        # public scalar contract (unlike FracVector.create, no inferred uncertainty).
+        return fractions.Fraction(x), False
+
+    from .vectors.fracvector import FracVector
+    from .vectors.surdvector import SurdVector
+
+    if isinstance(x, FracVector):
+        if x.dim != ():
+            raise TypeError(f"expected a scalar, got vector shape {x.dim}")
+        return x.to_fraction(), False
+    if isinstance(x, SurdVector):
+        if x.dim != ():
+            raise TypeError(f"expected a scalar, got vector shape {x.dim}")
+        if x.is_rational:
+            return x._rational_fraction(), False
+        # Match VectorSurd's deterministic Fraction hub: active context precision plus guard
+        # digits. The exact surd remains available to exact=True operations.
+        prec = fractions.Fraction(1, 10 ** (decimal.getcontext().prec + 3))
+        return fractions.Fraction(x.to_fractions_approx(prec=prec)), False
+    shape = getattr(x, "shape", None)
+    if shape is not None and tuple(shape) == ():
+        return fractions.Fraction(float(x)), False
+    if hasattr(x, "dim") and hasattr(x, "fractions"):
+        if x.dim != ():
+            raise TypeError(f"expected a scalar, got vector shape {x.dim}")
+        value = x.fractions
+        if isinstance(value, tuple):
+            raise TypeError(f"expected a scalar, got vector shape {x.dim}")
+        return _coerce(value)
+    raise TypeError(f"unsupported exact-math scalar {x!r}")
+
+
+def _unwrap_scalar_backend(value: Any) -> Any:
+    """Unwrap a dim-() backend/view before scalar coercion, preserving exact surds."""
+    if getattr(value, "dim", None) == () and hasattr(value, "unwrap"):
+        raw = value.unwrap()
+        if raw is not value:
+            return raw
+    return value
+
+
+def _is_vector_input(x: Any) -> bool:
+    """Return whether ``x`` is a non-scalar VectorLike value without importing numpy."""
+    dim = getattr(x, "dim", None)
+    if dim is not None:
+        return dim != ()
+    if isinstance(x, (list, tuple)):
+        return True
+    shape = getattr(x, "shape", None)
+    return shape is not None and tuple(shape) != ()
+
+
+def _as_lists(value: Any) -> Any:
+    if isinstance(value, (list, tuple)):
+        return [_as_lists(item) for item in value]
+    return value
+
+
+def _vector_data(value: Any) -> tuple[Any, tuple[int, ...]]:
+    """Return vector leaves and shape, retaining exact surd leaves where available."""
+    from .vectors.fracvector import FracVector
+    from .vectors.surdvector import SurdVector
+
+    if isinstance(value, FracVector):
+        data = _as_lists(value.to_fractions())
+        return data, value.dim
+    if isinstance(value, SurdVector):
+        dim = value.dim
+
+        def build(index: tuple[int, ...], depth: int) -> Any:
+            if depth == len(dim):
+                return value._element(index)
+            return [build(index + (i,), depth + 1) for i in range(dim[depth])]
+
+        return build((), 0), dim
+    if isinstance(value, (list, tuple)):
+        data = _as_lists(value)
+    elif hasattr(value, "unwrap"):
+        raw = value.unwrap()
+        if raw is not value:
+            return _vector_data(raw)
+        data = _as_lists(value.fractions)
+    elif hasattr(value, "tolist"):
+        data = _as_lists(value.tolist())
+    elif hasattr(value, "fractions"):
+        data = _as_lists(value.fractions)
+    else:
+        raise TypeError(f"unsupported vector input {value!r}")
+
+    def shape(node: Any) -> tuple[int, ...]:
+        if not isinstance(node, list):
+            return ()
+        if not node:
+            return (0,)
+        return (len(node),) + shape(node[0])
+
+    return data, shape(data)
+
+
+def _contains_decimal(value: Any) -> bool:
+    if isinstance(value, (list, tuple)):
+        return any(_contains_decimal(item) for item in value)
+    return isinstance(value, decimal.Decimal)
+
+
+def _map_nested(value: Any, function: Callable[[Any], Any]) -> Any:
+    if isinstance(value, list):
+        return [_map_nested(item, function) for item in value]
+    return function(value)
+
+
+def _map_binary_nested(left: Any, right: Any, function: Callable[[Any, Any], Any]) -> Any:
+    if isinstance(left, list) and isinstance(right, list):
+        if len(left) != len(right):
+            raise ValueError("vector shapes do not match for elementwise operation")
+        return [_map_binary_nested(a, b, function) for a, b in zip(left, right)]
+    if isinstance(left, list):
+        return [_map_binary_nested(a, right, function) for a in left]
+    if isinstance(right, list):
+        return [_map_binary_nested(left, b, function) for b in right]
+    return function(left, right)
+
+
+def _tuple_nested(value: Any) -> Any:
+    if isinstance(value, list):
+        return tuple(_tuple_nested(item) for item in value)
+    return value
+
+
+def _map_vector(value: Any, function: Callable[[Any], Any], *, decimal_mode: bool, exact: bool) -> Any:
+    """Apply a scalar operation to a vector and construct the documented output domain."""
+    data, dim = _vector_data(value)
+    mapped = _map_nested(data, function)
+    if exact:
+        from .vectors.surdvector import SurdVector
+
+        return SurdVector._from_scalar_grid(_map_nested(mapped, _as_surd_scalar), dim)
+    if decimal_mode:
+        return _tuple_nested(mapped)
+    from .vectors.fracvector import FracVector
+
+    return FracVector.create(mapped)
+
+
+def _map_binary_vector(
+    left: Any,
+    right: Any,
+    function: Callable[[Any, Any], Any],
+    *,
+    decimal_mode: bool,
+    exact: bool,
+) -> Any:
+    left_data, left_dim = _vector_data(left) if _is_vector_input(left) else (left, ())
+    right_data, right_dim = _vector_data(right) if _is_vector_input(right) else (right, ())
+    if left_dim != () and right_dim != () and left_dim != right_dim:
+        raise ValueError(f"vector shapes do not match: {left_dim} vs {right_dim}")
+    dim = left_dim if left_dim != () else right_dim
+    mapped = _map_binary_nested(left_data, right_data, function)
+    if exact:
+        from .vectors.surdvector import SurdVector
+
+        return SurdVector._from_scalar_grid(_map_nested(mapped, _as_surd_scalar), dim)
+    if decimal_mode:
+        return _tuple_nested(mapped)
+    from .vectors.fracvector import FracVector
+
+    return FracVector.create(mapped)
+
+
+def _effective_digits(digits: int | None, decimal_mode: bool, exact: bool) -> int | None:
+    if exact or not decimal_mode:
+        return digits
+    return decimal.getcontext().prec if digits is None else digits
+
+
+def _as_surd_scalar(value: Any):
+    from .vectors.surdvector import SurdVector
+
+    value = _unwrap_scalar_backend(value)
+    if isinstance(value, SurdVector):
+        if value.dim != ():
+            raise TypeError(f"expected a scalar, got vector shape {value.dim}")
+        return value._as_scalar()
+    return SurdVector.create(_coerce(value)[0])._as_scalar()
+
+
+def _reject_genuine_surd(value: Any) -> None:
+    from .vectors.surdvector import SurdVector
+
+    value = _unwrap_scalar_backend(value)
+    if isinstance(value, SurdVector) and not value.is_rational:
+        raise ValueError("exact square roots and exact angle inputs require a rational value")
+
+
+def _exact_cos(x: Any):
+    from .vectors.surdvector import SurdScalar
+
+    _reject_genuine_surd(x)
+    result = SurdScalar.cos_degrees(_coerce(x)[0])
+    if result is None:
+        raise ValueError(_EXACT_ANGLE_MESSAGE)
+    return result
+
+
+def _exact_sin(x: Any):
+    from .vectors.surdvector import SurdScalar
+
+    _reject_genuine_surd(x)
+    result = SurdScalar.sin_degrees(_coerce(x)[0])
+    if result is None:
+        raise ValueError(_EXACT_ANGLE_MESSAGE)
+    return result
+
+
+def _exact_tan(x: Any):
+    cosine = _exact_cos(x)
+    if cosine.is_zero():
+        raise ValueError("exact tangent is undefined where the cosine is zero")
+    return _exact_sin(x) / cosine
+
+
+def _exact_acos(x: Any) -> fractions.Fraction:
+    result = _as_surd_scalar(x).acos_degrees()
+    if result is None:
+        raise ValueError(_EXACT_ANGLE_MESSAGE)
+    return result
+
+
+def _exact_asin(x: Any) -> fractions.Fraction:
+    result = _as_surd_scalar(x).acos_degrees()
+    if result is None:
+        raise ValueError(_EXACT_ANGLE_MESSAGE)
+    return fractions.Fraction(90) - result
+
+
+@lru_cache(maxsize=1)
+def _exact_tangent_table() -> tuple[tuple[Any, fractions.Fraction], ...]:
+    from .vectors.surdvector import SurdScalar
+
+    values: list[tuple[Any, fractions.Fraction]] = []
+    for angle in range(-90, 91):
+        cosine = SurdScalar.cos_degrees(angle)
+        sine = SurdScalar.sin_degrees(angle)
+        if cosine is not None and sine is not None and not cosine.is_zero():
+            values.append((sine / cosine, fractions.Fraction(angle)))
+    return tuple(values)
+
+
+def _exact_atan(x: Any) -> fractions.Fraction:
+    value = _as_surd_scalar(x)
+    for tangent, angle in _exact_tangent_table():
+        if value == tangent:
+            return angle
+    raise ValueError(_EXACT_ANGLE_MESSAGE)
+
+
+def _exact_atan2(y: Any, x: Any) -> fractions.Fraction:
+    y_value = _as_surd_scalar(y)
+    x_value = _as_surd_scalar(x)
+    if x_value.is_zero():
+        if y_value.is_zero():
+            return fractions.Fraction(0)
+        return fractions.Fraction(90 if y_value > 0 else -90)
+    principal = _exact_atan(y_value / x_value)
+    if x_value > 0:
+        return principal
+    return principal + (fractions.Fraction(180) if y_value >= 0 else fractions.Fraction(-180))
+
+
 def _is_decimal(*args: Any) -> bool:
     return any(isinstance(a, decimal.Decimal) for a in args)
 
 
 def sqrt(
-    x: Any,
+    x: ScalarLike | VectorLike,
     prec: fractions.Fraction = default_accuracy,
     limit: bool = True,
     digits: int | None = None,
@@ -1052,98 +1375,224 @@ def sqrt(
     rational; ``prec``/``limit``/``digits``/``rounding`` are ignored in this mode.
     """
     if exact:
+        _reject_genuine_surd(x)
+    if _is_vector_input(x):
+        data, _ = _vector_data(x)
+        decimal_mode = digits is not None or _contains_decimal(data)
+        vector_digits = _effective_digits(digits, decimal_mode, exact)
+        if not exact and decimal_mode:
+            _validate_decimal_params(digits, rounding, max_refinements)
+        return _map_vector(
+            x,
+            lambda item: sqrt(
+                item,
+                prec=prec,
+                limit=limit,
+                digits=vector_digits,
+                rounding=rounding,
+                max_refinements=max_refinements,
+                exact=exact,
+            ),
+            decimal_mode=decimal_mode,
+            exact=exact,
+        )
+    xf, decimal_input = _coerce(x)
+    if exact:
         # Lazy import to avoid an import cycle (surdvector imports from exactmath).
         from httk.core.vectors.surdvector import SurdVector
 
-        return SurdVector.sqrt_of(fractions.Fraction(x))
-    if digits is None and not _is_decimal(x):
-        return _frac_sqrt(fractions.Fraction(x), prec=prec, limit=limit)
+        _reject_genuine_surd(x)
+        return SurdVector.sqrt_of(xf)
+    if digits is None and not decimal_input:
+        return _frac_sqrt(xf, prec=prec, limit=limit)
     _validate_decimal_params(digits, rounding, max_refinements)
-    xf = fractions.Fraction(x)
     return _to_decimal(lambda p: _sqrt_core(xf, p), digits, rounding, max_refinements)
 
 
 def cos(
-    x: Any,
+    x: ScalarLike | VectorLike,
     prec: fractions.Fraction = default_accuracy,
     limit: bool = True,
     degrees: bool = False,
     digits: int | None = None,
     rounding: str = "half_even",
     max_refinements: int | None = None,
-) -> fractions.Fraction | decimal.Decimal:
+    exact: bool = False,
+) -> Any:
     """
     Return the cosine of ``x`` (radians unless ``degrees`` is True). See the module docstring for
     the type-preservation rule; Decimal mode renders the special-angle exact values exactly (e.g.
     ``cos(Decimal("60"), degrees=True) == Decimal("0.5")``).
     """
-    if digits is None and not _is_decimal(x):
-        return _frac_cos(fractions.Fraction(x), prec=prec, limit=limit, degrees=degrees)
+    if exact and not degrees:
+        raise ValueError("exact trigonometry requires degrees=True")
+    if exact:
+        _reject_genuine_surd(x)
+    if _is_vector_input(x):
+        data, _ = _vector_data(x)
+        decimal_mode = digits is not None or _contains_decimal(data)
+        vector_digits = _effective_digits(digits, decimal_mode, exact)
+        if not exact and decimal_mode:
+            _validate_decimal_params(digits, rounding, max_refinements)
+        return _map_vector(
+            x,
+            lambda item: cos(
+                item,
+                prec=prec,
+                limit=limit,
+                degrees=degrees,
+                digits=vector_digits,
+                rounding=rounding,
+                max_refinements=max_refinements,
+                exact=exact,
+            ),
+            decimal_mode=decimal_mode,
+            exact=exact,
+        )
+    xf, decimal_input = _coerce(x)
+    if exact:
+        return _exact_cos(x)
+    if digits is None and not decimal_input:
+        return _frac_cos(xf, prec=prec, limit=limit, degrees=degrees)
     _validate_decimal_params(digits, rounding, max_refinements)
-    xf = fractions.Fraction(x)
     return _to_decimal(lambda p: _cos_core(xf, p, degrees), digits, rounding, max_refinements)
 
 
 def sin(
-    x: Any,
+    x: ScalarLike | VectorLike,
     prec: fractions.Fraction = default_accuracy,
     limit: bool = True,
     degrees: bool = False,
     digits: int | None = None,
     rounding: str = "half_even",
     max_refinements: int | None = None,
-) -> fractions.Fraction | decimal.Decimal:
+    exact: bool = False,
+) -> Any:
     """
     Return the sine of ``x`` (radians unless ``degrees`` is True). See the module docstring for the
     type-preservation rule.
     """
-    if digits is None and not _is_decimal(x):
-        return _frac_sin(fractions.Fraction(x), prec=prec, limit=limit, degrees=degrees)
+    if exact and not degrees:
+        raise ValueError("exact trigonometry requires degrees=True")
+    if exact:
+        _reject_genuine_surd(x)
+    if _is_vector_input(x):
+        data, _ = _vector_data(x)
+        decimal_mode = digits is not None or _contains_decimal(data)
+        vector_digits = _effective_digits(digits, decimal_mode, exact)
+        if not exact and decimal_mode:
+            _validate_decimal_params(digits, rounding, max_refinements)
+        return _map_vector(
+            x,
+            lambda item: sin(
+                item,
+                prec=prec,
+                limit=limit,
+                degrees=degrees,
+                digits=vector_digits,
+                rounding=rounding,
+                max_refinements=max_refinements,
+                exact=exact,
+            ),
+            decimal_mode=decimal_mode,
+            exact=exact,
+        )
+    xf, decimal_input = _coerce(x)
+    if exact:
+        return _exact_sin(x)
+    if digits is None and not decimal_input:
+        return _frac_sin(xf, prec=prec, limit=limit, degrees=degrees)
     _validate_decimal_params(digits, rounding, max_refinements)
-    xf = fractions.Fraction(x)
     return _to_decimal(lambda p: _sin_core(xf, p, degrees), digits, rounding, max_refinements)
 
 
 def tan(
-    x: Any,
+    x: ScalarLike | VectorLike,
     degrees: bool = False,
     prec: fractions.Fraction = default_accuracy,
     limit: bool = True,
     digits: int | None = None,
     rounding: str = "half_even",
     max_refinements: int | None = None,
-) -> fractions.Fraction | decimal.Decimal:
+    exact: bool = False,
+) -> Any:
     """
     Return the tangent of ``x``. See the module docstring for the type-preservation rule.
     """
-    if digits is None and not _is_decimal(x):
-        return _frac_tan(fractions.Fraction(x), degrees=degrees, prec=prec, limit=limit)
+    if exact and not degrees:
+        raise ValueError("exact trigonometry requires degrees=True")
+    if exact:
+        _reject_genuine_surd(x)
+    if _is_vector_input(x):
+        data, _ = _vector_data(x)
+        decimal_mode = digits is not None or _contains_decimal(data)
+        vector_digits = _effective_digits(digits, decimal_mode, exact)
+        if not exact and decimal_mode:
+            _validate_decimal_params(digits, rounding, max_refinements)
+        return _map_vector(
+            x,
+            lambda item: tan(
+                item,
+                degrees=degrees,
+                prec=prec,
+                limit=limit,
+                digits=vector_digits,
+                rounding=rounding,
+                max_refinements=max_refinements,
+                exact=exact,
+            ),
+            decimal_mode=decimal_mode,
+            exact=exact,
+        )
+    xf, decimal_input = _coerce(x)
+    if exact:
+        return _exact_tan(x)
+    if digits is None and not decimal_input:
+        return _frac_tan(xf, degrees=degrees, prec=prec, limit=limit)
     _validate_decimal_params(digits, rounding, max_refinements)
-    xf = fractions.Fraction(x)
     return _to_decimal(lambda p: _tan_core(xf, p, degrees), digits, rounding, max_refinements)
 
 
 def exp(
-    x: Any,
+    x: ScalarLike | VectorLike,
     prec: fractions.Fraction = default_accuracy,
     limit: bool = True,
     digits: int | None = None,
     rounding: str = "half_even",
     max_refinements: int | None = None,
-) -> fractions.Fraction | decimal.Decimal:
+) -> Any:
     """
     Return ``e`` raised to the power ``x``. See the module docstring for the type-preservation rule.
     """
-    if digits is None and not _is_decimal(x):
-        return _frac_exp(fractions.Fraction(x), prec=prec, limit=limit)
+    if _is_vector_input(x):
+        data, _ = _vector_data(x)
+        decimal_mode = digits is not None or _contains_decimal(data)
+        vector_digits = _effective_digits(digits, decimal_mode, False)
+        if decimal_mode:
+            _validate_decimal_params(digits, rounding, max_refinements)
+        return _map_vector(
+            x,
+            lambda item: exp(
+                item,
+                prec=prec,
+                limit=limit,
+                digits=vector_digits,
+                rounding=rounding,
+                max_refinements=max_refinements,
+            ),
+            decimal_mode=decimal_mode,
+            exact=False,
+        )
+    xf, decimal_input = _coerce(x)
+    if digits is None and not decimal_input:
+        return _frac_exp(xf, prec=prec, limit=limit)
     _validate_decimal_params(digits, rounding, max_refinements)
-    xf = fractions.Fraction(x)
     return _to_decimal(lambda p: _exp_core(xf, p), digits, rounding, max_refinements)
 
 
 def log(
-    x: Any,
-    base: Any = None,
+    x: ScalarLike | VectorLike,
+    base: ScalarLike | None = None,
     prec: fractions.Fraction = default_accuracy,
     limit: bool = True,
     digits: int | None = None,
@@ -1154,16 +1603,36 @@ def log(
     Return the logarithm of ``x`` to ``base`` (natural log when ``base`` is None). See the module
     docstring for the type-preservation rule; a Decimal ``base`` also promotes the result.
     """
-    if digits is None and not _is_decimal(x, base):
-        return _frac_log(fractions.Fraction(x), base=base, prec=prec, limit=limit)
+    if _is_vector_input(x):
+        data, _ = _vector_data(x)
+        decimal_mode = digits is not None or _contains_decimal(data) or _contains_decimal(base)
+        vector_digits = _effective_digits(digits, decimal_mode, False)
+        if decimal_mode:
+            _validate_decimal_params(digits, rounding, max_refinements)
+        return _map_vector(
+            x,
+            lambda item: log(
+                item,
+                base=base,
+                prec=prec,
+                limit=limit,
+                digits=vector_digits,
+                rounding=rounding,
+                max_refinements=max_refinements,
+            ),
+            decimal_mode=decimal_mode,
+            exact=False,
+        )
+    xf, decimal_input = _coerce(x)
+    basef, base_decimal = (None, False) if base is None else _coerce(base)
+    if digits is None and not (decimal_input or base_decimal):
+        return _frac_log(xf, base=None if base is None else basef, prec=prec, limit=limit)
     _validate_decimal_params(digits, rounding, max_refinements)
-    xf = fractions.Fraction(x)
-    basef: fractions.Fraction | int | None = None if base is None else fractions.Fraction(base)
     return _to_decimal(lambda p: _log_core(xf, basef, p), digits, rounding, max_refinements)
 
 
 def log10(
-    x: Any,
+    x: ScalarLike | VectorLike,
     prec: fractions.Fraction = default_accuracy,
     limit: bool = True,
     digits: int | None = None,
@@ -1172,90 +1641,207 @@ def log10(
 ) -> fractions.Fraction | decimal.Decimal:
     """
     Return the base-10 logarithm of ``x``. See the module docstring for the type-preservation rule.
+    ``max_refinements`` is honored and is forwarded to the logarithm implementation.
     """
-    return log(x, base=10, prec=prec, limit=limit, digits=digits, rounding=rounding)
+    return log(
+        x,
+        base=10,
+        prec=prec,
+        limit=limit,
+        digits=digits,
+        rounding=rounding,
+        max_refinements=max_refinements,
+    )
 
 
 def asin(
-    x: Any,
+    x: ScalarLike | VectorLike,
     degrees: bool = False,
     prec: fractions.Fraction = default_accuracy,
     limit: bool = True,
     digits: int | None = None,
     rounding: str = "half_even",
     max_refinements: int | None = None,
+    exact: bool = False,
 ) -> fractions.Fraction | int | decimal.Decimal:
     """
     Return the arc sine of ``x`` (radians, or degrees if ``degrees``). See the module docstring for
     the type-preservation rule.
     """
-    if digits is None and not _is_decimal(x):
-        return _frac_asin(fractions.Fraction(x), degrees=degrees, prec=prec, limit=limit)
+    if exact and not degrees:
+        raise ValueError("exact trigonometry requires degrees=True")
+    if _is_vector_input(x):
+        data, _ = _vector_data(x)
+        decimal_mode = digits is not None or _contains_decimal(data)
+        vector_digits = _effective_digits(digits, decimal_mode, exact)
+        if not exact and decimal_mode:
+            _validate_decimal_params(digits, rounding, max_refinements)
+        return _map_vector(
+            x,
+            lambda item: asin(
+                item,
+                degrees=degrees,
+                prec=prec,
+                limit=limit,
+                digits=vector_digits,
+                rounding=rounding,
+                max_refinements=max_refinements,
+                exact=exact,
+            ),
+            decimal_mode=decimal_mode,
+            exact=exact,
+        )
+    xf, decimal_input = _coerce(x)
+    if exact:
+        return _exact_asin(x)
+    if digits is None and not decimal_input:
+        return _frac_asin(xf, degrees=degrees, prec=prec, limit=limit)
     _validate_decimal_params(digits, rounding, max_refinements)
-    xf = fractions.Fraction(x)
     return _to_decimal(lambda p: _asin_core(xf, p, degrees), digits, rounding, max_refinements)
 
 
 def acos(
-    x: Any,
+    x: ScalarLike | VectorLike,
     degrees: bool = False,
     prec: fractions.Fraction = default_accuracy,
     limit: bool = True,
     digits: int | None = None,
     rounding: str = "half_even",
     max_refinements: int | None = None,
+    exact: bool = False,
 ) -> fractions.Fraction | decimal.Decimal:
     """
     Return the arc cosine of ``x`` (radians, or degrees if ``degrees``). See the module docstring
     for the type-preservation rule.
     """
-    if digits is None and not _is_decimal(x):
-        return _frac_acos(fractions.Fraction(x), degrees=degrees, prec=prec, limit=limit)
+    if exact and not degrees:
+        raise ValueError("exact trigonometry requires degrees=True")
+    if _is_vector_input(x):
+        data, _ = _vector_data(x)
+        decimal_mode = digits is not None or _contains_decimal(data)
+        vector_digits = _effective_digits(digits, decimal_mode, exact)
+        if not exact and decimal_mode:
+            _validate_decimal_params(digits, rounding, max_refinements)
+        return _map_vector(
+            x,
+            lambda item: acos(
+                item,
+                degrees=degrees,
+                prec=prec,
+                limit=limit,
+                digits=vector_digits,
+                rounding=rounding,
+                max_refinements=max_refinements,
+                exact=exact,
+            ),
+            decimal_mode=decimal_mode,
+            exact=exact,
+        )
+    xf, decimal_input = _coerce(x)
+    if exact:
+        return _exact_acos(x)
+    if digits is None and not decimal_input:
+        return _frac_acos(xf, degrees=degrees, prec=prec, limit=limit)
     _validate_decimal_params(digits, rounding, max_refinements)
-    xf = fractions.Fraction(x)
     return _to_decimal(lambda p: _acos_core(xf, p, degrees), digits, rounding, max_refinements)
 
 
 def atan(
-    x: Any,
+    x: ScalarLike | VectorLike,
     degrees: bool = False,
     prec: fractions.Fraction = default_accuracy,
     limit: bool = True,
     digits: int | None = None,
     rounding: str = "half_even",
     max_refinements: int | None = None,
+    exact: bool = False,
 ) -> fractions.Fraction | decimal.Decimal:
     """
     Return the arc tangent of ``x`` (radians, or degrees if ``degrees``). See the module docstring
     for the type-preservation rule.
     """
-    if digits is None and not _is_decimal(x):
-        return _frac_atan(fractions.Fraction(x), degrees=degrees, prec=prec, limit=limit)
+    if exact and not degrees:
+        raise ValueError("exact trigonometry requires degrees=True")
+    if _is_vector_input(x):
+        data, _ = _vector_data(x)
+        decimal_mode = digits is not None or _contains_decimal(data)
+        vector_digits = _effective_digits(digits, decimal_mode, exact)
+        if not exact and decimal_mode:
+            _validate_decimal_params(digits, rounding, max_refinements)
+        return _map_vector(
+            x,
+            lambda item: atan(
+                item,
+                degrees=degrees,
+                prec=prec,
+                limit=limit,
+                digits=vector_digits,
+                rounding=rounding,
+                max_refinements=max_refinements,
+                exact=exact,
+            ),
+            decimal_mode=decimal_mode,
+            exact=exact,
+        )
+    xf, decimal_input = _coerce(x)
+    if exact:
+        return _exact_atan(x)
+    if digits is None and not decimal_input:
+        return _frac_atan(xf, degrees=degrees, prec=prec, limit=limit)
     _validate_decimal_params(digits, rounding, max_refinements)
-    xf = fractions.Fraction(x)
     return _to_decimal(lambda p: _atan_core(xf, p, degrees), digits, rounding, max_refinements)
 
 
 def atan2(
-    y: Any,
-    x: Any,
+    y: ScalarLike | VectorLike,
+    x: ScalarLike | VectorLike,
     degrees: bool = False,
     prec: fractions.Fraction = default_accuracy,
     limit: bool = True,
     digits: int | None = None,
     rounding: str = "half_even",
     max_refinements: int | None = None,
-) -> fractions.Fraction | decimal.Decimal:
+    exact: bool = False,
+) -> Any:
     """
     Return the arc tangent of ``y/x`` with :func:`math.atan2` quadrant conventions (radians, or
     degrees if ``degrees``). See the module docstring for the type-preservation rule; a Decimal in
-    either argument promotes the result (``atan2(Decimal, Fraction)`` returns a Decimal).
+    either argument promotes the result (``atan2(Decimal, Fraction)`` returns a Decimal). Vector
+    inputs are mapped elementwise; a scalar argument is broadcast across the vector.
     """
-    if digits is None and not _is_decimal(y, x):
-        return _frac_atan2(fractions.Fraction(y), fractions.Fraction(x), degrees=degrees, prec=prec, limit=limit)
+    if exact and not degrees:
+        raise ValueError("exact trigonometry requires degrees=True")
+    if _is_vector_input(y) or _is_vector_input(x):
+        y_data = _vector_data(y)[0] if _is_vector_input(y) else y
+        x_data = _vector_data(x)[0] if _is_vector_input(x) else x
+        decimal_mode = digits is not None or _contains_decimal(y_data) or _contains_decimal(x_data)
+        vector_digits = _effective_digits(digits, decimal_mode, exact)
+        if not exact and decimal_mode:
+            _validate_decimal_params(digits, rounding, max_refinements)
+        return _map_binary_vector(
+            y,
+            x,
+            lambda left, right: atan2(
+                left,
+                right,
+                degrees=degrees,
+                prec=prec,
+                limit=limit,
+                digits=vector_digits,
+                rounding=rounding,
+                max_refinements=max_refinements,
+                exact=exact,
+            ),
+            decimal_mode=decimal_mode,
+            exact=exact,
+        )
+    yf, y_decimal = _coerce(y)
+    xf, x_decimal = _coerce(x)
+    if exact:
+        return _exact_atan2(y, x)
+    if digits is None and not (y_decimal or x_decimal):
+        return _frac_atan2(yf, xf, degrees=degrees, prec=prec, limit=limit)
     _validate_decimal_params(digits, rounding, max_refinements)
-    yf = fractions.Fraction(y)
-    xf = fractions.Fraction(x)
     return _to_decimal(lambda p: _atan2_core(yf, xf, p, degrees), digits, rounding, max_refinements)
 
 
@@ -1276,4 +1862,9 @@ def pi(
     if digits is None:
         return _frac_pi(prec=prec, limit=limit)
     _validate_decimal_params(digits, rounding, max_refinements)
-    return _to_decimal(lambda p: (_frac_pi(prec=p, limit=False), False), digits, rounding, max_refinements)
+    return _to_decimal(
+        lambda p: (_frac_pi(prec=p, limit=False), False),
+        digits,
+        rounding,
+        max_refinements,
+    )

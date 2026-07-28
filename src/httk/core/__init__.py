@@ -19,7 +19,7 @@ import pkgutil
 
 import httk
 
-from . import _discover
+from . import _discover, exactmath
 from .cli_context import CLIContext
 from .dataloader import DataLoader, DataRecord, DatasetMeta, DecodeObjectCallback
 from .datastream import (
@@ -108,6 +108,7 @@ from .vectors import (
     LeafCodec,
     MutableFracVector,
     NumericVector,
+    ScalarLike,
     SurdScalar,
     SurdVector,
     VectorAPI,
@@ -245,6 +246,8 @@ __all__ = [
     "VectorNativeView",
     "VectorSurdView",
     "VectorLike",
+    "ScalarLike",
+    "exactmath",
     "NumericVector",
     "to_numeric",
     "to_numeric_scalar",
