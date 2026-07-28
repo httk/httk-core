@@ -110,7 +110,7 @@ def register_format_adapter(
             if existing.name == name and _same_callable_reference(existing.handler, adapter):
                 continue
             raise ValueError(
-                f"format tag {format_tag!r} is already registered by {existing.name!r}; " f"cannot register {name!r}"
+                f"format tag {format_tag!r} is already registered by {existing.name!r}; cannot register {name!r}"
             )
         for format_tag in missing:
             format_adapters.register(key=format_tag, handler=adapter, name=name)

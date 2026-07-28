@@ -645,7 +645,7 @@ class FracVector:
         Convert the FracVector to a (nested) list of strings.
         """
         return nested_map_list(
-            lambda x: (("%." + str(accuracy) + "f") % (fractions.Fraction(x, self.denom),)),
+            lambda x: ("%." + str(accuracy) + "f") % (fractions.Fraction(x, self.denom),),
             self.noms,
         )
 

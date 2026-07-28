@@ -611,9 +611,7 @@ def parser(
             if verbosity >= 3:
                 # This line (a tuple expression whose tail is discarded) is preserved
                 # verbatim from the original code.
-                logger(
-                    "PARSE ACTION REDUCE: ", arg[0], "<-", arg[1], loglevel=1
-                ), " AND GOTO: ", new_state  # pyright: ignore[reportUnusedExpression]
+                logger("PARSE ACTION REDUCE: ", arg[0], "<-", arg[1], loglevel=1), " AND GOTO: ", new_state  # pyright: ignore[reportUnusedExpression]
         elif action == 'accept':
             break
         else:
@@ -1210,7 +1208,6 @@ def _build_parse_tables(
     todo = [start_cl]
 
     while len(todo) > 0:
-
         cl = todo.pop()
         state = _find_or_create_state(cl)
 
@@ -1441,7 +1438,6 @@ def ebnf_unqote(s: str) -> str:
 # that it returns the same as is already provided.
 
 if __name__ == "__main__":
-
     result = parser(ls_ebnf, cast(str, ls_ebnf['ebnf_grammar']))
 
     pprint.pprint(result)
