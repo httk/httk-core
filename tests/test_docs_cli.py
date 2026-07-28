@@ -122,3 +122,141 @@ def test_cli_relative_project_dir_resolves_once(
     monkeypatch.setattr(cli, "generate_lock", lambda project, output: calls.append((project, output)))
     assert cli.command(["lock", "--project-dir", tmp_path.name], context(Path.cwd())) == 0
     assert calls == [(tmp_path, tmp_path / "docs" / "requirements.lock")]
+
+
+def test_cli_refresh_inventories_release_file_fixture(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    (tmp_path / "docs" / "_inventories").mkdir(parents=True)
+    fixture = tmp_path / "published" / "httk-core" / "v2.0.2"
+    fixture.mkdir(parents=True)
+    (fixture / "objects.inv").write_bytes(
+        b"# Sphinx inventory version 2\n# Project: httk-core\n# Version: 2.0.2\n" + zlib.compress(b"")
+    )
+    (tmp_path / "docs" / "versioning.toml").write_text(
+        '[site]\nslug = "consumer"\nrepository-url = "https://example.test/consumer"\n'
+        '\n[[internal-dependency]]\ndistribution = "httk-core"\nslug = "httk-core"\n'
+        'repository-url = "https://example.test/core"\n', encoding="utf-8"
+    )
+    (tmp_path / "docs" / "requirements.lock").write_text("httk-core==2.0.2\n", encoding="utf-8")
+    base = (tmp_path / "published").as_uri()
+    assert cli.command(
+        ["refresh-inventories", "--project-dir", str(tmp_path), "--base-url", base, "--channel", "release"],
+        context(tmp_path),
+    ) == 0
+    assert (tmp_path / "docs" / "_inventories" / "httk-core.inv").is_file()
+    assert "v2.0.2" in capsys.readouterr().out
+
+
+def test_cli_refresh_inventories_missing_pin_is_clean_failure(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "versioning.toml").write_text(
+        '[site]\nslug = "consumer"\nrepository-url = "https://example.test/consumer"\n'
+        '\n[[internal-dependency]]\ndistribution = "httk-core"\nslug = "httk-core"\n'
+        'repository-url = "https://example.test/core"\n', encoding="utf-8"
+    )
+    (tmp_path / "docs" / "requirements.lock").write_text("requests==2.32\n", encoding="utf-8")
+    assert cli.command(
+        ["refresh-inventories", "--project-dir", str(tmp_path), "--base-url", "file:///missing", "--channel", "release"],
+        context(tmp_path),
+    ) == 1
+    assert "httk-core" in capsys.readouterr().err
+
+
+def test_cli_refresh_inventories_wrong_project_is_clean_failure(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    (tmp_path / "docs" / "_inventories").mkdir(parents=True)
+    fixture = tmp_path / "published" / "httk-core" / "v2.0.2"
+    fixture.mkdir(parents=True)
+    (fixture / "objects.inv").write_bytes(
+        b"# Sphinx inventory version 2\n# Project: other-project\n# Version: 2.0.2\n" + zlib.compress(b"")
+    )
+    (tmp_path / "docs" / "versioning.toml").write_text(
+        '[site]\nslug = "consumer"\nrepository-url = "https://example.test/consumer"\n'
+        '\n[[internal-dependency]]\ndistribution = "httk-core"\nslug = "httk-core"\n'
+        'repository-url = "https://example.test/core"\n', encoding="utf-8"
+    )
+    (tmp_path / "docs" / "requirements.lock").write_text("httk-core==2.0.2\n", encoding="utf-8")
+    assert cli.command(
+        [
+            "refresh-inventories",
+            "--project-dir",
+            str(tmp_path),
+            "--base-url",
+            (tmp_path / "published").as_uri(),
+            "--channel",
+            "release",
+        ],
+        context(tmp_path),
+    ) == 1
+    assert "expected project 'httk-core'" in capsys.readouterr().err
+
+
+def test_cli_refresh_inventories_wrong_version_is_clean_failure(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    (tmp_path / "docs" / "_inventories").mkdir(parents=True)
+    fixture = tmp_path / "published" / "httk-core" / "v2.0.2"
+    fixture.mkdir(parents=True)
+    (fixture / "objects.inv").write_bytes(
+        b"# Sphinx inventory version 2\n# Project: httk-core\n# Version: 9.9.9\n" + zlib.compress(b"")
+    )
+    (tmp_path / "docs" / "versioning.toml").write_text(
+        '[site]\nslug = "consumer"\nrepository-url = "https://example.test/consumer"\n'
+        '\n[[internal-dependency]]\ndistribution = "httk-core"\nslug = "httk-core"\n'
+        'repository-url = "https://example.test/core"\n', encoding="utf-8"
+    )
+    (tmp_path / "docs" / "requirements.lock").write_text("httk-core==2.0.2\n", encoding="utf-8")
+    assert cli.command(
+        [
+            "refresh-inventories",
+            "--project-dir",
+            str(tmp_path),
+            "--base-url",
+            (tmp_path / "published").as_uri(),
+            "--channel",
+            "release",
+        ],
+        context(tmp_path),
+    ) == 1
+    assert "expected version '2.0.2'" in capsys.readouterr().err
+
+
+def test_cli_refresh_inventories_second_failure_preserves_all_originals(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    inventory_dir = tmp_path / "docs" / "_inventories"
+    inventory_dir.mkdir(parents=True)
+    first_original = b"first-original"
+    second_original = b"second-original"
+    (inventory_dir / "httk-core.inv").write_bytes(first_original)
+    (inventory_dir / "httk-io.inv").write_bytes(second_original)
+    fixture = tmp_path / "published" / "httk-core" / "v2.0.2"
+    fixture.mkdir(parents=True)
+    (fixture / "objects.inv").write_bytes(
+        b"# Sphinx inventory version 2\n# Project: httk-core\n# Version: 2.0.2\n" + zlib.compress(b"")
+    )
+    (tmp_path / "docs" / "versioning.toml").write_text(
+        '[site]\nslug = "consumer"\nrepository-url = "https://example.test/consumer"\n'
+        '\n[[internal-dependency]]\ndistribution = "httk-core"\nslug = "httk-core"\n'
+        'repository-url = "https://example.test/core"\n'
+        '\n[[internal-dependency]]\ndistribution = "httk-io"\nslug = "httk-io"\n'
+        'repository-url = "https://example.test/io"\n', encoding="utf-8"
+    )
+    (tmp_path / "docs" / "requirements.lock").write_text(
+        "httk-core==2.0.2\nhttk-io==1.0.0\n", encoding="utf-8"
+    )
+    assert cli.command(
+        [
+            "refresh-inventories",
+            "--project-dir",
+            str(tmp_path),
+            "--base-url",
+            (tmp_path / "published").as_uri(),
+            "--channel",
+            "release",
+        ],
+        context(tmp_path),
+    ) == 1
+    assert "httk-io" in capsys.readouterr().err
+    assert (inventory_dir / "httk-core.inv").read_bytes() == first_original
+    assert (inventory_dir / "httk-io.inv").read_bytes() == second_original

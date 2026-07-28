@@ -18,7 +18,11 @@
 """The ``httk docs`` command-line adapter over the documentation library."""
 
 import argparse
+import os
+import re
+import shutil
 import sys
+import tempfile
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal
@@ -89,6 +93,14 @@ def build_parser(program: str, project_dir: Path) -> argparse.ArgumentParser:
     inventory.add_argument("dest", type=Path)
     inventory.add_argument("--expect-project")
     inventory.add_argument("--expect-version")
+
+    refresh = subparsers.add_parser("refresh-inventories", help="refresh committed internal dependency inventories")
+    refresh.set_defaults(handler=_handle_refresh_inventories, help_parser=refresh)
+    _add_project_dir(refresh, project_dir)
+    refresh.add_argument(
+        "--base-url", default=None, help="documentation site base URL (default: HTTK_DOCS_BASE_URL or docs.httk.org)"
+    )
+    refresh.add_argument("--channel", required=True, choices=("release", "dev"))
 
     commit = subparsers.add_parser("commit-site", help="commit a generated site as one orphan branch commit")
     commit.set_defaults(handler=_handle_commit_site, help_parser=commit)
@@ -182,6 +194,69 @@ def _handle_inventory(arguments: argparse.Namespace, _context: CLIContext) -> in
         expected_version=arguments.expect_version,
     )
     print(f"fetched inventory: {project} {version}")
+    return 0
+
+
+def _handle_refresh_inventories(arguments: argparse.Namespace, _context: CLIContext) -> int:
+    """Refresh all committed inventories declared by versioning.toml."""
+
+    from .config import load_versioning_config
+
+    project = arguments.project_dir
+    versioning_path = project / "docs" / "versioning.toml"
+    config = load_versioning_config(versioning_path)
+    base_url = arguments.base_url or os.environ.get("HTTK_DOCS_BASE_URL", "https://docs.httk.org")
+    pins: dict[str, str] = {}
+    lock_path = project / "docs" / "requirements.lock"
+    if arguments.channel == "release":
+        if not lock_path.is_file():
+            raise LockError(f"documentation lock is missing: {lock_path}; required for release inventories")
+        try:
+            pins = read_lock_pins(lock_path)
+        except OSError as exc:
+            raise LockError(f"cannot read documentation lock {lock_path}: {exc}") from exc
+
+    destination_dir = project / "docs" / "_inventories"
+    destination_dir.mkdir(parents=True, exist_ok=True)
+    staging_dir = Path(tempfile.mkdtemp(prefix=".httk-inventories-", dir=destination_dir))
+    refreshed: list[tuple[str, Path, Path, str]] = []
+    try:
+        for dependency in config.internal_dependencies:
+            if arguments.channel == "release":
+                try:
+                    normalized_distribution = re.sub(r"[-_.]+", "-", dependency.distribution).lower()
+                    pin = pins[normalized_distribution]
+                except KeyError as exc:
+                    raise LockError(
+                        f"dependency {dependency.distribution!r} is missing from lock file {lock_path}"
+                    ) from exc
+                url = f"{base_url.rstrip('/')}/{dependency.slug}/v{pin}/objects.inv"
+                expected_version = pin
+            else:
+                url = f"{base_url.rstrip('/')}/{dependency.slug}/dev/main/objects.inv"
+                expected_version = "dev:main"
+            staged = staging_dir / f"{dependency.slug}.inv"
+            destination = destination_dir / f"{dependency.slug}.inv"
+            try:
+                fetch_inventory(
+                    url,
+                    staged,
+                    expected_project=dependency.slug,
+                    expected_version=expected_version,
+                )
+            except (InventoryError, OSError) as exc:
+                raise InventoryError(f"failed to refresh inventory for {dependency.slug!r} from {url}: {exc}") from exc
+            refreshed.append((dependency.slug, staged, destination, url))
+
+        for _slug, _staged, destination, _url in refreshed:
+            if destination.is_symlink():
+                raise InventoryError(f"refusing symlink inventory destination: {destination}")
+        for _slug, staged, destination, _url in refreshed:
+            os.replace(staged, destination)
+    finally:
+        shutil.rmtree(staging_dir, ignore_errors=True)
+    for slug, _staged, _destination, url in refreshed:
+        print(f"refreshed {slug} inventory from {url}")
     return 0
 
 
