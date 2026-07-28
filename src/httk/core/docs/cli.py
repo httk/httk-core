@@ -25,6 +25,7 @@ from typing import Literal
 
 from httk.core.cli_context import CLIContext
 
+from .gitsite import GitSiteError, commit_site
 from .inventories import InventoryError, fetch_inventory
 from .lockfile import (
     LockError,
@@ -39,7 +40,7 @@ from .sitetree import ImmutabilityError, compose_site
 
 __all__ = ["build_parser", "command"]
 
-_ERRORS = (OSError, ValueError, RuntimeError, LockError, InventoryError, ReleaseError, ImmutabilityError)
+_ERRORS = (OSError, ValueError, RuntimeError, LockError, InventoryError, ReleaseError, ImmutabilityError, GitSiteError)
 
 
 def build_parser(program: str, project_dir: Path) -> argparse.ArgumentParser:
@@ -66,6 +67,7 @@ def build_parser(program: str, project_dir: Path) -> argparse.ArgumentParser:
     targets = compose.add_mutually_exclusive_group(required=True)
     targets.add_argument("--release", type=str)
     targets.add_argument("--dev", action="store_true")
+    targets.add_argument("--repair", metavar="VERSION", help="replace an existing release after approved repair")
     compose.add_argument("--slug", required=True)
     compose.add_argument("--url", required=True)
     compose.add_argument("--source-commit")
@@ -87,6 +89,13 @@ def build_parser(program: str, project_dir: Path) -> argparse.ArgumentParser:
     inventory.add_argument("dest", type=Path)
     inventory.add_argument("--expect-project")
     inventory.add_argument("--expect-version")
+
+    commit = subparsers.add_parser("commit-site", help="commit a generated site as one orphan branch commit")
+    commit.set_defaults(handler=_handle_commit_site, help_parser=commit)
+    commit.add_argument("--site", required=True, type=Path)
+    commit.add_argument("--repo", type=Path, help="repository directory (default: repository containing --site)")
+    commit.add_argument("--branch", required=True)
+    commit.add_argument("--message", required=True)
     return parser
 
 
@@ -118,9 +127,11 @@ def _handle_compose(arguments: argparse.Namespace, _context: CLIContext) -> int:
     if arguments.dev:
         target: Literal["dev"] | Version = "dev"
         composed = "dev:main"
+        repair = False
     else:
-        target = _parse_release_argument(arguments.release)
+        target = _parse_release_argument(arguments.release or arguments.repair)
         composed = target.tag
+        repair = arguments.repair is not None
     result = compose_site(
         arguments.site,
         arguments.build,
@@ -128,6 +139,7 @@ def _handle_compose(arguments: argparse.Namespace, _context: CLIContext) -> int:
         site_url=arguments.url,
         source_commit=arguments.source_commit,
         target=target,
+        repair=repair,
     )
     print(f"composed {composed}; default: {result.default_target}; versions: {', '.join(result.versions) or '(none)'}")
     return 0
@@ -170,6 +182,17 @@ def _handle_inventory(arguments: argparse.Namespace, _context: CLIContext) -> in
         expected_version=arguments.expect_version,
     )
     print(f"fetched inventory: {project} {version}")
+    return 0
+
+
+def _handle_commit_site(arguments: argparse.Namespace, _context: CLIContext) -> int:
+    result = commit_site(
+        arguments.site,
+        arguments.branch,
+        arguments.message,
+        repository=arguments.repo,
+    )
+    print(f"committed {result.branch} as orphan {result.commit} (tree {result.tree})")
     return 0
 
 

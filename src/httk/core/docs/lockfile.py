@@ -19,7 +19,9 @@
 
 The lock keeps four contract headers: schema, a canonical-input SHA-256 hash,
 Python 3.12, and Linux.  The resolver's comment noise is discarded; only
-``name==version`` pins are retained after the headers.
+``name==version`` pins are retained after the headers.  Its pins cover runtime,
+documentation, and build-backend requirements so a clean Python 3.12
+environment can install the lock before using ``--no-build-isolation``.
 """
 
 import hashlib
@@ -51,15 +53,33 @@ def _normalize_name(name: str) -> str:
     return re.sub(r"[-_.]+", "-", name).lower()
 
 
+def _load_pyproject(path: Path) -> dict[str, object]:
+    try:
+        with path.open("rb") as stream:
+            metadata = tomllib.load(stream)
+    except (OSError, tomllib.TOMLDecodeError) as exc:
+        raise LockError(f"cannot read project metadata {path}: {exc}") from exc
+    if not isinstance(metadata, dict):
+        raise LockError(f"{path}: project metadata must be a table")
+    return metadata
+
+
+def _build_requirements(metadata: dict[str, object], path: Path) -> list[str]:
+    build_system = metadata.get("build-system", {})
+    if not isinstance(build_system, dict):
+        raise LockError(f"{path}: build-system must be a table")
+    requirements = build_system.get("requires", [])
+    if not isinstance(requirements, list) or any(not isinstance(item, str) for item in requirements):
+        raise LockError(f"{path}: build-system.requires must be an array of strings")
+    return sorted(requirements)
+
+
 def compute_input_hash(pyproject_path: str | Path) -> str:
     """Hash the documentation dependency inputs, independent of TOML formatting."""
 
     path = Path(pyproject_path)
-    try:
-        with path.open("rb") as stream:
-            project = tomllib.load(stream).get("project", {})
-    except (OSError, tomllib.TOMLDecodeError) as exc:
-        raise LockError(f"cannot read project metadata {path}: {exc}") from exc
+    metadata = _load_pyproject(path)
+    project = metadata.get("project", {})
     if not isinstance(project, dict):
         raise LockError(f"{path}: project must be a table")
     optional = project.get("optional-dependencies", {})
@@ -78,6 +98,7 @@ def compute_input_hash(pyproject_path: str | Path) -> str:
         "requires-python": project.get("requires-python"),
         "dependencies": sorted(dependencies),
         "docs": sorted(docs),
+        "build-system": _build_requirements(metadata, path),
     }
     canonical = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
     return hashlib.sha256(canonical).hexdigest()
@@ -119,6 +140,7 @@ def generate_lock(
     project = Path(project_dir).resolve()
     pyproject = project / "pyproject.toml"
     input_hash = compute_input_hash(pyproject)
+    build_requirements = _build_requirements(_load_pyproject(pyproject), pyproject)
     output = Path(output_path)
     if not output.is_absolute():
         output = project / output
@@ -128,13 +150,24 @@ def generate_lock(
     descriptor, temporary_name = tempfile.mkstemp(prefix=f".{output.name}.staging-", suffix=".txt", dir=output.parent)
     os.close(descriptor)
     temporary_path = Path(temporary_name)
+    build_input_path: Path | None = None
     try:
+        if build_requirements:
+            build_descriptor, build_input_name = tempfile.mkstemp(
+                prefix=".httk-docs-build-input-", suffix=".txt", dir=project
+            )
+            build_input_path = Path(build_input_name)
+            with os.fdopen(build_descriptor, "w", encoding="utf-8") as stream:
+                stream.write("\n".join(build_requirements) + "\n")
         command = list(command_prefix) if command_prefix is not None else ["uv"]
+        inputs = ["pyproject.toml"]
+        if build_input_path is not None:
+            inputs.append(str(build_input_path))
         command.extend(
             [
                 "pip",
                 "compile",
-                "pyproject.toml",
+                *inputs,
                 "--extra",
                 "docs",
                 "--python-version",
@@ -165,6 +198,8 @@ def generate_lock(
         raise LockError(f"cannot generate lock {output}: {exc}") from exc
     finally:
         temporary_path.unlink(missing_ok=True)
+        if build_input_path is not None:
+            build_input_path.unlink(missing_ok=True)
 
 
 def _read_hash_header(lock_path: Path) -> str:

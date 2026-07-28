@@ -1,16 +1,15 @@
-name: Deploy development docs
+name: Deploy release docs
 
 on:
   push:
-    branches: [main]
-  workflow_dispatch:
+    tags: ["v*"]
 
 permissions:
   contents: write
 
 concurrency:
-  # Superseding queued development builds is fine: the latest main wins.
-  group: docs-build-dev
+  # Each tag has its own build lease: a release build must never be superseded.
+  group: docs-build-release-${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -23,25 +22,25 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.ref }}
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install locked development docs environment
+      - name: Validate the tag before installing dependencies
+        run: PYTHONPATH=src python -m httk.core.docs check-release --tag "${GITHUB_REF_NAME}"
+
+      - name: Install the locked documentation environment
         run: |
-          PYTHONPATH=src python -m httk.core.docs filter-lock \
-            --lock docs/requirements.lock \
-            --out "$RUNNER_TEMP/dev-requirements.txt" \
-            --self-distribution httk-core
-          pip install -r "$RUNNER_TEMP/dev-requirements.txt"
-          pip install -e . --no-deps
+          pip install -r docs/requirements.lock
           pip check
+          pip install . --no-deps --no-build-isolation
 
-      - name: Build development docs
-        run: HTTK_DOCS_VERSION=dev:main HTTK_DOCS_BASE_URL=https://docs.httk.org make docs
+      - name: Build release docs
+        run: HTTK_DOCS_VERSION="${GITHUB_REF_NAME}" HTTK_DOCS_BASE_URL=https://docs.httk.org make docs
 
-      - name: Compose and publish development docs-site
+      - name: Compose and publish release docs-site
         env:
           SOURCE_COMMIT: ${{ github.sha }}
         run: |
@@ -68,12 +67,12 @@ jobs:
               git archive origin/docs-site | tar -x -C "$SITE_DIR"
             fi
             python -m httk.core.docs compose \
-              --site "$SITE_DIR" --build docs/_build/html --dev \
+              --site "$SITE_DIR" --build docs/_build/html --release "${GITHUB_REF_NAME}" \
               --slug httk-core --url https://docs.httk.org/httk-core \
               --source-commit "$SOURCE_COMMIT"
             python -m httk.core.docs commit-site \
               --site "$SITE_DIR" --repo "$GITHUB_WORKSPACE" \
-              --branch docs-site --message "dev: $SOURCE_COMMIT"
+              --branch docs-site --message "release: ${GITHUB_REF_NAME}"
             if git push --force-with-lease=refs/heads/docs-site:${LEASE_SHA} origin docs-site; then
               break
             fi

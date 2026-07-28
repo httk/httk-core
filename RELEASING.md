@@ -27,17 +27,27 @@ reserve the project name before then.
 
 ## Prepare and check a release
 
-Update `project.version` in `pyproject.toml`. From a Python 3.12 environment,
-install the development tools and run the complete local check:
+Update `project.version` in `pyproject.toml`. After making dependency changes,
+regenerate and commit the documentation lock before tagging:
+
+```console
+make docs-lock
+```
+
+From a Python 3.12 environment, install the development tools and run the
+complete local check:
 
 ```console
 python -m pip install -e ".[dev,docs,release]"
 make release-check
 ```
 
-This runs formatting, static analysis, tests, strict documentation, an isolated
-sdist/wheel build, and strict package-metadata checks. The resulting files are
-written to `dist/`.
+`make release-check` includes the cheap offline documentation lock-freshness
+check, in addition to formatting, static analysis, tests, strict documentation,
+an isolated sdist/wheel build, and strict package-metadata checks. Before
+tagging, run `make docs-lock-check` for the required full clean-environment
+locked installation and strict docs build; this is a network check. The
+resulting package files are written to `dist/`.
 
 Versions on package indexes are immutable. Use a new development or release
 candidate version when repeating an upload, for example `2.0.0rc1` followed by
@@ -67,10 +77,27 @@ because `httk-core` deliberately has no runtime dependencies.
 
 1. Confirm that `make release-check` succeeds on the exact commit to release.
 2. Push the commit and create a GitHub release whose tag is `v` followed by the
-   package version, for example `v2.0.0`.
+   package version, for example `v2.0.0`. The tag push triggers
+   `docs-release.yml`, which validates tag/package-version/lock consistency and
+   publishes the immutable `vX.Y.Z/` documentation tree.
 3. Publish the GitHub release and approve the protected `pypi` environment.
 4. Verify the release from a fresh environment with `pip install httk-core`.
 
 The workflow rejects a Git tag that does not match `project.version`, rebuilds
 the distributions from the tagged source, checks them, and publishes them via
 PyPI Trusted Publishing.
+
+## Repairing a generated release site
+
+`docs-repair.yml` is reserved for replacing a known-bad generated artifact
+after the tagged source and locked build have been verified. It is manually
+triggered for one `vX.Y.Z` tag and requires approval from the protected
+`docs-repair` GitHub environment; it does not change package source or release
+immutability policy.
+
+## Half-published states
+
+Documentation publishes on the tag push independently of PyPI publication. If
+PyPI publication is abandoned after tagging, handle the published documentation
+version through the environment-approved repair path. This ordering is an
+intentional choice in the versioned-documentation plan.
