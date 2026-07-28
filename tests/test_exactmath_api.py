@@ -9,12 +9,16 @@ from httk.core import (
     FracScalar,
     FracVector,
     ScalarLike,
+    SurdScalar,
     SurdVector,
+    VectorBackend,
     VectorFrac,
+    VectorFracView,
     VectorNativeView,
     VectorSurd,
     VectorSurdView,
     exactmath,
+    unwrap,
 )
 
 F = fractions.Fraction
@@ -30,26 +34,25 @@ def test_scalar_like_is_runtime_resolvable() -> None:
 def test_scalar_like_coercions_share_the_same_fraction_hub() -> None:
     expected = exactmath.cos(F(1, 2))
     assert exactmath.cos("1/2") == expected
-    assert exactmath.cos(0.5) == expected
+    assert exactmath.cos(0.5) == float(expected)
     assert exactmath.cos(FracScalar.create(F(1, 2))) == expected
     assert exactmath.cos(SurdVector.create(F(1, 2))) == expected
 
 
 def test_vector_inputs_are_mapped_and_constructed_in_the_output_domain() -> None:
-    expected = FracVector.create([[1, F(1, 2)]])
-    assert exactmath.cos([[0, 60]], degrees=True) == expected
+    assert exactmath.cos([[0, 60]], degrees=True) == [[1, F(1, 2)]]
     assert exactmath.sqrt(FracVector.create([1, 4])) == FracVector.create([1, 2])
-    assert exactmath.sqrt(VectorNativeView([1, 4])) == FracVector.create([1, 2])
-    assert isinstance(exactmath.log([[1, 2]]), FracVector)
+    assert exactmath.sqrt(VectorNativeView([1, 4])) == (1, 2)
+    assert isinstance(exactmath.log([[1, 2]]), list)
 
     decimal_result = exactmath.sqrt([D("1"), D("4")])
-    assert decimal_result == (D("1"), D("2"))
+    assert decimal_result == [D("1"), D("2")]
     assert all(isinstance(value, D) for value in decimal_result)
 
 
 def test_decimal_promotes_a_mixed_vector_as_a_whole() -> None:
     result = exactmath.sqrt([D("1"), F(4)])
-    assert result == (D("1"), D("2"))
+    assert result == [D("1"), D("2")]
     assert all(isinstance(value, D) for value in result)
 
 
@@ -129,6 +132,114 @@ def test_log10_honors_max_refinements() -> None:
     assert isinstance(exactmath.log10(D(2), digits=5, max_refinements=0), D)
     with pytest.raises(ValueError, match="max_refinements"):
         exactmath.log10(D(2), digits=5, max_refinements=-1)
+
+
+def test_view_neutral_default_presentation_matrix() -> None:
+    assert exactmath.sqrt([4, 9]) == [2, 3]
+    assert isinstance(exactmath.sqrt((4, 9)), tuple)
+    assert isinstance(exactmath.sqrt(4), int)
+    assert isinstance(exactmath.sqrt(2), F)
+    assert isinstance(exactmath.sqrt(2.0), float)
+    assert isinstance(exactmath.sqrt(F(2)), F)
+    assert isinstance(exactmath.sqrt(D(2)), D)
+    assert isinstance(exactmath.sqrt(SurdVector.create(4)), SurdVector)
+
+    numpy = pytest.importorskip("numpy")
+    array_result = exactmath.sqrt(numpy.array([4, 9]))
+    assert isinstance(array_result, numpy.ndarray)
+
+
+def test_exactmath_explicit_presentation_and_natural_mode() -> None:
+    result = exactmath.sqrt([4, 9], coerce=FracVector)
+    assert isinstance(result, FracVector)
+    assert result == FracVector.create([2, 3])
+    prototype = FracVector.create([0])
+    assert isinstance(exactmath.cos((0, 1), coerce=prototype), FracVector)
+    assert isinstance(exactmath.sqrt(4, coerce=float), float)
+    assert isinstance(exactmath.sqrt(2, exact=True), SurdScalar)
+    assert isinstance(exactmath.sqrt(2, exact=True, coerce=float), float)
+    assert isinstance(exactmath.sqrt(2, coerce="natural"), F)
+    with pytest.raises(TypeError):
+        exactmath.sqrt(2, coerce=dict)
+
+
+def test_view_neutral_two_argument_functions_use_the_first_argument() -> None:
+    assert isinstance(exactmath.atan2(1, 1.0), F)
+    assert isinstance(exactmath.atan2(1.0, 1), float)
+    assert isinstance(exactmath.log(4, base=2.0), int)
+    assert isinstance(exactmath.log(4.0, base=2), float)
+
+
+def test_view_neutral_decimal_list_preserves_decimal_leaves() -> None:
+    result = exactmath.sqrt([D("1"), D("4")])
+    assert result == [D("1"), D("2")]
+    assert all(isinstance(value, D) for value in result)
+
+
+@pytest.mark.parametrize(
+    ("function", "args"),
+    [
+        (exactmath.sqrt, (F(1, 2),)),
+        (exactmath.cos, (F(1, 2),)),
+        (exactmath.sin, (F(1, 2),)),
+        (exactmath.tan, (F(1, 2),)),
+        (exactmath.exp, (F(1, 2),)),
+        (exactmath.log, (F(1, 2), F(2))),
+        (exactmath.log10, (F(1, 2),)),
+        (exactmath.asin, (F(1, 2),)),
+        (exactmath.acos, (F(1, 2),)),
+        (exactmath.atan, (F(1, 2),)),
+        (exactmath.atan2, (F(1, 2), F(2))),
+    ],
+)
+def test_all_exactmath_functions_honor_explicit_presentation(function, args) -> None:
+    natural = function(*args, coerce="natural")
+    assert isinstance(natural, F)
+    assert isinstance(function(*args, coerce=float), float)
+    with pytest.raises(TypeError):
+        function(*args, coerce=dict)
+
+
+@pytest.mark.parametrize(
+    ("function", "args"),
+    [
+        (exactmath.cos, (60,)),
+        (exactmath.sin, (30,)),
+        (exactmath.tan, (45,)),
+        (exactmath.asin, (F(1, 2),)),
+        (exactmath.acos, (F(1, 2),)),
+        (exactmath.atan, (1,)),
+        (exactmath.atan2, (1, 1)),
+    ],
+)
+def test_exact_trigonometry_honors_explicit_float_presentation(function, args) -> None:
+    assert isinstance(function(*args, degrees=True, exact=True, coerce=float), float)
+
+
+def test_default_presentation_special_input_rows() -> None:
+    assert isinstance(exactmath.sqrt("4"), F)
+    assert exactmath.sqrt(True) == F(1)
+    assert isinstance(exactmath.sqrt(True), F)
+
+    backend = VectorFrac(FracVector.create(4))
+    assert isinstance(backend, VectorBackend)
+    assert exactmath.sqrt(backend) == F(2)
+    assert isinstance(exactmath.sqrt(backend), F)
+
+    view = VectorFracView([4, 9])
+    result = exactmath.sqrt(view)
+    assert isinstance(result, VectorFracView)
+    assert unwrap(result) == FracVector.create([2, 3])
+
+
+def test_default_numpy_presentation_is_float64_and_lossless_backend() -> None:
+    numpy = pytest.importorskip("numpy")
+    source = numpy.array([4, 9])
+    exact = exactmath.sqrt(source, coerce="natural")
+    result = exactmath.sqrt(source)
+    assert result.dtype == numpy.dtype(numpy.float64)
+    assert numpy.array_equal(result, numpy.asarray(exact.to_floats(), dtype=numpy.float64))
+    assert unwrap(result) == exact
 
 
 def test_exact_trigonometry_and_surd_sqrt_reject_inexact_cases() -> None:

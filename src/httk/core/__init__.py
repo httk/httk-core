@@ -130,7 +130,7 @@ from .vectors import (
     to_numeric_scalar,
 )
 from .vectors import _numpy_available as _vectors_numpy_available
-from .views import Backend, View, unwrap
+from .views import Backend, View, coerce, register_coercer, unwrap
 
 if _vectors_numpy_available:
     from .vectors import VectorNumpy, VectorNumpyView
@@ -220,6 +220,7 @@ __all__ = [
     "VectorSurdView",
     "VectorView",
     "View",
+    "coerce",
     "combined_precision",
     "decimal_precision",
     "derive_ed25519_public_key",
@@ -241,6 +242,7 @@ __all__ = [
     "numpy_available",
     "parse_optimade_filter",
     "register_cli_command",
+    "register_coercer",
     "register_compression",
     "register_definition_prefix",
     "register_entry_provider",

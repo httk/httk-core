@@ -25,12 +25,20 @@ construction — no floating point is used anywhere in the computation.
 
 Two output domains are supported, selected by a single documented rule. All scalar functions also
 accept ``ScalarLike`` and ``VectorLike`` inputs. Vectors are mapped elementwise and retain their
-shape: Fraction mode returns a ``FracVector``, while Decimal mode returns nested Decimal tuples.
-The entire vector is promoted when any leaf is Decimal or ``digits=`` is passed.
+shape. The optional keyword-only ``coerce=`` presents the natural result through a requested view
+or value type; ``coerce="natural"`` returns the pre-presentation result unchanged. By default,
+presentation is view-neutral and best-effort: ordinary inputs are presented in the input type
+family, while strings, bools, and ``Backend`` inputs retain the natural result. Explicit coercion
+is strict. ``exact=True`` keeps its exact SurdScalar/SurdVector result unless an explicit
+``coerce=`` is supplied.
 
-    The result is a :class:`decimal.Decimal` iff any numeric input is a Decimal OR ``digits=``
-    is passed; Fraction/int/str inputs otherwise get today's exact Fraction behavior with
-    ``prec``/``limit`` semantics.
+The default presentation therefore returns an ``int`` for an integral integer result, an exact
+``Fraction`` for non-integral integer results, a ``float`` for float inputs (and explicit
+``coerce=float`` is lossy), nested lists for list inputs, native tuple views for tuple inputs, and
+float64 numpy views for numpy inputs. Numpy view values are lossy, but the exact result remains
+recoverable with ``unwrap()``. The existing Decimal domain is retained for Decimal inputs or
+``digits=``. Fraction inputs remain Fractions. Surd inputs are embedded back into the Surd family
+when the natural result is rational.
 
 The exact-symbolic domain is selected by ``exact=True`` on ``sqrt`` and degree-mode trigonometric
 functions. It returns exact squarefree-radical values (or exact inverse angles), with no
@@ -63,6 +71,9 @@ import math
 from collections.abc import Callable, Iterator
 from functools import lru_cache, reduce
 from typing import Any
+
+from .views import Backend
+from .views import coerce as _view_coerce
 
 default_accuracy = fractions.Fraction(1, 10000000000)
 
@@ -1351,6 +1362,24 @@ def _is_decimal(*args: Any) -> bool:
     return any(isinstance(a, decimal.Decimal) for a in args)
 
 
+def _present(result: Any, x: Any, coerce: Any, exact: bool) -> Any:
+    """Apply the public presentation policy to a naturally computed result."""
+    if isinstance(coerce, str) and coerce == "natural":
+        return result
+    if coerce is not None:
+        return _view_coerce(result, coerce)
+    if exact:
+        return result
+    if isinstance(result, decimal.Decimal):
+        return result
+    if isinstance(x, (str, bool, Backend)):
+        return result
+    try:
+        return _view_coerce(result, type(x))
+    except TypeError:
+        return result
+
+
 def sqrt(
     x: ScalarLike | VectorLike,
     prec: fractions.Fraction = default_accuracy,
@@ -1359,6 +1388,8 @@ def sqrt(
     rounding: str = "half_even",
     max_refinements: int | None = None,
     exact: bool = False,
+    *,
+    coerce: Any = None,
 ) -> Any:
     """
     Return the square root of ``x``.
@@ -1382,19 +1413,25 @@ def sqrt(
         vector_digits = _effective_digits(digits, decimal_mode, exact)
         if not exact and decimal_mode:
             _validate_decimal_params(digits, rounding, max_refinements)
-        return _map_vector(
-            x,
-            lambda item: sqrt(
-                item,
-                prec=prec,
-                limit=limit,
-                digits=vector_digits,
-                rounding=rounding,
-                max_refinements=max_refinements,
+        return _present(
+            _map_vector(
+                x,
+                lambda item: sqrt(
+                    item,
+                    prec=prec,
+                    limit=limit,
+                    digits=vector_digits,
+                    rounding=rounding,
+                    max_refinements=max_refinements,
+                    exact=exact,
+                    coerce="natural",
+                ),
+                decimal_mode=decimal_mode,
                 exact=exact,
             ),
-            decimal_mode=decimal_mode,
-            exact=exact,
+            x,
+            coerce,
+            exact,
         )
     xf, decimal_input = _coerce(x)
     if exact:
@@ -1402,11 +1439,11 @@ def sqrt(
         from httk.core.vectors.surdvector import SurdVector
 
         _reject_genuine_surd(x)
-        return SurdVector.sqrt_of(xf)
+        return _present(SurdVector.sqrt_of(xf), x, coerce, exact)
     if digits is None and not decimal_input:
-        return _frac_sqrt(xf, prec=prec, limit=limit)
+        return _present(_frac_sqrt(xf, prec=prec, limit=limit), x, coerce, exact)
     _validate_decimal_params(digits, rounding, max_refinements)
-    return _to_decimal(lambda p: _sqrt_core(xf, p), digits, rounding, max_refinements)
+    return _present(_to_decimal(lambda p: _sqrt_core(xf, p), digits, rounding, max_refinements), x, coerce, exact)
 
 
 def cos(
@@ -1418,6 +1455,8 @@ def cos(
     rounding: str = "half_even",
     max_refinements: int | None = None,
     exact: bool = False,
+    *,
+    coerce: Any = None,
 ) -> Any:
     """
     Return the cosine of ``x`` (radians unless ``degrees`` is True). See the module docstring for
@@ -1434,28 +1473,36 @@ def cos(
         vector_digits = _effective_digits(digits, decimal_mode, exact)
         if not exact and decimal_mode:
             _validate_decimal_params(digits, rounding, max_refinements)
-        return _map_vector(
-            x,
-            lambda item: cos(
-                item,
-                prec=prec,
-                limit=limit,
-                degrees=degrees,
-                digits=vector_digits,
-                rounding=rounding,
-                max_refinements=max_refinements,
+        return _present(
+            _map_vector(
+                x,
+                lambda item: cos(
+                    item,
+                    prec=prec,
+                    limit=limit,
+                    degrees=degrees,
+                    digits=vector_digits,
+                    rounding=rounding,
+                    max_refinements=max_refinements,
+                    exact=exact,
+                    coerce="natural",
+                ),
+                decimal_mode=decimal_mode,
                 exact=exact,
             ),
-            decimal_mode=decimal_mode,
-            exact=exact,
+            x,
+            coerce,
+            exact,
         )
     xf, decimal_input = _coerce(x)
     if exact:
-        return _exact_cos(x)
+        return _present(_exact_cos(x), x, coerce, exact)
     if digits is None and not decimal_input:
-        return _frac_cos(xf, prec=prec, limit=limit, degrees=degrees)
+        return _present(_frac_cos(xf, prec=prec, limit=limit, degrees=degrees), x, coerce, exact)
     _validate_decimal_params(digits, rounding, max_refinements)
-    return _to_decimal(lambda p: _cos_core(xf, p, degrees), digits, rounding, max_refinements)
+    return _present(
+        _to_decimal(lambda p: _cos_core(xf, p, degrees), digits, rounding, max_refinements), x, coerce, exact
+    )
 
 
 def sin(
@@ -1467,6 +1514,8 @@ def sin(
     rounding: str = "half_even",
     max_refinements: int | None = None,
     exact: bool = False,
+    *,
+    coerce: Any = None,
 ) -> Any:
     """
     Return the sine of ``x`` (radians unless ``degrees`` is True). See the module docstring for the
@@ -1482,28 +1531,36 @@ def sin(
         vector_digits = _effective_digits(digits, decimal_mode, exact)
         if not exact and decimal_mode:
             _validate_decimal_params(digits, rounding, max_refinements)
-        return _map_vector(
-            x,
-            lambda item: sin(
-                item,
-                prec=prec,
-                limit=limit,
-                degrees=degrees,
-                digits=vector_digits,
-                rounding=rounding,
-                max_refinements=max_refinements,
+        return _present(
+            _map_vector(
+                x,
+                lambda item: sin(
+                    item,
+                    prec=prec,
+                    limit=limit,
+                    degrees=degrees,
+                    digits=vector_digits,
+                    rounding=rounding,
+                    max_refinements=max_refinements,
+                    exact=exact,
+                    coerce="natural",
+                ),
+                decimal_mode=decimal_mode,
                 exact=exact,
             ),
-            decimal_mode=decimal_mode,
-            exact=exact,
+            x,
+            coerce,
+            exact,
         )
     xf, decimal_input = _coerce(x)
     if exact:
-        return _exact_sin(x)
+        return _present(_exact_sin(x), x, coerce, exact)
     if digits is None and not decimal_input:
-        return _frac_sin(xf, prec=prec, limit=limit, degrees=degrees)
+        return _present(_frac_sin(xf, prec=prec, limit=limit, degrees=degrees), x, coerce, exact)
     _validate_decimal_params(digits, rounding, max_refinements)
-    return _to_decimal(lambda p: _sin_core(xf, p, degrees), digits, rounding, max_refinements)
+    return _present(
+        _to_decimal(lambda p: _sin_core(xf, p, degrees), digits, rounding, max_refinements), x, coerce, exact
+    )
 
 
 def tan(
@@ -1515,6 +1572,8 @@ def tan(
     rounding: str = "half_even",
     max_refinements: int | None = None,
     exact: bool = False,
+    *,
+    coerce: Any = None,
 ) -> Any:
     """
     Return the tangent of ``x``. See the module docstring for the type-preservation rule.
@@ -1529,28 +1588,36 @@ def tan(
         vector_digits = _effective_digits(digits, decimal_mode, exact)
         if not exact and decimal_mode:
             _validate_decimal_params(digits, rounding, max_refinements)
-        return _map_vector(
-            x,
-            lambda item: tan(
-                item,
-                degrees=degrees,
-                prec=prec,
-                limit=limit,
-                digits=vector_digits,
-                rounding=rounding,
-                max_refinements=max_refinements,
+        return _present(
+            _map_vector(
+                x,
+                lambda item: tan(
+                    item,
+                    degrees=degrees,
+                    prec=prec,
+                    limit=limit,
+                    digits=vector_digits,
+                    rounding=rounding,
+                    max_refinements=max_refinements,
+                    exact=exact,
+                    coerce="natural",
+                ),
+                decimal_mode=decimal_mode,
                 exact=exact,
             ),
-            decimal_mode=decimal_mode,
-            exact=exact,
+            x,
+            coerce,
+            exact,
         )
     xf, decimal_input = _coerce(x)
     if exact:
-        return _exact_tan(x)
+        return _present(_exact_tan(x), x, coerce, exact)
     if digits is None and not decimal_input:
-        return _frac_tan(xf, degrees=degrees, prec=prec, limit=limit)
+        return _present(_frac_tan(xf, degrees=degrees, prec=prec, limit=limit), x, coerce, exact)
     _validate_decimal_params(digits, rounding, max_refinements)
-    return _to_decimal(lambda p: _tan_core(xf, p, degrees), digits, rounding, max_refinements)
+    return _present(
+        _to_decimal(lambda p: _tan_core(xf, p, degrees), digits, rounding, max_refinements), x, coerce, exact
+    )
 
 
 def exp(
@@ -1560,6 +1627,8 @@ def exp(
     digits: int | None = None,
     rounding: str = "half_even",
     max_refinements: int | None = None,
+    *,
+    coerce: Any = None,
 ) -> Any:
     """
     Return ``e`` raised to the power ``x``. See the module docstring for the type-preservation rule.
@@ -1570,24 +1639,30 @@ def exp(
         vector_digits = _effective_digits(digits, decimal_mode, False)
         if decimal_mode:
             _validate_decimal_params(digits, rounding, max_refinements)
-        return _map_vector(
-            x,
-            lambda item: exp(
-                item,
-                prec=prec,
-                limit=limit,
-                digits=vector_digits,
-                rounding=rounding,
-                max_refinements=max_refinements,
+        return _present(
+            _map_vector(
+                x,
+                lambda item: exp(
+                    item,
+                    prec=prec,
+                    limit=limit,
+                    digits=vector_digits,
+                    rounding=rounding,
+                    max_refinements=max_refinements,
+                    coerce="natural",
+                ),
+                decimal_mode=decimal_mode,
+                exact=False,
             ),
-            decimal_mode=decimal_mode,
-            exact=False,
+            x,
+            coerce,
+            False,
         )
     xf, decimal_input = _coerce(x)
     if digits is None and not decimal_input:
-        return _frac_exp(xf, prec=prec, limit=limit)
+        return _present(_frac_exp(xf, prec=prec, limit=limit), x, coerce, False)
     _validate_decimal_params(digits, rounding, max_refinements)
-    return _to_decimal(lambda p: _exp_core(xf, p), digits, rounding, max_refinements)
+    return _present(_to_decimal(lambda p: _exp_core(xf, p), digits, rounding, max_refinements), x, coerce, False)
 
 
 def log(
@@ -1598,7 +1673,9 @@ def log(
     digits: int | None = None,
     rounding: str = "half_even",
     max_refinements: int | None = None,
-) -> fractions.Fraction | decimal.Decimal:
+    *,
+    coerce: Any = None,
+) -> Any:
     """
     Return the logarithm of ``x`` to ``base`` (natural log when ``base`` is None). See the module
     docstring for the type-preservation rule; a Decimal ``base`` also promotes the result.
@@ -1609,26 +1686,32 @@ def log(
         vector_digits = _effective_digits(digits, decimal_mode, False)
         if decimal_mode:
             _validate_decimal_params(digits, rounding, max_refinements)
-        return _map_vector(
-            x,
-            lambda item: log(
-                item,
-                base=base,
-                prec=prec,
-                limit=limit,
-                digits=vector_digits,
-                rounding=rounding,
-                max_refinements=max_refinements,
+        return _present(
+            _map_vector(
+                x,
+                lambda item: log(
+                    item,
+                    base=base,
+                    prec=prec,
+                    limit=limit,
+                    digits=vector_digits,
+                    rounding=rounding,
+                    max_refinements=max_refinements,
+                    coerce="natural",
+                ),
+                decimal_mode=decimal_mode,
+                exact=False,
             ),
-            decimal_mode=decimal_mode,
-            exact=False,
+            x,
+            coerce,
+            False,
         )
     xf, decimal_input = _coerce(x)
     basef, base_decimal = (None, False) if base is None else _coerce(base)
     if digits is None and not (decimal_input or base_decimal):
-        return _frac_log(xf, base=None if base is None else basef, prec=prec, limit=limit)
+        return _present(_frac_log(xf, base=None if base is None else basef, prec=prec, limit=limit), x, coerce, False)
     _validate_decimal_params(digits, rounding, max_refinements)
-    return _to_decimal(lambda p: _log_core(xf, basef, p), digits, rounding, max_refinements)
+    return _present(_to_decimal(lambda p: _log_core(xf, basef, p), digits, rounding, max_refinements), x, coerce, False)
 
 
 def log10(
@@ -1638,19 +1721,27 @@ def log10(
     digits: int | None = None,
     rounding: str = "half_even",
     max_refinements: int | None = None,
-) -> fractions.Fraction | decimal.Decimal:
+    *,
+    coerce: Any = None,
+) -> Any:
     """
     Return the base-10 logarithm of ``x``. See the module docstring for the type-preservation rule.
     ``max_refinements`` is honored and is forwarded to the logarithm implementation.
     """
-    return log(
+    return _present(
+        log(
+            x,
+            base=10,
+            prec=prec,
+            limit=limit,
+            digits=digits,
+            rounding=rounding,
+            max_refinements=max_refinements,
+            coerce="natural",
+        ),
         x,
-        base=10,
-        prec=prec,
-        limit=limit,
-        digits=digits,
-        rounding=rounding,
-        max_refinements=max_refinements,
+        coerce,
+        False,
     )
 
 
@@ -1663,7 +1754,9 @@ def asin(
     rounding: str = "half_even",
     max_refinements: int | None = None,
     exact: bool = False,
-) -> fractions.Fraction | int | decimal.Decimal:
+    *,
+    coerce: Any = None,
+) -> Any:
     """
     Return the arc sine of ``x`` (radians, or degrees if ``degrees``). See the module docstring for
     the type-preservation rule.
@@ -1676,28 +1769,36 @@ def asin(
         vector_digits = _effective_digits(digits, decimal_mode, exact)
         if not exact and decimal_mode:
             _validate_decimal_params(digits, rounding, max_refinements)
-        return _map_vector(
-            x,
-            lambda item: asin(
-                item,
-                degrees=degrees,
-                prec=prec,
-                limit=limit,
-                digits=vector_digits,
-                rounding=rounding,
-                max_refinements=max_refinements,
+        return _present(
+            _map_vector(
+                x,
+                lambda item: asin(
+                    item,
+                    degrees=degrees,
+                    prec=prec,
+                    limit=limit,
+                    digits=vector_digits,
+                    rounding=rounding,
+                    max_refinements=max_refinements,
+                    exact=exact,
+                    coerce="natural",
+                ),
+                decimal_mode=decimal_mode,
                 exact=exact,
             ),
-            decimal_mode=decimal_mode,
-            exact=exact,
+            x,
+            coerce,
+            exact,
         )
     xf, decimal_input = _coerce(x)
     if exact:
-        return _exact_asin(x)
+        return _present(_exact_asin(x), x, coerce, exact)
     if digits is None and not decimal_input:
-        return _frac_asin(xf, degrees=degrees, prec=prec, limit=limit)
+        return _present(_frac_asin(xf, degrees=degrees, prec=prec, limit=limit), x, coerce, exact)
     _validate_decimal_params(digits, rounding, max_refinements)
-    return _to_decimal(lambda p: _asin_core(xf, p, degrees), digits, rounding, max_refinements)
+    return _present(
+        _to_decimal(lambda p: _asin_core(xf, p, degrees), digits, rounding, max_refinements), x, coerce, exact
+    )
 
 
 def acos(
@@ -1709,7 +1810,9 @@ def acos(
     rounding: str = "half_even",
     max_refinements: int | None = None,
     exact: bool = False,
-) -> fractions.Fraction | decimal.Decimal:
+    *,
+    coerce: Any = None,
+) -> Any:
     """
     Return the arc cosine of ``x`` (radians, or degrees if ``degrees``). See the module docstring
     for the type-preservation rule.
@@ -1722,28 +1825,36 @@ def acos(
         vector_digits = _effective_digits(digits, decimal_mode, exact)
         if not exact and decimal_mode:
             _validate_decimal_params(digits, rounding, max_refinements)
-        return _map_vector(
-            x,
-            lambda item: acos(
-                item,
-                degrees=degrees,
-                prec=prec,
-                limit=limit,
-                digits=vector_digits,
-                rounding=rounding,
-                max_refinements=max_refinements,
+        return _present(
+            _map_vector(
+                x,
+                lambda item: acos(
+                    item,
+                    degrees=degrees,
+                    prec=prec,
+                    limit=limit,
+                    digits=vector_digits,
+                    rounding=rounding,
+                    max_refinements=max_refinements,
+                    exact=exact,
+                    coerce="natural",
+                ),
+                decimal_mode=decimal_mode,
                 exact=exact,
             ),
-            decimal_mode=decimal_mode,
-            exact=exact,
+            x,
+            coerce,
+            exact,
         )
     xf, decimal_input = _coerce(x)
     if exact:
-        return _exact_acos(x)
+        return _present(_exact_acos(x), x, coerce, exact)
     if digits is None and not decimal_input:
-        return _frac_acos(xf, degrees=degrees, prec=prec, limit=limit)
+        return _present(_frac_acos(xf, degrees=degrees, prec=prec, limit=limit), x, coerce, exact)
     _validate_decimal_params(digits, rounding, max_refinements)
-    return _to_decimal(lambda p: _acos_core(xf, p, degrees), digits, rounding, max_refinements)
+    return _present(
+        _to_decimal(lambda p: _acos_core(xf, p, degrees), digits, rounding, max_refinements), x, coerce, exact
+    )
 
 
 def atan(
@@ -1755,7 +1866,9 @@ def atan(
     rounding: str = "half_even",
     max_refinements: int | None = None,
     exact: bool = False,
-) -> fractions.Fraction | decimal.Decimal:
+    *,
+    coerce: Any = None,
+) -> Any:
     """
     Return the arc tangent of ``x`` (radians, or degrees if ``degrees``). See the module docstring
     for the type-preservation rule.
@@ -1768,28 +1881,36 @@ def atan(
         vector_digits = _effective_digits(digits, decimal_mode, exact)
         if not exact and decimal_mode:
             _validate_decimal_params(digits, rounding, max_refinements)
-        return _map_vector(
-            x,
-            lambda item: atan(
-                item,
-                degrees=degrees,
-                prec=prec,
-                limit=limit,
-                digits=vector_digits,
-                rounding=rounding,
-                max_refinements=max_refinements,
+        return _present(
+            _map_vector(
+                x,
+                lambda item: atan(
+                    item,
+                    degrees=degrees,
+                    prec=prec,
+                    limit=limit,
+                    digits=vector_digits,
+                    rounding=rounding,
+                    max_refinements=max_refinements,
+                    exact=exact,
+                    coerce="natural",
+                ),
+                decimal_mode=decimal_mode,
                 exact=exact,
             ),
-            decimal_mode=decimal_mode,
-            exact=exact,
+            x,
+            coerce,
+            exact,
         )
     xf, decimal_input = _coerce(x)
     if exact:
-        return _exact_atan(x)
+        return _present(_exact_atan(x), x, coerce, exact)
     if digits is None and not decimal_input:
-        return _frac_atan(xf, degrees=degrees, prec=prec, limit=limit)
+        return _present(_frac_atan(xf, degrees=degrees, prec=prec, limit=limit), x, coerce, exact)
     _validate_decimal_params(digits, rounding, max_refinements)
-    return _to_decimal(lambda p: _atan_core(xf, p, degrees), digits, rounding, max_refinements)
+    return _present(
+        _to_decimal(lambda p: _atan_core(xf, p, degrees), digits, rounding, max_refinements), x, coerce, exact
+    )
 
 
 def atan2(
@@ -1802,6 +1923,8 @@ def atan2(
     rounding: str = "half_even",
     max_refinements: int | None = None,
     exact: bool = False,
+    *,
+    coerce: Any = None,
 ) -> Any:
     """
     Return the arc tangent of ``y/x`` with :func:`math.atan2` quadrant conventions (radians, or
@@ -1818,31 +1941,39 @@ def atan2(
         vector_digits = _effective_digits(digits, decimal_mode, exact)
         if not exact and decimal_mode:
             _validate_decimal_params(digits, rounding, max_refinements)
-        return _map_binary_vector(
-            y,
-            x,
-            lambda left, right: atan2(
-                left,
-                right,
-                degrees=degrees,
-                prec=prec,
-                limit=limit,
-                digits=vector_digits,
-                rounding=rounding,
-                max_refinements=max_refinements,
+        return _present(
+            _map_binary_vector(
+                y,
+                x,
+                lambda left, right: atan2(
+                    left,
+                    right,
+                    degrees=degrees,
+                    prec=prec,
+                    limit=limit,
+                    digits=vector_digits,
+                    rounding=rounding,
+                    max_refinements=max_refinements,
+                    exact=exact,
+                    coerce="natural",
+                ),
+                decimal_mode=decimal_mode,
                 exact=exact,
             ),
-            decimal_mode=decimal_mode,
-            exact=exact,
+            y,
+            coerce,
+            exact,
         )
     yf, y_decimal = _coerce(y)
     xf, x_decimal = _coerce(x)
     if exact:
-        return _exact_atan2(y, x)
+        return _present(_exact_atan2(y, x), y, coerce, exact)
     if digits is None and not (y_decimal or x_decimal):
-        return _frac_atan2(yf, xf, degrees=degrees, prec=prec, limit=limit)
+        return _present(_frac_atan2(yf, xf, degrees=degrees, prec=prec, limit=limit), y, coerce, exact)
     _validate_decimal_params(digits, rounding, max_refinements)
-    return _to_decimal(lambda p: _atan2_core(yf, xf, p, degrees), digits, rounding, max_refinements)
+    return _present(
+        _to_decimal(lambda p: _atan2_core(yf, xf, p, degrees), digits, rounding, max_refinements), y, coerce, exact
+    )
 
 
 def pi(

@@ -22,7 +22,6 @@ on the other.
 - **Exact math on rationals and decimals**: {doc}`exactmath`
 - **Vectors guide**: {doc}`vectors`
 - **Runnable examples**: {doc}`examples/index`
-- **Examples notebook**: {doc}`notebooks/examples`
 ````
 
 ## Install
@@ -55,5 +54,4 @@ optimade_definitions
 vectors
 exactmath
 examples/index
-notebooks/examples
 ```

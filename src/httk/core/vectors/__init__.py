@@ -24,6 +24,10 @@ The exact-math helpers live in :mod:`httk.core.exactmath` (type-preserving exact
 on Fraction and Decimal) and :mod:`httk.core.vectors.vectormath` (functional math wrappers).
 """
 
+from typing import Any
+
+from httk.core.views import register_coercer, view_class_coercer
+
 from .fracvector import FracScalar, FracVector
 from .leaf_codecs import LeafCodec, known_leaf_codecs, register_leaf_codec
 from .mutablefracvector import MutableFracVector
@@ -45,15 +49,88 @@ from .vector_view import VectorView
 # class-definition time, so it cannot even be imported without numpy; guard both together.
 # Native is registered last since it is the broadest match; the numpy backend is registered only
 # when numpy is available. Dispatch is otherwise disambiguated by an optional kind= hint.
+_numpy_view_class: type[Any] | None = None
 try:
     from .vector_numpy import VectorNumpy
     from .vector_numpy_view import VectorNumpyView
 
     _numpy_available = True
+    _numpy_view_class = VectorNumpyView
     VectorBackend.backend_classes = [VectorFrac, VectorSurd, VectorNumpy, VectorNative]
 except ImportError:
     _numpy_available = False
     VectorBackend.backend_classes = [VectorFrac, VectorSurd, VectorNative]
+
+
+def _vector_scalar_coercer(value, target):
+    """Coerce vector-family scalars and containers through the exact Fraction hub.
+
+    ``int`` uses the exact leaf rule (integral values become ``int``, otherwise an exact
+    ``Fraction``), ``float`` is the explicitly lossy float codec, ``Fraction`` is exact, and
+    ``Decimal`` is exact for finite decimal expansions and context-quantized otherwise. FracScalar
+    and SurdScalar preserve exact rational values. Genuine irrational surds are not approximated
+    for ``int``, ``Fraction``, or ``FracScalar``; unsupported reductions return ``None``.
+    Lists are mutable copies of a native view, never mutable views themselves.
+    """
+    import decimal
+    import fractions
+
+    from .fracvector import FracScalar, FracVector
+    from .leaf_codecs import leaf_codec_for_name
+    from .surdvector import SurdScalar, SurdVector
+    from .vector_native_view import VectorNativeView
+
+    if target is list:
+        source = [value] if isinstance(value, (int, float, fractions.Fraction, decimal.Decimal)) else value
+        try:
+            native = VectorNativeView(source)
+        except (TypeError, ValueError, OverflowError):
+            return None
+
+        def lists(node):
+            return [lists(item) for item in node] if isinstance(node, tuple) else node
+
+        return lists(native)
+
+    scalar_targets = (int, float, fractions.Fraction, decimal.Decimal, FracScalar, SurdScalar)
+    if target not in scalar_targets or isinstance(value, bool):
+        return None
+    if (
+        not isinstance(value, (int, float, fractions.Fraction, decimal.Decimal, FracVector, SurdVector))
+        and getattr(value, "dim", None) != ()
+    ):
+        return None
+    if isinstance(value, SurdVector) and value.dim == () and not value.is_rational:
+        if target is SurdScalar:
+            return value._as_scalar()
+        if target in (int, fractions.Fraction, FracScalar):
+            return None
+
+    try:
+        from httk.core import exactmath
+
+        fraction = exactmath._coerce(value)[0]
+    except (TypeError, ValueError, OverflowError):
+        return None
+    if target is int:
+        return leaf_codec_for_name("exact").from_fraction(fraction)
+    if target is float:
+        return leaf_codec_for_name("float").from_fraction(fraction)
+    if target is fractions.Fraction:
+        return leaf_codec_for_name("fraction").from_fraction(fraction)
+    if target is decimal.Decimal:
+        return leaf_codec_for_name("decimal").from_fraction(fraction)
+    if target is FracScalar:
+        return FracScalar.create(fraction)
+    return SurdVector.create(fraction)._as_scalar()
+
+
+_view_classes = [VectorFracView, VectorSurdView]
+if _numpy_view_class is not None:
+    _view_classes.append(_numpy_view_class)
+_view_classes.append(VectorNativeView)
+register_coercer(view_class_coercer(_view_classes))
+register_coercer(_vector_scalar_coercer)
 
 __all__ = [
     "FracScalar",
