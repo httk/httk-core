@@ -117,5 +117,5 @@ explicit_package_bases = true
 warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
-module = ["yaml", "markdown", "docutils", "docutils.*"]
+module = ["yaml", "markdown", "docutils", "docutils.*", "sphinx", "sphinx.*"]
 ignore_missing_imports = true
