@@ -119,9 +119,8 @@ def register_format_adapter(
 def known_format_adapters() -> dict[str, str]:
     """Return format tags mapped to their registered adapter names."""
     known: dict[str, str] = {}
-    for format_tag in format_adapters.keys():
-        spec = format_adapters.get(format_tag)
-        if spec is not None and spec.name is not None:
+    for format_tag, spec in sorted(format_adapters.items()):
+        if spec.name is not None:
             known[format_tag] = spec.name
     return known
 

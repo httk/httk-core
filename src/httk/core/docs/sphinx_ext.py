@@ -29,7 +29,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Literal
 
-from .config import ConfigError, VersioningConfig, load_versioning_config
+from .config import VersioningConfig, load_versioning_config
 from .inventories import InventoryError, fetch_inventory, read_inventory_header
 from .lockfile import LockError, read_lock_pins
 from .release import dependency_doc_targets
@@ -186,10 +186,7 @@ def _rewrite_internal_mappings(app: object, _config: object) -> None:
     root, docs_dir, versioning_path = _project_versioning_paths(app)
     if not versioning_path.is_file():
         return
-    try:
-        config = load_versioning_config(versioning_path)
-    except ConfigError:
-        raise
+    config = load_versioning_config(versioning_path)
     if not config.internal_dependencies:
         return
 
@@ -245,7 +242,7 @@ def setup(app: object) -> dict[str, object]:
 
     # This is the sanctioned optional edge: importing this module remains
     # possible in the stdlib-only lock and release tooling.
-    from sphinx.application import (  # noqa: F401  # pyright: ignore[reportMissingImports]
+    from sphinx.application import (  # pyright: ignore[reportMissingImports]
         Sphinx,
     )
 

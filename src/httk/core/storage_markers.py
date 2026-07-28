@@ -51,15 +51,15 @@ from dataclasses import dataclass
 from typing import Final, Literal
 
 __all__ = [
+    "STORAGE_INFO_ATTRIBUTE",
+    "DedupPolicy",
     "Indexed",
-    "Unique",
-    "Skip",
-    "Shape",
     "Related",
     "RelationshipLink",
-    "DedupPolicy",
+    "Shape",
+    "Skip",
     "StorageInfo",
-    "STORAGE_INFO_ATTRIBUTE",
+    "Unique",
     "stored_property",
 ]
 

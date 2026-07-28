@@ -274,15 +274,11 @@ def list_set_slice(seq: Any, key: tuple[Any, ...], values: Any) -> None:
         list_set_slice(seq[key[0]], key[1:], values)
     elif isinstance(key[0], slice):
         idxs = key[0].indices(len(seq))
-        i = 0
-        for idx in range(*idxs):
+        for i, idx in enumerate(range(*idxs)):
             list_set_slice(seq[idx], key[1:], values[i])
-            i += 1
     else:
-        i = 0
-        for idx in key[0]:
+        for i, idx in enumerate(key[0]):
             list_set_slice(seq[idx], key[1:], values[i])
-            i += 1
 
 
 def inmap(f: Callable[[Any], Any], x: Any) -> None:

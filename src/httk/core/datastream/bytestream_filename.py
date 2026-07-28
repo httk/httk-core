@@ -38,7 +38,7 @@ class BytestreamFilename(BytestreamCommon, BytestreamBackend):
         if self._closed:
             raise ValueError("I/O operation on closed stream")
         if self._f is None:
-            raw = open(self._filename, "rb")
+            raw = open(self._filename, "rb")  # noqa: SIM115  # handle escapes to backend and is closed by close()
             opened = open_compressed(raw, compression=self._compression, name=self._filename)
             self._underlying = raw if opened is not raw else None
             self._f = opened

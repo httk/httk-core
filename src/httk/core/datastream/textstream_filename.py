@@ -40,7 +40,7 @@ class TextstreamFilename(TextstreamCommon, TextstreamBackend):
         if self._closed:
             raise ValueError("I/O operation on closed stream")
         if self._f is None:
-            raw = open(self._filename, "rb")
+            raw = open(self._filename, "rb")  # noqa: SIM115  # handle escapes to backend and is closed by close()
             decompressed = open_compressed(raw, compression=self._compression, name=self._filename)
             self._underlying = raw if decompressed is not raw else None
             self._f = io.TextIOWrapper(cast(io.BufferedReader, decompressed), encoding=self._encoding or "utf-8")

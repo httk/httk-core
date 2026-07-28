@@ -364,8 +364,6 @@ class ParserSyntaxError(ParserError):
         self.pos = args[3]
         self.linestr = args[4]
 
-    pass
-
 
 #### Helpers to assist logging and debugging
 
@@ -384,10 +382,7 @@ def logger(*args: Any, **kargs: Any) -> None:
          keyword flags. These are:
          pretty=True: formats the output using pprint.pprint(arg).
     """
-    if 'pretty' in kargs:
-        pretty = kargs['pretty']
-    else:
-        pretty = False
+    pretty = kargs.get('pretty', False)
 
     for i in range(len(args)):
         if pretty:
@@ -439,8 +434,8 @@ class LogVerbosity:
         """
         self.verbosity = verbosity
         self.flags = flags
-        for flag in flags:
-            setattr(self, flag, flags[flag])
+        for flag, value in flags.items():
+            setattr(self, flag, value)
 
     def _get_verbosity(self, caller: str) -> int:
         if hasattr(self, caller + "_verbosity"):
@@ -653,16 +648,14 @@ def split_chars_strip_comments(
     # Speed things up if there are no comment markers
     if len(comment_markers) == 0:
         lineno = 0
-        for line in source.splitlines(True):
-            lineno += 1
+        for lineno, line in enumerate(source.splitlines(True), 1):
             p = 0
-            for c in line:
-                p += 1
+            for p, c in enumerate(line, 1):
                 yield c, (lineno, p, line.rstrip('\n'))
         return
 
     comment_start_markers = [x[0] for x in comment_markers]
-    comments_dict = dict([(x[0], x[1]) for x in comment_markers])
+    comments_dict = {x[0]: x[1] for x in comment_markers}
     comment_end_marker: str | None = None
     lineno = 0
 
@@ -671,7 +664,7 @@ def split_chars_strip_comments(
         p = 0
         sline = line.rstrip('\n')
         # We are not in a comment, and no comment start marker is found, just keep going
-        if comment_end_marker is None and not any([line.find(x) != -1 for x in comment_start_markers]):
+        if comment_end_marker is None and not any(line.find(x) != -1 for x in comment_start_markers):
             for c in line:
                 p += 1
                 pos = (lineno, p, sline)
@@ -716,7 +709,7 @@ def lexer(
     partial_tokens: dict[str, str],
     literals: set[str],
     ignore: set[str],
-    comment_markers: list[tuple[str, str]] = [],
+    comment_markers: list[tuple[str, str]] | None = None,
     verbosity: int | LogVerbosity = 0,
     logger: Callable[..., Any] = logger,
 ) -> Iterator[tuple[Any, Any, Any]]:
@@ -741,6 +734,8 @@ def lexer(
                      to be treated as literals.
 
     """
+    comment_markers = [] if comment_markers is None else comment_markers
+
     seen_token: str | None
     seen_token_pos: tuple[int, int, str] | None
     seen_token_len: int | None
@@ -748,14 +743,14 @@ def lexer(
     last_good_pos: tuple[int, int, str] = (0, 0, "")
     last_good_pos_next: tuple[int, int, str] | None = (0, 0, "")
 
-    token_regexes = dict([(x, re.compile("(" + tokens[x] + r')\Z')) for x in tokens.keys()])
-    partial_token_regexes = dict([(x, re.compile("(" + partial_tokens[x] + r')\Z')) for x in partial_tokens.keys()])
+    token_regexes = {x: re.compile("(" + tokens[x] + r')\Z') for x in tokens}
+    partial_token_regexes = {x: re.compile("(" + partial_tokens[x] + r')\Z') for x in partial_tokens}
 
     # Preserve order in all_token_regexes, because otherwise the lexer is not deterministic between runs
     # if multiple tokens maches the same input, which makes debugging painful
     # all_token_regexes = set(tokens.keys()) | set(partial_tokens.keys())
     all_token_regexes = list(tokens.keys())
-    all_token_regexes += [x for x in partial_tokens.keys() if x not in all_token_regexes]
+    all_token_regexes += [x for x in partial_tokens if x not in all_token_regexes]
 
     prescan = iter(split_chars_strip_comments(source, comment_markers))
     pushback = ""
@@ -845,17 +840,17 @@ def lexer(
 
 def build_ls(
     ebnf_grammar: str | None = None,
-    tokens: dict[str, str] = {},
-    partial_tokens: dict[str, str] = {},
+    tokens: dict[str, str] | None = None,
+    partial_tokens: dict[str, str] | None = None,
     literals: Iterable[str] | None = None,
-    precedence: Sequence[tuple[str, ...]] = [],
+    precedence: Sequence[tuple[str, ...]] | None = None,
     ignore: str | Iterable[str] = " \t\n",
-    simplify: list[str] = [],
-    aggregate: list[str] = [],
+    simplify: list[str] | None = None,
+    aggregate: list[str] | None = None,
     start: str | None = None,
-    skip: list[str] = [],
-    remove: list[str] = [],
-    comment_markers: list[tuple[str, str]] = [],
+    skip: list[str] | None = None,
+    remove: list[str] | None = None,
+    comment_markers: list[tuple[str, str]] | None = None,
     ls: LanguageSpec | None = None,
     verbosity: int | LogVerbosity = 0,
     logger: Callable[..., Any] = logger,
@@ -914,6 +909,15 @@ def build_ls(
              As an alternative to giving the above parameters, a dict can
              be given with the same attributes as the arguments defined above.
     """
+    tokens = {} if tokens is None else tokens
+    partial_tokens = {} if partial_tokens is None else partial_tokens
+    precedence = () if precedence is None else precedence
+    simplify = [] if simplify is None else simplify
+    aggregate = [] if aggregate is None else aggregate
+    skip = [] if skip is None else skip
+    remove = [] if remove is None else remove
+    comment_markers = [] if comment_markers is None else comment_markers
+
     _ls: LanguageSpec = {
         'ebnf_grammar': ebnf_grammar,
         'tokens': tokens,
@@ -1063,14 +1067,14 @@ def _build_first_table(
     lastcount = 0
 
     for terminal in terminals:
-        first[terminal] = set([terminal])
+        first[terminal] = {terminal}
     for symbol in rule_table:
         first[symbol] = set()
 
     while True:
         count = 0
-        for symbol in rule_table:
-            for rhs_alts in rule_table[symbol]:
+        for symbol, rhs_alts_list in rule_table.items():
+            for rhs_alts in rhs_alts_list:
                 if len(rhs_alts) > 0:
                     first[symbol].update(first[rhs_alts[0]])
             count += len(first[symbol])
@@ -1229,10 +1233,10 @@ def _build_parse_tables(
         action_table[state] = {}
         goto_table[state] = {}
 
-        for symbol in itemdict:
+        for symbol, items in itemdict.items():
             new_state_items: set[tuple[Any, ...]] = set()
 
-            for item in itemdict[symbol]:
+            for item in items:
                 lhs = item[0]
                 pos = item[3]
                 rhs = item[1]
@@ -1305,9 +1309,9 @@ def _build_parse_tables(
                     goto_table[state][symbol] = new_state
                 todo.append(new_cl)
 
-    for warning in warnings:
+    for warning, warning_rules in warnings.items():
         logger("WARNING: shift/reduce conflict solved by shift for symbol:'" + str(warning) + "', involving rules:")
-        logger(warnings[warning], pretty=True)
+        logger(warning_rules, pretty=True)
 
     return parse_table
 
@@ -1378,7 +1382,7 @@ def _ebnf_to_bnf_rhs(
         new_rhs = _ebnf_to_bnf_rhs(rhs[1], bnf_grammar_ast, lhs_name=lhs_name, recursion=recursion + 1)
         for nr in new_rhs:
             bnf_grammar_ast += [tuple([repstr] + [tuple(list(nr) + [repstr])])]
-            bnf_grammar_ast += [tuple([repstr] + [tuple(list(nr))])]
+            bnf_grammar_ast += [tuple([repstr] + [tuple(nr)])]
         return [(repstr,), ()]
     else:
         raise ParserGrammarError("Parser grammar error: unrecognized symbol in grammar ast:" + str(op))

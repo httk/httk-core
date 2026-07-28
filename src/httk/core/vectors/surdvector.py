@@ -543,7 +543,7 @@ class SurdVector:
 
     #### Equality / hashing / display
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         coerced = self._coerce(other)
         if coerced is None:
             return NotImplemented
@@ -553,7 +553,7 @@ class SurdVector:
             return False
         return all(self._components[r] == coerced._components[r] for r in self._components)
 
-    def __ne__(self, other: Any) -> bool:
+    def __ne__(self, other: object) -> bool:
         result = self.__eq__(other)
         if result is NotImplemented:
             return result

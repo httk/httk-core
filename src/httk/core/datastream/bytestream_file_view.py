@@ -1,5 +1,6 @@
 import io
-from typing import Any, Iterator, NoReturn, Self
+from collections.abc import Iterator
+from typing import Any, NoReturn, Self
 
 from ..views import unwrap
 from .bytestream_api import BytestreamAPI

@@ -99,13 +99,13 @@ class MutableFracVector(FracVector):
             return MutableFracVector.create(old)
         try:
             return old.to_MutableFracVector()
-        except Exception:
+        except Exception:  # noqa: S110  # conversion probe intentionally ignores failures
             pass
         # Note: the legacy fast path via to_FracVector() was dead code (it always fell through
         # to create); this preserves that observable behavior.
         try:
             old.to_FracVector()
-        except Exception:
+        except Exception:  # noqa: S110  # legacy conversion probe intentionally ignores failures
             pass
         return cls.create(old)
 

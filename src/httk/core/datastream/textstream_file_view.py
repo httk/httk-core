@@ -1,5 +1,6 @@
 import io
-from typing import Any, Iterator, NoReturn, Self
+from collections.abc import Iterator
+from typing import Any, NoReturn, Self
 
 from ..views import unwrap
 from .textstream_api import TextstreamAPI
@@ -178,7 +179,7 @@ class TextstreamFileView(TextstreamView, io.TextIOBase, TextstreamAPI):
     def tell(self) -> int:
         if self.closed:
             raise ValueError("I/O operation on closed file.")
-        tell = getattr(self._backend, "tell")
+        tell = getattr(self._backend, "tell")  # noqa: B009  # tell is an optional dynamic backend capability
         if not tell:
             raise io.UnsupportedOperation("underlying stream does not support tell()")
 

@@ -242,85 +242,37 @@ class FracVector:
                     break
 
         # Creates a tuple of tuples of Fraction
-        if max_denom is not None:
-            if max_denom <= common_denom:
-                # Round nominators to correspond to the desired max_denom.
-                ratio = max_denom / common_denom
-                if depth == 2:
-                    noms = tuple(
-                        map(
-                            lambda sub_ls: tuple(
-                                map(
-                                    lambda integer: int(round(integer * ratio, 0)),
-                                    sub_ls,
-                                )
-                            ),
-                            noms,
-                        )
-                    )
-                elif depth == 3:
-                    noms = tuple(
-                        map(
-                            lambda sub_ls: tuple(
-                                map(
-                                    lambda sub_sub_ls: tuple(
-                                        map(
-                                            lambda integer: int(round(integer * ratio, 0)),
-                                            sub_sub_ls,
-                                        )
-                                    ),
-                                    sub_ls,
-                                )
-                            ),
-                            noms,
-                        )
-                    )
-                common_denom = max_denom
+        if max_denom is not None and max_denom <= common_denom:
+            # Round nominators to correspond to the desired max_denom.
+            ratio = max_denom / common_denom
+            if depth == 2:
+                noms = tuple(tuple(int(round(integer * ratio, 0)) for integer in sub_ls) for sub_ls in noms)
+            elif depth == 3:
+                noms = tuple(
+                    tuple(tuple(int(round(integer * ratio, 0)) for integer in sub_sub_ls) for sub_sub_ls in sub_ls)
+                    for sub_ls in noms
+                )
+            common_denom = max_denom
 
         # noms is list of lists
         fracnoms: Any
         lcd: Any
         v_noms: Any
         if depth == 2:
-            fracnoms = tuple(
-                map(
-                    lambda sub_ls: tuple(
-                        map(
-                            lambda integer: fractions.Fraction(integer, common_denom),
-                            sub_ls,
-                        )
-                    ),
-                    noms,
-                )
-            )
+            fracnoms = tuple(tuple(fractions.Fraction(integer, common_denom) for integer in sub_ls) for sub_ls in noms)
             lcd = reduce(
                 lambda sub_ls1, sub_ls2: reduce(lambda frac1, frac2: getlcd(frac1, frac2), sub_ls2, sub_ls1),
                 fracnoms,
                 1,
             )
-            v_noms = tuple(
-                map(
-                    lambda sub_ls: tuple(map(lambda frac: (frac * lcd).numerator, sub_ls)),
-                    fracnoms,
-                )
-            )
+            v_noms = tuple(tuple((frac * lcd).numerator for frac in sub_ls) for sub_ls in fracnoms)
 
         elif depth == 3:
             fracnoms = tuple(
-                map(
-                    lambda sub_ls: tuple(
-                        map(
-                            lambda sub_sub_ls: tuple(
-                                map(
-                                    lambda integer: fractions.Fraction(integer, common_denom),
-                                    sub_sub_ls,
-                                )
-                            ),
-                            sub_ls,
-                        )
-                    ),
-                    noms,
+                tuple(
+                    tuple(fractions.Fraction(integer, common_denom) for integer in sub_sub_ls) for sub_sub_ls in sub_ls
                 )
+                for sub_ls in noms
             )
             lcd = reduce(
                 lambda sub_ls1, sub_ls2: reduce(
@@ -336,15 +288,8 @@ class FracVector:
                 1,
             )
             v_noms = tuple(
-                map(
-                    lambda sub_ls: tuple(
-                        map(
-                            lambda sub_sub_ls: tuple(map(lambda frac: (frac * lcd).numerator, sub_sub_ls)),
-                            sub_ls,
-                        )
-                    ),
-                    fracnoms,
-                )
+                tuple(tuple((frac * lcd).numerator for frac in sub_sub_ls) for sub_sub_ls in sub_ls)
+                for sub_ls in fracnoms
             )
 
         else:
@@ -1515,12 +1460,13 @@ class FracVector:
     def __abs__(self) -> Self:
         return self.__class__(self._map_over_noms(operator.abs), self.denom)
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         """
         Important: the == operator between FracVectors tests for numerical equality. (I.e.,
         numerically equal FracVectors with different denoms are still equal.)
         """
         # Note: somewhat optimized for speed
+        other = cast(FracVector, other)
         try:
             if self.denom == other.denom:
                 return _noms_equal(self.noms, other.noms)
@@ -1543,7 +1489,7 @@ class FracVector:
             A, B, _ = self.set_common_denom(self, other)
             return _noms_equal(A.noms, B.noms)
 
-    def __ne__(self, other: Any) -> bool:
+    def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
     def __lt__(self, other: Any) -> bool:

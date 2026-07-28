@@ -33,7 +33,7 @@ from typing import Any
 from . import _miniparser
 from ._miniparser import ParserError, ParserInternalError, ParserSyntaxError
 
-__all__ = ["parse_optimade_filter", "parse_optimade_filter_raw", "ParserError", "ParserSyntaxError", "FilterAst"]
+__all__ = ["FilterAst", "ParserError", "ParserSyntaxError", "parse_optimade_filter", "parse_optimade_filter_raw"]
 
 type FilterAst = tuple[Any, ...]
 

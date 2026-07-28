@@ -53,12 +53,12 @@ from .parser import (
 )
 
 __all__ = [
-    "parse_optimade_filter",
-    "parse_optimade_filter_raw",
-    "optimade_parse_tree_to_ojf",
     "FilterAst",
     "ParserError",
-    "ParserSyntaxError",
     "ParserGrammarError",
     "ParserInternalError",
+    "ParserSyntaxError",
+    "optimade_parse_tree_to_ojf",
+    "parse_optimade_filter",
+    "parse_optimade_filter_raw",
 ]

@@ -52,7 +52,7 @@ import copy
 import json
 import re
 from collections.abc import Mapping
-from functools import lru_cache
+from functools import cache
 from importlib.resources import files
 from typing import Any, Self
 
@@ -466,7 +466,7 @@ class EntryTypeDefinition:
     :meth:`~httk.core.EntryProvider.property_keys`).
     """
 
-    __slots__ = ("_name", "_description", "_properties")
+    __slots__ = ("_description", "_name", "_properties")
 
     def __init__(self, name: str, description: str, properties: Mapping[str, PropertyDefinition]) -> None:
         self._name = name
@@ -557,7 +557,7 @@ class EntryTypeDefinition:
         return f"EntryTypeDefinition(name={self._name!r}, properties={list(self._properties)!r})"
 
 
-@lru_cache(maxsize=None)
+@cache
 def load_entry_type_definition(package: str, name: str) -> EntryTypeDefinition:
     """Load a vendored OPTIMADE entry-type definition JSON from a package.
 

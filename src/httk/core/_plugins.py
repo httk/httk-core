@@ -15,9 +15,10 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from importlib import import_module
-from typing import Any, Callable
+from typing import Any
 
 CallableRef = str | Callable[..., Any]
 
@@ -78,6 +79,9 @@ class PluginRegistry:
 
     def keys(self) -> list[str]:
         return sorted(self._by_key.keys())
+
+    def items(self):
+        return self._by_key.items()
 
     def get(self, key: str) -> PluginSpec | None:
         return self._by_key.get(key)

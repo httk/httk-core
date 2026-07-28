@@ -17,7 +17,7 @@ carried. This module is about what the source said; that one is about what we co
 
 import fractions
 import re
-from typing import Iterable
+from collections.abc import Iterable
 
 __all__ = ["combined_precision", "decimal_precision"]
 

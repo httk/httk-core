@@ -66,10 +66,10 @@ from typing import Any
 
 default_accuracy = fractions.Fraction(1, 10000000000)
 
-from .vectors.scalar_like import (  # noqa: E402  # required during vector import cycle
+from .vectors.scalar_like import (  # required during vector import cycle
     ScalarLike,
 )
-from .vectors.vector_like import (  # noqa: E402  # required during vector import cycle
+from .vectors.vector_like import (  # required during vector import cycle
     VectorLike,
 )
 
