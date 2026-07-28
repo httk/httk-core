@@ -344,7 +344,7 @@ def atan(x: Any, **args: Any) -> Any:
 def atan2(y: Any, x: Any, **args: Any) -> Any:
     """
     Return atan(y / x), in radians, with the standard ``atan2(y, x)`` argument order
-    used by :func:`math.atan2`, numpy, and :func:`httk.core.vectors.exactmath.atan2`.
+    used by :func:`math.atan2`, numpy, and :func:`httk.core.exactmath.atan2`.
     The result is between -pi and pi. The point of atan2() is that the signs of both
     inputs are known to it, so it can compute the correct quadrant for the angle.
 

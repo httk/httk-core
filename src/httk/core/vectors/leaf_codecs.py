@@ -24,7 +24,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-from httk.core.vectors.exactmath import _finite_decimal_expansion
+from httk.core import exactmath
 
 
 @dataclass(frozen=True)
@@ -176,8 +176,8 @@ def _decimal_from_fraction(value: fractions.Fraction, digits: int | None = None)
     even. Never raises on data.
     """
     # The finite-expansion (2**a * 5**b) detection and exact construction is shared with the
-    # exact-math module (:func:`httk.core.vectors.exactmath._finite_decimal_expansion`).
-    finite = _finite_decimal_expansion(value)
+    # exact-math module (:func:`httk.core.exactmath._finite_decimal_expansion`).
+    finite = exactmath._finite_decimal_expansion(value)
     if finite is not None:
         return finite
     precision = decimal.getcontext().prec if digits is None else digits

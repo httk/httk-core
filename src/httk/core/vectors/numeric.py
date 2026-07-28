@@ -27,9 +27,9 @@ container type, dtype, or leaf codec.
 import fractions
 from typing import TYPE_CHECKING, Any
 
+from httk.core import exactmath
 from httk.core.views import unwrap
 
-from .exactmath import any_to_fraction
 from .fracvector import FracVector
 from .surdvector import SurdScalar, SurdVector
 from .vector_backend import VectorBackend
@@ -73,7 +73,7 @@ def to_numeric_scalar(obj: Any) -> float:
     :class:`~httk.core.vectors.surdvector.SurdVector`) and a scalar
     :class:`~httk.core.vectors.fracvector.FracVector` render through their own exact
     ``to_float()``; a :class:`~fractions.Fraction`, ``int``, ``float``, or numeric ``str`` render via
-    :func:`~httk.core.vectors.exactmath.any_to_fraction`. A non-scalar shape raises
+    :func:`~httk.core.exactmath.any_to_fraction`. A non-scalar shape raises
     :class:`TypeError`.
 
     Unlike :func:`to_numeric`, this needs **no numpy**: a plain ``float`` conversion has no numpy
@@ -90,7 +90,7 @@ def to_numeric_scalar(obj: Any) -> float:
             raise TypeError(f"to_numeric_scalar: expected a scalar, got a FracVector of shape {obj.dim}")
         return obj.to_float()
     if isinstance(obj, (bool, int, float, str, fractions.Fraction)):
-        return float(any_to_fraction(obj))
+        return float(exactmath.any_to_fraction(obj))
     raise TypeError(f"to_numeric_scalar: cannot convert {type(obj).__name__} to a scalar float")
 
 

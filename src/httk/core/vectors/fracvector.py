@@ -28,7 +28,7 @@ from functools import reduce
 from math import gcd as calc_gcd
 from typing import Any, ClassVar, Self, cast
 
-from httk.core.vectors import exactmath
+from httk.core import exactmath
 from httk.core.vectors._nested import (
     nested_map_fractions_tuple,
     nested_map_list,
@@ -41,11 +41,6 @@ from httk.core.vectors._nested import (
     tuple_random,
     tuple_slice,
     tuple_zeros,
-)
-from httk.core.vectors.exactmath import (
-    any_to_fraction,
-    best_rational_in_interval,
-    string_to_val_and_delta,
 )
 
 # The nested nominator structure is recursive: either a bare integer (a scalar) or a
@@ -192,7 +187,7 @@ class FracVector:
         def getnumerators(x: Any) -> Any:
             return (x * lcd).numerator
 
-        fracnoms = cls.nested_map_fractions(lambda x: any_to_fraction(x, min_accuracy=min_accuracy), noms)
+        fracnoms = cls.nested_map_fractions(lambda x: exactmath.any_to_fraction(x, min_accuracy=min_accuracy), noms)
 
         lcd = nested_reduce_fractions(lambda x, y: getlcd(x, y), fracnoms, initializer=1)
         v_noms = cls.nested_map_fractions(lambda x: getnumerators(x), fracnoms)
@@ -253,7 +248,15 @@ class FracVector:
                 ratio = max_denom / common_denom
                 if depth == 2:
                     noms = tuple(
-                        map(lambda sub_ls: tuple(map(lambda integer: int(round(integer * ratio, 0)), sub_ls)), noms)
+                        map(
+                            lambda sub_ls: tuple(
+                                map(
+                                    lambda integer: int(round(integer * ratio, 0)),
+                                    sub_ls,
+                                )
+                            ),
+                            noms,
+                        )
                     )
                 elif depth == 3:
                     noms = tuple(
@@ -261,7 +264,10 @@ class FracVector:
                             lambda sub_ls: tuple(
                                 map(
                                     lambda sub_sub_ls: tuple(
-                                        map(lambda integer: int(round(integer * ratio, 0)), sub_sub_ls)
+                                        map(
+                                            lambda integer: int(round(integer * ratio, 0)),
+                                            sub_sub_ls,
+                                        )
                                     ),
                                     sub_ls,
                                 )
@@ -277,14 +283,27 @@ class FracVector:
         v_noms: Any
         if depth == 2:
             fracnoms = tuple(
-                map(lambda sub_ls: tuple(map(lambda integer: fractions.Fraction(integer, common_denom), sub_ls)), noms)
+                map(
+                    lambda sub_ls: tuple(
+                        map(
+                            lambda integer: fractions.Fraction(integer, common_denom),
+                            sub_ls,
+                        )
+                    ),
+                    noms,
+                )
             )
             lcd = reduce(
                 lambda sub_ls1, sub_ls2: reduce(lambda frac1, frac2: getlcd(frac1, frac2), sub_ls2, sub_ls1),
                 fracnoms,
                 1,
             )
-            v_noms = tuple(map(lambda sub_ls: tuple(map(lambda frac: (frac * lcd).numerator, sub_ls)), fracnoms))
+            v_noms = tuple(
+                map(
+                    lambda sub_ls: tuple(map(lambda frac: (frac * lcd).numerator, sub_ls)),
+                    fracnoms,
+                )
+            )
 
         elif depth == 3:
             fracnoms = tuple(
@@ -292,7 +311,10 @@ class FracVector:
                     lambda sub_ls: tuple(
                         map(
                             lambda sub_sub_ls: tuple(
-                                map(lambda integer: fractions.Fraction(integer, common_denom), sub_sub_ls)
+                                map(
+                                    lambda integer: fractions.Fraction(integer, common_denom),
+                                    sub_sub_ls,
+                                )
                             ),
                             sub_ls,
                         )
@@ -303,7 +325,9 @@ class FracVector:
             lcd = reduce(
                 lambda sub_ls1, sub_ls2: reduce(
                     lambda sub_sub_ls1, sub_sub_ls2: reduce(
-                        lambda frac1, frac2: getlcd(frac1, frac2), sub_sub_ls2, sub_sub_ls1
+                        lambda frac1, frac2: getlcd(frac1, frac2),
+                        sub_sub_ls2,
+                        sub_sub_ls1,
                     ),
                     sub_ls2,
                     sub_ls1,
@@ -314,7 +338,10 @@ class FracVector:
             v_noms = tuple(
                 map(
                     lambda sub_ls: tuple(
-                        map(lambda sub_sub_ls: tuple(map(lambda frac: (frac * lcd).numerator, sub_sub_ls)), sub_ls)
+                        map(
+                            lambda sub_sub_ls: tuple(map(lambda frac: (frac * lcd).numerator, sub_sub_ls)),
+                            sub_ls,
+                        )
                     ),
                     fracnoms,
                 )
@@ -434,7 +461,13 @@ class FracVector:
         return cls.create(tuple_zeros(dims))
 
     @classmethod
-    def random(cls, dims: tuple[int, ...], minnom: int = -100, maxnom: int = 100, denom: int = 100) -> Self:
+    def random(
+        cls,
+        dims: tuple[int, ...],
+        minnom: int = -100,
+        maxnom: int = 100,
+        denom: int = 100,
+    ) -> Self:
         """
         Create a matrix with the given dimensions filled with random rational numbers.
         """
@@ -462,34 +495,44 @@ class FracVector:
 
         eps = (1.0 / resolution) * 0.1
 
-        gcd = nested_reduce(lambda x, y: calc_gcd(x, abs(int((y + eps) * resolution))), data, initializer=resolution)
+        gcd = nested_reduce(
+            lambda x, y: calc_gcd(x, abs(int((y + eps) * resolution))),
+            data,
+            initializer=resolution,
+        )
         noms = cls.nested_map(lambda x: int((x + eps) * resolution) // gcd, data)
         denom = resolution // gcd
 
         return cls(noms, denom)
 
     @classmethod
-    def _create_func(cls, data: Any, func: Callable[..., Any], find_best_rational: bool = True, **args: Any) -> Self:
+    def _create_func(
+        cls,
+        data: Any,
+        func: Callable[..., Any],
+        find_best_rational: bool = True,
+        **args: Any,
+    ) -> Self:
         def apply_func(arg: Any) -> Any:
             if isinstance(arg, str):
                 if find_best_rational:
-                    val, delta = string_to_val_and_delta(arg)
+                    val, delta = exactmath.string_to_val_and_delta(arg)
                     low = val - delta
                     high = val + delta
                     lowval = func(low, **args)
                     highval = func(high, **args)
-                    return best_rational_in_interval(lowval, highval)
+                    return exactmath.best_rational_in_interval(lowval, highval)
                 else:
-                    val, delta = string_to_val_and_delta(arg)
-                    if 'prec' in args:
-                        low = val - fractions.Fraction(args['prec']) * 10
-                        high = val + fractions.Fraction(args['prec']) * 10
+                    val, delta = exactmath.string_to_val_and_delta(arg)
+                    if "prec" in args:
+                        low = val - fractions.Fraction(args["prec"]) * 10
+                        high = val + fractions.Fraction(args["prec"]) * 10
                     else:
                         low = val - fractions.Fraction(1, 100000000000)
                         high = val + fractions.Fraction(1, 100000000000)
                     lowval = func(low, **args)
                     highval = func(high, **args)
-                    return best_rational_in_interval(lowval, highval)
+                    return exactmath.best_rational_in_interval(lowval, highval)
             else:
                 try:
                     return func(arg.to_fraction())
@@ -518,7 +561,12 @@ class FracVector:
         possible fractional approximations of ``data`` and then takes cos on that.
         """
         return cls._create_func(
-            data, exactmath.cos, find_best_rational=find_best_rational, degrees=degrees, limit=limit, prec=prec
+            data,
+            exactmath.cos,
+            find_best_rational=find_best_rational,
+            degrees=degrees,
+            limit=limit,
+            prec=prec,
         )
 
     @classmethod
@@ -542,7 +590,10 @@ class FracVector:
 
     @classmethod
     def create_exp(
-        cls, data: Any, prec: fractions.Fraction = fractions.Fraction(1, 1000000), limit: bool = False
+        cls,
+        data: Any,
+        prec: fractions.Fraction = fractions.Fraction(1, 1000000),
+        limit: bool = False,
     ) -> Self:
         """
         Create a FracVector as the exponent of the argument ``data``. If ``data`` is composed of
@@ -556,7 +607,11 @@ class FracVector:
         return cls._create_func(data, exactmath.exp, limit=limit, prec=prec)
 
     @classmethod
-    def pi(cls, prec: fractions.Fraction = fractions.Fraction(1, 1000000), limit: bool = False) -> Self:
+    def pi(
+        cls,
+        prec: fractions.Fraction = fractions.Fraction(1, 1000000),
+        limit: bool = False,
+    ) -> Self:
         """
         Create a scalar FracVector with a rational approximation of pi to precision ``prec``.
         """
@@ -644,7 +699,10 @@ class FracVector:
         """
         Convert the FracVector to a (nested) list of strings.
         """
-        return nested_map_list(lambda x: ("%." + str(accuracy) + "f") % (fractions.Fraction(x, self.denom),), self.noms)
+        return nested_map_list(
+            lambda x: (("%." + str(accuracy) + "f") % (fractions.Fraction(x, self.denom),)),
+            self.noms,
+        )
 
     def to_string(self, accuracy: int = 8) -> str:
         """
@@ -870,9 +928,29 @@ class FracVector:
             if depth == 1:
                 gcd = calc_gcd(cast(int, noms), denom)
             elif depth == 2:
-                gcd = reduce(lambda sub_ls1, sub_ls2: reduce(lambda nom1, nom2: calc_gcd(nom1, abs(nom2)), sub_ls2, sub_ls1), noms, denom)  # type: ignore[arg-type]
+                gcd = reduce(
+                    lambda sub_ls1, sub_ls2: reduce(
+                        lambda nom1, nom2: calc_gcd(nom1, abs(nom2)),  # type: ignore[arg-type]
+                        sub_ls2,  # type: ignore[arg-type]
+                        sub_ls1,
+                    ),
+                    noms,  # type: ignore[arg-type]
+                    denom,
+                )
             elif depth == 3:
-                gcd = reduce(lambda sub_ls1, sub_ls2: reduce(lambda sub_sub_ls1, sub_sub_ls2: reduce(lambda nom1, nom2: calc_gcd(nom1, abs(nom2)), sub_sub_ls2, sub_sub_ls1), sub_ls2, sub_ls1), noms, denom)  # type: ignore[arg-type]
+                gcd = reduce(
+                    lambda sub_ls1, sub_ls2: reduce(
+                        lambda sub_sub_ls1, sub_sub_ls2: reduce(
+                            lambda nom1, nom2: calc_gcd(nom1, abs(nom2)),  # type: ignore[arg-type]
+                            sub_sub_ls2,  # type: ignore[arg-type]
+                            sub_sub_ls1,
+                        ),
+                        sub_ls2,  # type: ignore[arg-type]
+                        sub_ls1,
+                    ),
+                    noms,  # type: ignore[arg-type]
+                    denom,
+                )
             else:
                 raise Exception("FracVector.simplify_fast: only depth 1, 2 or 3 are supported, got depth " + str(depth))
             if gcd != 1:
@@ -1093,7 +1171,11 @@ class FracVector:
                 + str(Bdim)
             )
 
-        noms = ((A[1] * B[2] - A[2] * B[1]), (A[2] * B[0] - A[0] * B[2]), (A[0] * B[1] - A[1] * B[0]))
+        noms = (
+            (A[1] * B[2] - A[2] * B[1]),
+            (A[2] * B[0] - A[0] * B[2]),
+            (A[0] * B[1] - A[1] * B[0]),
+        )
 
         return self.__class__(noms, denom)
 
@@ -1121,7 +1203,11 @@ class FracVector:
             )
 
         def cross_noms(A: Any, B: Any) -> Any:
-            return ((A[1] * B[2] - A[2] * B[1]), (A[2] * B[0] - A[0] * B[2]), (A[0] * B[1] - A[1] * B[0]))
+            return (
+                (A[1] * B[2] - A[2] * B[1]),
+                (A[2] * B[0] - A[0] * B[2]),
+                (A[0] * B[1] - A[1] * B[0]),
+            )
 
         detnom = det_noms(noms)
         denom = self.denom
@@ -1164,7 +1250,12 @@ class FracVector:
 
         return self.__class__(noms, denom)
 
-    def cos(self, prec: fractions.Fraction | None = None, degrees: bool = False, limit: bool = False) -> Self:
+    def cos(
+        self,
+        prec: fractions.Fraction | None = None,
+        degrees: bool = False,
+        limit: bool = False,
+    ) -> Self:
         """
         Return a FracVector where every element is the cosine of the element in the source FracVector.
 
@@ -1175,7 +1266,12 @@ class FracVector:
         """
         if prec is not None:
             fracs = self._map_over_noms(
-                lambda nom: exactmath.cos(fractions.Fraction(nom, self.denom), prec=prec, limit=limit, degrees=degrees)
+                lambda nom: exactmath.cos(
+                    fractions.Fraction(nom, self.denom),
+                    prec=prec,
+                    limit=limit,
+                    degrees=degrees,
+                )
             )
         else:
             fracs = self._map_over_noms(
@@ -1183,7 +1279,12 @@ class FracVector:
             )
         return self.create(fracs)
 
-    def sin(self, prec: fractions.Fraction | None = None, degrees: bool = False, limit: bool = False) -> Self:
+    def sin(
+        self,
+        prec: fractions.Fraction | None = None,
+        degrees: bool = False,
+        limit: bool = False,
+    ) -> Self:
         """
         Return a FracVector where every element is the sine of the element in the source FracVector.
 
@@ -1194,7 +1295,12 @@ class FracVector:
         """
         if prec is not None:
             fracs = self._map_over_noms(
-                lambda nom: exactmath.sin(fractions.Fraction(nom, self.denom), prec=prec, limit=limit, degrees=degrees)
+                lambda nom: exactmath.sin(
+                    fractions.Fraction(nom, self.denom),
+                    prec=prec,
+                    limit=limit,
+                    degrees=degrees,
+                )
             )
         else:
             fracs = self._map_over_noms(
@@ -1202,7 +1308,12 @@ class FracVector:
             )
         return self.create(fracs)
 
-    def acos(self, prec: fractions.Fraction | None = None, degrees: bool = False, limit: bool = False) -> Self:
+    def acos(
+        self,
+        prec: fractions.Fraction | None = None,
+        degrees: bool = False,
+        limit: bool = False,
+    ) -> Self:
         """
         Return a FracVector where every element is the arccos of the element in the source FracVector.
 
@@ -1213,7 +1324,12 @@ class FracVector:
         """
         if prec is not None:
             fracs = self._map_over_noms(
-                lambda nom: exactmath.acos(fractions.Fraction(nom, self.denom), prec=prec, limit=limit, degrees=degrees)
+                lambda nom: exactmath.acos(
+                    fractions.Fraction(nom, self.denom),
+                    prec=prec,
+                    limit=limit,
+                    degrees=degrees,
+                )
             )
         else:
             fracs = self._map_over_noms(
@@ -1221,7 +1337,12 @@ class FracVector:
             )
         return self.create(fracs)
 
-    def asin(self, prec: fractions.Fraction | None = None, degrees: bool = False, limit: bool = False) -> Self:
+    def asin(
+        self,
+        prec: fractions.Fraction | None = None,
+        degrees: bool = False,
+        limit: bool = False,
+    ) -> Self:
         """
         Return a FracVector where every element is the arcsin of the element in the source FracVector.
 
@@ -1232,7 +1353,12 @@ class FracVector:
         """
         if prec is not None:
             fracs = self._map_over_noms(
-                lambda nom: exactmath.asin(fractions.Fraction(nom, self.denom), prec=prec, limit=limit, degrees=degrees)
+                lambda nom: exactmath.asin(
+                    fractions.Fraction(nom, self.denom),
+                    prec=prec,
+                    limit=limit,
+                    degrees=degrees,
+                )
             )
         else:
             fracs = self._map_over_noms(

@@ -20,15 +20,15 @@ Exact-rational vectors (:class:`FracVector`/:class:`FracScalar`/:class:`MutableF
 the Vector backend/view family that lets the same tensor data be viewed as the exact
 representation, plain nested sequences, or (optionally) numpy arrays.
 
-The exact-math helpers live in the submodules :mod:`httk.core.vectors.exactmath` (type-preserving
-exact transcendentals on Fraction and Decimal) and :mod:`httk.core.vectors.vectormath` (functional
-math wrappers).
+The exact-math helpers live in :mod:`httk.core.exactmath` (type-preserving exact transcendentals
+on Fraction and Decimal) and :mod:`httk.core.vectors.vectormath` (functional math wrappers).
 """
 
 from .fracvector import FracScalar, FracVector
 from .leaf_codecs import LeafCodec, known_leaf_codecs, register_leaf_codec
 from .mutablefracvector import MutableFracVector
 from .numeric import NumericVector, numpy_available, to_numeric, to_numeric_scalar
+from .scalar_like import ScalarLike
 from .surdvector import SurdScalar, SurdVector
 from .vector_api import VectorAPI
 from .vector_backend import VectorBackend
@@ -74,6 +74,7 @@ __all__ = [
     "VectorNativeView",
     "VectorSurdView",
     "VectorLike",
+    "ScalarLike",
     "NumericVector",
     "to_numeric",
     "to_numeric_scalar",

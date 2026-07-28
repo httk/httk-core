@@ -52,7 +52,9 @@ def test_sqrt_of_perfect_square_is_rational() -> None:
 
 def test_sqrt_of_normalizes_rational_radicand() -> None:
     # sqrt(1/2) = sqrt(2)/2, radicand normalized to a squarefree integer.
-    assert SurdVector.sqrt_of(F(1, 2)) == SurdVector.sqrt_of(2) * SurdVector.create(F(1, 2))
+    assert SurdVector.sqrt_of(F(1, 2)) == SurdVector.sqrt_of(2) * SurdVector.create(
+        F(1, 2)
+    )
     assert SurdVector.sqrt_of(F(1, 2)).radicands == (2,)
 
 
@@ -60,7 +62,9 @@ def test_product_of_radicals_combines() -> None:
     s2 = SurdVector.sqrt_of(2)
     s3 = SurdVector.sqrt_of(3)
     assert s2 * s3 == SurdVector.sqrt_of(6)  # sqrt(2)*sqrt(3) = sqrt(6)
-    assert SurdVector.sqrt_of(12) * SurdVector.sqrt_of(3) == SurdVector.create(6)  # sqrt(12)*sqrt(3) = 6
+    assert SurdVector.sqrt_of(12) * SurdVector.sqrt_of(3) == SurdVector.create(
+        6
+    )  # sqrt(12)*sqrt(3) = 6
     assert s2 * s2 == SurdVector.create(2)  # sqrt(2)^2 = 2 (rational again)
 
 
@@ -80,7 +84,9 @@ def test_negative_sqrt_raises() -> None:
 
 def test_canonical_equality_ignores_denominator_form() -> None:
     # Coefficients on different (unsimplified) denominators still compare equal.
-    a = SurdVector.from_radicand_map({2: FracVector([[2]], 4)})  # (2/4)*sqrt(2) = sqrt(2)/2
+    a = SurdVector.from_radicand_map(
+        {2: FracVector([[2]], 4)}
+    )  # (2/4)*sqrt(2) = sqrt(2)/2
     b = SurdVector.from_radicand_map({2: FracVector([[1]], 2)})
     assert a == b
     assert hash(a) == hash(b)
@@ -128,7 +134,9 @@ def test_field_inverse_multiplies_back_to_one() -> None:
 
 def test_division_operator() -> None:
     s2 = SurdVector.sqrt_of(2)
-    assert SurdVector.one() / (SurdVector.one() + s2) == s2 - SurdVector.one()  # 1/(1+sqrt2) = sqrt2-1
+    assert (
+        SurdVector.one() / (SurdVector.one() + s2) == s2 - SurdVector.one()
+    )  # 1/(1+sqrt2) = sqrt2-1
 
 
 # --------------------------------------------------------------- exact comparison
@@ -171,7 +179,9 @@ def test_ordering_consistent_with_float_on_a_sample() -> None:
 
 
 def test_sign() -> None:
-    assert (SurdVector.sqrt_of(2) - SurdVector.create(F(3, 2)))._as_scalar().sign() == -1
+    assert (
+        SurdVector.sqrt_of(2) - SurdVector.create(F(3, 2))
+    )._as_scalar().sign() == -1
     assert (SurdVector.sqrt_of(2) - SurdVector.create(F(7, 5)))._as_scalar().sign() == 1
     assert SurdVector.create(0)._as_scalar().sign() == 0
 
@@ -212,7 +222,12 @@ def test_hexagonal_metric_is_rational_and_distances_agree() -> None:
     assert G.is_rational  # metric of a metric-rational basis is rational
     # Two rational fractional sites; Cartesian difference = frac_diff * B (row-vector convention).
     frac_diff = SurdVector._from_scalar_grid(
-        [SurdVector.create(F(1, 3)), SurdVector.create(F(1, 3)), SurdVector.create(F(1, 4))], (3,)
+        [
+            SurdVector.create(F(1, 3)),
+            SurdVector.create(F(1, 3)),
+            SurdVector.create(F(1, 4)),
+        ],
+        (3,),
     )
     cart = frac_diff * B
     dist_sqr_cart = cart.lengthsqr()
@@ -225,10 +240,14 @@ def test_hexagonal_metric_is_rational_and_distances_agree() -> None:
 
 def test_length_of_surd_cartesian_difference_is_exact() -> None:
     a = F(2)
-    B = _hexagonal_basis(a, F(5))
     # The second basis row itself is a Cartesian vector: [-a/2, a*sqrt3/2, 0], length a.
     row1 = SurdVector._from_scalar_grid(
-        [SurdVector.create(-a / 2), SurdVector.sqrt_of(3) * SurdVector.create(a / 2), SurdVector.create(0)], (3,)
+        [
+            SurdVector.create(-a / 2),
+            SurdVector.sqrt_of(3) * SurdVector.create(a / 2),
+            SurdVector.create(0),
+        ],
+        (3,),
     )
     assert row1.lengthsqr() == SurdVector.create(a * a)
     assert row1.length() == SurdVector.create(a)  # exact rational length here
@@ -237,7 +256,12 @@ def test_length_of_surd_cartesian_difference_is_exact() -> None:
 def test_length_raises_on_irrational_lengthsqr() -> None:
     # A vector whose squared length is irrational (3 + 2 sqrt(2)) has a nested-radical length.
     v = SurdVector._from_scalar_grid(
-        [SurdVector.one() + SurdVector.sqrt_of(2), SurdVector.create(0), SurdVector.create(0)], (3,)
+        [
+            SurdVector.one() + SurdVector.sqrt_of(2),
+            SurdVector.create(0),
+            SurdVector.create(0),
+        ],
+        (3,),
     )
     assert not v.lengthsqr().is_rational
     with pytest.raises(ValueError, match="nested radical"):

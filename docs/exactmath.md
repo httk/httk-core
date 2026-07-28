@@ -1,6 +1,6 @@
 # Exact math on rationals and decimals
 
-The functions in `httk.core.vectors.exactmath` do exact and controlled-precision
+The functions in `httk.core.exactmath` do exact and controlled-precision
 arithmetic. They are fully usable **without** `FracVector`: `FracVector`'s
 element-wise methods (`sqrt`, `cos`, `exp`, ...) delegate here, but nothing stops
 you from calling these functions directly in your own code. Every value is
@@ -10,7 +10,7 @@ deterministic by construction.
 
 ```python
 from fractions import Fraction
-from httk.core.vectors import exactmath
+from httk.core import exactmath
 ```
 
 ## Parsing values exactly
@@ -95,6 +95,31 @@ assert exactmath.sqrt(fractions.Fraction(9, 4), exact=True) == SurdVector.create
 
 See {doc}`vectors` ("Exact radicals: `SurdVector`") for the field itself — exact Cartesian
 crystallographic geometry, exact comparison, and the nested-radical limit.
+
+## ScalarLike and VectorLike inputs
+
+The public functions accept `ScalarLike` values (`int`, `float`, `str`, `Fraction`, `Decimal`,
+`FracScalar`, or `SurdScalar`) and `VectorLike` values (vector backends/views, nested lists or
+tuples, and optional NumPy arrays). Vectors are mapped elementwise and retain their shape. In
+Fraction mode the result is a `FracVector`; Decimal mode returns nested tuples of `Decimal` values.
+Decimal mode is promoted across the entire vector when any leaf is a `Decimal`, or when `digits=`
+is supplied, with omitted `digits` using the active Decimal context precision.
+
+Ordinary Fraction-mode calls on a genuinely irrational `SurdScalar` use its deterministic Fraction
+hub: the value is approximated at the active Decimal context precision plus three guard digits.
+Exact symbolic calls preserve the surd and never use this lossy conversion. Floats are embedded as
+their exact binary `Fraction` value.
+
+`exact=True` is available for `sqrt` and degree-mode `cos`, `sin`, `tan`, `asin`, `acos`, `atan`,
+and `atan2`. Exact trigonometry requires `degrees=True`; cosine and sine values are exact for the
+complete square-root angle set (multiples of 15° and 36°, with the corresponding sine/tangent
+values where defined). Exact inverse functions return degree `Fraction`s. An unsupported angle or
+value raises `ValueError`, rather than silently approximating. Vector exact results are
+`SurdVector`-compatible and exact `atan2` accepts either two same-shaped vectors or scalar
+broadcasting. `atan2` follows the usual quadrant convention.
+
+`digits`, `rounding`, and `max_refinements` retain their Decimal-mode meanings for vectors. In
+exact mode they are ignored, including invalid `digits` values.
 
 The trigonometric functions accept `degrees=True` to interpret their argument
 in degrees (`cos`, `sin`, ...) or to return degrees (`asin`, `acos`, `atan`,
@@ -239,7 +264,7 @@ arithmetic:
 
 ```python
 import decimal
-from httk.core.vectors import exactmath
+from httk.core import exactmath
 
 # log_4(8) = 3/2 exactly: at one significant digit this is a perfect rounding tie,
 # resolved by exact arithmetic — half-even rounds to 2, truncation gives 1.
@@ -270,7 +295,7 @@ every time:
 ```python
 import decimal
 import fractions
-from httk.core.vectors import exactmath
+from httk.core import exactmath
 
 boundary = fractions.Fraction(125, 100) + fractions.Fraction(1, 10**40)
 x = boundary * boundary
