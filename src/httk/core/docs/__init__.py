@@ -29,6 +29,7 @@ from .config import (
     VersioningConfig,
     load_versioning_config,
 )
+from .gitsite import CommitSiteResult, GitSiteError, GitUnavailableError, commit_site
 from .inventories import InventoryError, fetch_inventory, read_inventory_header
 from .lockfile import (
     LockError,
@@ -60,11 +61,14 @@ from .sitetree import ComposeError, ComposeResult, ImmutabilityError, compose_si
 
 __all__ = [
     "ComposeResult",
+    "CommitSiteResult",
     "ComposeError",
     "ConfigError",
     "ImmutabilityError",
     "InternalDependency",
     "InventoryError",
+    "GitSiteError",
+    "GitUnavailableError",
     "LockError",
     "ReleaseCheck",
     "ReleaseError",
@@ -77,6 +81,7 @@ __all__ = [
     "check_release",
     "compose_site",
     "compute_input_hash",
+    "commit_site",
     "dependency_doc_targets",
     "fetch_inventory",
     "filter_lock_pins",

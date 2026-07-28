@@ -20,6 +20,7 @@
 import errno
 import hashlib
 import json
+import logging
 import os
 import shutil
 import tempfile
@@ -32,6 +33,8 @@ from .redirect import root_redirect_html
 from .semver import Version, is_release_dir_name, parse_tag
 
 __all__ = ["ComposeError", "ComposeResult", "ImmutabilityError", "compose_site"]
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class ComposeError(RuntimeError):
@@ -214,8 +217,14 @@ def compose_site(
     site_url: str,
     source_commit: str | None,
     target: Version | Literal["dev"],
+    repair: bool = False,
 ) -> ComposeResult:
-    """Compose a docs-site tree while preserving all existing release directories."""
+    """Compose a docs-site tree while preserving all existing release directories.
+
+    ``repair=True`` is reserved for replacing an existing release after an
+    approved manual repair. The replacement uses the same rename transaction
+    as the development swap and never removes the live release in place.
+    """
 
     root = Path(site_root)
     source = Path(build_html)
@@ -226,6 +235,10 @@ def compose_site(
     _recover_dev_swap(root)
     _validate_tree(source)
     is_dev = target == "dev"
+    if repair and is_dev:
+        raise ComposeError("--repair is only valid for a release target, not --dev")
+    if repair and not isinstance(target, Version):
+        raise ComposeError("--repair requires a release target")
     if is_dev:
         version_name = "dev:main"
     else:
@@ -256,6 +269,22 @@ def compose_site(
             raise
         if old is not None and old.exists():
             _remove_old_dev(old)
+    elif repair:
+        if not existed:
+            _remove_old_dev(staging)
+            raise ComposeError(f"cannot repair nonexistent release {version_name}")
+        _LOGGER.warning("repairing immutable documentation release %s", version_name)
+        old = _new_empty_sibling(root, f".old-release-{version_name}-")
+        try:
+            os.rename(destination, old)
+            os.rename(staging, destination)
+        except BaseException:
+            if old.exists() and not destination.exists():
+                os.rename(old, destination)
+            if staging.exists():
+                _remove_old_dev(staging)
+            raise
+        _remove_old_dev(old)
     elif existed:
         differing = _differing_paths(_tree(destination), staged_tree)
         if differing:

@@ -1,21 +1,26 @@
-name: Deploy development docs
+name: Repair release docs
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Release tag to rebuild (vX.Y.Z)"
+        required: true
+        type: string
 
 permissions:
   contents: write
 
 concurrency:
-  # Superseding queued development builds is fine: the latest main wins.
-  group: docs-build-dev
+  # Repairs are explicit operations; keep their build attempts serialized.
+  group: docs-build-repair
   cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    # The docs-repair environment must have GitHub approval configured.
+    environment: docs-repair
     env:
       SITE_DIR: ${{ runner.temp }}/httk-core-docs-site
 
@@ -23,26 +28,41 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: refs/tags/${{ inputs.version }}
+
+      - name: Verify the checked out tag
+        env:
+          RELEASE_TAG: ${{ inputs.version }}
+        run: |
+          checked_out_tag=$(git describe --exact-match --tags HEAD 2>/dev/null || true)
+          if [ "$checked_out_tag" != "$RELEASE_TAG" ]; then
+            echo "checked out ${checked_out_tag:-no exact tag}, expected $RELEASE_TAG" >&2
+            exit 1
+          fi
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install locked development docs environment
-        run: |
-          PYTHONPATH=src python -m httk.core.docs filter-lock \
-            --lock docs/requirements.lock \
-            --out "$RUNNER_TEMP/dev-requirements.txt" \
-            --self-distribution httk-core
-          pip install -r "$RUNNER_TEMP/dev-requirements.txt"
-          pip install -e . --no-deps
-          pip check
-
-      - name: Build development docs
-        run: HTTK_DOCS_VERSION=dev:main HTTK_DOCS_BASE_URL=https://docs.httk.org make docs
-
-      - name: Compose and publish development docs-site
+      - name: Validate the repair tag before installing dependencies
         env:
+          RELEASE_TAG: ${{ inputs.version }}
+        run: PYTHONPATH=src python -m httk.core.docs check-release --tag "$RELEASE_TAG"
+
+      - name: Install the locked documentation environment
+        run: |
+          pip install -r docs/requirements.lock
+          pip check
+          pip install . --no-deps --no-build-isolation
+
+      - name: Build release docs
+        env:
+          RELEASE_TAG: ${{ inputs.version }}
+        run: HTTK_DOCS_VERSION="$RELEASE_TAG" HTTK_DOCS_BASE_URL=https://docs.httk.org make docs
+
+      - name: Repair and publish release docs-site
+        env:
+          RELEASE_TAG: ${{ inputs.version }}
           SOURCE_COMMIT: ${{ github.sha }}
         run: |
           REMOTE_SITE_EXISTS=false
@@ -68,12 +88,12 @@ jobs:
               git archive origin/docs-site | tar -x -C "$SITE_DIR"
             fi
             python -m httk.core.docs compose \
-              --site "$SITE_DIR" --build docs/_build/html --dev \
+              --site "$SITE_DIR" --build docs/_build/html --repair "$RELEASE_TAG" \
               --slug httk-core --url https://docs.httk.org/httk-core \
               --source-commit "$SOURCE_COMMIT"
             python -m httk.core.docs commit-site \
               --site "$SITE_DIR" --repo "$GITHUB_WORKSPACE" \
-              --branch docs-site --message "dev: $SOURCE_COMMIT"
+              --branch docs-site --message "repair: $RELEASE_TAG"
             if git push --force-with-lease=refs/heads/docs-site:${LEASE_SHA} origin docs-site; then
               break
             fi

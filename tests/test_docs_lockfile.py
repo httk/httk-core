@@ -18,6 +18,9 @@ requires-python = ">=3.12"
 dependencies = ["requests>=2"]
 [project.optional-dependencies]
 docs = ["sphinx"]
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
 '''
 
 
@@ -27,18 +30,20 @@ def test_input_hash_ignores_toml_formatting(tmp_path: Path) -> None:
     first = compute_input_hash(path)
     path.write_text(
         '[project]\ndependencies=["requests>=2"]\nrequires-python=">=3.12"\n'
-        '[project.optional-dependencies]\ndocs=["sphinx"]\n',
+        '[project.optional-dependencies]\ndocs=["sphinx"]\n'
+        '[build-system]\nrequires=["setuptools>=77", "wheel"]\n'
+        'build-backend="setuptools.build_meta"\n',
         encoding="utf-8",
     )
     assert compute_input_hash(path) == first
-    path.write_text(
-        '[project]\ndependencies=["requests>=2"]\nrequires-python=">=3.12"\n'
-        '[project.optional-dependencies]\ndocs=["sphinx"]\n',
-        encoding="utf-8",
-    )
     path.write_text(PYPROJECT.replace('dependencies = ["requests>=2"]', 'dependencies = ["requests>=2", "furo"]').replace('docs = ["sphinx"]', 'docs = ["sphinx", "myst-parser"]'), encoding="utf-8")
     reordered = compute_input_hash(path)
-    path.write_text(PYPROJECT.replace('dependencies = ["requests>=2"]', 'dependencies = ["furo", "requests>=2"]').replace('docs = ["sphinx"]', 'docs = ["myst-parser", "sphinx"]'), encoding="utf-8")
+    path.write_text(
+        PYPROJECT.replace('dependencies = ["requests>=2"]', 'dependencies = ["furo", "requests>=2"]')
+        .replace('docs = ["sphinx"]', 'docs = ["myst-parser", "sphinx"]')
+        .replace('requires = ["setuptools>=77", "wheel"]', 'requires = ["wheel", "setuptools>=77"]'),
+        encoding="utf-8",
+    )
     assert compute_input_hash(path) == reordered
 
 
@@ -46,7 +51,8 @@ def test_generate_check_and_filter_with_stub(tmp_path: Path) -> None:
     (tmp_path / "pyproject.toml").write_text(PYPROJECT, encoding="utf-8")
     stub = tmp_path / "uv-stub"
     stub.write_text(
-        "#!/bin/sh\nprintf '%s\\n' 'Sphinx==8.0' 'httk-core==2.0.2' 'requests==2.32' > \"${12}\"\n",
+        "#!/bin/sh\ngrep -Fx 'setuptools>=77' \"$4\" && grep -Fx 'wheel' \"$4\"\n"
+        "printf '%s\\n' 'Sphinx==8.0' 'httk-core==2.0.2' 'requests==2.32' > \"${13}\"\n",
         encoding="utf-8",
     )
     stub.chmod(0o755)
@@ -64,7 +70,7 @@ def test_generate_check_and_filter_with_stub(tmp_path: Path) -> None:
 def test_generate_rejects_unrecognized_resolver_lines(tmp_path: Path) -> None:
     (tmp_path / "pyproject.toml").write_text(PYPROJECT, encoding="utf-8")
     stub = tmp_path / "uv-stub"
-    stub.write_text("#!/bin/sh\nprintf '%s\\n' 'not-a-pin' > \"${12}\"\n", encoding="utf-8")
+    stub.write_text("#!/bin/sh\nprintf '%s\\n' 'not-a-pin' > \"${13}\"\n", encoding="utf-8")
     stub.chmod(0o755)
     with pytest.raises(LockError, match="unrecognized lock line"):
         generate_lock(tmp_path, tmp_path / "requirements.lock", command_prefix=[str(stub)])
@@ -122,3 +128,19 @@ def test_header_values_are_strict(tmp_path: Path) -> None:
         )
         with pytest.raises(LockError, match=expected):
             check_lock(tmp_path, lock)
+
+
+def test_build_system_hash_inputs_and_absence(tmp_path: Path) -> None:
+    path = tmp_path / "pyproject.toml"
+    absent = '[project]\nrequires-python=">=3.12"\ndependencies=[]\n'
+    path.write_text(absent, encoding="utf-8")
+    absent_hash = compute_input_hash(path)
+    path.write_text(absent.replace("dependencies=[]", "dependencies = []"), encoding="utf-8")
+    assert compute_input_hash(path) == absent_hash
+    path.write_text(absent + '[build-system]\nrequires=["setuptools>=77", "wheel"]\n', encoding="utf-8")
+    with_build = compute_input_hash(path)
+    assert with_build != absent_hash
+    path.write_text(absent + '[build-system]\nrequires=["wheel"]\n', encoding="utf-8")
+    assert compute_input_hash(path) != with_build
+    path.write_text(absent + '[build-system]\nrequires=["wheel", "setuptools>=77"]\n', encoding="utf-8")
+    assert compute_input_hash(path) == with_build
