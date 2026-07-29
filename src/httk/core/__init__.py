@@ -130,7 +130,7 @@ from .vectors import (
     to_numeric_scalar,
 )
 from .vectors import _numpy_available as _vectors_numpy_available
-from .views import Backend, View, coerce, register_coercer, unwrap
+from .views import Backend, Coercer, View, coerce, register_coercer, unwrap
 
 if _vectors_numpy_available:
     from .vectors import VectorNumpy, VectorNumpyView
@@ -165,6 +165,7 @@ __all__ = [
     "BytestreamView",
     "CLIContext",
     "Calculation",
+    "Coercer",
     "CompressionCodec",
     "DataLoader",
     "DataRecord",
