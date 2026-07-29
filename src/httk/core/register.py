@@ -143,6 +143,37 @@ def known_entry_providers() -> list[str]:
     return entry_providers.keys()
 
 
+_entry_records: dict[str, tuple[str, str | None]] = {}
+
+
+def register_entry_record(*, name: str, record: str, definition_id: str | None = None) -> None:
+    """Register a lazy record-class reference and optional definition IRI."""
+    if name in _entry_records:
+        raise ValueError(f"entry record is already registered: {name!r}")
+    _entry_records[name] = (record, definition_id)
+
+
+def known_entry_records() -> list[str]:
+    return sorted(_entry_records)
+
+
+def entry_record_info(name: str) -> tuple[str, str | None]:
+    """Return a record reference and definition IRI without importing it."""
+    try:
+        return _entry_records[name]
+    except KeyError as exc:
+        known = ", ".join(known_entry_records()) or "(none)"
+        raise ValueError(f"No entry record registered for {name!r}. Known: {known}") from exc
+
+
+def resolve_entry_record(name: str) -> type:
+    """Import and return a registered record class."""
+    resolved = resolve_callable(entry_record_info(name)[0])
+    if not isinstance(resolved, type):
+        raise TypeError(f"Resolved entry record {name!r} to non-class object {resolved!r}")
+    return resolved
+
+
 CLIHandler = Callable[[Sequence[str], "CLIContext"], int]
 
 
