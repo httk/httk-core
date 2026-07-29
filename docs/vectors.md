@@ -92,7 +92,7 @@ assert FracVector.create([8.04]) != FracVector.create(["8.04"])
 
 ### The laziness / simplify contract
 
-Most operations deliberately return an **un-simplified** result — they do not reduce to the
+Most operations return an **un-simplified** result — they do not reduce to the
 smallest denominator. This keeps intermediate arithmetic cheap while staying exact. Call
 `.simplify()` at the end of a computation when you want the reduced form:
 
@@ -546,7 +546,7 @@ they raise eagerly at view construction.
 
 #### The preserve-original default
 
-The default native view of natively-held data now presents its leaves **verbatim** — the identical
+The default native view of natively-held data presents its leaves **verbatim** — the identical
 objects, with only the list/tuple containers tuple-ized. `Decimal`s in, the same `Decimal`s out; no
 silent Fraction-ization:
 
@@ -564,7 +564,7 @@ assert [type(x) for x in nv[0]] == [decimal.Decimal, int]
 Because the leaves are untouched, string leaves stay strings under the default — ask for a codec
 when you want them converted (see below). When the source instead *crosses* representations (a
 `frac` or `numpy` backend, which holds no native leaves to preserve), the default is the `"exact"`
-codec — `int` when integral, otherwise `Fraction`, never a float, exactly as before:
+codec — `int` when integral, otherwise `Fraction`, never a float:
 
 ```python
 import fractions

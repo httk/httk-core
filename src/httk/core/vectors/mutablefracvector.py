@@ -48,8 +48,7 @@ class MutableFracVector(FracVector):
     Other than this, the FracVector methods exist and do the same, i.e., they return *copies*
     of the fracvector, rather than modifying it.
 
-    However, methods have also been added named with ``set_*`` prefixes which perform mutating
-    operations, e.g.::
+    Methods with ``set_*`` prefixes perform mutating operations, e.g.::
 
        A.set_T()
 

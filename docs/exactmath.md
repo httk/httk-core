@@ -249,7 +249,7 @@ assert exactmath.pi(digits=50) == decimal.Decimal(
 
 ## Guaranteed termination
 
-The adaptive rounding loop is not merely capped — it provably terminates, with no error
+The adaptive rounding loop provably terminates, with no error
 path. The table-maker's dilemma only bites when a function value sits *exactly on* a
 rounding boundary, and boundaries are rational numbers. Classical number theory rules
 that out for every function here once the exact special cases are handled: by the

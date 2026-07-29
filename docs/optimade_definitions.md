@@ -50,7 +50,7 @@ assert references.properties["title"].definition_id.endswith("/optimade/referenc
 assert all(prop.format_version == "1.2" for prop in references.properties.values())
 ```
 
-The `"1.2"` stamp is deliberate: httk-core's generator emits only features that
+The `"1.2"` stamp reflects that httk-core's generator emits only features that
 already exist in format `1.2` of the OPTIMADE property-definition schema, and
 the definition *format* is versioned in lockstep with the specification —
 re-stamped only when a definition actually uses newer features. That is why even
@@ -95,13 +95,13 @@ from httk.core import (
 register_definition_prefix("_exmpl_", "https://schemas.example.org/ad-hoc/defs/properties")
 assert "_exmpl_" in known_definition_prefixes()
 
-# from_simple now routes the prefixed name's $id under the registered base:
+# from_simple routes the prefixed name's $id under the registered base:
 wave_class = PropertyDefinition.from_simple(
     "_exmpl_wave_class", description="Altermagnetic wave class.", fulltype="string"
 )
 assert wave_class.as_optimade()["$id"] == "https://schemas.example.org/ad-hoc/defs/properties/_exmpl_wave_class"
 
-# ...and extended() accepts the newly registered prefix as a custom property:
+# ...and extended() accepts the registered prefix as a custom property:
 structures = standard_entry_type("references").extended({"_exmpl_wave_class": wave_class})
 assert "_exmpl_wave_class" in structures.properties
 ```
@@ -165,7 +165,7 @@ assert ref.year is None  # every non-core property defaults to None
 assert Reference.create(ref) is ref
 ```
 
-These models are deliberately stdlib-only. The `httk.core.EntryProvider`
+These models use only the standard library. The `httk.core.EntryProvider`
 implementations that map `{id: record}` mappings of them onto the neutral
 provider contract — and self-register as `data-references`, `data-files`, and
 `data-calculations` — live in the *httk-data* module, together with

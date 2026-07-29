@@ -13,7 +13,7 @@ class View[BackendT: Backend]:
     Important: views are always meant to reference the data and state of *the same* underlying object, hence, e.g.:
 
     * If a function is given an X object, and the function applies an Xvariant1View and then calls, e.g., close() via that view,
-      the excpectation should be that the original X object is now also closed.
+      the expectation should be that the original X object is also closed.
     * When, e.g., a TextstreamStringView is created on an already partially read stream, only the unread data will appear through that string interface.
 
     All backends and views of the same kind of data (X) should be combined into a type union XLike that functions use to declare they support this kind of data.

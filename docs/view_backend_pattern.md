@@ -1,6 +1,6 @@
 # Views and Backends
 
-This page explains a core *httk₂* design pattern used in `httk.core.datastream` and intended to generalize to other domains (for example, structures).
+This page explains a core *httk₂* design pattern used in `httk.core.datastream` and applicable to other domains (for example, structures).
 For detailed datastream usage and API-oriented examples, see {doc}`datastreams`.
 
 ## The Pattern
@@ -30,9 +30,9 @@ Callers can use whichever representation they already have:
 
 Function code still stays clean because it normalizes to a single view immediately.
 
-## Concrete Example First: Datastreams
+## Concrete Example: Datastreams
 
-The first concrete use in `httk-core` is datastream normalization:
+Datastream normalization uses this pattern:
 
 - text data:
   - `TextstreamLike` -> `Textstream...View` -> `Textstream...Backend`

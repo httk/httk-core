@@ -1,10 +1,8 @@
 """Private JSON helpers for the project anchor.
 
-The on-disk representation of ``project.json`` is deliberately identical, byte
-for byte, to the one *httk-workflow* wrote before the anchor moved here, so a
-project initialized by either release reads unchanged by the other. That means
-the same compact, key-sorted, non-ASCII-preserving encoding with a trailing
-newline, written atomically by rename.
+The on-disk representation of ``project.json`` is shared with *httk-workflow*:
+compact, key-sorted, non-ASCII-preserving encoding with a trailing newline,
+written atomically by rename.
 """
 
 import json

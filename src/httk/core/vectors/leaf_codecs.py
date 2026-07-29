@@ -128,7 +128,7 @@ def _check_decimal_options(options: dict[str, Any]) -> None:
 
 def _exact_from_fraction(value: fractions.Fraction) -> int | fractions.Fraction:
     """``int`` when the value is integral, else the exact :class:`fractions.Fraction`. Always
-    exact — never a float. This is the historical native-view leaf behavior, now named."""
+    exact — never a float."""
     return int(value) if value.denominator == 1 else value
 
 

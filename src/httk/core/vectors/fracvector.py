@@ -334,8 +334,7 @@ class FracVector:
 
         ``self`` and ``other`` must have the same shape; the result gains one extra outermost
         dimension of size two (numpy ``stack``-like). E.g. stacking the row ``[1, 2, 3]`` with
-        ``[4, 5, 6]`` gives ``[[1, 2, 3], [4, 5, 6]]``. (The legacy version wrapped ``other`` in a
-        redundant extra list, producing a ragged, non-rectangular result.)
+        ``[4, 5, 6]`` gives ``[[1, 2, 3], [4, 5, 6]]``.
         """
         return self.__class__.create([self, other])
 
@@ -1657,9 +1656,8 @@ class FracScalar(FracVector):
         ``FracScalar.create(something)`` where ``something`` may be any object that can be used
         in the constructor of the Python Fraction class (also works with strings!).
 
-        Note: for signature-compatibility with :meth:`FracVector.create`, this accepts ``chain``
-        and ``min_accuracy``, but (as in the legacy implementation) it ignores them and converts
-        strings exactly via the Fraction constructor.
+        For signature compatibility with :meth:`FracVector.create`, this accepts but ignores
+        ``chain`` and ``min_accuracy``, and converts strings exactly via the Fraction constructor.
         """
 
         def lcd_op(a: Any, y: Any) -> Any:

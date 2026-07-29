@@ -33,11 +33,9 @@ class VectorNativeView(VectorView, tuple):
 
     - **preserve-original** (``leaf=None``, and the source is natively-held data): the backend's
       original nested leaves are presented *verbatim* — the same objects, only containers tuple-ized
-      (``Decimal``\\ s in, the same ``Decimal``\\ s out). This fixes silent Fraction-ization of
-      natively-held data.
+      (``Decimal``\\ s in, the same ``Decimal``\\ s out).
     - **exact default** (``leaf=None``, source crossing from a frac/numpy backend): the ``"exact"``
-      codec — ``int`` when integral, else :class:`fractions.Fraction`, never a float (the historical
-      behavior).
+      codec — ``int`` when integral, else :class:`fractions.Fraction`, never a float.
     - **explicit codec** (``leaf="int"``/``"float"``/``"decimal"``/``"fraction"``/...): every element
       is converted from the backend's exact ``fractions`` interchange through that codec.
 

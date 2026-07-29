@@ -13,9 +13,8 @@ workspace: that is an add-on a workflow installation layers on top of the
 anchor, so the anchor stays useful to a core-only installation.
 
 The on-disk format — the ``format`` and ``format_version`` members, the key
-file names and modes, the directory layout — is deliberately unchanged from the
-implementation that lived in *httk-workflow*, so existing projects keep working
-and *httk-workflow*'s manifests and doctor read them unmodified.
+file names and modes, and the directory layout — is shared with *httk-workflow*
+so its manifests and doctor interoperate with core projects.
 """
 
 import base64

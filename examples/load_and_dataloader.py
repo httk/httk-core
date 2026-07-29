@@ -20,7 +20,7 @@ because they explain what a format module has to register:
    insensitively, in a separate basename registry. This is how extension-less
    files such as `POSCAR` and `CONTCAR` dispatch at all.
 
-*httk-core* deliberately ships **no** loaders of its own — it is the contract
+*httk-core* ships **no** loaders of its own — it is the contract
 layer, not a format library. The registries are filled by sibling modules:
 importing `httk.core` walks the `httk.handlers` namespace package and imports
 every handler package it finds there, and each of those calls
@@ -28,7 +28,7 @@ every handler package it finds there, and each of those calls
 what `known_extensions()` reports is a *statement about the installation*: with
 only *httk-core* installed both registries are empty, and with *httk-io*
 alongside it they list that module's formats. This example prints whichever is
-the case here, then shows the deliberately explicit error `load` raises when
+the case here, then shows the explicit error `load` raises when
 nothing matches — it names the file and lists everything that *is* registered,
 which is usually the fastest way to notice a module is missing.
 

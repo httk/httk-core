@@ -36,8 +36,8 @@ The default presentation therefore returns an ``int`` for an integral integer re
 ``Fraction`` for non-integral integer results, a ``float`` for float inputs (and explicit
 ``coerce=float`` is lossy), nested lists for list inputs, native tuple views for tuple inputs, and
 float64 numpy views for numpy inputs. Numpy view values are lossy, but the exact result remains
-recoverable with ``unwrap()``. The existing Decimal domain is retained for Decimal inputs or
-``digits=``. Fraction inputs remain Fractions. Surd inputs are embedded back into the Surd family
+recoverable with ``unwrap()``. Decimal inputs or ``digits=`` select the Decimal domain. Fraction
+inputs remain Fractions. Surd inputs are embedded back into the Surd family
 when the natural result is rational.
 
 The exact-symbolic domain is selected by ``exact=True`` on ``sqrt`` and degree-mode trigonometric
@@ -52,7 +52,7 @@ digits. Exact symbolic operations preserve the surd and never use that lossy app
 
 In the **Fraction** domain each function returns a rational (:class:`fractions.Fraction`)
 approximation to a target precision ``prec`` (the error bound), with ``limit`` controlling the
-result denominator — exactly as before. In the **Decimal** domain the same rational algorithms
+result denominator. In the **Decimal** domain the same rational algorithms
 drive Ziv's adaptive strategy to produce a *correctly rounded* Decimal to ``digits`` significant
 digits (default: the active :func:`decimal.getcontext` precision, matching stdlib Decimal's own
 model) under ``rounding`` (``"half_even"`` = correctly rounded, ``"down"`` = correct truncation
@@ -60,9 +60,7 @@ toward zero). A Decimal input is converted to a Fraction exactly (:class:`fracti
 accepts a Decimal), so the rational core is identical in both domains; this gives deterministic
 ``cos``/``sin``/``atan2``/... for Decimals, which the stdlib :mod:`decimal` module does not offer.
 
-Note: a possible future performance follow-up is to soft-import the third-party
-``cfractions`` accelerator in place of the standard-library :mod:`fractions`; the
-legacy code did so, but on Python 3.12 the standard library is used unconditionally.
+The implementation uses the standard-library :mod:`fractions`.
 """
 
 import decimal
@@ -429,7 +427,7 @@ def _frac_log(
 
     If the base is not specified, return the natural logarithm (base e) of ``x``.
 
-    Note: this fails for moderately large arguments (a known legacy limitation).
+    Note: this fails for moderately large arguments.
     """
     # Coerce to exact Fraction up front. The legacy code left ``x`` (and ``base``, e.g. the
     # integer 10 passed by log10) as whatever type it arrived as, so the reciprocal ``1/x``

@@ -17,7 +17,7 @@ controls, so `register_definition_prefix` pairs the prefix with a base URL. The
 prefix itself must be a lower-case alphanumeric token wrapped in single
 underscores — `_exmpl_` is fine, `exmpl`, `_Exmpl_` and `_exmpl` are not.
 `_httk_` and `_omdb_` come pre-registered, both under httk's ad-hoc namespace
-at `schemas.httk.org/ad-hoc/`, which is deliberately separate from the
+at `schemas.httk.org/ad-hoc/`, which is separate from the
 published definitions at `schemas.httk.org/defs/`: a synthesized `$id` names a
 property that is not published anywhere, and should not pretend otherwise.
 
@@ -30,7 +30,7 @@ properties additionally take `dimensions` (named axes and their sizes) and a
 `unit`; both surface in the generated document, and `dimensions` also causes a
 `list_axes` metadata definition to be generated automatically.
 
-The result is deliberately *implementation-neutral*: it describes the property,
+The result is *implementation-neutral*: it describes the property,
 not how any one deployment serves it. Per-deployment flags — is this property
 sortable? is it in the response by default? — are layered on separately with
 `with_implementation`, which returns a new definition and leaves the original

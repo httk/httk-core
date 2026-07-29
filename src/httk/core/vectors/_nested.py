@@ -18,10 +18,9 @@
 """
 Private helpers for mapping, reducing, slicing and building nested tuples/lists.
 
-These functions form the single home for machinery that was triplicated across the
-legacy ``vector.py``, ``fracvector.py`` and ``mutablefracvector.py`` modules. They are
-package-internal (imported by :mod:`httk.core.vectors.fracvector` and
-:mod:`httk.core.vectors.mutablefracvector`) and are not part of the public API.
+These functions are package-internal helpers for
+:mod:`httk.core.vectors.fracvector` and
+:mod:`httk.core.vectors.mutablefracvector`; they are not part of the public API.
 
 Since the nested nominator structures are recursive and heterogeneous during
 construction, these helpers are honestly typed with :data:`~typing.Any`.

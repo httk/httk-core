@@ -12,8 +12,7 @@ class TextstreamFilenameView(TextstreamView, str):
     This view is probably mostly useful for providing filenames to functions that will open them.
     Note: this view is not lazy (this is impossible for views inherting str, since str is immutable)
 
-    Raises TypeError if created with a streaming data source that do not come with a name, in the future
-    we may consider creating a temporary file to place the data in.
+    Raises TypeError if created with a streaming data source that does not have a name.
     """
 
     _backend: TextstreamBackend

@@ -9,7 +9,7 @@ as a tree of plain Python tuples. It does not evaluate, optimize, or translate
 the query — a database backend does that, by walking the tree this function
 returns.
 
-The tree is deliberately made of nothing but tuples and strings. Every node is
+The tree contains only tuples and strings. Every node is
 `(operator, *operands)`:
 
 - **Leaves** are two-element tuples tagging a token with its kind:
