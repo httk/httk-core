@@ -160,7 +160,7 @@ def check_record_matches_definition(
     """Return structural mismatches between a dataclass and an entry definition.
 
     ``property_keys`` maps dataclass field names to served property names; it is
-    the inverse of :meth:`EntryProvider.property_keys`, which maps served
+    the inverse of :meth:`~httk.core.entry_provider.EntryProvider.property_keys`, which maps served
     property names to record keys.  An omitted mapping uses identity for every
     field.  ``internal_fields`` are skipped on the dataclass side, and
     ``ignore_properties`` are skipped on the definition side.  Messages are

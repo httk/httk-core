@@ -58,6 +58,15 @@ def test_direct_construction_rejects_naive_timestamps() -> None:
         )
 
 
+def test_direct_construction_rejects_tzinfo_without_offset() -> None:
+    class NoneOffset(datetime.tzinfo):
+        def utcoffset(self, _value: datetime.datetime | None) -> datetime.timedelta | None:
+            return None
+
+    with pytest.raises(ValueError, match="last_modified"):
+        Calculation(last_modified=datetime.datetime(2024, 1, 1, tzinfo=NoneOffset()))
+
+
 def test_aware_timestamp_round_trips_with_non_utc_offset() -> None:
     timestamp = datetime.datetime(2024, 1, 1, 12, 30, tzinfo=datetime.timezone(datetime.timedelta(hours=5, minutes=30)))
     calc = Calculation.create({"last_modified": timestamp.isoformat()})

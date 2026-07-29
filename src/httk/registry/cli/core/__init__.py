@@ -37,3 +37,8 @@ register_cli_command(
     "httk.core.docs.cli:command",
     "maintain versioned httk documentation sites",
 )
+register_cli_command(
+    "registry",
+    "httk.core.registry_tool:command",
+    "generate and verify entry record classes from schemas",
+)

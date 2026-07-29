@@ -35,7 +35,7 @@ This module models both as immutable Python objects:
 The vendored OPTIMADE standard definitions shipped with httk-core (the
 ``references``, ``files``, and ``calculations`` entry types) are loaded through
 the IRI schema registry by :func:`standard_entry_type` and
-:func:`load_entry_type_schema`.
+:func:`~httk.core.register.load_entry_type_schema`.
 
 **On the "1.2" definition-format stamp:** :meth:`PropertyDefinition.from_simple`
 generates only property-definition features that already exist in format
