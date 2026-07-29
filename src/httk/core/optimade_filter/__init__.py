@@ -27,7 +27,7 @@ tuple abstract syntax tree (the "ojf" format, :data:`FilterAst`), e.g.::
                    ('=', ('Identifier', 'nelements'), ('Number', '2'))))
 
 It is the sibling of the vendored OPTIMADE property definitions in
-``httk.core.optimade_defs`` — two halves of the same standard: the property
+``httk.registry.schemas.core`` — two halves of the same standard: the property
 definitions describe what can be queried, and this package parses the query
 language itself. The grammar is loaded from the packaged
 ``optimade_filter_grammar.ebnf`` (see the adjacent ``README.md`` for

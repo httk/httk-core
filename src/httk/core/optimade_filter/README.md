@@ -23,7 +23,7 @@ v1 series (the v1.2 addition of boolean values is included).
 
 The grammar is refreshed manually: the upstream machine-readable grammar and
 this file use different EBNF dialects/formats, so there is no automated fetch
-target (unlike `make optimade-defs` for the sibling `optimade_defs/`
+target (unlike `make optimade-defs` for the sibling `registry/schemas/core/`
 directory). When the specification grammar changes, update this transcription
 by hand, review the diff against the spec appendix, and update the provenance
 notes above.

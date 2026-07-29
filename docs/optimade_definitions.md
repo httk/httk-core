@@ -16,7 +16,7 @@ definitions of one entry type together with the entry type's own description.
 
 The authoritative, supported copies of the standard OPTIMADE entry-type
 definitions are the JSON files checked in under
-`src/httk/core/optimade_defs/` (`references`, `files`, `calculations`). They are
+`src/httk/registry/schemas/core/` (`references`, `files`, `calculations`). They are
 distributed by the Materials-Consortia under the MIT License (see the `LICENSE`
 next to them). *httk-core* supports exactly the checked-in versions; the
 `README.md` in that directory records their provenance, and `make optimade-defs`

@@ -7,7 +7,7 @@ import pytest
 from httk.core import (
     EntryTypeDefinition,
     PropertyDefinition,
-    load_entry_type_definition,
+    load_entry_type_schema,
     standard_entry_type,
 )
 from httk.core.property_definitions import (
@@ -50,10 +50,27 @@ def test_vendored_requirements_present() -> None:
     assert references.properties["id"].requirements["response-level"] == "always"
 
 
-def test_load_entry_type_definition_is_cached() -> None:
-    a = load_entry_type_definition("httk.core", "files")
-    b = load_entry_type_definition("httk.core", "files")
+def test_load_entry_type_schema_is_cached() -> None:
+    definition_id = "https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files"
+    a = load_entry_type_schema(definition_id)
+    b = load_entry_type_schema(definition_id)
     assert a is b
+
+
+def test_entry_type_definition_id_round_trip_and_extension_provenance() -> None:
+    standard = standard_entry_type("calculations")
+    assert standard.definition_id == "https://schemas.optimade.org/defs/v1.3/entrytypes/optimade/calculations"
+    assert EntryTypeDefinition.from_optimade("calculations", standard.as_optimade()) == standard
+
+    extra = PropertyDefinition.from_simple("_httk_total_energy", description="E", fulltype="float")
+    extended = standard.extended({"_httk_total_energy": extra})
+    assert extended.definition_id is None
+    assert extended.extends_id == standard.definition_id
+    assert "$id" not in extended.as_optimade()
+    assert "definition_id=None" in repr(extended)
+
+    chained = extended.extended({"_httk_other": extra})
+    assert chained.extends_id == standard.definition_id
 
 
 def test_from_optimade_validation_error() -> None:

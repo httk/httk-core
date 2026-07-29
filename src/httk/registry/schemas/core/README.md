@@ -6,10 +6,9 @@ file embeds the complete property definitions for one entry type (their
 canonical `$id`s, types, units, requirements, and descriptions).
 
 The checked-in files are the source of truth: httk-core supports exactly these
-versions, and they are loaded at runtime via
-`httk.core.property_definitions.load_entry_type_definition` /
-`standard_entry_type` (packaged through `pyproject.toml`'s
-`package-data` entry `"httk.core" = [..., "optimade_defs/*"]`).
+versions. They register as IRI-keyed schemas when `httk.core` is imported and
+are loaded by `standard_entry_type` (packaged through `pyproject.toml`'s
+`package-data` entry for `httk.registry.schemas.core`).
 
 ## Provenance
 

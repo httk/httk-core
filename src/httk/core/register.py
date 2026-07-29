@@ -16,9 +16,12 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import json
 import re
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from functools import cache
+from importlib.resources import files
 from threading import Lock
 from typing import TYPE_CHECKING, Any, cast
 
@@ -26,6 +29,7 @@ from ._plugins import PluginRegistry, resolve_callable
 
 if TYPE_CHECKING:
     from .cli import CLIContext
+    from .property_definitions import EntryTypeDefinition, PropertyDefinition
 
 #: Loaders selected by file *extension* (keys are lower-case ``".ext"`` suffixes).
 loaders = PluginRegistry()
@@ -141,6 +145,80 @@ def register_entry_provider(*, name: str, factory: str) -> None:
 
 def known_entry_providers() -> list[str]:
     return entry_providers.keys()
+
+
+_entry_type_schemas: dict[str, str] = {}
+_property_definitions: dict[str, str] = {}
+
+
+def register_entry_type_schema(*, definition_id: str, resource: str) -> None:
+    """Register one resource for an entry-type definition IRI."""
+    if definition_id in _entry_type_schemas:
+        raise ValueError(f"entry-type schema is already registered: {definition_id!r}")
+    _entry_type_schemas[definition_id] = resource
+
+
+def known_entry_type_schemas() -> list[str]:
+    return sorted(_entry_type_schemas)
+
+
+def register_property_definition(*, definition_id: str, resource: str) -> None:
+    """Register one resource for a property definition IRI."""
+    if definition_id in _property_definitions:
+        raise ValueError(f"property definition is already registered: {definition_id!r}")
+    _property_definitions[definition_id] = resource
+
+
+def known_property_definitions() -> list[str]:
+    return sorted(_property_definitions)
+
+
+def _resource(resource: str) -> dict[str, Any]:
+    package, separator, filename = resource.partition(":")
+    if not separator or not package or not filename:
+        raise ValueError(f"Invalid registry resource {resource!r}; expected 'package:filename.json'")
+    return cast(dict[str, Any], json.loads(files(package).joinpath(filename).read_text(encoding="utf-8")))
+
+
+@cache
+def load_entry_type_schema(definition_id: str) -> "EntryTypeDefinition":
+    """Load and verify a registered entry-type definition resource."""
+    try:
+        resource = _entry_type_schemas[definition_id]
+    except KeyError as exc:
+        known = ", ".join(known_entry_type_schemas()) or "(none)"
+        raise ValueError(f"No entry-type schema registered for {definition_id!r}. Known: {known}") from exc
+    from .property_definitions import EntryTypeDefinition
+
+    document = _resource(resource)
+    definition = EntryTypeDefinition.from_optimade(definition_id.rsplit("/", 1)[-1], document)
+    document_id = definition.definition_id
+    if document_id != definition_id:
+        raise ValueError(
+            f"Entry-type schema registration IRI {definition_id!r} does not match document $id {document_id!r}"
+        )
+    return definition
+
+
+@cache
+def load_property_definition(definition_id: str) -> "PropertyDefinition":
+    """Load and verify a registered property definition resource."""
+    try:
+        resource = _property_definitions[definition_id]
+    except KeyError as exc:
+        known = ", ".join(known_property_definitions()) or "(none)"
+        raise ValueError(f"No property definition registered for {definition_id!r}. Known: {known}") from exc
+    from .property_definitions import PropertyDefinition
+
+    document = _resource(resource)
+    name = document.get("name", definition_id.rsplit("/", 1)[-1])
+    definition = PropertyDefinition.from_optimade(name, document)
+    document_id = definition.definition_id
+    if document_id != definition_id:
+        raise ValueError(
+            f"Property definition registration IRI {definition_id!r} does not match document $id {document_id!r}"
+        )
+    return definition
 
 
 _entry_records: dict[str, tuple[str, str | None]] = {}

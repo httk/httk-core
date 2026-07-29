@@ -34,9 +34,8 @@ This module models both as immutable Python objects:
 
 The vendored OPTIMADE standard definitions shipped with httk-core (the
 ``references``, ``files``, and ``calculations`` entry types) are loaded through
-:func:`load_entry_type_definition` / :func:`standard_entry_type`. The
-authoritative, supported copies are the JSON files checked in under
-``httk/core/optimade_defs/`` (see the README there).
+the IRI schema registry by :func:`standard_entry_type` and
+:func:`load_entry_type_schema`.
 
 **On the "1.2" definition-format stamp:** :meth:`PropertyDefinition.from_simple`
 generates only property-definition features that already exist in format
@@ -49,11 +48,8 @@ entry types (such as ``calculations``) whose specification version is newer.
 """
 
 import copy
-import json
 import re
 from collections.abc import Mapping
-from functools import cache
-from importlib.resources import files
 from typing import Any, Self
 
 PROPERTY_DEFINITION_META_SCHEMA = "https://schemas.optimade.org/meta/v1.2/optimade/property_definition.json"
@@ -464,22 +460,37 @@ class EntryTypeDefinition:
     properties than any given deployment serves; the served subset is chosen
     separately (an :class:`~httk.core.EntryProvider` names it through its
     :meth:`~httk.core.EntryProvider.property_keys`).
+
+    ``definition_id`` identifies the source document when present. An extended
+    definition is a new document, so it clears that identity and retains the
+    original standard IRI in ``extends_id`` instead.
     """
 
-    __slots__ = ("_description", "_name", "_properties")
+    __slots__ = ("_definition_id", "_description", "_extends_id", "_name", "_properties")
 
-    def __init__(self, name: str, description: str, properties: Mapping[str, PropertyDefinition]) -> None:
+    def __init__(
+        self,
+        name: str,
+        description: str,
+        properties: Mapping[str, PropertyDefinition],
+        definition_id: str | None = None,
+        extends_id: str | None = None,
+    ) -> None:
         self._name = name
         self._description = description
         self._properties: dict[str, PropertyDefinition] = dict(properties)
+        self._definition_id = definition_id
+        self._extends_id = extends_id
 
     @classmethod
     def from_optimade(cls, name: str, entrytype: Mapping[str, Any]) -> Self:
         """Build an entry-type definition from a vendored OPTIMADE entry type.
 
-        ``entrytype`` is the vendored document shape: a ``description`` string
-        and a ``properties`` mapping of property name to full property
-        definition. A clear :class:`ValueError` is raised when either is missing.
+        ``entrytype`` is the vendored document shape: a ``description`` string,
+        an optional top-level ``$id``, and a ``properties`` mapping of property
+        name to full property definition. A clear :class:`ValueError` is raised
+        when either required field is missing. The optional ID identifies the
+        source document; ad-hoc definitions remain valid without one.
         """
         if "description" not in entrytype:
             raise ValueError("Invalid OPTIMADE entry-type definition for '" + name + "': missing 'description'.")
@@ -489,7 +500,7 @@ class EntryTypeDefinition:
             prop_name: PropertyDefinition.from_optimade(prop_name, prop_def)
             for prop_name, prop_def in entrytype["properties"].items()
         }
-        return cls(name, entrytype["description"], properties)
+        return cls(name, entrytype["description"], properties, entrytype.get("$id"))
 
     @property
     def name(self) -> str:
@@ -498,6 +509,16 @@ class EntryTypeDefinition:
     @property
     def description(self) -> str:
         return self._description
+
+    @property
+    def definition_id(self) -> str | None:
+        """Return this definition's document IRI, if it has a standard one."""
+        return self._definition_id
+
+    @property
+    def extends_id(self) -> str | None:
+        """Return the original standard IRI extended to make this definition, if any."""
+        return self._extends_id
 
     @property
     def properties(self) -> Mapping[str, PropertyDefinition]:
@@ -512,6 +533,9 @@ class EntryTypeDefinition:
         prefix (see :func:`register_definition_prefix` /
         :func:`known_definition_prefixes`); a custom property that does not is
         rejected with a :class:`ValueError` explaining the OPTIMADE prefix rule.
+        The result deliberately has no ``definition_id``: it is a new document,
+        not the standard resource. Its ``extends_id`` records the original
+        standard ID so repeated extensions retain that provenance.
         """
         merged = dict(self._properties)
         recognized = known_definition_prefixes()
@@ -535,14 +559,22 @@ class EntryTypeDefinition:
                     + "); OPTIMADE reserves unprefixed names for standard properties."
                 )
             merged[prop_name] = definition
-        return type(self)(self._name, self._description, merged)
+        return type(self)(
+            self._name,
+            self._description,
+            merged,
+            extends_id=self._extends_id or self._definition_id,
+        )
 
     def as_optimade(self) -> dict[str, Any]:
         """Return the entry type as a vendored-shape OPTIMADE document."""
-        return {
+        document = {
             "description": self._description,
             "properties": {name: prop.as_optimade() for name, prop in self._properties.items()},
         }
+        if self._definition_id is not None:
+            document["$id"] = self._definition_id
+        return document
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, EntryTypeDefinition):
@@ -551,23 +583,15 @@ class EntryTypeDefinition:
             self._name == other._name
             and self._description == other._description
             and self._properties == other._properties
+            and self._definition_id == other._definition_id
+            and self._extends_id == other._extends_id
         )
 
     def __repr__(self) -> str:
-        return f"EntryTypeDefinition(name={self._name!r}, properties={list(self._properties)!r})"
-
-
-@cache
-def load_entry_type_definition(package: str, name: str) -> EntryTypeDefinition:
-    """Load a vendored OPTIMADE entry-type definition JSON from a package.
-
-    Reads ``optimade_defs/<name>.json`` from ``package`` (via
-    :mod:`importlib.resources`) and models it as an
-    :class:`EntryTypeDefinition`. Results are cached per ``(package, name)``.
-    """
-    text = files(package).joinpath(f"optimade_defs/{name}.json").read_text(encoding="utf-8")
-    document = json.loads(text)
-    return EntryTypeDefinition.from_optimade(name, document)
+        return (
+            f"EntryTypeDefinition(name={self._name!r}, definition_id={self._definition_id!r}, "
+            f"properties={list(self._properties)!r})"
+        )
 
 
 _STANDARD_ENTRY_TYPES: tuple[str, ...] = ("references", "files", "calculations")
@@ -588,4 +612,11 @@ def standard_entry_type(name: str) -> EntryTypeDefinition:
             + ", ".join(_STANDARD_ENTRY_TYPES)
             + "."
         )
-    return load_entry_type_definition("httk.core", name)
+    definition_ids = {
+        "references": "https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/references",
+        "files": "https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files",
+        "calculations": "https://schemas.optimade.org/defs/v1.3/entrytypes/optimade/calculations",
+    }
+    from .register import load_entry_type_schema
+
+    return load_entry_type_schema(definition_ids[name])
