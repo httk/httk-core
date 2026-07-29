@@ -17,14 +17,20 @@ def view_class_coercer(view_classes: Sequence[type]) -> Coercer:
     """Return a coercer that tries matching view classes in ``view_classes`` order.
 
     A ``TypeError``, ``ValueError``, or ``OverflowError`` from a view constructor means that view
-    cannot represent the value, so construction continues with the next matching class.
+    cannot represent the value, so construction continues with the next matching class. If a
+    candidate exposes ``_ensure_materialized()``, explicit coercion calls it so lazy views are
+    materialized and deferred data errors follow the same fall-through contract.
     """
 
     def coerce_view(value: Any, target: type) -> Any | None:
         for cls in view_classes:
             if issubclass(cls, target):
                 try:
-                    return cast(Any, cls)(value)
+                    candidate = cast(Any, cls)(value)
+                    ensure_materialized = getattr(candidate, "_ensure_materialized", None)
+                    if ensure_materialized is not None:
+                        ensure_materialized()
+                    return candidate
                 except (TypeError, ValueError, OverflowError):
                     pass
         return None

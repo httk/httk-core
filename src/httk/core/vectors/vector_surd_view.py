@@ -2,10 +2,12 @@
 A view presenting any vector backend as a SurdVector (the exact squarefree-radical representation).
 """
 
+from functools import cached_property
 from typing import Any, Self
 
 from httk.core.views import unwrap
 
+from .fracvector import FracVector
 from .surdvector import SurdVector
 from .vector_backend import VectorBackend
 from .vector_like import VectorLike
@@ -19,8 +21,8 @@ class VectorSurdView(VectorView, SurdVector):
     :class:`~httk.core.vectors.surdvector.SurdVector`.
 
     This view is a genuine SurdVector, so it exposes the full exact surd algebra
-    (``det``/``inv``/``*``/``length``/...). It is built **eagerly** on construction, following the
-    eager immutable-subclass pattern of
+    (``det``/``inv``/``*``/``length``/``...). It is built lazily on first access, following the
+    immutable-subclass pattern of
     :class:`~httk.core.vectors.vector_frac_view.VectorFracView`: from a surd backend it adopts the
     exact SurdVector directly, and from a frac/native/numpy backend it embeds the backend's exact
     rational ``fractions`` at radicand 1 — exactly, since every rational is a surd.
@@ -36,19 +38,35 @@ class VectorSurdView(VectorView, SurdVector):
         if isinstance(obj, cls):
             return obj
         backend = cls._prepare_backend(obj, hints)
-        if isinstance(backend, VectorSurd):
-            surd = backend.unwrap()
-        else:
-            surd = SurdVector.create(backend.fractions)
         instance = super().__new__(cls)
-        # SurdVector state is initialized here in __new__ (keeping __init__ a no-op) so that
-        # rewrapping an existing view via cls(view) does not re-initialize it.
-        SurdVector.__init__(instance, surd._components, surd._dim)
         instance._backend = backend
         return instance
 
     def __init__(self, obj: VectorLike, **hints: Any) -> None:
         pass
+
+    def _fill_fractions(self) -> None:
+        # Validate then assign: failed fills leave no partial presentation state, and fills must
+        # not read shadowed attributes or they recurse.
+        if isinstance(self._backend, VectorSurd):
+            surd = self._backend.unwrap()
+        else:
+            surd = SurdVector.create(self._backend.fractions)
+        SurdVector.__init__(self, surd._components, surd._dim)
+
+    def _ensure_materialized(self) -> None:
+        if "_backend" in self.__dict__ and "_components" not in self.__dict__:
+            self._fill_fractions()
+
+    @cached_property
+    def _components(self) -> dict[int, FracVector]:  # type: ignore[override]  # pyright: ignore[reportIncompatibleVariableOverride]
+        self._fill_fractions()
+        return self.__dict__["_components"]
+
+    @cached_property
+    def _dim(self) -> tuple[int, ...]:  # type: ignore[override]  # pyright: ignore[reportIncompatibleVariableOverride]
+        self._fill_fractions()
+        return self.__dict__["_dim"]
 
     def unwrap(self) -> Any:
         backend = getattr(self, "_backend", None)

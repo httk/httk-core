@@ -458,6 +458,10 @@ accept the `VectorLike` union and normalize immediately to the view they want.
 | `"native"` | `VectorNative`  | `VectorNativeView`  | nested `tuple` (exact leaves)  |
 | `"numpy"`  | `VectorNumpy`   | `VectorNumpyView`   | `numpy.ndarray` (float64)      |
 
+`VectorFracView` and `VectorSurdView` are lazy: construction stores the backend, and their exact
+presentation state is converted and kept on first access. The other views remain eager where their
+representation or documented construction-time validation requires it.
+
 ```python
 from httk.core import FracVector, VectorFracView, VectorNativeView
 from httk.core.vectors import VectorBackend, VectorFrac, VectorNative

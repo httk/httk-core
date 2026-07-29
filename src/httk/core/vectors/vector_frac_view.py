@@ -2,11 +2,12 @@
 A view presenting any vector backend as a FracVector (the exact-rational representation).
 """
 
+from functools import cached_property
 from typing import Any, Self
 
 from httk.core.views import unwrap
 
-from .fracvector import FracVector
+from .fracvector import FracVector, Noms
 from .vector_backend import VectorBackend
 from .vector_like import VectorLike
 from .vector_view import VectorView
@@ -22,7 +23,7 @@ class VectorFracView(VectorView, FracVector):
 
     This view is a genuine FracVector, so it can be passed anywhere a FracVector is accepted,
     and it exposes the full exact-rational algebra (``det``/``inv``/``*``/...). It is built
-    eagerly from the backend's exact ``fractions`` interchange on construction, so the
+    lazily on first access from the backend's exact ``fractions`` interchange, so the
     round-trip is exactness-preserving for the frac and native backends. (numpy values are
     binary rationals, so a numpy source round-trips to the exact float64 rational, not
     necessarily the original decimal fraction.)
@@ -48,15 +49,36 @@ class VectorFracView(VectorView, FracVector):
             return obj
         backend = cls._prepare_backend(obj, hints)
         instance = super().__new__(cls)
-        # FracVector state is initialized here in __new__ (keeping __init__ a no-op), so that
-        # rewrapping an existing view via cls(view) does not re-initialize it.
-        built = FracVector.create(backend.fractions)
-        FracVector.__init__(instance, built.noms, built.denom)
         instance._backend = backend
         return instance
 
     def __init__(self, obj: VectorLike, denom: Any = _NO_DENOM, **hints: Any) -> None:
         pass
+
+    def _fill_fractions(self) -> None:
+        # Validate then assign: failed fills leave no partial presentation state, and fills must
+        # not read shadowed attributes or they recurse.
+        built = FracVector.create(self._backend.fractions)
+        FracVector.__init__(self, built.noms, built.denom)
+
+    def _ensure_materialized(self) -> None:
+        if "_backend" in self.__dict__ and "noms" not in self.__dict__:
+            self._fill_fractions()
+
+    @cached_property
+    def noms(self) -> Noms:  # type: ignore[override]  # pyright: ignore[reportIncompatibleVariableOverride]
+        self._fill_fractions()
+        return self.__dict__["noms"]
+
+    @cached_property
+    def denom(self) -> int:  # type: ignore[override]  # pyright: ignore[reportIncompatibleVariableOverride]
+        self._fill_fractions()
+        return self.__dict__["denom"]
+
+    @cached_property
+    def _dim(self) -> tuple[int, ...] | None:  # type: ignore[override]  # pyright: ignore[reportIncompatibleVariableOverride]
+        self._fill_fractions()
+        return self.__dict__["_dim"]
 
     def unwrap(self) -> Any:
         backend = getattr(self, "_backend", None)

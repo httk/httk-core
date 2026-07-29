@@ -68,6 +68,10 @@ def compute_bandpath(slike: StructureLike) -> list[tuple[float, float, float]]:
 `StructureLike` is the accepted input union, while `ASEAtomsView` is the normalized working interface.
 As with datastreams, this lets callers pass many natural representations without complicating algorithm code.
 
+Views are usually lazy: construction stores only the backend, and presentation state converts on
+first access and is kept. Views where that is impossible — immutable builtin subclasses, external
+mutable objects, or documented construction-time validation — stay eager.
+
 ## Design Guidance
 
 When introducing a new domain (`X`), keep these rules:

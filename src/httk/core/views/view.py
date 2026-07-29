@@ -18,6 +18,12 @@ class View[BackendT: Backend]:
 
     All backends and views of the same kind of data (X) should be combined into a type union XLike that functions use to declare they support this kind of data.
     Such functions should start with creating a View on the passed data, giving them access to the data in a single desired format.
+
+    Views are lazy by default: construction stores only the backend, while
+    ``cached_property`` shadows and group fills materialize presentation state on first access.
+    Size fills to the subset served by each backend call; validate before assigning, never read a
+    shadowed attribute from a fill, and document why a view must remain eager. The explicit
+    ``coerce()`` path materializes via ``_ensure_materialized()``; laziness is for pass-through use.
     """
 
     # Python typing, and mypy in particular, have trouble with variables being assigned abstract base classes
