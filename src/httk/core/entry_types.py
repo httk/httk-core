@@ -31,6 +31,7 @@ provider contract live in the *httk-data* module (``httk.data.entry_providers``)
 which imports these dataclasses; httk-core keeps only the stdlib-only models.
 """
 
+import datetime
 from collections.abc import Mapping
 from dataclasses import dataclass, fields
 from typing import Any, Self
@@ -41,12 +42,14 @@ class Reference:
     """One OPTIMADE ``references`` record (a bibliographic reference).
 
     Every field is optional and defaults to ``None``; ``id`` is supplied by the
-    provider's mapping key and ``type`` is the constant ``"references"``. Author
-    and editor lists are tuples of plain name dictionaries.
+    provider's mapping key and ``type`` is the constant ``"references"``.
+    ``last_modified`` is a timezone-aware ``datetime`` value. Serving layers
+    emit timestamps with ``datetime.isoformat()``, including their offset.
+    Author and editor lists are tuples of plain name dictionaries.
     """
 
     immutable_id: str | None = None
-    last_modified: str | None = None
+    last_modified: datetime.datetime | None = None
     address: str | None = None
     annote: str | None = None
     booktitle: str | None = None
@@ -74,6 +77,9 @@ class Reference:
     doi: str | None = None
     url: str | None = None
 
+    def __post_init__(self) -> None:
+        _validate_timestamp(self.last_modified, "last_modified")
+
     @classmethod
     def create(cls, obj: "Reference | Mapping[str, Any]") -> Self:
         return _create(cls, obj)
@@ -83,26 +89,31 @@ class Reference:
 class File:
     """One OPTIMADE ``files`` record.
 
-    Every field is optional and defaults to ``None``; ``id`` is supplied by the
-    provider's mapping key and ``type`` is the constant ``"files"``. Timestamps
-    are ISO-8601 strings and ``checksums`` is a mapping of algorithm name to hex
-    digest.
+    ``url`` and ``name`` are required; all other fields default to ``None``.
+    ``id`` is supplied by the provider's mapping key and ``type`` is the
+    constant ``"files"``. Timestamps are timezone-aware ``datetime`` values;
+    serving layers emit them with ``datetime.isoformat()``, including their
+    offset. ``checksums`` is a mapping of algorithm name to hex digest.
     """
 
+    url: str
+    name: str
     immutable_id: str | None = None
-    last_modified: str | None = None
-    url: str | None = None
-    url_stable_until: str | None = None
-    name: str | None = None
+    last_modified: datetime.datetime | None = None
+    url_stable_until: datetime.datetime | None = None
     size: int | None = None
     media_type: str | None = None
     version: str | None = None
-    modification_timestamp: str | None = None
+    modification_timestamp: datetime.datetime | None = None
     description: str | None = None
     checksums: Mapping[str, str] | None = None
-    atime: str | None = None
-    ctime: str | None = None
-    mtime: str | None = None
+    atime: datetime.datetime | None = None
+    ctime: datetime.datetime | None = None
+    mtime: datetime.datetime | None = None
+
+    def __post_init__(self) -> None:
+        for field in _FILE_TIMESTAMP_FIELDS:
+            _validate_timestamp(getattr(self, field), field)
 
     @classmethod
     def create(cls, obj: "File | Mapping[str, Any]") -> Self:
@@ -114,17 +125,47 @@ class Calculation:
     """One OPTIMADE ``calculations`` record.
 
     Every field is optional and defaults to ``None``; ``id`` is supplied by the
-    provider's mapping key and ``type`` is the constant ``"calculations"``. The
-    standard ``calculations`` entry type carries only the shared core
-    properties; database-specific results are added by extending the definition.
+    provider's mapping key and ``type`` is the constant ``"calculations"``.
+    ``last_modified`` is a timezone-aware ``datetime`` value; serving layers
+    emit it with ``datetime.isoformat()``, including its offset. The standard
+    ``calculations`` entry type carries only the shared core properties;
+    database-specific results are added by extending the definition.
     """
 
     immutable_id: str | None = None
-    last_modified: str | None = None
+    last_modified: datetime.datetime | None = None
+
+    def __post_init__(self) -> None:
+        _validate_timestamp(self.last_modified, "last_modified")
 
     @classmethod
     def create(cls, obj: "Calculation | Mapping[str, Any]") -> Self:
         return _create(cls, obj)
+
+
+_TIMESTAMP_FIELDS = frozenset(
+    {
+        "last_modified",
+        "atime",
+        "ctime",
+        "mtime",
+        "modification_timestamp",
+        "url_stable_until",
+    }
+)
+_FILE_TIMESTAMP_FIELDS = (
+    "last_modified",
+    "url_stable_until",
+    "modification_timestamp",
+    "atime",
+    "ctime",
+    "mtime",
+)
+
+
+def _validate_timestamp(value: Any, field: str) -> None:
+    if value is not None and (not isinstance(value, datetime.datetime) or value.tzinfo is None):
+        raise ValueError(f"Field '{field}' must be a timezone-aware datetime with an explicit offset.")
 
 
 def _create(cls: type[Any], obj: Any) -> Any:
@@ -136,5 +177,17 @@ def _create(cls: type[Any], obj: Any) -> Any:
         unknown = [key for key in obj if key not in known]
         if unknown:
             raise ValueError("Unknown field(s) for " + cls.__name__ + ": " + ", ".join(sorted(unknown)) + ".")
-        return cls(**obj)
+        values = dict(obj)
+        for field in _TIMESTAMP_FIELDS & known:
+            value = values.get(field)
+            if isinstance(value, str):
+                try:
+                    parsed = datetime.datetime.fromisoformat(value)
+                except ValueError as exc:
+                    raise ValueError(f"Invalid ISO-8601 value for field '{field}': {value!r}.") from exc
+                _validate_timestamp(parsed, field)
+                values[field] = parsed
+            elif value is not None:
+                _validate_timestamp(value, field)
+        return cls(**values)
     raise TypeError("Expected a " + cls.__name__ + " or a mapping, got " + type(obj).__name__ + ".")

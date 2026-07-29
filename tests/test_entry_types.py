@@ -5,6 +5,8 @@ The entry *providers* that serve these dataclasses through the
 their tests live there. httk-core keeps only the stdlib-only record models.
 """
 
+import datetime
+
 import pytest
 
 from httk.core import Calculation, File, Reference, known_entry_providers
@@ -28,7 +30,38 @@ def test_create_unknown_key_error_names_it() -> None:
 def test_calculation_minimal_fields() -> None:
     calc = Calculation.create({"last_modified": "2024-01-01T00:00:00Z"})
     assert calc.immutable_id is None
-    assert calc.last_modified == "2024-01-01T00:00:00Z"
+    assert calc.last_modified == datetime.datetime(2024, 1, 1, tzinfo=datetime.UTC)
+
+
+@pytest.mark.parametrize(
+    ("value", "field"),
+    [
+        ("not-a-timestamp", "last_modified"),
+        ("2024-01-01", "last_modified"),
+        (datetime.datetime.fromisoformat("2024-01-01T00:00:00"), "last_modified"),
+        (1, "last_modified"),
+    ],
+)
+def test_create_rejects_invalid_timestamps(value: object, field: str) -> None:
+    with pytest.raises(ValueError, match=field):
+        Calculation.create({field: value})
+
+
+def test_direct_construction_rejects_naive_timestamps() -> None:
+    with pytest.raises(ValueError, match="last_modified"):
+        Reference(last_modified=datetime.datetime.fromisoformat("2024-01-01T00:00:00"))
+    with pytest.raises(ValueError, match="last_modified"):
+        File(
+            url="http://x",
+            name="x",
+            last_modified=datetime.datetime.fromisoformat("2024-01-01T00:00:00"),
+        )
+
+
+def test_aware_timestamp_round_trips_with_non_utc_offset() -> None:
+    timestamp = datetime.datetime(2024, 1, 1, 12, 30, tzinfo=datetime.timezone(datetime.timedelta(hours=5, minutes=30)))
+    calc = Calculation.create({"last_modified": timestamp.isoformat()})
+    assert calc.last_modified == timestamp
 
 
 # --- registry -----------------------------------------------------------------

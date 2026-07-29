@@ -101,6 +101,7 @@ from .register import (
     register_property_definition,
     resolve_entry_record,
 )
+from .schema_check import check_record_matches_definition
 from .storage_markers import (
     STORAGE_INFO_ATTRIBUTE,
     DedupPolicy,
@@ -230,6 +231,7 @@ __all__ = [
     "VectorSurdView",
     "VectorView",
     "View",
+    "check_record_matches_definition",
     "coerce",
     "combined_precision",
     "decimal_precision",
