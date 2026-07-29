@@ -1,7 +1,7 @@
 # Extensible command line and signing
 
 Installing *httk-core* provides the `httk` executable. Capability modules add
-top-level commands from their `httk.handlers.*` registration package, so a core
+top-level commands from their `httk.registry.*` registration package, so a core
 installation remains useful without importing optional command
 implementations.
 

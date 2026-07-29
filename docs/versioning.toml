@@ -2,4 +2,4 @@
 slug = "httk-core"
 repository-url = "https://github.com/httk/httk-core"
 main-branch = "main"
-import-roots = ["httk/core", "httk/handlers"]
+import-roots = ["httk/core", "httk/registry"]

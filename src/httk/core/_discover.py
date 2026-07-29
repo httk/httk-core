@@ -21,10 +21,10 @@ import pkgutil
 
 
 def discover_and_register():
-    import httk.handlers
+    import httk.registry
 
-    prefix = "httk.handlers."
-    for m in pkgutil.iter_modules(httk.handlers.__path__, prefix):
+    prefix = "httk.registry."
+    for m in pkgutil.iter_modules(httk.registry.__path__, prefix):
         if not m.ispkg:
             continue
 
@@ -32,4 +32,4 @@ def discover_and_register():
         if spec is None:
             continue
 
-        _mod = importlib.import_module(m.name)  # imports only that handler package chain
+        _mod = importlib.import_module(m.name)  # imports only that registry package chain

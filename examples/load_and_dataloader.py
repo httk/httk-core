@@ -22,7 +22,7 @@ because they explain what a format module has to register:
 
 *httk-core* ships **no** loaders of its own — it is the contract
 layer, not a format library. The registries are filled by sibling modules:
-importing `httk.core` walks the `httk.handlers` namespace package and imports
+importing `httk.core` walks the `httk.registry` namespace package and imports
 every handler package it finds there, and each of those calls
 `httk.core.register.register_loader` to claim its extensions and basenames. So
 what `known_extensions()` reports is a *statement about the installation*: with
@@ -104,7 +104,7 @@ def show_load_dispatch() -> None:
     print("known extensions:", known_extensions() or "(none registered)")
     print("known filenames: ", known_filenames() or "(none registered)")
     print("httk-core itself registers none of these; every entry above was contributed")
-    print("by a sibling module discovered through the httk.handlers namespace package.")
+    print("by a sibling module discovered through the httk.registry namespace package.")
 
     mystery = "/some/dir/mystery.notaformat"
     try:

@@ -17,7 +17,7 @@
 
 # httk-core ships no concrete EntryProvider: it defines the neutral contract and
 # its registry, plus the stdlib-only record models, and domain modules (e.g.
-# httk-data, httk-atomistic) provide their own httk.handlers.* package that
+# httk-data, httk-atomistic) provide their own httk.registry.* package that
 # self-registers providers during httk.core discovery.
 #
 # The two commands core registers are the umbrella `httk project` and versioned

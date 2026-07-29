@@ -75,7 +75,7 @@ between that spelling, the raw 32 bytes, and a `*.pub` file.
 
 A capability adds subcommands and `show` rows to the umbrella command through a
 registry that mirrors {func}`~httk.core.register_cli_command`, registering
-lazily from its `httk.handlers.*` package during core plugin discovery:
+lazily from its `httk.registry.*` package during core plugin discovery:
 
 ```python
 from httk.core.project.cli import (

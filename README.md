@@ -15,7 +15,7 @@ It provides:
 - the `httk.core` package within the PEP 420 native `httk` namespace;
 - shared view/backend and data-stream primitives; and
 - plugin discovery and aggregate operations such as `httk.core.load`, to which
-  other httk modules can register handlers.
+  other httk modules can register capabilities.
 - the extensible `httk` executable, a lazy top-level command registry, and
   stdlib-backed Ed25519 signing.
 

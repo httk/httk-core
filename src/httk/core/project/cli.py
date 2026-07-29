@@ -9,7 +9,7 @@ come from whatever is installed.
 
 The registration machinery mirrors :func:`httk.core.register_cli_command`: a
 capability registers *lazily*, by ``"module:callable"`` reference, from its
-``httk.handlers.*`` package during core plugin discovery, and nothing heavy is
+``httk.registry.*`` package during core plugin discovery, and nothing heavy is
 imported until ``httk project`` actually runs. Registrations are strict —
 reserved names and duplicates are errors — and the command tree is assembled in
 a stable order.
