@@ -4,12 +4,37 @@ from typing import Any
 
 import pytest
 
-from httk.core import FracVector, SurdVector, VectorFrac, VectorFracView, VectorSurd, VectorSurdView, coerce
+from httk.core import (
+    FracVector,
+    SurdVector,
+    VectorFrac,
+    VectorFracView,
+    VectorNative,
+    VectorSurd,
+    VectorSurdView,
+    coerce,
+)
 from httk.core.views import unwrap
 
 
 class CountingVectorFrac(VectorFrac):
     def __init__(self, obj: FracVector, **hints: Any) -> None:
+        super().__init__(obj, **hints)
+        self.fractions_calls = 0
+        self.unwrap_calls = 0
+
+    @property
+    def fractions(self):
+        self.fractions_calls += 1
+        return super().fractions
+
+    def unwrap(self) -> Any:
+        self.unwrap_calls += 1
+        return super().unwrap()
+
+
+class CountingVectorNative(VectorNative):
+    def __init__(self, obj: Any, **hints: Any) -> None:
         super().__init__(obj, **hints)
         self.fractions_calls = 0
 
@@ -41,7 +66,7 @@ def test_frac_view_construction_is_lazy_and_unwrap_does_not_materialize() -> Non
 
 
 def test_frac_view_presentation_state_is_filled_once() -> None:
-    backend = CountingVectorFrac(FracVector.create([1, 2, 3]))
+    backend = CountingVectorNative([1, 2, 3])
     view = VectorFracView(backend)
 
     _ = view.noms
@@ -50,6 +75,19 @@ def test_frac_view_presentation_state_is_filled_once() -> None:
     _ = view.dim
 
     assert backend.fractions_calls == 1
+
+
+def test_frac_view_adopts_frac_backend_without_fractions_roundtrip() -> None:
+    raw = FracVector.create([[1, "2/3"], [3, 4]])
+    backend = CountingVectorFrac(raw)
+    view = VectorFracView(backend)
+
+    assert backend.unwrap_calls == 0
+    _ = view.noms
+    _ = view.denom
+    assert backend.fractions_calls == 0
+    assert backend.unwrap_calls == 1
+    assert view == raw
 
 
 def test_frac_view_hash_and_equality_materialize_correctly() -> None:

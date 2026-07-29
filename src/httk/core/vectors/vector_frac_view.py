@@ -9,6 +9,7 @@ from httk.core.views import unwrap
 
 from .fracvector import FracVector, Noms
 from .vector_backend import VectorBackend
+from .vector_frac import VectorFrac
 from .vector_like import VectorLike
 from .vector_view import VectorView
 
@@ -23,7 +24,8 @@ class VectorFracView(VectorView, FracVector):
 
     This view is a genuine FracVector, so it can be passed anywhere a FracVector is accepted,
     and it exposes the full exact-rational algebra (``det``/``inv``/``*``/...). It is built
-    lazily on first access from the backend's exact ``fractions`` interchange, so the
+    lazily on first access — adopting a frac backend's FracVector directly, otherwise
+    converting from the backend's exact ``fractions`` interchange — so the
     round-trip is exactness-preserving for the frac and native backends. (numpy values are
     binary rationals, so a numpy source round-trips to the exact float64 rational, not
     necessarily the original decimal fraction.)
@@ -58,7 +60,10 @@ class VectorFracView(VectorView, FracVector):
     def _fill_fractions(self) -> None:
         # Validate then assign: failed fills leave no partial presentation state, and fills must
         # not read shadowed attributes or they recurse.
-        built = FracVector.create(self._backend.fractions)
+        if isinstance(self._backend, VectorFrac):
+            built = self._backend.unwrap()
+        else:
+            built = FracVector.create(self._backend.fractions)
         FracVector.__init__(self, built.noms, built.denom)
 
     def _ensure_materialized(self) -> None:
