@@ -22,7 +22,7 @@ of records with described properties — to consumers that expose them, for
 example an OPTIMADE server. The contract is deliberately domain-neutral: nothing here is
 specific to materials science (or to OPTIMADE). A materials module such as
 ``httk.atomistic`` implements a provider that serves its ``structures`` from
-this contract, and a serving module such as ``httk.optimade`` consumes any
+this contract, and a serving module such as ``httk.serve.optimade`` consumes any
 provider without depending on the domain module.
 """
 

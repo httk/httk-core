@@ -2,7 +2,7 @@
 
 `httk.core.EntryProvider` is the neutral seam between a module that *has* data
 and a module that *serves* it. A domain module (say a materials database)
-implements the contract; a serving module (say *httk-optimade*) consumes it.
+implements the contract; a serving module (say *httk-serve*) consumes it.
 Neither imports the other — they meet at this abstract base class and its small
 registry. Nothing in the contract is specific to materials science, or even to
 OPTIMADE.

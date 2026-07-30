@@ -7,7 +7,7 @@ documentation of *httk₂* as a whole, see [docs.httk.org](https://docs.httk.org
 
 It also defines the neutral `httk.core.EntryProvider` contract and its registry
 (`register_entry_provider`), by which domain modules supply described, queryable
-entry types to consumers such as *httk-optimade* without either side depending
+entry types to consumers such as *httk-serve* without either side depending
 on the other.
 
 ```{admonition} Quick links
