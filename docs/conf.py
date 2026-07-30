@@ -110,11 +110,23 @@ nitpick_ignore = [
     ("py:class", "typing.Optional"),
     ("py:class", "typing.Union"),
     ("py:class", "Ellipsis"),
+    # AutoAPI does not currently index PEP 695 aliases as Python objects.
+    ("py:obj", "FrozenJson"),
+    # AutoAPI renders the imported leaf of FrozenJson without its module.
+    ("py:class", "Decimal"),
+    # Public OPTIMADE resources necessarily expose the protocol member
+    # ``type``. Their re-exported AutoAPI entries make an unqualified
+    # ``type`` reference ambiguous, while qualified members remain indexed.
+    ("py:obj", "type"),
 ]
 copybutton_prompt_text = r">>> |\.\.\. |\$ "
 copybutton_prompt_is_regexp = True
 
-suppress_warnings = ["myst.xref_missing"]
+# AutoAPI indexes public objects through both their defining module and the
+# package re-export. Protocol members named ``type`` therefore make Sphinx's
+# unqualified built-in ``type`` annotations ambiguous; qualified references
+# remain checked by nitpicky mode.
+suppress_warnings = ["myst.xref_missing", "ref.python"]
 
 def skip_member(app, what, name, obj, skip, options):
     # Skip private members (those starting with _)

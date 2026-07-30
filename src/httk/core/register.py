@@ -18,11 +18,12 @@
 
 import json
 import re
-from collections.abc import Callable, Sequence
-from dataclasses import dataclass
+from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass, field
 from functools import cache
 from importlib.resources import files
 from threading import Lock
+from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, cast
 
 from ._plugins import PluginRegistry, resolve_callable
@@ -250,6 +251,125 @@ def resolve_entry_record(name: str) -> type:
     if not isinstance(resolved, type):
         raise TypeError(f"Resolved entry record {name!r} to non-class object {resolved!r}")
     return resolved
+
+
+def _validate_optimade_reference(reference: str, *, label: str) -> None:
+    if not isinstance(reference, str):
+        raise TypeError(f"{label} must be a 'module:attr' string")
+    module_name, separator, attribute = reference.partition(":")
+    if (
+        not separator
+        or reference.count(":") != 1
+        or not module_name
+        or not attribute
+        or any(not part.isidentifier() for part in module_name.split("."))
+        or not attribute.isidentifier()
+    ):
+        raise ValueError(f"{label} must use strict 'module:attr' syntax")
+
+
+def _validate_nonempty_optimade_string(value: str, *, label: str) -> None:
+    if not isinstance(value, str) or not value.strip() or value != value.strip():
+        raise ValueError(f"{label} must be a nonempty string without surrounding whitespace")
+
+
+@dataclass(frozen=True)
+class OptimadeEntryBinding:
+    """Lazy typed handling for one exact OPTIMADE entry-type definition IRI."""
+
+    name: str
+    definition_id: str
+    backend: str
+    view: str
+    property_decoders: Mapping[str, str] = field(default_factory=dict)
+    query_fields: tuple[str, ...] | None = None
+
+    def __post_init__(self) -> None:
+        _validate_nonempty_optimade_string(self.name, label="binding name")
+        _validate_nonempty_optimade_string(self.definition_id, label="definition_id")
+        _validate_optimade_reference(self.backend, label="backend")
+        _validate_optimade_reference(self.view, label="view")
+        if not isinstance(self.property_decoders, Mapping):
+            raise TypeError("property_decoders must be a mapping of definition IRIs to lazy references")
+        decoders: dict[str, str] = {}
+        for definition_id, decoder in self.property_decoders.items():
+            _validate_nonempty_optimade_string(definition_id, label="property decoder definition_id")
+            _validate_optimade_reference(decoder, label=f"property decoder {definition_id!r}")
+            decoders[definition_id] = decoder
+        if self.query_fields is not None:
+            if not isinstance(self.query_fields, tuple):
+                raise TypeError("query_fields must be a tuple of property-definition IRIs or None")
+            seen: set[str] = set()
+            for definition_id in self.query_fields:
+                _validate_nonempty_optimade_string(definition_id, label="query field definition_id")
+                if definition_id in seen:
+                    raise ValueError(f"query field is listed more than once: {definition_id!r}")
+                seen.add(definition_id)
+        object.__setattr__(self, "property_decoders", MappingProxyType(decoders))
+
+    def resolve_backend(self) -> type:
+        """Import and return this binding's backend class on demand."""
+
+        resolved = resolve_callable(self.backend)
+        if not isinstance(resolved, type):
+            raise TypeError(f"Resolved OPTIMADE backend {self.backend!r} to non-class object {resolved!r}")
+        return resolved
+
+    def resolve_view(self) -> type:
+        """Import and return this binding's view class on demand."""
+
+        resolved = resolve_callable(self.view)
+        if not isinstance(resolved, type):
+            raise TypeError(f"Resolved OPTIMADE view {self.view!r} to non-class object {resolved!r}")
+        return resolved
+
+    def resolve_property_decoder(self, definition_id: str) -> Callable[..., Any] | None:
+        """Resolve one property decoder, or return ``None`` when it is unbound."""
+
+        try:
+            reference = self.property_decoders[definition_id]
+        except KeyError:
+            return None
+        return resolve_callable(reference)
+
+
+_optimade_entry_bindings: dict[str, OptimadeEntryBinding] = {}
+
+
+def register_optimade_entry_binding(
+    *,
+    name: str,
+    definition_id: str,
+    backend: str,
+    view: str,
+    property_decoders: Mapping[str, str] | None = None,
+    query_fields: tuple[str, ...] | None = None,
+) -> None:
+    """Register one lazy typed binding, selected only by exact definition IRI."""
+
+    binding = OptimadeEntryBinding(
+        name=name,
+        definition_id=definition_id,
+        backend=backend,
+        view=view,
+        property_decoders={} if property_decoders is None else property_decoders,
+        query_fields=query_fields,
+    )
+    if definition_id in _optimade_entry_bindings:
+        raise ValueError(f"OPTIMADE entry binding is already registered: {definition_id!r}")
+    _optimade_entry_bindings[definition_id] = binding
+
+
+def known_optimade_entry_bindings() -> tuple[str, ...]:
+    """Return registered entry-type definition IRIs without resolving imports."""
+
+    return tuple(sorted(_optimade_entry_bindings))
+
+
+def optimade_entry_binding(definition_id: str) -> OptimadeEntryBinding | None:
+    """Return the exact-IRI binding without importing its backend or view."""
+
+    return _optimade_entry_bindings.get(definition_id)
 
 
 CLIHandler = Callable[[Sequence[str], "CLIContext"], int]

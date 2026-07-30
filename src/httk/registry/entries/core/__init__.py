@@ -1,11 +1,33 @@
-"""Register classes from ``httk.core.entry_types`` as lazy registry pointers."""
+"""Register core entry records and typed OPTIMADE bindings lazily."""
 
-from httk.core import register_entry_record
+from httk.core import register_entry_record, register_optimade_entry_binding
 
 register_entry_record(
     name="core-reference",
     record="httk.core.entry_types:Reference",
     definition_id="https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/references",
+)
+
+register_optimade_entry_binding(
+    name="core-reference",
+    definition_id="https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/references",
+    backend="httk.core.optimade_entries:OptimadeReference",
+    view="httk.core.optimade_entries:ReferenceView",
+    query_fields=None,
+)
+register_optimade_entry_binding(
+    name="core-file",
+    definition_id="https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files",
+    backend="httk.core.optimade_entries:OptimadeFile",
+    view="httk.core.optimade_entries:FileView",
+    query_fields=None,
+)
+register_optimade_entry_binding(
+    name="core-calculation",
+    definition_id="https://schemas.optimade.org/defs/v1.3/entrytypes/optimade/calculations",
+    backend="httk.core.optimade_entries:OptimadeCalculation",
+    view="httk.core.optimade_entries:CalculationView",
+    query_fields=None,
 )
 register_entry_record(
     name="core-file",
