@@ -138,6 +138,12 @@ from .storage_markers import (
     Unique,
     stored_property,
 )
+from .stored_entries import (
+    STORED_ENTRY_PROJECTION_ATTRIBUTE,
+    StoredEntryProjection,
+    StoredEntryValue,
+    stored_entry_projection,
+)
 from .vectors import (
     FracScalar,
     FracVector,
@@ -182,6 +188,7 @@ subpackages = _discover_modules()
 
 __all__ = [
     "STORAGE_INFO_ATTRIBUTE",
+    "STORED_ENTRY_PROJECTION_ATTRIBUTE",
     "Backend",
     "BytestreamBackend",
     "BytestreamBytes",
@@ -240,6 +247,8 @@ __all__ = [
     "Shape",
     "Skip",
     "StorageInfo",
+    "StoredEntryProjection",
+    "StoredEntryValue",
     "SurdScalar",
     "SurdVector",
     "TextstreamBackend",
@@ -315,6 +324,7 @@ __all__ = [
     "resolve_entry_record",
     "sign_ed25519",
     "standard_entry_type",
+    "stored_entry_projection",
     "stored_property",
     "subpackages",
     "to_numeric",
