@@ -53,6 +53,7 @@ from typing import Final, Literal
 __all__ = [
     "STORAGE_INFO_ATTRIBUTE",
     "DedupPolicy",
+    "IdentitySkip",
     "Indexed",
     "Related",
     "RelationshipLink",
@@ -92,6 +93,11 @@ class Unique:
 @dataclass(frozen=True)
 class Skip:
     """Field marker: the field exists on the dataclass but is not stored."""
+
+
+@dataclass(frozen=True)
+class IdentitySkip:
+    """Field marker: exclude the field from content identity."""
 
 
 @dataclass(frozen=True)
@@ -206,6 +212,8 @@ class StorageInfo:
         storage_name: The name this class is stored under; ``None`` derives one from
             the class name. A relational backend uses it as the table name, a document
             store as the collection name.
+        identity_name: The logical name included in content identity; ``None`` derives
+            it from the declaring class and its bases.
         indexes: Composite indexes, each a tuple of field names.
         dedup: Deduplication policy applied when saving; see :data:`DedupPolicy`.
         links: Class-level relationship declarations; see :class:`RelationshipLink`.
@@ -215,10 +223,19 @@ class StorageInfo:
     indexes: tuple[tuple[str, ...], ...] = ()
     dedup: DedupPolicy = "content_id"
     links: tuple[RelationshipLink, ...] = ()
+    identity_name: str | None = None
 
     def __post_init__(self) -> None:
         if self.dedup not in _DEDUP_POLICIES:
             raise ValueError(f"StorageInfo dedup must be one of {_DEDUP_POLICIES}, got {self.dedup!r}")
+        if self.identity_name is not None and (
+            not isinstance(self.identity_name, str)
+            or not self.identity_name.strip()
+            or self.identity_name != self.identity_name.strip()
+        ):
+            raise ValueError(
+                "StorageInfo identity_name must be a nonempty string without surrounding whitespace or None"
+            )
         for index in self.indexes:
             if not index:
                 raise ValueError("StorageInfo indexes must not contain empty field-name tuples")

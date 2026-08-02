@@ -16,6 +16,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import dataclasses
 import json
 import re
 from collections.abc import Callable, Mapping, Sequence
@@ -250,6 +251,78 @@ def resolve_entry_record(name: str) -> type:
     resolved = resolve_callable(entry_record_info(name)[0])
     if not isinstance(resolved, type):
         raise TypeError(f"Resolved entry record {name!r} to non-class object {resolved!r}")
+    return resolved
+
+
+_entry_families: dict[str, tuple[str, str | None]] = {}
+_entry_backings: dict[str, tuple[str, str]] = {}
+
+
+def register_entry_family(*, name: str, family: str, definition_id: str | None = None) -> None:
+    """Register a lazy entry-family class reference without importing it."""
+    _validate_nonempty_optimade_string(name, label="entry family name")
+    _validate_optimade_reference(family, label="entry family")
+    if definition_id is not None:
+        _validate_nonempty_optimade_string(definition_id, label="definition_id")
+    if name in _entry_families:
+        raise ValueError(f"entry family is already registered: {name!r}")
+    _entry_families[name] = (family, definition_id)
+
+
+def known_entry_families() -> list[str]:
+    return sorted(_entry_families)
+
+
+def entry_family_info(name: str) -> tuple[str, str | None]:
+    """Return entry-family metadata without importing its class."""
+    try:
+        return _entry_families[name]
+    except KeyError as exc:
+        known = ", ".join(known_entry_families()) or "(none)"
+        raise ValueError(f"No entry family registered for {name!r}. Known: {known}") from exc
+
+
+def resolve_entry_family(name: str) -> type:
+    """Import and return a registered entry-family class."""
+    resolved = resolve_callable(entry_family_info(name)[0])
+    if not isinstance(resolved, type):
+        raise TypeError(f"Resolved entry family {name!r} to non-class object {resolved!r}")
+    return resolved
+
+
+def register_entry_backing(*, name: str, family_name: str, record: str) -> None:
+    """Register a lazy record class backing an existing entry family."""
+    _validate_nonempty_optimade_string(name, label="entry backing name")
+    _validate_nonempty_optimade_string(family_name, label="family_name")
+    _validate_optimade_reference(record, label="entry backing record")
+    if family_name not in _entry_families:
+        raise ValueError(f"No entry family registered for backing {family_name!r}")
+    if name in _entry_backings:
+        raise ValueError(f"entry backing is already registered: {name!r}")
+    _entry_backings[name] = (family_name, record)
+
+
+def known_entry_backings() -> list[str]:
+    return sorted(_entry_backings)
+
+
+def entry_backing_info(name: str) -> tuple[str, str]:
+    """Return entry-backing metadata without importing its record class."""
+    try:
+        return _entry_backings[name]
+    except KeyError as exc:
+        known = ", ".join(known_entry_backings()) or "(none)"
+        raise ValueError(f"No entry backing registered for {name!r}. Known: {known}") from exc
+
+
+def resolve_entry_backing(name: str) -> type:
+    """Import and return a registered entry-backing record class."""
+    resolved = resolve_callable(entry_backing_info(name)[1])
+    if not isinstance(resolved, type):
+        raise TypeError(f"Resolved entry backing {name!r} to non-class object {resolved!r}")
+    params = getattr(resolved, "__dataclass_params__", None)
+    if not dataclasses.is_dataclass(resolved) or params is None or not params.frozen:
+        raise TypeError(f"Resolved entry backing {name!r} to a non-frozen dataclass {resolved!r}")
     return resolved
 
 
