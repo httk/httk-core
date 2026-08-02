@@ -232,7 +232,3 @@ def ed25519_verify(
 
 # Verb-first aliases make the operations easy to discover without creating a
 # second key representation.
-generate_ed25519_seed = ed25519_generate_seed
-derive_ed25519_public_key = ed25519_public_key
-sign_ed25519 = ed25519_sign
-verify_ed25519 = ed25519_verify

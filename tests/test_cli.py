@@ -2,8 +2,9 @@ from pathlib import Path
 
 import pytest
 
-from httk.core import CLIContext, known_cli_commands, register_cli_command
+from httk.core import CLIContext, register_cli_command
 from httk.core.cli import main
+from httk.core.register import known_cli_commands
 
 
 def test_lazy_registration_help_and_dispatch(tmp_path: Path, monkeypatch, capsys) -> None:

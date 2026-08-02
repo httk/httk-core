@@ -24,10 +24,10 @@ from httk.core import (
     decode_optimade_value,
     known_optimade_entry_bindings,
     optimade_entry_binding,
-    redact_optimade_document_text,
     redact_optimade_url,
     register_optimade_entry_binding,
 )
+from httk.core.optimade_resources import redact_optimade_document_text
 from httk.core.register import _optimade_entry_bindings
 
 

@@ -21,7 +21,7 @@ import httk
 
 from . import _discover, exactmath
 from .cli_context import CLIContext
-from .dataloader import DataLoader, DataRecord, DatasetMeta, DecodeObjectCallback
+from .dataloader import DataLoader, DataRecord, DatasetMeta
 from .datastream import (
     BytestreamBackend,
     BytestreamBytes,
@@ -55,17 +55,7 @@ from .datastream import (
     known_compressions,
     register_compression,
 )
-from .ed25519 import (
-    derive_ed25519_public_key,
-    ed25519_backend_available,
-    ed25519_generate_seed,
-    ed25519_public_key,
-    ed25519_sign,
-    ed25519_verify,
-    generate_ed25519_seed,
-    sign_ed25519,
-    verify_ed25519,
-)
+from .ed25519 import ed25519_backend_available, ed25519_generate_seed, ed25519_public_key, ed25519_sign, ed25519_verify
 from .entry_provider import EntryProvider, RelatedEntry
 from .entry_types import Calculation, File, Reference
 from .identity import (
@@ -75,7 +65,6 @@ from .identity import (
     project_storage_record,
     register_canonical_encoder,
     resolve_storage_record,
-    storage_identity_name,
 )
 from .loading import load
 from .optimade_entries import (
@@ -83,8 +72,6 @@ from .optimade_entries import (
     FileView,
     IncompleteOptimadeResourceError,
     OptimadeCalculation,
-    OptimadeEntryBackend,
-    OptimadeEntryView,
     OptimadeFile,
     OptimadeReference,
     ReferenceView,
@@ -101,7 +88,6 @@ from .optimade_resources import (
     OptimadeResource,
     OptimadeSchemaSnapshot,
     optimade_document_root,
-    redact_optimade_document_text,
     redact_optimade_url,
 )
 from .precision import combined_precision, decimal_precision
@@ -114,23 +100,16 @@ from .property_definitions import (
 )
 from .register import (
     OptimadeEntryBinding,
-    entry_backing_info,
     entry_family_info,
     entry_record_info,
-    known_cli_commands,
-    known_entry_backings,
     known_entry_families,
     known_entry_providers,
     known_entry_records,
-    known_entry_type_schemas,
-    known_format_adapters,
     known_optimade_entry_bindings,
-    known_property_definitions,
     load_entry_type_schema,
     load_property_definition,
     optimade_entry_binding,
     register_cli_command,
-    register_entry_backing,
     register_entry_family,
     register_entry_provider,
     register_entry_record,
@@ -138,11 +117,9 @@ from .register import (
     register_format_adapter,
     register_optimade_entry_binding,
     register_property_definition,
-    resolve_entry_backing,
     resolve_entry_family,
     resolve_entry_record,
 )
-from .schema_check import check_record_matches_definition
 from .storage_markers import (
     STORAGE_INFO_ATTRIBUTE,
     DedupPolicy,
@@ -157,7 +134,6 @@ from .storage_markers import (
     stored_property,
 )
 from .stored_properties import (
-    STORED_PROPERTY_PROJECTIONS_ATTRIBUTE,
     QueryContext,
     QueryExpression,
     QueryField,
@@ -165,9 +141,6 @@ from .stored_properties import (
     QueryScope,
     QueryValue,
     StoredPropertyProjection,
-    StoredPropertyQuery,
-    StoredPropertyResponse,
-    StoredPropertySort,
     stored_property_projections,
 )
 from .vectors import (
@@ -188,7 +161,6 @@ from .vectors import (
     VectorNativeView,
     VectorSurd,
     VectorSurdView,
-    VectorView,
     known_leaf_codecs,
     numpy_available,
     register_leaf_codec,
@@ -196,7 +168,7 @@ from .vectors import (
     to_numeric_scalar,
 )
 from .vectors import _numpy_available as _vectors_numpy_available
-from .views import Backend, Coercer, View, coerce, register_coercer, unwrap
+from .views import Backend, View, coerce, unwrap
 
 if _vectors_numpy_available:
     from .vectors import VectorNumpy, VectorNumpyView
@@ -214,7 +186,6 @@ subpackages = _discover_modules()
 
 __all__ = [
     "STORAGE_INFO_ATTRIBUTE",
-    "STORED_PROPERTY_PROJECTIONS_ATTRIBUTE",
     "Backend",
     "BytestreamBackend",
     "BytestreamBytes",
@@ -233,12 +204,10 @@ __all__ = [
     "CLIContext",
     "Calculation",
     "CalculationView",
-    "Coercer",
     "CompressionCodec",
     "DataLoader",
     "DataRecord",
     "DatasetMeta",
-    "DecodeObjectCallback",
     "DedupPolicy",
     "EntryProvider",
     "EntryTypeDefinition",
@@ -255,9 +224,7 @@ __all__ = [
     "NumericVector",
     "OptimadeCalculation",
     "OptimadeDocument",
-    "OptimadeEntryBackend",
     "OptimadeEntryBinding",
-    "OptimadeEntryView",
     "OptimadeFile",
     "OptimadeReference",
     "OptimadeResource",
@@ -282,9 +249,6 @@ __all__ = [
     "StorageInfo",
     "StorageProjectionCycleError",
     "StoredPropertyProjection",
-    "StoredPropertyQuery",
-    "StoredPropertyResponse",
-    "StoredPropertySort",
     "SurdScalar",
     "SurdVector",
     "TextstreamBackend",
@@ -311,38 +275,28 @@ __all__ = [
     "VectorNativeView",
     "VectorSurd",
     "VectorSurdView",
-    "VectorView",
     "View",
     "canonical_form",
-    "check_record_matches_definition",
     "coerce",
     "combined_precision",
     "content_id",
     "decimal_precision",
     "decode_optimade_value",
-    "derive_ed25519_public_key",
     "ed25519_backend_available",
     "ed25519_generate_seed",
     "ed25519_public_key",
     "ed25519_sign",
     "ed25519_verify",
-    "entry_backing_info",
     "entry_family_info",
     "entry_record_info",
     "exactmath",
-    "generate_ed25519_seed",
-    "known_cli_commands",
     "known_compressions",
     "known_definition_prefixes",
-    "known_entry_backings",
     "known_entry_families",
     "known_entry_providers",
     "known_entry_records",
-    "known_entry_type_schemas",
-    "known_format_adapters",
     "known_leaf_codecs",
     "known_optimade_entry_bindings",
-    "known_property_definitions",
     "load",
     "load_entry_type_schema",
     "load_property_definition",
@@ -351,14 +305,11 @@ __all__ = [
     "optimade_entry_binding",
     "parse_optimade_filter",
     "project_storage_record",
-    "redact_optimade_document_text",
     "redact_optimade_url",
     "register_canonical_encoder",
     "register_cli_command",
-    "register_coercer",
     "register_compression",
     "register_definition_prefix",
-    "register_entry_backing",
     "register_entry_family",
     "register_entry_provider",
     "register_entry_record",
@@ -367,20 +318,16 @@ __all__ = [
     "register_leaf_codec",
     "register_optimade_entry_binding",
     "register_property_definition",
-    "resolve_entry_backing",
     "resolve_entry_family",
     "resolve_entry_record",
     "resolve_storage_record",
-    "sign_ed25519",
     "standard_entry_type",
-    "storage_identity_name",
     "stored_property",
     "stored_property_projections",
     "subpackages",
     "to_numeric",
     "to_numeric_scalar",
     "unwrap",
-    "verify_ed25519",
 ]
 
 if _vectors_numpy_available:

@@ -27,6 +27,9 @@ for derived, queryable properties — so that any httk module (or application)
 can declare storable classes while depending only on httk-core. All schema
 resolution and storage work happens in the storage layer.
 
+Storage may optionally call a record class's ``__httk_validate__`` classmethod
+when saving a record instance; implementations may raise to reject invalid data.
+
 Markers are used like this::
 
     @dataclass(frozen=True)
@@ -75,6 +78,10 @@ type DedupPolicy = Literal["content_id", "by_value", "none"]
 - ``"by_value"``: reuse an existing row whose stored columns all match (suited
   to join-objects such as tags and references, whose identity is their value).
 - ``"none"``: always insert a new row.
+
+Values equal across ``int`` and ``Fraction`` can hash differently, while
+``Decimal`` and ``Fraction`` unify; naive and aware datetimes are distinct.
+Records combining those sources may therefore not deduplicate.
 """
 
 _DEDUP_POLICIES: Final = ("content_id", "by_value", "none")
@@ -249,3 +256,8 @@ class stored_property(property):
     and stores the value alongside the declared fields; on load, the value is
     recomputed by the property rather than passed to ``__init__``.
     """
+
+    def __init__(self, fget=None, fset=None, fdel=None, doc=None):
+        if fget is not None and "return" not in getattr(fget, "__annotations__", {}):
+            raise TypeError("stored_property getter needs a return annotation")
+        super().__init__(fget, fset, fdel, doc)

@@ -127,9 +127,7 @@ def test_duplicate_format_adapter_names_both_registrants() -> None:
     register_format_adapter(name="first-adapter", adapter=lambda value: value, formats=("duplicate",))
     try:
         with pytest.raises(ValueError, match="first-adapter.*second-adapter"):
-            register_format_adapter(
-                name="second-adapter", adapter=lambda value: value, formats=("duplicate",)
-            )
+            register_format_adapter(name="second-adapter", adapter=lambda value: value, formats=("duplicate",))
     finally:
         format_adapters._by_key.pop("duplicate", None)
 

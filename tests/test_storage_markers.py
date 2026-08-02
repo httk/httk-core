@@ -138,3 +138,11 @@ def test_stored_property_is_a_property_with_readable_annotation():
     assert get_type_hints(Record.natoms.fget)["return"] is int
     # A plain property must remain distinguishable from a stored one.
     assert not isinstance(property(lambda _: None), stored_property)
+
+
+def test_stored_property_requires_a_return_annotation():
+    with pytest.raises(TypeError, match="return annotation"):
+
+        @stored_property
+        def value(_):
+            return 1

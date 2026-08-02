@@ -48,9 +48,7 @@ def test_create_from_decimal() -> None:
 
 
 def test_create_from_fraction() -> None:
-    v = FracVector.create(
-        [[F(185, 23), 0, 0], [0, F(67, 18), 0], [0, 0, F(59, 8)]]
-    )
+    v = FracVector.create([[F(185, 23), 0, 0], [0, F(67, 18), 0], [0, 0, F(59, 8)]])
     assert v.noms == ((13320, 0, 0), (0, 6164, 0), (0, 0, 12213))
     assert v.denom == 1656
 
@@ -372,30 +370,15 @@ def test_get_stacked_matrices() -> None:
     assert stacked[0] == a and stacked[1] == b
 
 
-# ------------------------------------------------------------------ use() live to_FracVector path
-
-
-class _HasToFracVector:
-    def to_FracVector(self) -> FracVector:
-        return FracVector.create([[1, 2], [3, 4]])
-
-
 def test_use_returns_plain_fracvector_unchanged() -> None:
     v = FracVector.create([1, 2, 3])
     assert FracVector.use(v) is v
 
 
-def test_use_converts_via_to_fracvector() -> None:
-    # Live fast path: an object exposing to_FracVector() is converted through it.
-    result = FracVector.use(_HasToFracVector())
-    assert isinstance(result, FracVector)
-    assert result == FracVector.create([[1, 2], [3, 4]])
-
-
 def test_use_converts_mutable_to_immutable() -> None:
     from httk.core.vectors import MutableFracVector
 
-    m = MutableFracVector.from_FracVector(FracVector.create([[1, 2], [3, 4]]))
+    m = MutableFracVector.create(FracVector.create([[1, 2], [3, 4]]))
     result = FracVector.use(m)
     assert type(result) is FracVector
     assert result == m
@@ -414,7 +397,7 @@ def test_pow_negative_matrix_beyond_minus_one() -> None:
     # Corrected: legacy multiplied by self (not the inverse), collapsing A**-2 to the identity.
     assert (a**-2).simplify() == inv.mul(inv).simplify()
     assert (a**-3).simplify() == inv.mul(inv).mul(inv).simplify()
-    assert (a ** -2).simplify() != FracVector.eye((3, 3))
+    assert (a**-2).simplify() != FracVector.eye((3, 3))
 
 
 def test_pow_zero_scalar_and_fracscalar() -> None:
@@ -435,7 +418,7 @@ def test_equality_across_list_and_tuple_noms() -> None:
     from httk.core.vectors import MutableFracVector
 
     fv = FracVector.create([[1, 2], [3, 4]])
-    mv = MutableFracVector.from_FracVector(fv)
+    mv = MutableFracVector.create(fv)
     # Corrected: nested list vs nested tuple never compared equal before.
     assert mv == fv
     assert fv == mv

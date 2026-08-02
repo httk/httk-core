@@ -127,16 +127,7 @@ class FracVector:
         """
         Make sure the variable is a FracVector, and if not, convert it.
         """
-        # Live fast path: anything exposing to_FracVector() (e.g. a MutableFracVector) is
-        # converted through it into a plain FracVector. (The legacy code called cls.__init__
-        # on the result, which returned None, so this path never actually took effect.)
-        to_fracvector = getattr(old, "to_FracVector", None)
-        if to_fracvector is not None:
-            fracvec = to_fracvector()
-            return cls(fracvec.noms, fracvec.denom)
-        # A plain FracVector (no conversion of its own) is returned unchanged; anything else is
-        # built from scratch.
-        if isinstance(old, FracVector):
+        if type(old) is cls:
             return old
         return cls.create(old)
 
@@ -424,30 +415,6 @@ class FracVector:
         by the :meth:`to_tuple` method. ``from_tuple(v.to_tuple())`` reconstructs ``v`` exactly.
         """
         return cls(t[1], t[0])
-
-    @classmethod
-    def from_floats(cls, data: Any, resolution: int = 2**32) -> Self:
-        """
-        Create a FracVector from a (nested) list or tuple of floats. You can convert a numpy
-        array with this method if you use ``A.tolist()``.
-
-        Args:
-            l: the (nested) list or tuple of floats.
-            resolution: the resolution used for interpreting the given floating point numbers.
-                Default is ``2**32``.
-        """
-
-        eps = (1.0 / resolution) * 0.1
-
-        gcd = nested_reduce(
-            lambda x, y: calc_gcd(x, abs(int((y + eps) * resolution))),
-            data,
-            initializer=resolution,
-        )
-        noms = cls.nested_map(lambda x: int((x + eps) * resolution) // gcd, data)
-        denom = resolution // gcd
-
-        return cls(noms, denom)
 
     @classmethod
     def _create_func(

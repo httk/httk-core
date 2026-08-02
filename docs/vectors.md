@@ -185,14 +185,14 @@ copies, exactly like `FracVector`.
 import fractions
 from httk.core import FracVector, MutableFracVector
 
-m = MutableFracVector.from_FracVector(FracVector.create([[1, 2, 3], [4, 5, 6]]))
+m = MutableFracVector.create(FracVector.create([[1, 2, 3], [4, 5, 6]]))
 m[1, 1:] = [40, 50]                       # slice assignment
 assert m.noms == [[1, 2, 3], [4, 40, 50]]
 
 # assignment puts both sides on a common denominator automatically:
-half = MutableFracVector.from_FracVector(FracVector.create([["1/2", "1/2"]]))
+half = MutableFracVector.create(FracVector.create([["1/2", "1/2"]]))
 half[0, 1] = fractions.Fraction(1, 3)
-assert half.to_FracVector().simplify() == FracVector.create([["1/2", "1/3"]])
+assert FracVector.create(half).simplify() == FracVector.create([["1/2", "1/3"]])
 ```
 
 The `set_*` mutators replace the vector in place. `set_inv()` leaves the vector numerically equal
@@ -203,20 +203,20 @@ are `set_T`, `set_negative`, `set_normalize`, `set_normalize_half`, `set_set_den
 from httk.core import FracVector, MutableFracVector
 
 a = FracVector.create([[2, 3, 5], [3, 5, 4], [4, 6, 7]])
-m = MutableFracVector.from_FracVector(a)
+m = MutableFracVector.create(a)
 m.set_inv()
-assert m.to_FracVector() == a.inv()
+assert FracVector.create(m) == a.inv()
 assert m.denom == 3 and isinstance(m.denom, int)
 ```
 
-Convert freely between the two: `MutableFracVector.from_FracVector(fv)` and `m.to_FracVector()`
+Convert freely between the two: `MutableFracVector.create(fv)` and `FracVector.create(m)`
 (which returns a plain immutable `FracVector`). `FracVector.use(x)` normalizes any input to an
-immutable `FracVector`, converting a `MutableFracVector` through its `to_FracVector()`:
+immutable `FracVector`:
 
 ```python
 from httk.core import FracVector, MutableFracVector
 
-m = MutableFracVector.from_FracVector(FracVector.create([[1, 2], [3, 4]]))
+m = MutableFracVector.create(FracVector.create([[1, 2], [3, 4]]))
 fv = FracVector.use(m)
 assert type(fv) is FracVector
 assert fv == m                          # mutable and immutable compare equal by value

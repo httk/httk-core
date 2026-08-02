@@ -4,7 +4,8 @@ from typing import get_type_hints
 
 import pytest
 
-from httk.core import CLIContext, File, known_cli_commands
+from httk.core import CLIContext, File
+from httk.core.register import known_cli_commands
 from httk.core.registry_tool import (
     check_core_records,
     command,

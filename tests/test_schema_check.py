@@ -12,9 +12,9 @@ from httk.core import (
     PropertyDefinition,
     Reference,
     Shape,
-    check_record_matches_definition,
     load_entry_type_schema,
 )
+from httk.core.schema_check import check_record_matches_definition
 
 type Tags = tuple[str, ...]
 type Tag = str

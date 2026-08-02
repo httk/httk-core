@@ -17,18 +17,18 @@ from httk.core import (
     SurdVector,
     canonical_form,
     content_id,
-    entry_backing_info,
     entry_family_info,
-    known_entry_backings,
+    entry_record_info,
     known_entry_families,
+    known_entry_records,
     register_canonical_encoder,
-    register_entry_backing,
     register_entry_family,
-    resolve_entry_backing,
+    register_entry_record,
     resolve_entry_family,
+    resolve_entry_record,
     resolve_storage_record,
-    storage_identity_name,
 )
+from httk.core.identity import storage_identity_name
 
 
 @dataclass(frozen=True)
@@ -143,7 +143,7 @@ def test_binding_is_exact_class_only() -> None:
     class Source:
         value: int
 
-        __httk_storage_binding__ = Record
+        __httk_storage_record__ = Record
 
     @dataclass(frozen=True)
     class Child(Source):
@@ -206,8 +206,8 @@ def test_nested_projection_does_not_construct_records_and_as_record_is_alternate
                 "mapping": source.mapping,
             }
 
-    ChildSource.__httk_storage_binding__ = AlternateRecord
-    ParentSource.__httk_storage_binding__ = ParentRecord
+    ChildSource.__httk_storage_record__ = AlternateRecord
+    ParentSource.__httk_storage_record__ = ParentRecord
     source = ParentSource(
         ChildSource(4),
         [ChildSource(5)],
@@ -332,6 +332,12 @@ def test_custom_canonical_encoder_is_deterministic_and_strict() -> None:
     assert content_id(_Plain(Scalar(3))) == content_id(_Plain(Scalar(3)))
     assert f'"python_type":"{Scalar.__module__}.{Scalar.__qualname__}"' in canonical_form(_Plain(Scalar(3)))
 
+    class ChildScalar(Scalar):
+        pass
+
+    with pytest.raises(TypeError, match="ChildScalar.*Scalar.*exact-type"):
+        content_id(_Plain(ChildScalar(3)))
+
     class IntScalar(int):
         pass
 
@@ -370,22 +376,23 @@ def test_entry_family_and_backing_registries_are_lazy_and_strict() -> None:
     family_ref = f"{__name__}:_Family"
     backing_ref = f"{__name__}:_Backing"
     register_entry_family(name=family_name, family=family_ref, definition_id="definition")
-    register_entry_backing(name=backing_name, family_name=family_name, record=backing_ref)
+    register_entry_record(name=backing_name, family=family_name, record=backing_ref)
     assert family_name in known_entry_families()
-    assert backing_name in known_entry_backings()
+    assert backing_name in known_entry_records(family_name)
     assert entry_family_info(family_name) == (family_ref, "definition")
-    assert entry_backing_info(backing_name) == (family_name, backing_ref)
+    assert entry_record_info(backing_name) == (backing_ref, family_name, None)
     assert resolve_entry_family(family_name) is _Family
-    assert resolve_entry_backing(backing_name) is _Backing
+    assert resolve_entry_record(backing_name) is _Backing
     mutable_name = "identity-test-mutable-backing"
     plain_name = "identity-test-plain-backing"
-    register_entry_backing(name=mutable_name, family_name=family_name, record=f"{__name__}:_MutableBacking")
-    register_entry_backing(name=plain_name, family_name=family_name, record=f"{__name__}:_NotABacking")
+    register_entry_record(name=mutable_name, family=family_name, record=f"{__name__}:_MutableBacking")
+    register_entry_record(name=plain_name, family=family_name, record=f"{__name__}:_NotABacking")
     with pytest.raises(TypeError, match="non-frozen dataclass"):
-        resolve_entry_backing(mutable_name)
+        resolve_entry_record(mutable_name)
     with pytest.raises(TypeError, match="non-frozen dataclass"):
-        resolve_entry_backing(plain_name)
+        resolve_entry_record(plain_name)
+    assert {backing_name, mutable_name, plain_name} <= set(known_entry_records(family_name))
     with pytest.raises(ValueError, match="strict"):
         register_entry_family(name="bad-identity-family", family="not-a-reference")
     with pytest.raises(ValueError, match="No entry family"):
-        register_entry_backing(name="bad-identity-backing", family_name="missing", record=backing_ref)
+        register_entry_record(name="bad-identity-record", family="missing", record=backing_ref)

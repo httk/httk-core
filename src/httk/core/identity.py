@@ -23,7 +23,7 @@ __all__ = [
     "storage_identity_name",
 ]
 
-STORAGE_BINDING_ATTRIBUTE = "__httk_storage_binding__"
+STORAGE_RECORD_ATTRIBUTE = "__httk_storage_record__"
 CANONICAL_SOURCE_ATTRIBUTE = "__httk_canonical_source__"
 CANONICAL_PROJECT_ATTRIBUTE = "__httk_project__"
 _MISSING = object()
@@ -57,7 +57,7 @@ def resolve_storage_record(source: Any, *, as_record: type[Any] | None = None) -
         target = as_record
     else:
         source_type = type(source)
-        target = vars(source_type).get(STORAGE_BINDING_ATTRIBUTE, source_type)
+        target = vars(source_type).get(STORAGE_RECORD_ATTRIBUTE, source_type)
     _validate_record_type(target)
     return target
 
@@ -185,6 +185,12 @@ class _Encoder:
         encoder = _canonical_encoders.get(type(value))
         if encoder is not None:
             return self._custom(value, encoder, path)
+        for ancestor in type(value).__mro__[1:]:
+            if ancestor in _canonical_encoders:
+                raise TypeError(
+                    f"no canonical encoder is registered for {type(value).__name__}; "
+                    f"the registered ancestor {ancestor.__name__} cannot be used because canonical encoders are exact-type"
+                )
         if value is None:
             return {"type": "null"}
         annotation = _unwrap_annotation(annotation)

@@ -100,26 +100,7 @@ class MutableFracVector(FracVector):
             return old.to_MutableFracVector()
         except Exception:  # noqa: S110  # conversion probe intentionally ignores failures
             pass
-        # Note: the legacy fast path via to_FracVector() was dead code (it always fell through
-        # to create); this preserves that observable behavior.
-        try:
-            old.to_FracVector()
-        except Exception:  # noqa: S110  # legacy conversion probe intentionally ignores failures
-            pass
         return cls.create(old)
-
-    def to_FracVector(self) -> FracVector:
-        """
-        Return a FracVector with the values of this MutableFracVector.
-        """
-        return FracVector.create(self.noms, self.denom)
-
-    @classmethod
-    def from_FracVector(cls, other: FracVector) -> "MutableFracVector":
-        """
-        Create a MutableFracVector from a FracVector.
-        """
-        return MutableFracVector.create(other.noms, other.denom)
 
     def validate(self) -> bool:
         # TODO: check all dimensions and make sure noms is a square tensor of only lists
@@ -140,14 +121,14 @@ class MutableFracVector(FracVector):
 
         Hashing one would let it be used as a dict key or set member and then mutated out
         from under its own hash bucket. :class:`~httk.core.FracVector` is the immutable,
-        hashable counterpart — call :meth:`to_FracVector` first.
+        hashable counterpart — call ``FracVector.create(self)`` first.
 
         Raises :class:`TypeError` specifically, which is what Python's data model
         prescribes for an unhashable type and what callers doing ``try: hash(x)`` expect.
         """
         raise TypeError(
             "MutableFracVector is mutable and therefore unhashable; "
-            "call to_FracVector() for a hashable snapshot of its current value"
+            "call FracVector.create(self) for a hashable snapshot of its current value"
         )
 
     def __setitem__(self, key: Any, values: Any) -> None:

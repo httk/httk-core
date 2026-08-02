@@ -168,7 +168,7 @@ def test_mutable_fracvector_is_unhashable() -> None:
 
 def test_mutable_fracvector_snapshot_is_hashable_and_canonical() -> None:
     mutable = MutableFracVector.create([F(1, 2), 0, 0])
-    snapshot = mutable.to_FracVector()
+    snapshot = FracVector.create(mutable)
     assert hash(snapshot) == hash(FracVector((2, 0, 0), 4))
 
     mutable[0] = F(3, 4)

@@ -8,16 +8,20 @@ import pytest
 import httk.core.entry_types
 from httk.core import (
     entry_record_info,
-    known_cli_commands,
     known_entry_records,
-    known_entry_type_schemas,
     load_entry_type_schema,
     register_entry_record,
     register_entry_type_schema,
     register_property_definition,
     resolve_entry_record,
 )
-from httk.core.register import _entry_records, _entry_type_schemas, _property_definitions
+from httk.core.register import (
+    _entry_records,
+    _entry_type_schemas,
+    _property_definitions,
+    known_cli_commands,
+    known_entry_type_schemas,
+)
 
 
 def test_discovery_registers_cli_and_core_records() -> None:
@@ -30,9 +34,10 @@ def test_discovery_registers_cli_and_core_records() -> None:
     # Subset, not equality: other installed modules legitimately register
     # their own records into the same registry.
     assert set(definition_ids) <= set(known_entry_records())
-    assert {name: entry_record_info(name)[1] for name in definition_ids} == definition_ids
+    assert {name: entry_record_info(name)[2] for name in definition_ids} == definition_ids
     assert entry_record_info("core-reference") == (
         "httk.core.entry_types:Reference",
+        None,
         definition_ids["core-reference"],
     )
     assert resolve_entry_record("core-reference") is httk.core.entry_types.Reference
@@ -48,7 +53,7 @@ def test_entry_record_registration_is_strict_and_lazy() -> None:
     record = "module_that_does_not_exist_for_httk_tests:Record"
     register_entry_record(name=name, record=record)
     try:
-        assert entry_record_info(name) == (record, None)
+        assert entry_record_info(name) == (record, None, None)
         with pytest.raises(ValueError, match="already registered"):
             register_entry_record(name=name, record=record)
         with pytest.raises(ModuleNotFoundError):
