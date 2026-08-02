@@ -1,6 +1,6 @@
 import datetime
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from fractions import Fraction
 from typing import Annotated, ClassVar
 
@@ -218,6 +218,26 @@ def test_nested_projection_does_not_construct_records_and_as_record_is_alternate
     assert "ChildRecord" in form
     assert "AlternateRecord" not in form
     assert content_id(ChildSource(4), as_record=ChildRecord)
+
+
+def test_canonical_projector_can_cache_each_traversed_record_level() -> None:
+    @dataclass(frozen=True)
+    class Child:
+        value: int
+
+    @dataclass(frozen=True)
+    class Parent:
+        child: Child
+
+    calls: list[tuple[type, object]] = []
+
+    def caching_projector(record_type, source):
+        calls.append((record_type, source))
+        return {field.name: getattr(source, field.name) for field in fields(record_type)}
+
+    value = Parent(Child(3))
+    assert content_id(value, projector=caching_projector)
+    assert calls == [(Parent, value), (Child, value.child)]
 
 
 def test_projection_declarations_are_inherited_by_storage_only_record_subclasses() -> None:

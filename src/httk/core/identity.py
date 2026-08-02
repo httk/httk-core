@@ -126,21 +126,36 @@ def storage_identity_name(record_type: type[Any]) -> str:
     return f"{record_type.__module__}.{record_type.__qualname__}"
 
 
-def canonical_form(obj: Any, *, as_record: type[Any] | None = None) -> str:
-    """Return the versioned, type-tagged canonical JSON for a record value."""
-    encoder = _Encoder()
+def canonical_form(
+    obj: Any,
+    *,
+    as_record: type[Any] | None = None,
+    projector: Callable[[type[Any], Any], Mapping[str, object]] = project_storage_record,
+) -> str:
+    """Return the versioned, type-tagged canonical JSON for a record value.
+
+    Storage integrations may supply a caching ``projector`` to reuse the exact
+    per-record mappings traversed while computing identity.
+    """
+    encoder = _Encoder(projector)
     target = resolve_storage_record(obj, as_record=as_record)
     value = encoder.record(obj, target, ())
     return json.dumps(value, ensure_ascii=True, separators=(",", ":"), sort_keys=True)
 
 
-def content_id(obj: Any, *, as_record: type[Any] | None = None) -> str:
+def content_id(
+    obj: Any,
+    *,
+    as_record: type[Any] | None = None,
+    projector: Callable[[type[Any], Any], Mapping[str, object]] = project_storage_record,
+) -> str:
     """Return the lowercase SHA-256 content identity of ``obj``."""
-    return hashlib.sha256(canonical_form(obj, as_record=as_record).encode("utf-8")).hexdigest()
+    return hashlib.sha256(canonical_form(obj, as_record=as_record, projector=projector).encode("utf-8")).hexdigest()
 
 
 class _Encoder:
-    def __init__(self) -> None:
+    def __init__(self, projector: Callable[[type[Any], Any], Mapping[str, object]]) -> None:
+        self._projector = projector
         self._active: set[tuple[type[Any], int]] = set()
         self._active_containers: set[int] = set()
 
@@ -150,7 +165,7 @@ class _Encoder:
             raise StorageProjectionCycleError(_format_path(path), record_type)
         self._active.add(key)
         try:
-            values = project_storage_record(record_type, source)
+            values = self._projector(record_type, source)
             annotations = _record_annotations(record_type)
             fields = []
             for name in sorted(values):
