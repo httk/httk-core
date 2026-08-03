@@ -27,10 +27,12 @@ _VERSION_SEGMENT = re.compile(r"v1(?:\.\d+){0,2}")
 
 
 def redact_optimade_url(url: str) -> str:
-    """Return *url* without userinfo or recognized sensitive query parameters.
+    """Return *url* without userinfo, recognized sensitive query parameters, or its fragment.
 
-    Non-URL strings are returned unchanged. Non-sensitive URL spelling is
-    retained byte-for-byte; decoding is used only to recognize query keys.
+    Non-URL strings are returned unchanged except for fragment removal.
+    Non-sensitive URL spelling is retained byte-for-byte; decoding is used
+    only to recognize query keys. Fragments are not semantically load-bearing
+    for OPTIMADE URLs or file fetches and are never retained in diagnostics.
     """
 
     if not isinstance(url, str):
@@ -41,7 +43,7 @@ def redact_optimade_url(url: str) -> str:
         # ``urlsplit`` rejects a few malformed URL authorities (notably bad
         # IPv6 brackets). Still remove recognizable credentials when retaining
         # the malformed source is necessary for a later diagnostic.
-        before_fragment, fragment_separator, fragment = url.partition("#")
+        before_fragment = url.partition("#")[0]
         before_query, query_separator, query = before_fragment.partition("?")
         scheme_end = before_query.find("://")
         if scheme_end < 0:
@@ -60,13 +62,12 @@ def redact_optimade_url(url: str) -> str:
             + path_separator
             + path
             + (query_separator + "&".join(kept_query) if query_separator else "")
-            + (fragment_separator + fragment if fragment_separator else "")
         )
     is_relative_url = split.path.startswith(("/", "./", "../")) or url.startswith("?")
     if not split.scheme and not split.netloc and not is_relative_url:
-        return url
+        return url.partition("#")[0]
 
-    before_fragment, fragment_separator, fragment = url.partition("#")
+    before_fragment = url.partition("#")[0]
     before_query, query_separator, query = before_fragment.partition("?")
     sanitized_base = before_query
     if split.netloc:
@@ -87,11 +88,7 @@ def redact_optimade_url(url: str) -> str:
         if unquote_plus(item.partition("=")[0]).casefold() not in _SENSITIVE_QUERY_KEYS
     ]
     sanitized_query = "&".join(kept_query)
-    return (
-        sanitized_base
-        + (query_separator + sanitized_query if query_separator and sanitized_query else "")
-        + (fragment_separator + fragment if fragment_separator else "")
-    )
+    return sanitized_base + (query_separator + sanitized_query if query_separator and sanitized_query else "")
 
 
 def _json_string_end(text: str, start: int) -> int:
@@ -286,6 +283,12 @@ def optimade_entry_url_info(url: str) -> tuple[str, str] | None:
     ):
         return None
     return entry_type, urlunsplit((split.scheme, split.netloc, f"{base}/info/{entry_type}", "", ""))
+
+
+def is_optimade_entry_url(url: str) -> bool:
+    """Return whether *url* has the shape of an OPTIMADE single-entry URL."""
+
+    return optimade_entry_url_info(url) is not None
 
 
 def _read_optimade_url(url: str, *, timeout: float | None, label: str) -> str:

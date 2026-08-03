@@ -5,7 +5,7 @@ from urllib.parse import urlsplit
 
 from .datastream import TextstreamFileView
 from .loading import adapt_result, has_loader_for, load_source, loader_uses_extension
-from .optimade_resources import optimade_entry_url_info, optimade_resource_from_url, redact_optimade_url
+from .optimade_resources import is_optimade_entry_url, optimade_resource_from_url, redact_optimade_url
 
 
 def fetch(
@@ -31,14 +31,14 @@ def fetch(
     if kind not in (None, "optimade", "load"):
         raise ValueError("fetch kind must be 'optimade' or 'load'")
 
-    shape = optimade_entry_url_info(url)
+    is_entry_url = is_optimade_entry_url(url)
     loader_claimed = has_loader_for(split.path)
-    if kind == "optimade" or (kind is None and shape is not None and not loader_claimed):
+    if kind == "optimade" or (kind is None and is_entry_url and not loader_claimed):
         resource = optimade_resource_from_url(url, timeout=timeout)
         return adapt_result({"format": "optimade-entry", "resource": resource}, raw)
-    if kind == "load" or (kind is None and loader_claimed and (shape is None or loader_uses_extension(split.path))):
+    if kind == "load" or (kind is None and loader_claimed and (not is_entry_url or loader_uses_extension(split.path))):
         return load_source(TextstreamFileView(url, kind="url", timeout=timeout), split.path, raw=raw, **kwargs)
-    if kind is None and shape is not None and loader_claimed:
+    if kind is None and is_entry_url and loader_claimed:
         raise ValueError(
             f"URL {redact_optimade_url(url)!r} is both an OPTIMADE entry and a loader-claimed file; "
             "pass kind='optimade' or kind='load'"

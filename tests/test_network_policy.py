@@ -158,7 +158,7 @@ def test_dataloader_bare_url_requires_consent(monkeypatch: pytest.MonkeyPatch) -
 
 
 def test_network_consent_error_redacts_credentials() -> None:
-    url = "https://example.test/data?access_token=SECRET&keep=yes"
+    url = "https://example.test/data?keep=yes#access_token=SECRET"
 
     with pytest.raises(PermissionError) as error:
         TextstreamFileView(url).read()
@@ -166,3 +166,4 @@ def test_network_consent_error_redacts_credentials() -> None:
     message = str(error.value)
     assert "SECRET" not in message
     assert "https://example.test/data?keep=yes" in message
+    assert "#" not in message

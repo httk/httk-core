@@ -9,7 +9,7 @@ from typing import Any
 
 import pytest
 
-from httk.core import fetch
+from httk.core import fetch, is_optimade_entry_url
 from httk.core.register import format_adapters, loader_filenames, loaders, register_format_adapter
 
 
@@ -88,6 +88,7 @@ def test_fetch_file_url_uses_stream_loader(tmp_path: Path) -> None:
     path.write_text("stream body", encoding="utf-8")
     loaders.register(key=".stub", handler=_stream_loader, name="stream-loader")
     try:
+        assert is_optimade_entry_url(path.as_uri())
         assert fetch(path.as_uri()) == {"text": "stream body", "kwargs": {}}
     finally:
         loaders._by_key.pop(".stub", None)
@@ -120,10 +121,11 @@ def test_fetch_rejects_scheme_less_and_unknown_url() -> None:
 
 
 def test_fetch_errors_redact_credentials() -> None:
-    url = "https://example.test/unknown?access_token=SECRET&keep=yes"
+    url = "https://example.test/unknown?keep=yes#access_token=SECRET"
     with pytest.raises(ValueError) as excinfo:
         fetch(url)
 
     message = str(excinfo.value)
     assert "https://example.test/unknown?keep=yes" in message
     assert "SECRET" not in message
+    assert "#" not in message

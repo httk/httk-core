@@ -27,6 +27,7 @@ from httk.core import (
     OptimadeSchemaSnapshot,
     ReferenceView,
     decode_optimade_value,
+    is_optimade_entry_url,
     known_optimade_entry_bindings,
     optimade_document_root,
     optimade_entry_binding,
@@ -151,6 +152,7 @@ def test_resource_rejects_bad_shape_lazily(text: str, error: type[Exception]) ->
 )
 def test_optimade_entry_url_shape(url: str, expected: tuple[str, str] | None) -> None:
     assert optimade_entry_url_info(url) == expected
+    assert is_optimade_entry_url(url) is (expected is not None)
 
 
 def test_optimade_resource_from_url_assembles_single_entry_and_schema(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -198,8 +200,10 @@ def test_optimade_resource_from_url_names_derived_info_failure(monkeypatch: pyte
 
 @pytest.mark.parametrize("endpoint", ["info", "links", "versions", "extensions"])
 def test_optimade_resource_from_url_rejects_non_entry_endpoints(endpoint: str) -> None:
+    url = f"https://example.test/v1/{endpoint}/structures"
+    assert not is_optimade_entry_url(url)
     with pytest.raises(ValueError, match="Not an OPTIMADE single-entry URL"):
-        optimade_resource_from_url(f"https://example.test/v1/{endpoint}/structures")
+        optimade_resource_from_url(url)
 
 
 def test_optimade_url_errors_redact_credentials() -> None:
@@ -266,7 +270,7 @@ def test_safe_document_creation_redacts_only_top_level_pagination() -> None:
         '"extensions" : { "href" : "?token=semantic-extension" }, '
         '"links" : { "next" : "https://example.test/next?keep=ok" } }'
     )
-    assert document.source_url == "https://example.test/v1?keep=ok#frag"
+    assert document.source_url == "https://example.test/v1?keep=ok"
     assert "semantic-secret" in document.text
     assert "semantic-key" in document.text
     assert "semantic-nested" in document.text
@@ -279,6 +283,10 @@ def test_safe_document_creation_redacts_only_top_level_pagination() -> None:
     malformed = '{"url":"https://user:secret@example.test/path?token=hide'
     assert redact_optimade_document_text(malformed) == malformed
     assert redact_optimade_url("/v1/structures?page_offset=2&token=secret") == "/v1/structures?page_offset=2"
+    assert (
+        redact_optimade_url("https://example.test/v1/structures#access_token=secret")
+        == "https://example.test/v1/structures"
+    )
     assert redact_optimade_url("?page_cursor=x&api_key=secret") == "?page_cursor=x"
     assert redact_optimade_url("../structures?key=secret") == "../structures"
     link_object = (

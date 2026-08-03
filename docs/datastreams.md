@@ -18,6 +18,13 @@ Datastream support is split into two parallel families:
 
 In normal user code, you usually accept `*Like` and normalize immediately to one view.
 
+### Network consent
+
+Bare URL strings never open the network: they raise `PermissionError` with guidance.
+Explicit consent is provided by the lazy `DatastreamURL` token, eager `httk.core.fetch`,
+`urllib.request.Request`, the `*URLView`s, or `kind="url"`. The default network timeout
+is 30 seconds. `file://` URLs are local.
+
 ## Textstream
 
 ### Common Calling Patterns
@@ -26,7 +33,7 @@ In normal user code, you usually accept `*Like` and normalize immediately to one
 import urllib.request
 from pathlib import Path
 
-from httk.core.datastream import TextstreamStringView
+from httk.core.datastream import TextstreamFileView, TextstreamStringView
 
 # filename (str)
 TextstreamStringView("README.md")
@@ -46,8 +53,8 @@ TextstreamStringView("line1\nline2\n", kind="content")
 # remote content via a urllib request object
 TextstreamStringView(urllib.request.Request("https://example.com/data.txt"))
 
-# remote content via a URL string (auto-recognized by its scheme; kind="url" also forces it)
-TextstreamStringView("https://example.com/data.txt")
+# remote content with explicit consent
+TextstreamFileView("https://example.com/data.txt", kind="url")
 ```
 
 ### Example: String-Oriented Function
@@ -81,7 +88,7 @@ Use `TextstreamFileView` when line-by-line processing is natural and you do not 
 ### Textstream Notes
 
 - `TextstreamStringView` is eager: it reads remaining stream content immediately.
-- A bare `str` whose scheme is `http`, `https`, `ftp`, or `file` is treated as a URL; any other `str` defaults to filename resolution. Pass `kind="content"` for literal content or `kind="filename"`/`kind="url"` to force an interpretation.
+- A bare URL string never opens the network: it raises `PermissionError` with guidance to use an explicit consent object. `file://` is local. Any other `str` defaults to filename resolution.
 - `TextstreamFilenameView` requires an underlying name; it raises `TypeError` when no filename exists.
 - Remote text is decoded using the `encoding` hint if given, else the HTTP Content-Type charset, else utf-8. `TextstreamFilename` reads local files as utf-8 by default; pass `encoding` to override.
 - See [Remote Content (Request / URL)](#remote-content-request-url) for shared remote-fetch behavior and [Compressed Content](#compressed-content) for transparent decompression.
@@ -94,7 +101,7 @@ Use `TextstreamFileView` when line-by-line processing is natural and you do not 
 import urllib.request
 from pathlib import Path
 
-from httk.core import BytestreamBytesView
+from httk.core import BytestreamBytesView, BytestreamFileView
 
 # filename (str)
 BytestreamBytesView("payload.bin")
@@ -115,8 +122,8 @@ BytestreamBytesView(bytearray([0, 1, 2]))
 # remote content via a urllib request object
 BytestreamBytesView(urllib.request.Request("https://example.com/payload.bin"))
 
-# remote content via a URL string (auto-recognized by its scheme; kind="url" also forces it)
-BytestreamBytesView("https://example.com/payload.bin")
+# remote content with explicit consent
+BytestreamFileView("https://example.com/payload.bin", kind="url")
 ```
 
 ### Example: Bytes-Oriented Function
@@ -147,8 +154,8 @@ def first_chunk(blike: BytestreamLike, size: int = 4096, **hints: object) -> byt
 
 - `BytestreamBytesView` is eager: it reads remaining stream content immediately.
 - `BytestreamFilenameView` requires an underlying name and raises `TypeError` if unavailable.
-- A bare `str` whose scheme is `http`, `https`, `ftp`, or `file` is treated as a URL; any other `str` defaults to a filename.
-- For explicit interpretation when needed, pass `kind="filename"`, `kind="file"`, `kind="content"`, `kind="request"`, or `kind="url"`.
+- A bare URL string never opens the network and raises `PermissionError` with guidance. `file://` is local. Any other `str` defaults to a filename.
+- For explicit interpretation when needed, pass `kind="filename"`, `kind="file"`, `kind="content"`, `kind="request"`, or `kind="url"`; `kind="url"` is explicit network consent.
 - See [Remote Content (Request / URL)](#remote-content-request-url) for shared remote-fetch behavior and [Compressed Content](#compressed-content) for transparent decompression.
 
 ## Remote Content (Request / URL)
@@ -157,16 +164,17 @@ Both families can fetch remote content through Python's built-in `urllib.request
 
 - A `urllib.request.Request` object is unambiguous and is accepted directly anywhere a `*Like` is accepted.
   Use a `Request` when you need headers, a method, or a request body; it is passed to `urllib.request.urlopen` as-is.
-- A URL passed as a plain `str` is auto-recognized when its scheme is one of `http`, `https`, `ftp`, or `file`.
-  A schemeless string still means a filename (or, with `kind="content"`, literal content). Pass `kind="url"` to
-  force URL interpretation of a string, or `kind="filename"` to force a scheme'd string to be treated as a filename
-  (for example, so a local file literally named like a URL is not fetched over the network).
+- A bare URL string never opens the network and raises `PermissionError` with guidance. A schemeless string means a
+  filename (or, with `kind="content"`, literal content). Explicit consent is provided by `DatastreamURL`,
+  `urllib.request.Request`, a `*URLView`, or `kind="url"`; `file://` is local.
 
 Remote backends fetch lazily: the connection is opened on first read, not when the backend or view is
 created. Note that `unwrap()` also opens the connection, since it returns the underlying response object.
 An optional `timeout` hint (in seconds) is forwarded to `urlopen`.
+The default network timeout is 30 seconds.
 
-`TextstreamRequestView`/`TextstreamURLView` and their byte counterparts are the URL-facing analogues of
+`DatastreamURL` is a lazy consent token: constructing it validates the URL and stores an optional timeout, but performs
+no network I/O. `httk.core.fetch(url)` is the eager alternative. `TextstreamRequestView`/`TextstreamURLView` and their byte counterparts are the URL-facing analogues of
 `*FilenameView`: they present the *source location* of a backend rather than its data. A `*URLView` is a
 `str` holding the URL; a `*RequestView` is a genuine `urllib.request.Request` (preserving headers/data when
 built from a request backend) and can be passed to any code that expects one. Symmetrically to
