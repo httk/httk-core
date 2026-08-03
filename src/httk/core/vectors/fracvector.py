@@ -600,38 +600,11 @@ class FracVector:
         """
         return nested_map_list(lambda x: fractions.Fraction(x, self.denom), self.noms)
 
-    def to_ints(self) -> Any:
-        """
-        Convert the FracVector to a (nested) list of integers, rounded off as best possible.
-        """
-        return nested_map_list(lambda x: round(fractions.Fraction(x, self.denom)), self.noms)
-
-    def to_strings(self, accuracy: int = 8) -> Any:
-        """
-        Convert the FracVector to a (nested) list of strings.
-        """
-        return nested_map_list(
-            lambda x: ("%." + str(accuracy) + "f") % (fractions.Fraction(x, self.denom),),
-            self.noms,
-        )
-
-    def to_string(self, accuracy: int = 8) -> str:
-        """
-        Convert a scalar FracVector to a single string.
-        """
-        return ("%." + str(accuracy) + "f") % (fractions.Fraction(self.nom, self.denom),)
-
     def to_fraction(self) -> fractions.Fraction:
         """
         Convert a scalar FracVector to a fraction.
         """
         return fractions.Fraction(self.nom, self.denom)
-
-    def to_int(self) -> int:
-        """
-        Convert a scalar FracVector to an integer (truncating as necessary).
-        """
-        return int(self)
 
     def flatten(self) -> Self:
         """

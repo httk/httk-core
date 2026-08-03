@@ -225,14 +225,6 @@ def test_to_floats() -> None:
     assert FracVector.create([[1, 2], [3, 4]], 7).to_floats() == [[1 / 7, 2 / 7], [3 / 7, 4 / 7]]
 
 
-def test_to_ints_rounds() -> None:
-    assert FracVector.create([["7/3", "8/3"]]).to_ints() == [[2, 3]]
-
-
-def test_to_strings() -> None:
-    assert FracVector.create([["1/3", "2/3"]]).to_strings(6) == [["0.333333", "0.666667"]]
-
-
 def test_to_fractions_roundtrip() -> None:
     a = FracVector.create([["1/3", "2/5"], ["3/7", "4/9"]])
     assert FracVector.create(a.to_fractions()) == a

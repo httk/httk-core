@@ -1,4 +1,4 @@
-"""Getting data into httk: the `load` dispatcher and the `DataLoader`
+"""Getting data into httk: the `load` dispatcher and the `DatasetLoader`
 
 *httk-core* offers two quite different doors into "read this data": a
 **dispatcher** for file formats, and a **lazy dataset loader** for httk's own
@@ -32,7 +32,7 @@ the case here, then shows the explicit error `load` raises when
 nothing matches — it names the file and lists everything that *is* registered,
 which is usually the fastest way to notice a module is missing.
 
-**`DataLoader` — httk's dataset files.** A `DataLoader` is a *declare-time
+**`DatasetLoader` — httk's dataset files.** A `DatasetLoader` is a *declare-time
 placeholder*: constructing one records its arguments and performs no I/O
 whatsoever. The file is read the first time `.data`, `.meta`, or `.index` is
 touched. That makes it cheap for a module to declare its reference datasets at
@@ -48,7 +48,7 @@ The file itself may be either shape:
   fields, a `data` object and an optional `indicies` object. Then `.meta` is a
   `DatasetMeta` carrying the header, the per-dataset `@id`s and the per-field
   property URLs harvested from the context; `.data` and `.index` are
-  `DataRecord` views whose top-level keys are reachable both as attributes
+  `DatasetRecord` views whose top-level keys are reachable both as attributes
   (`data.spacegroups`) and as items (`data["spacegroups"]`).
 
 Compression is invisible to all of this: `symmetry.json.gz` loads exactly like
@@ -62,7 +62,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from httk.core import DataLoader, DataRecord, DatasetMeta, load
+from httk.core import DatasetLoader, DatasetMeta, DatasetRecord, load
 from httk.core.register import known_extensions, known_filenames
 
 # A small JSON-LD dataset document: a context naming the dataset and its fields,
@@ -117,11 +117,11 @@ def show_load_dispatch() -> None:
 
 def show_plain_json(directory: Path) -> None:
     """Plain JSON: whatever the file contains, verbatim, with no meta or index."""
-    print("== DataLoader: plain JSON ==")
+    print("== DatasetLoader: plain JSON ==")
     path = directory / "plain.json"
     path.write_text(json.dumps({"a": 1, "b": [2, 3]}), encoding="utf-8")
 
-    loader = DataLoader("example_plain", path)  # no I/O yet
+    loader = DatasetLoader("example_plain", path)  # no I/O yet
     print("declared loader for", path.name, "- nothing read so far")
     print("data: ", loader.data)  # this line is what triggers the read
     print("meta: ", loader.meta)
@@ -131,11 +131,11 @@ def show_plain_json(directory: Path) -> None:
 
 def show_structured_json(directory: Path) -> None:
     """Structured JSON-LD: header metadata, datasets and indices."""
-    print("== DataLoader: structured JSON-LD ==")
+    print("== DatasetLoader: structured JSON-LD ==")
     path = directory / "symmetry.json"
     path.write_text(json.dumps(SYMMETRY_BASICS), encoding="utf-8")
 
-    loader = DataLoader("example_symmetry", path)
+    loader = DatasetLoader("example_symmetry", path)
 
     meta = loader.meta
     assert isinstance(meta, DatasetMeta)
@@ -146,14 +146,14 @@ def show_structured_json(directory: Path) -> None:
     print("meta.fields:     ", meta.fields)
 
     data = loader.data
-    assert isinstance(data, DataRecord)
+    assert isinstance(data, DatasetRecord)
     print("data keys:       ", list(data.keys()))
     for entry in data.spacegroups:  # attribute access ...
         print(f"  spacegroup {entry['number']}: {entry['symbol']} (Hall {entry['hall']['symbol']})")
     print("data['spacegroups'] is data.spacegroups:", data["spacegroups"] is data.spacegroups)
 
     index = loader.index
-    assert isinstance(index, DataRecord)
+    assert isinstance(index, DatasetRecord)
     row = index.by_number["2"]
     print("index.by_number['2'] ->", row, "->", data.spacegroups[row]["symbol"])
     print()
@@ -161,21 +161,21 @@ def show_structured_json(directory: Path) -> None:
 
 def show_compression_and_dedup(directory: Path) -> None:
     """`.json.gz` loads like `.json`; a repeated identifier reuses the first load."""
-    print("== DataLoader: transparent compression and identifier dedup ==")
+    print("== DatasetLoader: transparent compression and identifier dedup ==")
     path = directory / "symmetry.json.gz"
     with gzip.open(path, "wt", encoding="utf-8") as handle:
         json.dump(SYMMETRY_BASICS, handle)
 
-    gzipped = DataLoader("example_symmetry_gz", path)
+    gzipped = DatasetLoader("example_symmetry_gz", path)
     print(path.name, "-> first spacegroup:", gzipped.data.spacegroups[0]["symbol"])
 
     # The same identifier as the .gz loader above, but a source that does not
     # exist: the earlier result is handed back and the bogus source is ignored.
-    again = DataLoader("example_symmetry_gz", "/no/such/file.json")
+    again = DatasetLoader("example_symmetry_gz", "/no/such/file.json")
     print("same identifier reuses the first load:", again.data is gzipped.data)
 
     # A file:// URL string is recognized as a URL without any kind= hint.
-    via_url = DataLoader("example_symmetry_url", (directory / "symmetry.json").as_uri())
+    via_url = DatasetLoader("example_symmetry_url", (directory / "symmetry.json").as_uri())
     print("loaded via file:// URL:", via_url.data.spacegroups[1]["symbol"])
     print()
 

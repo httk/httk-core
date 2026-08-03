@@ -212,10 +212,10 @@ accepted and a codec name or `"detect"` raises `ValueError`.
 ```python
 import gzip
 
-from httk.core import BytestreamBytesView, DataLoader
+from httk.core import BytestreamBytesView, DatasetLoader
 
 # Transparent: extension recognized, decompressed on read.
-DataLoader("symmetry", "data/spacegroups.json.gz")
+DatasetLoader("symmetry", "data/spacegroups.json.gz")
 
 # In-memory gzip is sniffed by default ("auto").
 BytestreamBytesView(gzip.compress(b"payload"))  # -> b"payload"

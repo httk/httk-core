@@ -76,7 +76,7 @@ class EntryProvider(ABC):
       OPTIMADE property-definition model shared across httk₂ modules. A provider
       obtains them from the vendored standards (via
       :func:`~httk.core.property_definitions.standard_entry_type` or
-      :func:`~httk.core.register.load_entry_type_schema`) or
+      :func:`~httk.core.register.load_entry_type_definition`) or
       builds them from
       :meth:`~httk.core.property_definitions.EntryTypeDefinition.from_optimade`
       and :meth:`~httk.core.property_definitions.PropertyDefinition.from_simple`.

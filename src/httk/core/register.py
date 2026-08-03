@@ -149,19 +149,19 @@ def known_entry_providers() -> list[str]:
     return entry_providers.keys()
 
 
-_entry_type_schemas: dict[str, str] = {}
+_entry_type_definitions: dict[str, str] = {}
 _property_definitions: dict[str, str] = {}
 
 
-def register_entry_type_schema(*, definition_id: str, resource: str) -> None:
+def register_entry_type_definition(*, definition_id: str, resource: str) -> None:
     """Register one resource for an entry-type definition IRI."""
-    if definition_id in _entry_type_schemas:
-        raise ValueError(f"entry-type schema is already registered: {definition_id!r}")
-    _entry_type_schemas[definition_id] = resource
+    if definition_id in _entry_type_definitions:
+        raise ValueError(f"entry-type definition is already registered: {definition_id!r}")
+    _entry_type_definitions[definition_id] = resource
 
 
-def known_entry_type_schemas() -> list[str]:
-    return sorted(_entry_type_schemas)
+def known_entry_type_definitions() -> list[str]:
+    return sorted(_entry_type_definitions)
 
 
 def register_property_definition(*, definition_id: str, resource: str) -> None:
@@ -183,13 +183,13 @@ def _resource(resource: str) -> dict[str, Any]:
 
 
 @cache
-def load_entry_type_schema(definition_id: str) -> "EntryTypeDefinition":
+def load_entry_type_definition(definition_id: str) -> "EntryTypeDefinition":
     """Load and verify a registered entry-type definition resource."""
     try:
-        resource = _entry_type_schemas[definition_id]
+        resource = _entry_type_definitions[definition_id]
     except KeyError as exc:
-        known = ", ".join(known_entry_type_schemas()) or "(none)"
-        raise ValueError(f"No entry-type schema registered for {definition_id!r}. Known: {known}") from exc
+        known = ", ".join(known_entry_type_definitions()) or "(none)"
+        raise ValueError(f"No entry-type definition registered for {definition_id!r}. Known: {known}") from exc
     from .property_definitions import EntryTypeDefinition
 
     document = _resource(resource)
@@ -197,7 +197,7 @@ def load_entry_type_schema(definition_id: str) -> "EntryTypeDefinition":
     document_id = definition.definition_id
     if document_id != definition_id:
         raise ValueError(
-            f"Entry-type schema registration IRI {definition_id!r} does not match document $id {document_id!r}"
+            f"Entry-type definition registration IRI {definition_id!r} does not match document $id {document_id!r}"
         )
     return definition
 

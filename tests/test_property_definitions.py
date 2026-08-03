@@ -7,7 +7,7 @@ import pytest
 from httk.core import (
     EntryTypeDefinition,
     PropertyDefinition,
-    load_entry_type_schema,
+    load_entry_type_definition,
     standard_entry_type,
 )
 from httk.core.property_definitions import (
@@ -50,10 +50,10 @@ def test_vendored_requirements_present() -> None:
     assert references.properties["id"].requirements["response-level"] == "always"
 
 
-def test_load_entry_type_schema_is_cached() -> None:
+def test_load_entry_type_definition_is_cached() -> None:
     definition_id = "https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files"
-    a = load_entry_type_schema(definition_id)
-    b = load_entry_type_schema(definition_id)
+    a = load_entry_type_definition(definition_id)
+    b = load_entry_type_definition(definition_id)
     assert a is b
 
 

@@ -12,7 +12,7 @@ from httk.core import (
     PropertyDefinition,
     Reference,
     Shape,
-    load_entry_type_schema,
+    load_entry_type_definition,
 )
 from httk.core.schema_check import check_record_matches_definition
 
@@ -257,5 +257,5 @@ def test_standard_record_schema_discrepancies_are_pinned() -> None:
         ),
     )
     for record, iri in pairs:
-        messages = check_record_matches_definition(record, load_entry_type_schema(iri))
+        messages = check_record_matches_definition(record, load_entry_type_definition(iri))
         assert sorted(messages) == sorted(_EXPECTED[record])

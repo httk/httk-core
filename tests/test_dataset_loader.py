@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from httk.core import DataLoader, DataRecord, DatasetMeta
+from httk.core import DatasetLoader, DatasetMeta, DatasetRecord
 
 
 def _structured_doc() -> dict[str, Any]:
@@ -49,16 +49,16 @@ def _write_json(tmp_path: Path, name: str, obj: Any) -> Path:
 
 def test_plain_json_dict_is_raw_value(tmp_path: Path) -> None:
     p = _write_json(tmp_path, "plain.json", {"a": 1, "b": [2, 3]})
-    loader = DataLoader("plain_dict", p)
+    loader = DatasetLoader("plain_dict", p)
     assert loader.data == {"a": 1, "b": [2, 3]}
-    assert not isinstance(loader.data, DataRecord)
+    assert not isinstance(loader.data, DatasetRecord)
     assert loader.meta is None
     assert loader.index is None
 
 
 def test_plain_json_bare_list(tmp_path: Path) -> None:
     p = _write_json(tmp_path, "list.json", [1, 2, 3])
-    loader = DataLoader("plain_list", p)
+    loader = DatasetLoader("plain_list", p)
     assert loader.data == [1, 2, 3]
     assert loader.meta is None
     assert loader.index is None
@@ -66,7 +66,7 @@ def test_plain_json_bare_list(tmp_path: Path) -> None:
 
 def test_plain_json_number(tmp_path: Path) -> None:
     p = _write_json(tmp_path, "number.json", 42)
-    loader = DataLoader("plain_number", p)
+    loader = DatasetLoader("plain_number", p)
     assert loader.data == 42
     assert loader.meta is None
     assert loader.index is None
@@ -74,7 +74,7 @@ def test_plain_json_number(tmp_path: Path) -> None:
 
 def test_structured_meta_and_records(tmp_path: Path) -> None:
     p = _write_json(tmp_path, "structured.json", _structured_doc())
-    loader = DataLoader("structured_meta", p)
+    loader = DatasetLoader("structured_meta", p)
 
     meta = loader.meta
     assert isinstance(meta, DatasetMeta)
@@ -91,19 +91,19 @@ def test_structured_meta_and_records(tmp_path: Path) -> None:
     }
 
     data = loader.data
-    assert isinstance(data, DataRecord)
+    assert isinstance(data, DatasetRecord)
     assert data.spacegroups == data["spacegroups"]
     assert data.spacegroups[0]["symbol"] == "P1"
 
     index = loader.index
-    assert isinstance(index, DataRecord)
+    assert isinstance(index, DatasetRecord)
     assert index.by_number == index["by_number"]
     assert index["by_number"]["2"] == 1
 
 
-def test_datarecord_mapping_protocol(tmp_path: Path) -> None:
+def test_dataset_record_mapping_protocol(tmp_path: Path) -> None:
     p = _write_json(tmp_path, "record.json", _structured_doc())
-    data = DataLoader("record_protocol", p).data
+    data = DatasetLoader("record_protocol", p).data
     assert len(data) == 1
     assert "spacegroups" in data
     assert list(iter(data)) == ["spacegroups"]
@@ -114,17 +114,17 @@ def test_datarecord_mapping_protocol(tmp_path: Path) -> None:
 
 
 def test_laziness_defers_io_until_access() -> None:
-    loader = DataLoader("lazy_missing", "/no/such/file/really.json")
+    loader = DatasetLoader("lazy_missing", "/no/such/file/really.json")
     with pytest.raises(OSError):
         _ = loader.data
 
 
 def test_dedup_same_identifier_reuses_first_load(tmp_path: Path) -> None:
     p = _write_json(tmp_path, "dedup.json", _structured_doc())
-    first = DataLoader("dedup_shared", p)
+    first = DatasetLoader("dedup_shared", p)
     _ = first.data  # trigger the load
 
-    second = DataLoader("dedup_shared", "/bogus/nonexistent.json")
+    second = DatasetLoader("dedup_shared", "/bogus/nonexistent.json")
     assert second.data is first.data
     assert second.meta is first.meta
     assert second.index is first.index
@@ -141,7 +141,7 @@ def test_decode_object_applied_bottom_up_at_both_levels(tmp_path: Path) -> None:
             return obj["symbol"]  # replace {"symbol": ...} with the plain string
         return {**obj, "decoded": True}
 
-    loader = DataLoader("decode_both", p, decode_object=decode)
+    loader = DatasetLoader("decode_both", p, decode_object=decode)
     spacegroups = loader.data.spacegroups
 
     # For each entry the field URL is visited before the dataset @id (bottom-up).
@@ -166,20 +166,20 @@ def test_decode_object_not_called_for_plain_json(tmp_path: Path) -> None:
         calls.append((obj, url))
         return obj
 
-    loader = DataLoader("plain_no_decode", p, decode_object=decode)
+    loader = DatasetLoader("plain_no_decode", p, decode_object=decode)
     assert loader.data == {"a": 1}
     assert calls == []
 
 
 def test_unsupported_suffix_raises(tmp_path: Path) -> None:
     p = _write_json(tmp_path, "data.yaml", {"a": 1})
-    loader = DataLoader("unsupported_yaml", p)
+    loader = DatasetLoader("unsupported_yaml", p)
     with pytest.raises(ValueError):
         _ = loader.data
 
 
-def test_datarecord_underscore_attributes_raise_and_pickle_roundtrips() -> None:
-    record = DataRecord({"a": 1})
+def test_dataset_record_underscore_attributes_raise_and_pickle_roundtrips() -> None:
+    record = DatasetRecord({"a": 1})
     with pytest.raises(AttributeError):
         _ = record._missing
     restored = pickle.loads(pickle.dumps(record))
@@ -188,7 +188,7 @@ def test_datarecord_underscore_attributes_raise_and_pickle_roundtrips() -> None:
 
 
 def test_content_string_source_is_not_treated_as_filename() -> None:
-    loader = DataLoader("content_number", "3.5", kind="content")
+    loader = DatasetLoader("content_number", "3.5", kind="content")
     assert loader.data == 3.5
 
 
@@ -202,7 +202,7 @@ def test_field_urls_decoded_even_without_dataset_id(tmp_path: Path) -> None:
         calls.append(url)
         return obj
 
-    loader = DataLoader("fields_without_dataset_id", p, decode_object=decode)
+    loader = DatasetLoader("fields_without_dataset_id", p, decode_object=decode)
     assert loader.data.spacegroups[0]["number"] == 1
     # Field-level URLs still fire; no entry-level calls without a dataset @id.
     assert calls == ["https://example.org/hall", "https://example.org/hall"]
@@ -210,7 +210,7 @@ def test_field_urls_decoded_even_without_dataset_id(tmp_path: Path) -> None:
 
 def test_structured_doc_tolerates_missing_data_key(tmp_path: Path) -> None:
     p = _write_json(tmp_path, "headers_only.json", {"@context": {}, "@id": "urn:x", "title": "t"})
-    loader = DataLoader("headers_only", p)
+    loader = DatasetLoader("headers_only", p)
     assert loader.data is None
     assert loader.meta is not None
     assert loader.meta.id == "urn:x"
@@ -220,7 +220,7 @@ def test_structured_doc_tolerates_missing_data_key(tmp_path: Path) -> None:
 def test_load_from_file_url_source(tmp_path: Path) -> None:
     p = _write_json(tmp_path, "via_url.json", _structured_doc())
     # A bare file:// URL string is auto-recognized as a URL (no kind="url" needed).
-    loader = DataLoader("file_url_source", p.as_uri())
+    loader = DatasetLoader("file_url_source", p.as_uri())
     assert loader.data.spacegroups[1]["symbol"] == "P-1"
     assert loader.meta is not None
     assert loader.meta.id == "https://example.org/symmetry_basics"
@@ -231,7 +231,7 @@ def test_load_from_gzipped_json(tmp_path: Path) -> None:
     with gzip.open(p, "wt", encoding="utf-8") as f:
         json.dump(_structured_doc(), f)
 
-    loader = DataLoader("gzip_structured", p)
+    loader = DatasetLoader("gzip_structured", p)
     assert loader.data.spacegroups[0]["symbol"] == "P1"
     assert loader.meta is not None
     assert loader.meta.id == "https://example.org/symmetry_basics"
@@ -243,5 +243,5 @@ def test_load_from_gzipped_json_via_file_url(tmp_path: Path) -> None:
         json.dump({"a": 1, "b": [2, 3]}, f)
 
     # Extension is taken from the URL path; the stream layer decompresses transparently.
-    loader = DataLoader("gzip_via_url", p.as_uri())
+    loader = DatasetLoader("gzip_via_url", p.as_uri())
     assert loader.data == {"a": 1, "b": [2, 3]}

@@ -30,7 +30,7 @@ type DecodeObjectCallback = Callable[[dict[str, Any], str], Any]
 ``dict_obj`` (return the input unchanged to decline)."""
 
 
-class DataRecord:
+class DatasetRecord:
     """Read-only attribute and mapping view over a ``dict[str, Any]``.
 
     Top-level keys are reachable both as attributes (``record.name``) and as items
@@ -67,7 +67,7 @@ class DataRecord:
         return self._data.keys()
 
     def __repr__(self) -> str:
-        return f"DataRecord({self._data!r})"
+        return f"DatasetRecord({self._data!r})"
 
 
 @dataclass(frozen=True)
@@ -97,7 +97,7 @@ class DatasetMeta:
 class _LoadedData:
     data: Any
     meta: DatasetMeta | None
-    index: DataRecord | None
+    index: DatasetRecord | None
 
 
 def _build_meta(doc: dict[str, Any]) -> DatasetMeta:
@@ -165,10 +165,10 @@ def _apply_decode(data: dict[str, Any], meta: DatasetMeta, decode: DecodeObjectC
             ]
 
 
-class DataLoader:
+class DatasetLoader:
     """Lazy loader for httk dataset files, resolved only when data is first accessed.
 
-    A ``DataLoader`` is a declare-time placeholder: constructing it records its arguments
+    A ``DatasetLoader`` is a declare-time placeholder: constructing it records its arguments
     and performs no I/O. The source is read the first time ``data``, ``meta``, or ``index``
     is accessed. Files are either plain JSON (any JSON value is exposed as ``data`` with
     ``meta``/``index`` set to ``None``) or a structured JSON-LD document (with ``@context``,
@@ -190,7 +190,7 @@ class DataLoader:
     content or ``kind="filename"`` to force a filename interpretation.
 
     Example:
-        symmetry_basics = DataLoader("symmetry_basics", "data/spacegroup_symbols.json")
+        symmetry_basics = DatasetLoader("symmetry_basics", "data/spacegroup_symbols.json")
         spacegroups = symmetry_basics.data.spacegroups  # first access triggers the load
     """
 
@@ -224,8 +224,8 @@ class DataLoader:
         return None
 
     def _load(self) -> _LoadedData:
-        if self._identifier in DataLoader._loaded:
-            return DataLoader._loaded[self._identifier]
+        if self._identifier in DatasetLoader._loaded:
+            return DatasetLoader._loaded[self._identifier]
 
         name = self._resolve_name()
         if name is not None:
@@ -241,14 +241,14 @@ class DataLoader:
             data_section = doc.get("data")
             if self._decode_object is not None and isinstance(data_section, dict):
                 _apply_decode(data_section, meta, self._decode_object)
-            data: Any = DataRecord(data_section) if isinstance(data_section, dict) else data_section
+            data: Any = DatasetRecord(data_section) if isinstance(data_section, dict) else data_section
             index_section = doc.get("indicies")
-            index = DataRecord(index_section) if isinstance(index_section, dict) else None
+            index = DatasetRecord(index_section) if isinstance(index_section, dict) else None
             loaded = _LoadedData(data=data, meta=meta, index=index)
         else:
             loaded = _LoadedData(data=doc, meta=None, index=None)
 
-        DataLoader._loaded[self._identifier] = loaded
+        DatasetLoader._loaded[self._identifier] = loaded
         return loaded
 
     @cached_property
@@ -260,5 +260,5 @@ class DataLoader:
         return self._load().meta
 
     @cached_property
-    def index(self) -> DataRecord | None:
+    def index(self) -> DatasetRecord | None:
         return self._load().index

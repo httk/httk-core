@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 
-from httk.core import DataLoader
+from httk.core import DatasetLoader
 from httk.core.datastream import (
     BytestreamBackend,
     BytestreamBytesView,
@@ -143,7 +143,7 @@ def test_dataloader_forwards_url_hint(monkeypatch: pytest.MonkeyPatch) -> None:
     calls: list[tuple[Any, float | None]] = []
     monkeypatch.setattr(urllib.request, "urlopen", _urlopen_fake(calls, b"{}"))
 
-    assert DataLoader("network_policy_loader", "https://example.test/data", kind="url").data == {}
+    assert DatasetLoader("network_policy_loader", "https://example.test/data", kind="url").data == {}
     assert len(calls) == 1
 
 
@@ -151,7 +151,7 @@ def test_dataloader_bare_url_requires_consent(monkeypatch: pytest.MonkeyPatch) -
     calls: list[tuple[Any, float | None]] = []
     monkeypatch.setattr(urllib.request, "urlopen", _urlopen_fake(calls))
 
-    loader = DataLoader("network_policy_bare_loader", "https://example.test/data")
+    loader = DatasetLoader("network_policy_bare_loader", "https://example.test/data")
     with pytest.raises(PermissionError):
         _ = loader.data
     assert calls == []

@@ -9,18 +9,18 @@ import httk.core.entry_types
 from httk.core import (
     entry_record_info,
     known_entry_records,
-    load_entry_type_schema,
+    load_entry_type_definition,
     register_entry_record,
-    register_entry_type_schema,
+    register_entry_type_definition,
     register_property_definition,
     resolve_entry_record,
 )
 from httk.core.register import (
     _entry_records,
-    _entry_type_schemas,
+    _entry_type_definitions,
     _property_definitions,
     known_cli_commands,
-    known_entry_type_schemas,
+    known_entry_type_definitions,
 )
 
 
@@ -45,7 +45,7 @@ def test_discovery_registers_cli_and_core_records() -> None:
         "https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/references",
         "https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files",
         "https://schemas.optimade.org/defs/v1.3/entrytypes/optimade/calculations",
-    } <= set(known_entry_type_schemas())
+    } <= set(known_entry_type_definitions())
 
 
 def test_entry_record_registration_is_strict_and_lazy() -> None:
@@ -70,12 +70,12 @@ def test_unknown_entry_record_resolution_errors() -> None:
 def test_schema_registration_is_strict() -> None:
     definition_id = "https://schemas.example.test/entrytypes/duplicate"
     resource = "httk.registry.schemas.core:files.json"
-    register_entry_type_schema(definition_id=definition_id, resource=resource)
+    register_entry_type_definition(definition_id=definition_id, resource=resource)
     try:
         with pytest.raises(ValueError, match="already registered"):
-            register_entry_type_schema(definition_id=definition_id, resource=resource)
+            register_entry_type_definition(definition_id=definition_id, resource=resource)
     finally:
-        _entry_type_schemas.pop(definition_id, None)
+        _entry_type_definitions.pop(definition_id, None)
 
 
 def test_property_registration_is_strict() -> None:
@@ -92,15 +92,15 @@ def test_property_registration_is_strict() -> None:
 def test_schema_loader_rejects_definition_id_mismatch() -> None:
     registration_id = "https://schemas.example.test/entrytypes/wrong"
     document_id = "https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files"
-    register_entry_type_schema(
+    register_entry_type_definition(
         definition_id=registration_id,
         resource="httk.registry.schemas.core:files.json",
     )
     try:
         with pytest.raises(ValueError, match=f"{registration_id}.*{document_id}"):
-            load_entry_type_schema(registration_id)
+            load_entry_type_definition(registration_id)
     finally:
-        _entry_type_schemas.pop(registration_id, None)
+        _entry_type_definitions.pop(registration_id, None)
 
 
 def test_discovery_does_not_import_domain_modules() -> None:
