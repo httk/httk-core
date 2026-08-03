@@ -14,7 +14,7 @@ from datetime import datetime
 from typing import Annotated, Any, TypeAliasType, Union, get_args, get_origin, get_type_hints
 
 from .property_definitions import EntryTypeDefinition, PropertyDefinition
-from .storage_markers import Shape
+from .storage.markers import Shape
 from .vectors import FracVector
 
 __all__ = ["check_record_matches_definition"]

@@ -60,7 +60,7 @@ TextstreamFileView("https://example.com/data.txt", kind="url")
 ### Example: String-Oriented Function
 
 ```python
-from httk.core import TextstreamStringView
+from httk.core.datastream import TextstreamStringView
 from httk.core import TextstreamLike
 
 
@@ -101,7 +101,8 @@ Use `TextstreamFileView` when line-by-line processing is natural and you do not 
 import urllib.request
 from pathlib import Path
 
-from httk.core import BytestreamBytesView, BytestreamFileView
+from httk.core.datastream import BytestreamBytesView
+from httk.core import BytestreamFileView
 
 # filename (str)
 BytestreamBytesView("payload.bin")
@@ -131,7 +132,8 @@ BytestreamFileView("https://example.com/payload.bin", kind="url")
 ```python
 import hashlib
 
-from httk.core import BytestreamBytesView, BytestreamLike
+from httk.core.datastream import BytestreamBytesView
+from httk.core import BytestreamLike
 
 
 def digest_payload(blike: BytestreamLike, **hints: object) -> str:
@@ -184,7 +186,7 @@ backends with no underlying URL — and remote backends have no `name`, so `*Fil
 ```python
 import urllib.request
 
-from httk.core import TextstreamRequestView
+from httk.core.datastream import TextstreamRequestView
 
 req = TextstreamRequestView("https://example.com/data.txt", kind="url")
 # req is a urllib.request.Request and can be handed to code that expects one:
@@ -220,7 +222,8 @@ accepted and a codec name or `"detect"` raises `ValueError`.
 ```python
 import gzip
 
-from httk.core import BytestreamBytesView, DatasetLoader
+from httk.core.datastream import BytestreamBytesView
+from httk.core import DatasetLoader
 
 # Transparent: extension recognized, decompressed on read.
 DatasetLoader("symmetry", "data/spacegroups.json.gz")

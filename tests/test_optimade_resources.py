@@ -13,14 +13,13 @@ from types import ModuleType
 
 import pytest
 
-import httk.core.optimade_resources as resources
-from httk.core import (
+import httk.core.optimade.resources as resources
+from httk.core.optimade import (
     CalculationView,
     FileView,
     IncompleteOptimadeResourceError,
     OptimadeCalculation,
     OptimadeDocument,
-    OptimadeEntryBinding,
     OptimadeFile,
     OptimadeReference,
     OptimadeResource,
@@ -28,13 +27,16 @@ from httk.core import (
     ReferenceView,
     decode_optimade_value,
     is_optimade_entry_url,
-    known_optimade_entry_bindings,
     optimade_document_root,
-    optimade_entry_binding,
     redact_optimade_url,
+)
+from httk.core.register import (
+    OptimadeEntryBinding,
+    known_optimade_entry_bindings,
+    optimade_entry_binding,
     register_optimade_entry_binding,
 )
-from httk.core.optimade_resources import (
+from httk.core.optimade.resources import (
     optimade_entry_url_info,
     optimade_resource_from_url,
     redact_optimade_document_text,

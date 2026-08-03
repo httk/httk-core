@@ -36,7 +36,7 @@ metadata and does not resolve the lazy handler.
 The public signing functions use standard 32-byte Ed25519 private seeds:
 
 ```python
-from httk.core import (
+from httk.core.crypto import (
     ed25519_generate_seed,
     ed25519_public_key,
     ed25519_sign,

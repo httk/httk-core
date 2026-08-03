@@ -3,11 +3,19 @@
 import os
 import sys
 from collections.abc import Sequence
+from dataclasses import dataclass
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
-from .cli_context import CLIContext
 from .register import cli_command, known_cli_commands
+
+
+@dataclass(frozen=True)
+class CLIContext:
+    """Invocation context passed to a registered top-level command."""
+
+    program: str
+    cwd: Path
 
 
 def _version() -> str:

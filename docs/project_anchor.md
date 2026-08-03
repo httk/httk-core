@@ -53,7 +53,7 @@ metadata = initialize_project("campaign", name="My campaign")
 ## Identity keys, pinning, and trust
 
 A project owns one Ed25519 signing key, built on {doc}`cli_and_signing`'s
-`httk.core.ed25519`. Its public half is recorded in `project.json` and is the
+`httk.core.crypto`. Its public half is recorded in `project.json` and is the
 trust anchor a signed manifest is checked against — never the key a manifest
 carries in its own header.
 

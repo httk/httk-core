@@ -53,7 +53,8 @@ where = ["src"]
 namespaces = true
 
 [tool.setuptools.package-data]
-"httk.core" = ["py.typed", "optimade_filter/*.ebnf", "optimade_filter/README.md"]
+"httk.core" = ["py.typed"]
+"httk.core.optimade.filter" = ["*.ebnf", "README.md"]
 "httk.registry.schemas.core" = ["*.json", "LICENSE", "README.md"]
 "httk.core.docs" = ["assets/*"]
 

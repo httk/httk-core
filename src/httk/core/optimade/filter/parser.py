@@ -52,7 +52,7 @@ def parse_optimade_filter_raw(filter_string: str, verbosity: int | Any = 0) -> t
 
 @lru_cache(maxsize=1)
 def _optimade_parser_ls() -> _miniparser.LanguageSpec:
-    grammar = files("httk.core.optimade_filter").joinpath("optimade_filter_grammar.ebnf").read_text(encoding="utf-8")
+    grammar = files("httk.core.optimade.filter").joinpath("optimade_filter_grammar.ebnf").read_text(encoding="utf-8")
 
     # Keywords
     literals = [

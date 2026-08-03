@@ -20,7 +20,7 @@
 import sys
 from pathlib import Path
 
-from httk.core.cli_context import CLIContext
+from httk.core.cli import CLIContext
 
 from .cli import command
 

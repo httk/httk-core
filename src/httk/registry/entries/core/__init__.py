@@ -11,22 +11,22 @@ register_entry_record(
 register_optimade_entry_binding(
     name="core-reference",
     definition_id="https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/references",
-    backend="httk.core.optimade_entries:OptimadeReference",
-    view="httk.core.optimade_entries:ReferenceView",
+    backend="httk.core.optimade.entries:OptimadeReference",
+    view="httk.core.optimade.entries:ReferenceView",
     query_fields=None,
 )
 register_optimade_entry_binding(
     name="core-file",
     definition_id="https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files",
-    backend="httk.core.optimade_entries:OptimadeFile",
-    view="httk.core.optimade_entries:FileView",
+    backend="httk.core.optimade.entries:OptimadeFile",
+    view="httk.core.optimade.entries:FileView",
     query_fields=None,
 )
 register_optimade_entry_binding(
     name="core-calculation",
     definition_id="https://schemas.optimade.org/defs/v1.3/entrytypes/optimade/calculations",
-    backend="httk.core.optimade_entries:OptimadeCalculation",
-    view="httk.core.optimade_entries:CalculationView",
+    backend="httk.core.optimade.entries:OptimadeCalculation",
+    view="httk.core.optimade.entries:CalculationView",
     query_fields=None,
 )
 register_entry_record(

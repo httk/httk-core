@@ -27,7 +27,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal
 
-from httk.core.cli_context import CLIContext
+from httk.core.cli import CLIContext
 
 from .ecosystem import (
     EcosystemManifestError,

@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from httk.core._plugins import resolve_callable
-from httk.core.cli_context import CLIContext
+from httk.core.cli import CLIContext
 
 from .anchor import (
     PROJECT_DIRECTORY,

@@ -30,6 +30,6 @@ class DatastreamURL:
         return self._timeout
 
     def __repr__(self) -> str:
-        from ..optimade_resources import redact_optimade_url
+        from ..optimade.resources import redact_optimade_url
 
         return f"DatastreamURL(url={redact_optimade_url(self._url)!r}, timeout={self._timeout!r})"

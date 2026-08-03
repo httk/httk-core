@@ -3,7 +3,7 @@ from typing import Any, cast
 
 import pytest
 
-from httk.core import (
+from httk.core.storage import (
     QueryContext,
     QueryExpression,
     QueryLiteralError,

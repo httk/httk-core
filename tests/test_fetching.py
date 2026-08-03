@@ -9,7 +9,8 @@ from typing import Any
 
 import pytest
 
-from httk.core import fetch, is_optimade_entry_url
+from httk.core import fetch
+from httk.core.optimade import is_optimade_entry_url
 from httk.core.register import format_adapters, loader_filenames, loaders, register_format_adapter
 
 

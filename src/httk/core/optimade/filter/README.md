@@ -4,7 +4,7 @@ This directory holds the OPTIMADE filter language support of *httk-core*: the
 parser (`parser.py`, built on the vendored LR(1) parser generator in
 `_miniparser.py`) and the grammar file `optimade_filter_grammar.ebnf` it loads
 at runtime (packaged through `pyproject.toml`'s `package-data` entry
-`"httk.core" = [..., "optimade_filter/*.ebnf", "optimade_filter/README.md"]`).
+`"httk.core.optimade.filter" = ["*.ebnf", "README.md"]`).
 
 ## Provenance
 

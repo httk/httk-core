@@ -210,7 +210,8 @@ class RelationshipLink:
 class StorageInfo:
     """Optional class-level storage declaration for a storable dataclass.
 
-    Attach as the class attribute named by :data:`STORAGE_INFO_ATTRIBUTE`
+    Attach as the class attribute named by
+    :data:`~httk.core.storage.markers.STORAGE_INFO_ATTRIBUTE`
     (``__httk_storage__``), annotated ``ClassVar[StorageInfo]`` so dataclass
     processing ignores it. A storage layer may also accept an instance as an
     external override for classes that cannot be modified.
@@ -222,7 +223,7 @@ class StorageInfo:
         identity_name: The logical name included in content identity; ``None`` derives
             it from the declaring class and its bases.
         indexes: Composite indexes, each a tuple of field names.
-        dedup: Deduplication policy applied when saving; see :data:`DedupPolicy`.
+        dedup: Deduplication policy applied when saving; see :data:`~httk.core.storage.markers.DedupPolicy`.
         links: Class-level relationship declarations; see :class:`RelationshipLink`.
     """
 

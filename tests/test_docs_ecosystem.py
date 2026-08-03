@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from httk.core.cli_context import CLIContext
+from httk.core.cli import CLIContext
 from httk.core.docs import cli
 from httk.core.docs.ecosystem import (
     EcosystemManifestError,
@@ -16,8 +16,13 @@ from httk.core.docs.ecosystem import (
 
 
 def _git(path: Path, *arguments: str) -> None:
-    environment = {**os.environ, "GIT_AUTHOR_NAME": "test", "GIT_AUTHOR_EMAIL": "test@example.test",
-                   "GIT_COMMITTER_NAME": "test", "GIT_COMMITTER_EMAIL": "test@example.test"}
+    environment = {
+        **os.environ,
+        "GIT_AUTHOR_NAME": "test",
+        "GIT_AUTHOR_EMAIL": "test@example.test",
+        "GIT_COMMITTER_NAME": "test",
+        "GIT_COMMITTER_EMAIL": "test@example.test",
+    }
     subprocess.run(["git", *arguments], cwd=path, env=environment, check=True, capture_output=True)
 
 
@@ -110,7 +115,9 @@ def test_cli_writes_and_verifies_ecosystem_manifest(tmp_path: Path, capsys: pyte
     context = CLIContext("httk", tmp_path)
     assert cli.command(["ecosystem-manifest", "--submodules-dir", str(submodules), "--out", str(output)], context) == 0
     assert "wrote ecosystem manifest" in capsys.readouterr().out
-    assert cli.command(["ecosystem-manifest", "--submodules-dir", str(submodules), "--verify", str(output)], context) == 0
+    assert (
+        cli.command(["ecosystem-manifest", "--submodules-dir", str(submodules), "--verify", str(output)], context) == 0
+    )
     assert "is current" in capsys.readouterr().out
 
 
@@ -134,7 +141,9 @@ def test_discovery_rejects_missing_expected_checkout(tmp_path: Path) -> None:
 
 def _git_output(path: Path, *arguments: str) -> str:
     environment = {**os.environ, "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_SYSTEM": os.devnull}
-    return subprocess.run(["git", *arguments], cwd=path, env=environment, check=True, capture_output=True, text=True).stdout.strip()
+    return subprocess.run(
+        ["git", *arguments], cwd=path, env=environment, check=True, capture_output=True, text=True
+    ).stdout.strip()
 
 
 def test_discovery_rejects_unexpected_extra_directory(tmp_path: Path) -> None:

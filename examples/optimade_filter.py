@@ -2,7 +2,7 @@
 
 An OPTIMADE query arrives as a string — `elements HAS ALL "Ga","Ti" AND
 nelements=3`. Before anything can be done with it, it has to become structure.
-`httk.core.parse_optimade_filter` does exactly that and nothing more: it runs
+`httk.core.optimade.parse_optimade_filter` does exactly that and nothing more: it runs
 the filter string against the OPTIMADE grammar (transcribed from the
 specification's appendix and vendored inside *httk-core*) and returns the query
 as a tree of plain Python tuples. It does not evaluate, optimize, or translate
@@ -46,7 +46,7 @@ type errors: `nelements == 3` (OPTIMADE spells equality with one `=`),
 (`LENGTH` is a postfix operator on the identifier).
 """
 
-from httk.core import FilterAst, ParserSyntaxError, parse_optimade_filter
+from httk.core.optimade import FilterAst, ParserSyntaxError, parse_optimade_filter
 
 FILTERS = [
     'nelements=3',

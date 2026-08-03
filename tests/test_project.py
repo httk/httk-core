@@ -13,7 +13,8 @@ from pathlib import Path
 
 import pytest
 
-from httk.core import CLIContext, ed25519_generate_seed, ed25519_public_key
+from httk.core import CLIContext
+from httk.core.crypto import ed25519_generate_seed, ed25519_public_key
 from httk.core.cli import main
 from httk.core.project import (
     PROJECT_DIRECTORY,

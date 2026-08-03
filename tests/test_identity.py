@@ -6,29 +6,28 @@ from typing import Annotated, ClassVar
 
 import pytest
 
-from httk.core import (
-    FracScalar,
-    FracVector,
-    IdentitySkip,
-    Skip,
-    StorageInfo,
-    StorageProjectionCycleError,
-    SurdScalar,
-    SurdVector,
-    canonical_form,
-    content_id,
+from httk.core import FracScalar, FracVector, SurdScalar, SurdVector
+from httk.core.register import (
     entry_family_info,
     entry_record_info,
     known_entry_families,
     known_entry_records,
-    register_canonical_encoder,
     register_entry_family,
     register_entry_record,
     resolve_entry_family,
     resolve_entry_record,
-    resolve_storage_record,
 )
-from httk.core.identity import storage_identity_name
+from httk.core.storage import (
+    IdentitySkip,
+    Skip,
+    StorageInfo,
+    StorageProjectionCycleError,
+    canonical_form,
+    content_id,
+    register_canonical_encoder,
+    resolve_storage_record,
+    storage_identity_name,
+)
 
 
 @dataclass(frozen=True)

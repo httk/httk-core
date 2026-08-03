@@ -12,7 +12,7 @@ rounding anywhere — which makes it well suited to crystallography, where cell 
 coordinates are naturally rational.
 
 ```python
-from httk.core import FracVector
+from httk.core.vectors import FracVector
 
 cell = FracVector.create([["8.04", "0.0", "0.0"],
                           ["0.0", "3.72", "0.0"],
@@ -29,7 +29,7 @@ integer denominator (`.denom`); the tensor is `(1/denom) * noms`. Equality (`==`
 *numerical* value, so the denominator need not match:
 
 ```python
-from httk.core import FracVector
+from httk.core.vectors import FracVector
 
 assert FracVector([[1]], 2) == FracVector([[2]], 4)   # both are 1/2
 ```
@@ -51,7 +51,7 @@ assert FracVector([[1]], 2) == FracVector([[2]], 4)   # both are 1/2
 ```python
 import decimal
 import fractions
-from httk.core import FracVector
+from httk.core.vectors import FracVector
 
 # int, str, Decimal and Fraction leaves all land on their exact rational value:
 assert FracVector.create([decimal.Decimal("0.25"), decimal.Decimal("2.125")]).to_tuple() == (8, (2, 17))
@@ -64,7 +64,7 @@ precision (and an explicit standard deviation is honored) rather than as an exac
 
 ```python
 import fractions
-from httk.core import FracVector
+from httk.core.vectors import FracVector
 
 FracVector.create("0.33")                      # -> 33/100  (0.33 assumed to mean 0.3300)
 FracVector.create("0.3333")                    # -> 1/3     (enough digits to imply 1/3)
@@ -84,7 +84,7 @@ The **binary-rational caveat**: a Python `float` literal is *already* a binary r
 
 ```python
 import fractions
-from httk.core import FracVector
+from httk.core.vectors import FracVector
 
 assert FracVector.create([8.04]).to_fractions() == [fractions.Fraction(8.04)]
 assert FracVector.create([8.04]) != FracVector.create(["8.04"])
@@ -97,7 +97,7 @@ smallest denominator. This keeps intermediate arithmetic cheap while staying exa
 `.simplify()` at the end of a computation when you want the reduced form:
 
 ```python
-from httk.core import FracVector
+from httk.core.vectors import FracVector
 
 third = FracVector.create("1/3")
 product = third * 3            # value is 1, but stored un-simplified
@@ -124,7 +124,7 @@ Besides `simplify`, three methods control the denominator explicitly:
 
 ```python
 import fractions
-from httk.core import FracVector
+from httk.core.vectors import FracVector
 
 assert FracVector.create([[1, 2, 3]], 6).to_tuple() == (6, ((1, 2, 3),))
 assert FracVector.create([["1/3", "2/7"]]).set_denominator(1000).to_tuple() == (1000, ((333, 286),))
@@ -140,7 +140,7 @@ assert FracVector.create([[binary]]).limit_denominator(1000) == FracVector.creat
 exact:
 
 ```python
-from httk.core import FracVector
+from httk.core.vectors import FracVector
 
 a = FracVector.create([[2, 3, 5], [3, 5, 4], [4, 6, 7]])
 
@@ -155,7 +155,7 @@ assert (a ** -2).simplify() == (a.inv() * a.inv()).simplify()
 Vector products and the metric:
 
 ```python
-from httk.core import FracVector
+from httk.core.vectors import FracVector
 
 u = FracVector.create([1, 2, 3])
 v = FracVector.create([4, 5, 6])
@@ -183,7 +183,7 @@ copies, exactly like `FracVector`.
 
 ```python
 import fractions
-from httk.core import FracVector, MutableFracVector
+from httk.core.vectors import FracVector, MutableFracVector
 
 m = MutableFracVector.create(FracVector.create([[1, 2, 3], [4, 5, 6]]))
 m[1, 1:] = [40, 50]                       # slice assignment
@@ -200,7 +200,7 @@ to `FracVector.inv()`, `set_simplify()` reduces to the smallest (integer) denomi
 are `set_T`, `set_negative`, `set_normalize`, `set_normalize_half`, `set_set_denominator` too:
 
 ```python
-from httk.core import FracVector, MutableFracVector
+from httk.core.vectors import FracVector, MutableFracVector
 
 a = FracVector.create([[2, 3, 5], [3, 5, 4], [4, 6, 7]])
 m = MutableFracVector.create(a)
@@ -214,7 +214,7 @@ Convert freely between the two: `MutableFracVector.create(fv)` and `FracVector.c
 immutable `FracVector`:
 
 ```python
-from httk.core import FracVector, MutableFracVector
+from httk.core.vectors import FracVector, MutableFracVector
 
 m = MutableFracVector.create(FracVector.create([[1, 2], [3, 4]]))
 fv = FracVector.use(m)
@@ -260,7 +260,7 @@ FracVector's own (exact, element-wise) method when given one and fall back to `m
 scalars:
 
 ```python
-from httk.core import FracVector
+from httk.core.vectors import FracVector
 from httk.core.vectors import vectormath
 
 # element-wise on a FracVector (exact):
@@ -307,7 +307,7 @@ when `q` is a perfect square, otherwise a canonical single-radical surd. Product
 
 ```python
 import fractions
-from httk.core import SurdVector
+from httk.core.vectors import SurdVector
 
 F = fractions.Fraction
 
@@ -324,7 +324,7 @@ iterated conjugation), but **not** under `sqrt` of a surd — there are no neste
 `length()` is exact precisely when `lengthsqr()` is rational, and it raises otherwise:
 
 ```python
-from httk.core import SurdVector
+from httk.core.vectors import SurdVector
 
 # 1/(1 + sqrt2 + sqrt3) is a genuine field inverse (verify by multiplying back):
 d = SurdVector.one() + SurdVector.sqrt_of(2) + SurdVector.sqrt_of(3)
@@ -337,7 +337,7 @@ Ordering and sign are decided **exactly**, by refining rational bounds on each $
 sign resolves (a nonzero surd is never zero, so this always terminates):
 
 ```python
-from httk.core import SurdVector
+from httk.core.vectors import SurdVector
 
 lhs = SurdVector.sqrt_of(2) + SurdVector.sqrt_of(3)   # ~3.1463
 rhs = SurdVector.sqrt_of(10)                          # ~3.1623
@@ -352,7 +352,7 @@ $G = B\,B^\mathsf{T}$ are all exact, and a Cartesian bond length comes back as a
 
 ```python
 import fractions
-from httk.core import FracVector, SurdVector
+from httk.core.vectors import FracVector, SurdVector
 
 F = fractions.Fraction
 a, c = F(3), F(5)
@@ -391,7 +391,7 @@ correctly rounded to the requested significant digits, and repeated calls are id
 
 ```python
 import decimal
-from httk.core import SurdVector
+from httk.core.vectors import SurdVector
 
 assert SurdVector.sqrt_of(2).to_decimal(digits=30) == decimal.Decimal("1.41421356237309504880168872421")
 assert SurdVector.sqrt_of(8).to_decimal(digits=6) == decimal.Decimal("2.82843")
@@ -415,7 +415,7 @@ degrees over $[0, 180]$ when the value is one of the table cosines:
 
 ```python
 import fractions
-from httk.core import SurdVector, SurdScalar
+from httk.core.vectors import SurdVector, SurdScalar
 
 F = fractions.Fraction
 
@@ -463,7 +463,7 @@ presentation state is converted and kept on first access. The other views remain
 representation or documented construction-time validation requires it.
 
 ```python
-from httk.core import FracVector, VectorFracView, VectorNativeView
+from httk.core.vectors import FracVector, VectorFracView, VectorNativeView
 from httk.core.vectors import VectorBackend, VectorFrac, VectorNative
 
 # Dispatch by input type:
@@ -496,7 +496,7 @@ from their accessors and add no ad-hoc float-conversion methods of their own:
 
 ```python
 import fractions
-from httk.core import FracVector, SurdVector
+from httk.core.vectors import FracVector, SurdVector
 from httk.core.vectors import VectorBackend
 
 assert FracVector.create([["1/2", "1/4"]]).to_floats() == [[0.5, 0.25]]
@@ -512,7 +512,7 @@ therefore round-trips exactly:
 
 ```python
 import fractions
-from httk.core import SurdVector, VectorSurdView
+from httk.core.vectors import SurdVector, VectorSurdView
 from httk.core.vectors import VectorBackend, VectorSurd
 from httk.core.views import unwrap
 
@@ -556,7 +556,7 @@ silent Fraction-ization:
 
 ```python
 import decimal
-from httk.core import VectorNativeView
+from httk.core.vectors import VectorNativeView
 
 d = decimal.Decimal("1.5")
 nv = VectorNativeView([[d, 2], [3, 4]])
@@ -572,7 +572,7 @@ codec — `int` when integral, otherwise `Fraction`, never a float:
 
 ```python
 import fractions
-from httk.core import FracVector, VectorNativeView
+from httk.core.vectors import FracVector, VectorNativeView
 
 crossed = VectorNativeView(FracVector.create([["1/3", "2/3"], [1, 2]]))
 assert crossed == ((fractions.Fraction(1, 3), fractions.Fraction(2, 3)), (1, 2))
@@ -595,7 +595,7 @@ The `"int"` codec's default rounding is nearest with ties to even (matching Pyth
 `Fraction`); `rounding=` also accepts `"floor"`, `"ceil"`, and `"trunc"`:
 
 ```python
-from httk.core import FracVector, VectorNativeView
+from httk.core.vectors import FracVector, VectorNativeView
 
 halves = FracVector.create([["5/2", "7/2", "-5/2", "-7/2"]])
 assert VectorNativeView(halves, leaf="int") == ((2, 4, -2, -4),)                     # half-even
@@ -611,7 +611,7 @@ the active context precision) with round-half-even:
 
 ```python
 import decimal
-from httk.core import FracVector, VectorNativeView
+from httk.core.vectors import FracVector, VectorNativeView
 
 # 1/8 has a finite expansion: exact.
 assert VectorNativeView(FracVector.create([["1/8"]]), leaf="decimal") == ((decimal.Decimal("0.125"),),)
@@ -624,7 +624,7 @@ preserved strings from the first example):
 
 ```python
 import fractions
-from httk.core import FracVector, VectorNativeView
+from httk.core.vectors import FracVector, VectorNativeView
 
 assert VectorNativeView(FracVector.create([["1/3"]]), leaf="float") == ((1.0 / 3.0,),)
 assert VectorNativeView([["1/3", "2/3"]], leaf="fraction") == ((fractions.Fraction(1, 3), fractions.Fraction(2, 3)),)
@@ -634,7 +634,7 @@ Only *configuration* errors raise, and eagerly — an unknown codec name or an o
 accept:
 
 ```python
-from httk.core import VectorNativeView
+from httk.core.vectors import VectorNativeView
 
 for bad in [dict(leaf="nope"), dict(leaf="int", rounding="sideways"), dict(leaf="float", digits=3)]:
     try:
@@ -651,7 +651,7 @@ object, and a fresh exact view reproduces the exact values.
 
 ```python
 import decimal
-from httk.core import VectorNative, VectorNativeView
+from httk.core.vectors import VectorNative, VectorNativeView
 from httk.core.views import unwrap
 
 raw = [["1/3", decimal.Decimal("2.5"), 4]]
@@ -672,7 +672,7 @@ Fraction hub *before* the array is built — so numpy never silently truncates a
 
 ```python
 import numpy
-from httk.core import FracVector, VectorNumpyView
+from httk.core.vectors import FracVector, VectorNumpyView
 
 exact = VectorNumpyView([[1, 2], [3, 4]], dtype=numpy.int64)
 assert exact.dtype == numpy.int64 and exact.tolist() == [[1, 2], [3, 4]]
@@ -689,7 +689,7 @@ registered it is usable through the `leaf=` hint like any built-in:
 
 ```python
 import fractions
-from httk.core import FracVector, LeafCodec, VectorNativeView, known_leaf_codecs, register_leaf_codec
+from httk.core.vectors import FracVector, LeafCodec, VectorNativeView, known_leaf_codecs, register_leaf_codec
 
 def _to_percent(value: fractions.Fraction) -> str:
     return f"{float(value * 100):g}%"
@@ -717,7 +717,7 @@ matrix converts to a plain float matrix identically to `FracVector.to_floats()`:
 
 ```python
 import numpy
-from httk.core import FracVector, VectorNumpyView
+from httk.core.vectors import FracVector, VectorNumpyView
 
 cell = FracVector.create([["8.04", "0.0", "0.0"],
                           ["0.0", "3.72", "0.0"],
@@ -736,7 +736,7 @@ rational:
 
 ```python
 import numpy
-from httk.core import FracVector, VectorNumpyView, VectorFracView
+from httk.core.vectors import FracVector, VectorNumpyView, VectorFracView
 
 one_third = FracVector.create([["1/3"]])
 detached = numpy.asarray(VectorNumpyView(one_third))   # a detached plain float64 array
@@ -770,7 +770,7 @@ value to a `float`: that needs no numpy and so works unconditionally.
 ```python
 import fractions
 import numpy
-from httk.core import FracVector, SurdVector, to_numeric, to_numeric_scalar
+from httk.core.vectors import FracVector, SurdVector, to_numeric, to_numeric_scalar
 
 F = fractions.Fraction
 

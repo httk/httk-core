@@ -9,7 +9,7 @@ import fractions
 
 import pytest
 
-from httk.core import (
+from httk.core.vectors import (
     FracVector,
     VectorNativeView,
     known_leaf_codecs,

@@ -8,7 +8,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
-from .cli_context import CLIContext
+from .cli import CLIContext
 from .property_definitions import EntryTypeDefinition, PropertyDefinition
 from .register import load_entry_type_definition
 

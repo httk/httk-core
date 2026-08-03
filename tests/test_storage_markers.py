@@ -1,4 +1,4 @@
-"""Tests for the stdlib-only storage marker vocabulary (httk.core.storage_markers)."""
+"""Tests for the stdlib-only storage marker vocabulary (httk.core.storage.markers)."""
 
 import dataclasses
 from dataclasses import dataclass
@@ -6,7 +6,7 @@ from typing import Annotated, ClassVar, get_type_hints
 
 import pytest
 
-from httk.core import (
+from httk.core.storage import (
     STORAGE_INFO_ATTRIBUTE,
     Indexed,
     Related,

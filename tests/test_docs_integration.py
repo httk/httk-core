@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from httk.core.cli_context import CLIContext
+from httk.core.cli import CLIContext
 from httk.core.docs import cli
 
 
@@ -23,11 +23,7 @@ def _make_build(path: Path, label: str) -> None:
 
 
 def _tree_bytes(root: Path) -> dict[str, bytes]:
-    return {
-        path.relative_to(root).as_posix(): path.read_bytes()
-        for path in root.rglob("*")
-        if path.is_file()
-    }
+    return {path.relative_to(root).as_posix(): path.read_bytes() for path in root.rglob("*") if path.is_file()}
 
 
 def _compose(site: Path, build: Path, *target: str) -> None:
@@ -77,9 +73,10 @@ def _assert_branch_tree(repository: Path, site: Path) -> None:
     expected = sorted(path for path in _tree_bytes(site) if path != ".git")
     assert names == expected
     for name in expected:
-        assert subprocess.run(
-            ["git", "show", f"docs-site:{name}"], cwd=repository, capture_output=True, check=True
-        ).stdout == (site / name).read_bytes()
+        assert (
+            subprocess.run(["git", "show", f"docs-site:{name}"], cwd=repository, capture_output=True, check=True).stdout
+            == (site / name).read_bytes()
+        )
 
 
 @pytest.mark.skipif(shutil.which("git") is None, reason="git is required for the site branch integration test")
@@ -97,9 +94,7 @@ def test_versioned_site_lifecycle_and_orphan_site_commits(tmp_path: Path) -> Non
     _compose(site, release_one, "--release", "v0.1.0")
     _compose(site, dev_initial, "--dev")
     _compose(site, release_two, "--release", "v0.2.0")
-    release_snapshots = {
-        name: _tree_bytes(site / name) for name in ("v0.1.0", "v0.2.0")
-    }
+    release_snapshots = {name: _tree_bytes(site / name) for name in ("v0.1.0", "v0.2.0")}
 
     repository = tmp_path / "repository"
     repository.mkdir()

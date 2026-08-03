@@ -29,7 +29,7 @@ from pathlib import Path
 # Imported from the submodule rather than the ``httk.core`` package so this
 # module stays importable while ``httk.core`` itself is still initializing: a
 # workflow installation imports the project CLI during core's plugin discovery.
-from httk.core.ed25519 import ed25519_generate_seed, ed25519_public_key
+from httk.core.crypto import ed25519_generate_seed, ed25519_public_key
 
 from ._util import write_json_atomic
 

@@ -35,11 +35,8 @@ python -m pip install -e .
 
 ## Usage (tiny example)
 
-```python
-from httk.core import subpackages
-
-print(subpackages)
-```
+The main subpackages are `httk.core.datastream`, `httk.core.optimade`,
+`httk.core.storage`, `httk.core.vectors`, and `httk.core.views`.
 
 ```{toctree}
 :maxdepth: 2

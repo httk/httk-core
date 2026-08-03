@@ -1,5 +1,7 @@
 """Ed25519 signing with an optional accelerated backend.
 
+These signing primitives are used by project identity and trust.
+
 All private keys accepted and returned by this module are standard 32-byte
 Ed25519 seeds. The stdlib implementation follows RFC 8032 and is kept as a
 portable fallback; ``cryptography`` is used automatically when installed.

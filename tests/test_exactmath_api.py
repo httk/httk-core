@@ -5,21 +5,8 @@ import fractions
 
 import pytest
 
-from httk.core import (
-    FracScalar,
-    FracVector,
-    ScalarLike,
-    SurdScalar,
-    SurdVector,
-    VectorBackend,
-    VectorFrac,
-    VectorFracView,
-    VectorNativeView,
-    VectorSurd,
-    VectorSurdView,
-    exactmath,
-    unwrap,
-)
+from httk.core import FracScalar, FracVector, ScalarLike, SurdScalar, SurdVector, exactmath, unwrap
+from httk.core.vectors import VectorBackend, VectorFrac, VectorFracView, VectorNativeView, VectorSurd, VectorSurdView
 
 F = fractions.Fraction
 D = decimal.Decimal

@@ -86,7 +86,7 @@ the squarefree-radical field, with **no** approximation:
 
 ```python
 import fractions
-from httk.core import SurdVector
+from httk.core.vectors import SurdVector
 
 root2 = exactmath.sqrt(fractions.Fraction(2), exact=True)
 assert root2 * root2 == SurdVector.create(2)                       # squares back to exactly 2
@@ -312,7 +312,7 @@ The default (`max_refinements=None`) keeps the guaranteed-correct behavior above
 element, so everything above applies vector-wide:
 
 ```python
-from httk.core import FracVector
+from httk.core.vectors import FracVector
 
 v = FracVector.create([["9/4", "1/4"]])
 v.sqrt().to_fractions()                  # [[Fraction(3, 2), Fraction(1, 2)]] — exact

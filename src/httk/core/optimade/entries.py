@@ -16,11 +16,11 @@ from types import MappingProxyType
 from typing import ClassVar, Self, cast
 from urllib.parse import urlsplit
 
-from .entry_types import Calculation, File, Reference
-from .optimade_resources import FrozenJson, OptimadeResource, optimade_document_root
-from .property_definitions import EntryTypeDefinition, PropertyDefinition, standard_entry_type
-from .register import optimade_entry_binding
-from .storage_markers import stored_property
+from ..entry_types import Calculation, File, Reference
+from ..property_definitions import EntryTypeDefinition, PropertyDefinition, standard_entry_type
+from ..register import optimade_entry_binding
+from ..storage.markers import stored_property
+from .resources import FrozenJson, OptimadeResource, optimade_document_root
 
 type OptimadeValueDecoder = Callable[[object, PropertyDefinition], object]
 

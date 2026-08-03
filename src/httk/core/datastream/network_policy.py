@@ -9,7 +9,7 @@ NETWORK_SCHEMES = frozenset({"http", "https", "ftp"})
 
 def require_network_consent(url: str) -> None:
     """Future seam for an opt-in network policy; currently all implicit access is refused."""
-    from ..optimade_resources import redact_optimade_url
+    from ..optimade.resources import redact_optimade_url
 
     redacted_url = redact_optimade_url(url)
     raise PermissionError(

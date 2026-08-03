@@ -18,8 +18,8 @@ from types import MappingProxyType
 from urllib.parse import unquote_plus, urlsplit, urlunsplit
 from weakref import WeakKeyDictionary
 
-from .datastream import TextstreamFileView
-from .storage_markers import stored_property
+from ..datastream import TextstreamFileView
+from ..storage.markers import stored_property
 
 _SENSITIVE_QUERY_KEYS = frozenset({"access_token", "api_key", "apikey", "token", "key"})
 _NON_ENTRY_ENDPOINTS = frozenset({"info", "links", "versions", "extensions"})

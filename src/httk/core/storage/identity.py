@@ -11,7 +11,7 @@ import types
 from collections.abc import Callable, Mapping
 from typing import Annotated, Any, Union, get_args, get_origin, get_type_hints
 
-from .storage_markers import STORAGE_INFO_ATTRIBUTE, IdentitySkip, Skip, StorageInfo, stored_property
+from .markers import STORAGE_INFO_ATTRIBUTE, IdentitySkip, Skip, StorageInfo, stored_property
 
 __all__ = [
     "StorageProjectionCycleError",
@@ -417,13 +417,13 @@ def _format_path(path: tuple[str, ...]) -> str:
 
 
 def _is_frac(value: Any) -> bool:
-    from .vectors import FracScalar, FracVector
+    from ..vectors import FracScalar, FracVector
 
     return isinstance(value, (FracScalar, FracVector))
 
 
 def _is_surd(value: Any) -> bool:
-    from .vectors import SurdScalar, SurdVector
+    from ..vectors import SurdScalar, SurdVector
 
     return isinstance(value, (SurdScalar, SurdVector))
 
@@ -433,7 +433,7 @@ def _rational(value: fractions.Fraction) -> dict[str, Any]:
 
 
 def _frac(value: Any) -> dict[str, Any]:
-    from .vectors import FracScalar
+    from ..vectors import FracScalar
 
     simplified = value.simplify()
 
@@ -447,7 +447,7 @@ def _frac(value: Any) -> dict[str, Any]:
 
 
 def _surd(value: Any) -> dict[str, Any]:
-    from .vectors import SurdScalar
+    from ..vectors import SurdScalar
 
     return {
         "type": "surd_scalar" if isinstance(value, SurdScalar) else "surd_vector",

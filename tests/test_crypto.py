@@ -1,6 +1,6 @@
 import pytest
 
-from httk.core import (
+from httk.core.crypto import (
     ed25519_backend_available,
     ed25519_public_key,
     ed25519_sign,

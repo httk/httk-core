@@ -39,6 +39,6 @@ register_cli_command(
 )
 register_cli_command(
     "registry",
-    "httk.core.registry_tool:command",
+    "httk.core._registry_tool:command",
     "generate and verify entry record classes from schemas",
 )

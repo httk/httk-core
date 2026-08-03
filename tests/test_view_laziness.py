@@ -4,7 +4,8 @@ from typing import Any
 
 import pytest
 
-from httk.core import (
+from httk.core import coerce
+from httk.core.vectors import (
     FracVector,
     SurdVector,
     VectorFrac,
@@ -12,7 +13,6 @@ from httk.core import (
     VectorNative,
     VectorSurd,
     VectorSurdView,
-    coerce,
 )
 from httk.core.views import unwrap
 

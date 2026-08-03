@@ -5,7 +5,7 @@ from urllib.parse import urlsplit
 
 from .datastream import TextstreamFileView
 from .loading import adapt_result, has_loader_for, load_source, loader_uses_extension
-from .optimade_resources import is_optimade_entry_url, optimade_resource_from_url, redact_optimade_url
+from .optimade.resources import is_optimade_entry_url, optimade_resource_from_url, redact_optimade_url
 
 
 def fetch(

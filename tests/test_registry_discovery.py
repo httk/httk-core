@@ -6,7 +6,7 @@ import sys
 import pytest
 
 import httk.core.entry_types
-from httk.core import (
+from httk.core.register import (
     entry_record_info,
     known_entry_records,
     load_entry_type_definition,
@@ -14,8 +14,6 @@ from httk.core import (
     register_entry_type_definition,
     register_property_definition,
     resolve_entry_record,
-)
-from httk.core.register import (
     _entry_records,
     _entry_type_definitions,
     _property_definitions,

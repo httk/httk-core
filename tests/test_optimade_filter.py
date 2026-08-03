@@ -1,6 +1,6 @@
 import pytest
 
-from httk.core.optimade_filter import ParserSyntaxError, parse_optimade_filter
+from httk.core.optimade.filter import ParserSyntaxError, parse_optimade_filter
 
 # Expected syntax trees below were captured from the httk v1 implementation
 # to guarantee port parity.
@@ -147,7 +147,7 @@ def test_syntax_errors(bad_filter: str) -> None:
 
 
 def test_grammar_loads_from_package_data() -> None:
-    from httk.core.optimade_filter.parser import _optimade_parser_ls
+    from httk.core.optimade.filter.parser import _optimade_parser_ls
 
     _optimade_parser_ls.cache_clear()
     assert parse_optimade_filter('nelements=1') == ('=', ('Identifier', 'nelements'), ('Number', '1'))
@@ -178,7 +178,7 @@ def test_boolean_constant_first() -> None:
 def test_miniparser_toy_grammar() -> None:
     # Direct test of the vendored LR(1) miniparser: build_ls + parser over the
     # small toy grammar from the module docstring's usage example.
-    from httk.core.optimade_filter import _miniparser
+    from httk.core.optimade.filter import _miniparser
 
     ls = _miniparser.build_ls(
         ebnf_grammar="""
@@ -194,7 +194,7 @@ def test_miniparser_toy_grammar() -> None:
 
 
 def test_miniparser_toy_grammar_syntax_error() -> None:
-    from httk.core.optimade_filter import _miniparser
+    from httk.core.optimade.filter import _miniparser
 
     ls = _miniparser.build_ls(
         ebnf_grammar="""

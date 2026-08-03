@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from httk.core.cli_context import CLIContext
+from httk.core.cli import CLIContext
 from httk.core.docs import cli
 from httk.core.docs.semver import Version
 from httk.core.docs.sitetree import ComposeError, ImmutabilityError, compose_site
@@ -20,7 +20,9 @@ def test_repair_replaces_existing_release_transactionally(tmp_path: Path, caplog
     make_build(original, "original")
     make_build(replacement, "replacement")
     site = tmp_path / "site"
-    compose_site(site, original, slug="core", site_url="https://docs.example/core", source_commit=None, target=Version(1, 0, 0))
+    compose_site(
+        site, original, slug="core", site_url="https://docs.example/core", source_commit=None, target=Version(1, 0, 0)
+    )
 
     with caplog.at_level("WARNING"):
         result = compose_site(
@@ -60,9 +62,13 @@ def test_normal_compose_still_refuses_different_release(tmp_path: Path) -> None:
     make_build(first, "first")
     make_build(second, "second")
     site = tmp_path / "site"
-    compose_site(site, first, slug="core", site_url="https://docs.example/core", source_commit=None, target=Version(1, 0, 0))
+    compose_site(
+        site, first, slug="core", site_url="https://docs.example/core", source_commit=None, target=Version(1, 0, 0)
+    )
     with pytest.raises(ImmutabilityError, match="immutable"):
-        compose_site(site, second, slug="core", site_url="https://docs.example/core", source_commit=None, target=Version(1, 0, 0))
+        compose_site(
+            site, second, slug="core", site_url="https://docs.example/core", source_commit=None, target=Version(1, 0, 0)
+        )
 
 
 def test_cli_repair_uses_release_target(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
