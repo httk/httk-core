@@ -45,6 +45,15 @@ loader_filenames = PluginRegistry()
 format_adapters = PluginRegistry()
 _format_adapter_lock = Lock()
 
+#: Writers selected by file extension or exact basename.
+writers = PluginRegistry()
+writer_filenames = PluginRegistry()
+writer_formats = PluginRegistry()
+_writer_formats: dict[tuple[int, str], str] = {}
+_writers_by_format: dict[str, tuple[PluginRegistry, str]] = {}
+format_serializers = PluginRegistry()
+_format_serializer_lock = Lock()
+
 
 def _same_callable_reference(left: str | Callable[..., Any], right: str | Callable[..., Any]) -> bool:
     """Compare lazy references by value and callable registrations by identity."""
@@ -129,6 +138,74 @@ def known_format_adapters() -> dict[str, str]:
         if spec.name is not None:
             known[format_tag] = spec.name
     return known
+
+
+def register_writer(
+    *,
+    name: str,
+    writer: str | Callable[..., Any],
+    format: str,
+    extensions: tuple[str, ...] = (),
+    filenames: tuple[str, ...] = (),
+) -> None:
+    """Register a writer under one or more extensions and/or exact basenames."""
+    if not isinstance(format, str) or not format:
+        raise ValueError(f"writer format must be a nonempty string, got {format!r}")
+    keys = [(writers, extension.lower()) for extension in extensions]
+    keys += [(writer_filenames, filename.lower()) for filename in filenames]
+    existing = _writers_by_format.get(format)
+    if existing is not None:
+        old = existing[0].get(existing[1])
+        if old is not None and not _same_callable_reference(old.handler, writer):
+            raise ValueError(f"writer format {format!r} is already registered by {old.name!r}")
+    if not keys:
+        writer_formats.register(key=format, handler=writer, name=name)
+        _writer_formats[(id(writer_formats), format)] = format
+        _reindex_writer_format(format)
+        return
+    affected_formats = {format}
+    for registry, key in keys:
+        old_format = _writer_formats.get((id(registry), key))
+        if old_format is not None:
+            affected_formats.add(old_format)
+        registry.register(key=key, handler=writer, name=name)
+        _writer_formats[(id(registry), key)] = format
+    for affected_format in affected_formats:
+        _reindex_writer_format(affected_format)
+
+
+def known_writers() -> list[str]:
+    return sorted(set(writers.keys()) | set(writer_filenames.keys()))
+
+
+def _reindex_writer_format(format: str) -> None:
+    for registry in (writers, writer_filenames, writer_formats):
+        for key in registry.keys():  # noqa: SIM118 — PluginRegistry exposes keys(), not mapping iteration.
+            if _writer_formats.get((id(registry), key)) == format:
+                _writers_by_format[format] = (registry, key)
+                return
+    _writers_by_format.pop(format, None)
+
+
+def _writer_for_format(format: str) -> tuple[PluginRegistry, str] | None:
+    return _writers_by_format.get(format)
+
+
+def _writer_format(registry: PluginRegistry, key: str) -> str:
+    return _writer_formats[(id(registry), key)]
+
+
+def register_format_serializer(*, format: str, serializer: str | Callable[..., Any]) -> None:
+    """Register one lazy serializer for a neutral payload format tag."""
+    if not isinstance(format, str) or not format:
+        raise ValueError(f"format tag must be a nonempty string, got {format!r}")
+    with _format_serializer_lock:
+        existing = format_serializers.get(format)
+        if existing is not None:
+            if _same_callable_reference(existing.handler, serializer):
+                return
+            raise ValueError(f"format serializer {format!r} is already registered")
+        format_serializers.register(key=format, handler=serializer, name=format)
 
 
 entry_providers = PluginRegistry()

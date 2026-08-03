@@ -394,6 +394,7 @@ class OptimadeResource(Mapping[str, FrozenJson]):
             raise TypeError("OPTIMADE resource data_index must be an int")
         if self.data_index < 0:
             raise IndexError(f"OPTIMADE resource data index out of range: {self.data_index}")
+        resource: FrozenJson
         if isinstance(data, Mapping):
             if self.data_index != 0:
                 raise IndexError(f"OPTIMADE resource data index out of range: {self.data_index}")

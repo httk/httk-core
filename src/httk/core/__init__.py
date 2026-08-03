@@ -54,9 +54,12 @@ from .register import (
     register_entry_record,
     register_entry_type_definition,
     register_format_adapter,
+    register_format_serializer,
     register_optimade_entry_binding,
     register_property_definition,
+    register_writer,
 )
+from .saving import has_writer_for, save
 from .storage.identity import content_id
 from .storage.markers import (
     IdentitySkip,
@@ -131,6 +134,7 @@ __all__ = [
     "decimal_precision",
     "fetch",
     "has_loader_for",
+    "has_writer_for",
     "known_compressions",
     "known_definition_prefixes",
     "known_entry_providers",
@@ -147,8 +151,11 @@ __all__ = [
     "register_entry_record",
     "register_entry_type_definition",
     "register_format_adapter",
+    "register_format_serializer",
     "register_optimade_entry_binding",
     "register_property_definition",
+    "register_writer",
+    "save",
     "standard_entry_type",
     "stored_property",
     "to_numeric",
