@@ -185,8 +185,9 @@ class DataLoader:
     suffix raises ``ValueError``; a source with no determinable name is treated as JSON.
     Compression is handled transparently by the stream layer, so ``.json.gz`` and similar load
     directly. A ``str``/``Path`` source is interpreted as a filename unless its scheme marks it
-    as a URL (``http``, ``https``, ``ftp``, ``file``); pass ``kind="content"`` for literal
-    content or ``kind="filename"``/``kind="url"`` to force an interpretation.
+    as a URL (``http``, ``https``, ``ftp``, ``file``); bare network URLs are refused at read time,
+    so pass ``kind="url"`` or a ``urllib.request.Request``. Pass ``kind="content"`` for literal
+    content or ``kind="filename"`` to force a filename interpretation.
 
     Example:
         symmetry_basics = DataLoader("symmetry_basics", "data/spacegroup_symbols.json")

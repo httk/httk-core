@@ -28,6 +28,8 @@ from .textstream_url import TextstreamURL
 from .textstream_url_view import TextstreamURLView
 from .textstream_view import TextstreamView
 
+type DatastreamLike = BytestreamLike | TextstreamLike
+
 # *URL backends precede *Filename/*String so a bare scheme'd string dispatches to a URL;
 # an explicit kind= hint still forces the intended interpretation either way.
 BytestreamBackend.backend_classes = [
@@ -61,6 +63,7 @@ __all__ = [
     "BytestreamURLView",
     "BytestreamView",
     "CompressionCodec",
+    "DatastreamLike",
     "TextstreamBackend",
     "TextstreamCommon",
     "TextstreamFile",

@@ -10,18 +10,18 @@ from httk.core.datastream import (
     BytestreamBytes,
     BytestreamBytesView,
     BytestreamFile,
-    BytestreamFileView,
     BytestreamFilename,
     BytestreamFilenameView,
+    BytestreamFileView,
     BytestreamRequest,
     BytestreamRequestView,
     BytestreamURL,
     BytestreamURLView,
     TextstreamBackend,
     TextstreamFile,
-    TextstreamFileView,
     TextstreamFilename,
     TextstreamFilenameView,
+    TextstreamFileView,
     TextstreamRequest,
     TextstreamRequestView,
     TextstreamString,
@@ -331,8 +331,8 @@ def test_textstream_url_backend_auto_recognizes_scheme_and_kind_overrides(tmp_pa
     assert url_backend.url == uri
     assert url_backend.read() == "url-body\n"
 
-    # A bare scheme'd string is auto-recognized as a URL (no kind hint needed).
-    auto_backend = TextstreamBackend.create(uri)
+    # An explicit URL hint selects the URL backend.
+    auto_backend = TextstreamBackend.create(uri, kind="url")
     assert isinstance(auto_backend, TextstreamURL)
     assert auto_backend.read() == "url-body\n"
 
@@ -356,7 +356,7 @@ def test_bytestream_url_backend_auto_recognizes_scheme_and_kind_overrides(tmp_pa
     assert isinstance(url_backend, BytestreamURL)
     assert url_backend.read() == b"url-body\n"
 
-    auto_backend = BytestreamBackend.create(uri)
+    auto_backend = BytestreamBackend.create(uri, kind="url")
     assert isinstance(auto_backend, BytestreamURL)
     assert auto_backend.read() == b"url-body\n"
 

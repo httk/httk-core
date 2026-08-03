@@ -4,6 +4,7 @@ import urllib.request
 from typing import Any, cast
 
 from .compression import open_compressed, validate_compression
+from .network_policy import resolve_timeout
 from .textstream_backend import TextstreamBackend
 from .textstream_common import TextstreamCommon
 
@@ -43,10 +44,7 @@ class TextstreamRequest(TextstreamCommon, TextstreamBackend):
         if self._closed:
             raise ValueError("I/O operation on closed stream")
         if self._f is None:
-            if self._timeout is None:
-                resp = urllib.request.urlopen(self._request)
-            else:
-                resp = urllib.request.urlopen(self._request, timeout=self._timeout)
+            resp = urllib.request.urlopen(self._request, timeout=resolve_timeout(self._timeout))
             encoding = self._encoding or resp.headers.get_content_charset() or "utf-8"
             raw = cast(io.IOBase, resp)
             name = urllib.parse.urlsplit(self._request.full_url).path

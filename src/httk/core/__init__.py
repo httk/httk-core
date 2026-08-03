@@ -38,6 +38,7 @@ from .datastream import (
     BytestreamURLView,
     BytestreamView,
     CompressionCodec,
+    DatastreamLike,
     TextstreamBackend,
     TextstreamCommon,
     TextstreamFile,
@@ -58,6 +59,7 @@ from .datastream import (
 from .ed25519 import ed25519_backend_available, ed25519_generate_seed, ed25519_public_key, ed25519_sign, ed25519_verify
 from .entry_provider import EntryProvider, RelatedEntry
 from .entry_types import Calculation, File, Reference
+from .fetching import fetch
 from .identity import (
     StorageProjectionCycleError,
     canonical_form,
@@ -66,7 +68,7 @@ from .identity import (
     register_canonical_encoder,
     resolve_storage_record,
 )
-from .loading import load
+from .loading import has_loader_for, load, load_source
 from .optimade_entries import (
     CalculationView,
     FileView,
@@ -210,6 +212,7 @@ __all__ = [
     "DataLoader",
     "DataRecord",
     "DatasetMeta",
+    "DatastreamLike",
     "DedupPolicy",
     "EntryProvider",
     "EntryTypeDefinition",
@@ -294,6 +297,8 @@ __all__ = [
     "entry_family_info",
     "entry_record_info",
     "exactmath",
+    "fetch",
+    "has_loader_for",
     "known_compressions",
     "known_definition_prefixes",
     "known_entry_families",
@@ -304,6 +309,7 @@ __all__ = [
     "load",
     "load_entry_type_schema",
     "load_property_definition",
+    "load_source",
     "numpy_available",
     "optimade_document_root",
     "optimade_entry_binding",

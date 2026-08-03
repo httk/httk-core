@@ -1,9 +1,14 @@
 """Focused tests for exact, immutable OPTIMADE source resources and bindings."""
 
+import io
+import json
 import sys
+import urllib.request
 from collections.abc import Mapping
 from dataclasses import FrozenInstanceError, fields
 from decimal import Decimal
+from email.message import Message
+from pathlib import Path
 from types import ModuleType
 
 import pytest
@@ -23,12 +28,45 @@ from httk.core import (
     ReferenceView,
     decode_optimade_value,
     known_optimade_entry_bindings,
+    optimade_document_root,
     optimade_entry_binding,
     redact_optimade_url,
     register_optimade_entry_binding,
 )
-from httk.core.optimade_resources import redact_optimade_document_text
+from httk.core.optimade_resources import (
+    optimade_entry_url_info,
+    optimade_resource_from_url,
+    redact_optimade_document_text,
+)
 from httk.core.register import _optimade_entry_bindings
+
+
+class _Response(io.BytesIO):
+    headers = Message()
+
+
+_ENTRY = json.dumps(
+    {"data": {"id": "material-1", "type": "structures", "attributes": {"chemical_formula_reduced": "Si"}}}
+)
+_INFO = json.dumps(
+    {
+        "data": {
+            "description": "Structure entries",
+            "properties": {"chemical_formula_reduced": {"$id": "https://example.test/chemical_formula_reduced"}},
+        }
+    }
+)
+
+
+def _urlopen_responses(calls: list[tuple[str, float | None]], responses: dict[str, str | Exception]):
+    def fake(url: str, *, timeout: float | None) -> _Response:
+        calls.append((url, timeout))
+        response = responses[url]
+        if isinstance(response, Exception):
+            raise response
+        return _Response(response.encode())
+
+    return fake
 
 
 def _resource(text: str, index: int = 0) -> OptimadeResource:
@@ -85,7 +123,7 @@ def test_generic_resource_envelope_id_and_type_are_lazy_stored_properties() -> N
     [
         ("not json", ValueError),
         ("[]", ValueError),
-        ('{"data": {}}', ValueError),
+        ('{"data": null}', ValueError),
         ('{"data": [null]}', ValueError),
         ('{"data": []}', IndexError),
     ],
@@ -94,6 +132,98 @@ def test_resource_rejects_bad_shape_lazily(text: str, error: type[Exception]) ->
     resource = _resource(text)
     with pytest.raises(error):
         resource.unwrap()
+
+
+@pytest.mark.parametrize(
+    ("url", "expected"),
+    [
+        ("https://example.test/v1/structures/id", ("structures", "https://example.test/v1/info/structures")),
+        ("https://example.test/v1.3/structures/id", ("structures", "https://example.test/v1.3/info/structures")),
+        ("https://example.test/v1.3.0/structures/id/", ("structures", "https://example.test/v1.3.0/info/structures")),
+        ("https://example.test/structures/id", ("structures", "https://example.test/info/structures")),
+        (
+            "https://example.test/api/structures/id?response_fields=id",
+            ("structures", "https://example.test/api/info/structures"),
+        ),
+        ("https://example.test/v1/structures", None),
+        ("https://example.test/v1/not-Valid/id", None),
+    ],
+)
+def test_optimade_entry_url_shape(url: str, expected: tuple[str, str] | None) -> None:
+    assert optimade_entry_url_info(url) == expected
+
+
+def test_optimade_resource_from_url_assembles_single_entry_and_schema(monkeypatch: pytest.MonkeyPatch) -> None:
+    url = "https://example.test/v1.3/structures/material-1?response_fields=id"
+    info_url = "https://example.test/v1.3/info/structures"
+    calls: list[tuple[str, float | None]] = []
+    monkeypatch.setattr(urllib.request, "urlopen", _urlopen_responses(calls, {url: _ENTRY, info_url: _INFO}))
+
+    resource = optimade_resource_from_url(url, timeout=4.5)
+
+    assert resource.id == "material-1"
+    assert resource.type == "structures"
+    assert resource.schema.entry_type == "structures"
+    assert resource.document.source_url == url
+    assert resource.schema.info_document.source_url == info_url
+    assert optimade_document_root(resource.schema.info_document)["data"]["properties"] is not None
+    assert calls == [(url, 4.5), (info_url, 4.5)]
+
+
+@pytest.mark.parametrize("entry", ["not JSON", json.dumps({"data": []}), json.dumps({"meta": {}})])
+def test_optimade_resource_from_url_rejects_non_single_entry(monkeypatch: pytest.MonkeyPatch, entry: str) -> None:
+    url = "https://example.test/v1/structures/material-1"
+    calls: list[tuple[str, float | None]] = []
+    monkeypatch.setattr(urllib.request, "urlopen", _urlopen_responses(calls, {url: entry}))
+
+    with pytest.raises(ValueError, match="example\\.test"):
+        optimade_resource_from_url(url)
+    assert calls == [(url, 30.0)]
+
+
+def test_optimade_resource_from_url_names_derived_info_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    url = "https://example.test/v1/structures/material-1"
+    info_url = "https://example.test/v1/info/structures"
+    calls: list[tuple[str, float | None]] = []
+    monkeypatch.setattr(
+        urllib.request,
+        "urlopen",
+        _urlopen_responses(calls, {url: _ENTRY, info_url: OSError("unavailable")}),
+    )
+
+    with pytest.raises(ValueError, match="v1/info/structures"):
+        optimade_resource_from_url(url)
+    assert calls == [(url, 30.0), (info_url, 30.0)]
+
+
+@pytest.mark.parametrize("endpoint", ["info", "links", "versions", "extensions"])
+def test_optimade_resource_from_url_rejects_non_entry_endpoints(endpoint: str) -> None:
+    with pytest.raises(ValueError, match="Not an OPTIMADE single-entry URL"):
+        optimade_resource_from_url(f"https://example.test/v1/{endpoint}/structures")
+
+
+def test_optimade_url_errors_redact_credentials() -> None:
+    url = "https://example.test/v1/info/structures?access_token=SECRET&keep=yes"
+    with pytest.raises(ValueError) as excinfo:
+        optimade_resource_from_url(url)
+
+    message = str(excinfo.value)
+    assert redact_optimade_url(url) in message
+    assert "SECRET" not in message
+
+
+def test_optimade_resource_from_file_url(tmp_path: Path) -> None:
+    entry_path = tmp_path / "v1" / "structures" / "material-1"
+    info_path = tmp_path / "v1" / "info" / "structures"
+    entry_path.parent.mkdir(parents=True)
+    info_path.parent.mkdir(parents=True)
+    entry_path.write_text(_ENTRY, encoding="utf-8")
+    info_path.write_text(_INFO, encoding="utf-8")
+
+    resource = optimade_resource_from_url(entry_path.as_uri())
+
+    assert resource.id == "material-1"
+    assert resource.schema.info_document.source_url == info_path.as_uri()
 
 
 def test_equivalent_documents_share_process_local_lazy_parse_cache(monkeypatch: pytest.MonkeyPatch) -> None:

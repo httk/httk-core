@@ -26,7 +26,9 @@ use ``raw=True``.
 from collections.abc import Mapping
 from pathlib import PurePath
 from typing import Any
+from urllib.parse import urlsplit
 
+from ._plugins import PluginRegistry
 from .datastream.compression import split_compression_suffix
 from .register import (
     format_adapters,
@@ -35,6 +37,61 @@ from .register import (
     loader_filenames,
     loaders,
 )
+
+
+def _loader_key(name: str) -> tuple[PluginRegistry, str] | None:
+    basename = PurePath(name).name
+    inner, _codec = split_compression_suffix(basename)
+    ext = PurePath(inner).suffix.lower()
+    if ext and loaders.get(ext) is not None:
+        return loaders, ext
+    basename_key = inner.lower()
+    if loader_filenames.get(basename_key) is not None:
+        return loader_filenames, basename_key
+    return None
+
+
+def has_loader_for(name: str) -> bool:
+    """Return whether ``name`` matches a registered loader key."""
+    return _loader_key(name) is not None
+
+
+def loader_uses_extension(name: str) -> bool:
+    """Return whether ``name`` is claimed by an extension rather than a basename."""
+    key = _loader_key(name)
+    return key is not None and key[0] is loaders
+
+
+def adapt_result(result: Any, raw: bool) -> Any:
+    """Apply a registered format adapter unless ``raw`` is requested."""
+    if raw or not isinstance(result, Mapping):
+        return result
+    format_tag = result.get("format")
+    if not isinstance(format_tag, str) or format_adapters.get(format_tag) is None:
+        return result
+    return format_adapters.dispatch(format_tag, result)
+
+
+def load_source(source: Any, name: str, *, raw: bool = False, **kwargs: Any) -> Any:
+    """Load ``source`` using the loader selected by ``name``."""
+    key = _loader_key(name)
+    if key is None:
+        basename = PurePath(name).name
+        inner, _codec = split_compression_suffix(basename)
+        raise ValueError(
+            "Could not determine how to load "
+            + repr(name)
+            + " (inner name "
+            + repr(inner)
+            + "): no loader registered for its extension or basename. "
+            + "Known extensions: "
+            + (", ".join(known_extensions()) or "(none)")
+            + "; known filenames: "
+            + (", ".join(known_filenames()) or "(none)")
+            + "."
+        )
+    registry, loader_key = key
+    return adapt_result(registry.dispatch(loader_key, source, **kwargs), raw)
 
 
 def load(filename: str, *, raw: bool = False, **kwargs: Any) -> Any:
@@ -51,32 +108,6 @@ def load(filename: str, *, raw: bool = False, **kwargs: Any) -> Any:
     Payloads with unknown formats, and non-mapping loader results, pass through
     unchanged.
     """
-    name = PurePath(filename).name
-    inner, _codec = split_compression_suffix(name)
-    ext = PurePath(inner).suffix.lower()
-    if ext and loaders.get(ext) is not None:
-        result = loaders.dispatch(ext, filename, **kwargs)
-    else:
-        basename_key = inner.lower()
-        if loader_filenames.get(basename_key) is not None:
-            result = loader_filenames.dispatch(basename_key, filename, **kwargs)
-        else:
-            raise ValueError(
-                "Could not determine how to load "
-                + repr(filename)
-                + " (inner name "
-                + repr(inner)
-                + "): no loader registered for its extension or basename. "
-                + "Known extensions: "
-                + (", ".join(known_extensions()) or "(none)")
-                + "; known filenames: "
-                + (", ".join(known_filenames()) or "(none)")
-                + "."
-            )
-
-    if raw or not isinstance(result, Mapping):
-        return result
-    format_tag = result.get("format")
-    if not isinstance(format_tag, str) or format_adapters.get(format_tag) is None:
-        return result
-    return format_adapters.dispatch(format_tag, result)
+    if isinstance(filename, str) and urlsplit(filename).scheme in {"http", "https", "ftp", "file"}:
+        raise ValueError("load reads local files; httk.core.fetch(url) is the URL entry point")
+    return load_source(filename, filename, raw=raw, **kwargs)

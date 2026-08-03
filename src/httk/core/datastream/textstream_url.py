@@ -4,6 +4,7 @@ import urllib.request
 from typing import Any, cast
 
 from .compression import open_compressed, validate_compression
+from .network_policy import NETWORK_SCHEMES, require_network_consent, resolve_timeout
 from .textstream_backend import TextstreamBackend
 from .textstream_common import TextstreamCommon
 
@@ -19,6 +20,7 @@ class TextstreamURL(TextstreamCommon, TextstreamBackend):
 
     _url: str
     _timeout: float | None
+    _needs_consent: bool
     _encoding: str | None
     _compression: str
     _f: io.TextIOBase | None
@@ -41,6 +43,7 @@ class TextstreamURL(TextstreamCommon, TextstreamBackend):
     def __init__(self, url: str, **hints: Any) -> None:
         self._url = url
         self._timeout = hints.get("timeout")
+        self._needs_consent = hints.get("kind") != "url" and urllib.parse.urlsplit(url).scheme in NETWORK_SCHEMES
         self._encoding = hints.get("encoding")
         self._compression = hints.get("compression", "auto")
         validate_compression(self._compression)
@@ -52,10 +55,9 @@ class TextstreamURL(TextstreamCommon, TextstreamBackend):
         if self._closed:
             raise ValueError("I/O operation on closed stream")
         if self._f is None:
-            if self._timeout is None:
-                resp = urllib.request.urlopen(self._url)
-            else:
-                resp = urllib.request.urlopen(self._url, timeout=self._timeout)
+            if self._needs_consent:
+                require_network_consent(self._url)
+            resp = urllib.request.urlopen(self._url, timeout=resolve_timeout(self._timeout))
             encoding = self._encoding or resp.headers.get_content_charset() or "utf-8"
             raw = cast(io.IOBase, resp)
             name = urllib.parse.urlsplit(self._url).path

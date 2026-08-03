@@ -9,17 +9,21 @@ dataclass construction is also available when the caller controls the values.
 """
 
 import json
+import re
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
 from decimal import Decimal
 from threading import Lock
 from types import MappingProxyType
-from urllib.parse import unquote_plus, urlsplit
+from urllib.parse import unquote_plus, urlsplit, urlunsplit
 from weakref import WeakKeyDictionary
 
+from .datastream import TextstreamFileView
 from .storage_markers import stored_property
 
 _SENSITIVE_QUERY_KEYS = frozenset({"access_token", "api_key", "apikey", "token", "key"})
+_NON_ENTRY_ENDPOINTS = frozenset({"info", "links", "versions", "extensions"})
+_VERSION_SEGMENT = re.compile(r"v1(?:\.\d+){0,2}")
 
 
 def redact_optimade_url(url: str) -> str:
@@ -265,6 +269,66 @@ class OptimadeSchemaSnapshot:
     info_document: OptimadeDocument
 
 
+def optimade_entry_url_info(url: str) -> tuple[str, str] | None:
+    """Return an OPTIMADE entry type and its derived info URL, if *url* has that shape."""
+
+    split = urlsplit(url)
+    path = split.path.rstrip("/")
+    try:
+        base, entry_type, entry_id = path.rsplit("/", 2)
+    except ValueError:
+        return None
+    if (
+        not entry_id
+        or _VERSION_SEGMENT.fullmatch(entry_type)
+        or entry_type in _NON_ENTRY_ENDPOINTS
+        or re.fullmatch(r"[a-z_][a-z_0-9-]*", entry_type) is None
+    ):
+        return None
+    return entry_type, urlunsplit((split.scheme, split.netloc, f"{base}/info/{entry_type}", "", ""))
+
+
+def _read_optimade_url(url: str, *, timeout: float | None, label: str) -> str:
+    try:
+        with TextstreamFileView(url, kind="url", timeout=timeout) as source:
+            return source.read()
+    except Exception as exc:
+        raise ValueError(f"Could not fetch OPTIMADE {label} URL {redact_optimade_url(url)!r}") from exc
+
+
+def optimade_resource_from_url(url: str, *, timeout: float | None = None) -> "OptimadeResource":
+    """Fetch one OPTIMADE entry and its schema snapshot from *url*.
+
+    Redirects follow ``urllib`` defaults. Both requests use the datastream
+    layer and honor ``timeout`` (or its configured default when it is ``None``).
+    """
+
+    shape = optimade_entry_url_info(url)
+    if shape is None:
+        raise ValueError(f"Not an OPTIMADE single-entry URL: {redact_optimade_url(url)!r}")
+    entry_type, info_url = shape
+    document = OptimadeDocument.create(_read_optimade_url(url, timeout=timeout, label="entry"), url)
+    try:
+        entry_root = optimade_document_root(document)
+    except ValueError as exc:
+        raise ValueError(f"OPTIMADE entry response at {redact_optimade_url(url)!r} is not valid JSON") from exc
+    if not isinstance(entry_root.get("data"), Mapping):
+        raise ValueError(
+            f"OPTIMADE entry response at {redact_optimade_url(url)!r} must contain one object in 'data', not a list"
+        )
+
+    info_document = OptimadeDocument.create(_read_optimade_url(info_url, timeout=timeout, label="info"), info_url)
+    try:
+        info_root = optimade_document_root(info_document)
+    except ValueError as exc:
+        raise ValueError(f"OPTIMADE info response at {redact_optimade_url(info_url)!r} is not valid JSON") from exc
+    if not isinstance(info_root.get("data"), Mapping):
+        raise ValueError(
+            f"OPTIMADE info response at {redact_optimade_url(info_url)!r} must contain an object in 'data'"
+        )
+    return OptimadeResource(document, 0, OptimadeSchemaSnapshot(entry_type, info_document))
+
+
 type FrozenJson = None | bool | int | Decimal | str | tuple["FrozenJson", ...] | Mapping[str, "FrozenJson"]
 
 
@@ -312,7 +376,7 @@ def optimade_document_root(document: OptimadeDocument) -> Mapping[str, FrozenJso
 
 @dataclass(frozen=True)
 class OptimadeResource(Mapping[str, FrozenJson]):
-    """An immutable, lazily decoded ``/data/<data_index>`` OPTIMADE resource."""
+    """An immutable, lazily decoded OPTIMADE resource from an array or single-entry envelope."""
 
     document: OptimadeDocument
     data_index: int
@@ -323,16 +387,21 @@ class OptimadeResource(Mapping[str, FrozenJson]):
 
         root = _parsed_root(self.document)
         data = root.get("data")
-        if not isinstance(data, tuple):
-            raise ValueError("OPTIMADE document root member 'data' must be a JSON array")
         if not isinstance(self.data_index, int) or isinstance(self.data_index, bool):
             raise TypeError("OPTIMADE resource data_index must be an int")
         if self.data_index < 0:
             raise IndexError(f"OPTIMADE resource data index out of range: {self.data_index}")
-        try:
-            resource = data[self.data_index]
-        except IndexError as exc:
-            raise IndexError(f"OPTIMADE resource data index out of range: {self.data_index}") from exc
+        if isinstance(data, Mapping):
+            if self.data_index != 0:
+                raise IndexError(f"OPTIMADE resource data index out of range: {self.data_index}")
+            resource = data
+        elif isinstance(data, tuple):
+            try:
+                resource = data[self.data_index]
+            except IndexError as exc:
+                raise IndexError(f"OPTIMADE resource data index out of range: {self.data_index}") from exc
+        else:
+            raise ValueError("OPTIMADE document root member 'data' must be a JSON array or object")
         if not isinstance(resource, Mapping):
             raise ValueError(f"OPTIMADE document data[{self.data_index}] must be a JSON object")
         return resource

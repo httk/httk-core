@@ -20,6 +20,8 @@ class TextstreamURLView(TextstreamView, str):
     def __new__(cls, obj: TextstreamLike, **hints: Any) -> Self:
         if isinstance(obj, cls):
             return obj
+        if isinstance(obj, str) and "kind" not in hints:
+            hints["kind"] = "url"
         backend = cls._prepare_backend(obj, hints)
         url = getattr(backend, "url", None)
         if url is None:

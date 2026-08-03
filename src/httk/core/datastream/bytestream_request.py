@@ -6,6 +6,7 @@ from typing import Any, cast
 from .bytestream_backend import BytestreamBackend
 from .bytestream_common import BytestreamCommon
 from .compression import open_compressed, validate_compression
+from .network_policy import resolve_timeout
 
 
 class BytestreamRequest(BytestreamCommon, BytestreamBackend):
@@ -41,10 +42,7 @@ class BytestreamRequest(BytestreamCommon, BytestreamBackend):
         if self._closed:
             raise ValueError("I/O operation on closed stream")
         if self._f is None:
-            if self._timeout is None:
-                resp = urllib.request.urlopen(self._request)
-            else:
-                resp = urllib.request.urlopen(self._request, timeout=self._timeout)
+            resp = urllib.request.urlopen(self._request, timeout=resolve_timeout(self._timeout))
             raw = cast(io.IOBase, resp)
             name = urllib.parse.urlsplit(self._request.full_url).path
             opened = open_compressed(raw, compression=self._compression, name=name)

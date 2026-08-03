@@ -1,11 +1,13 @@
 """Tests for :func:`httk.core.load` dispatch (extensions + basenames + compression)."""
 
+import io
 from collections.abc import Iterator
+from pathlib import Path
 from typing import Any
 
 import pytest
 
-from httk.core import load
+from httk.core import has_loader_for, load, load_source
 from httk.core.register import (
     format_adapters,
     known_extensions,
@@ -14,6 +16,7 @@ from httk.core.register import (
     loader_filenames,
     loaders,
     register_format_adapter,
+    register_loader,
 )
 
 
@@ -26,11 +29,13 @@ def _stub_loader(filename: str, **kwargs: Any) -> dict[str, Any]:
 def _register_stub() -> Iterator[None]:
     loaders.register(key=".stub", handler=_stub_loader, name="stub")
     loader_filenames.register(key="contcar", handler=_stub_loader, name="stub")
+    loader_filenames.register(key="poscar", handler=_stub_loader, name="stub")
     try:
         yield
     finally:
         loaders._by_key.pop(".stub", None)
         loader_filenames._by_key.pop("contcar", None)
+        loader_filenames._by_key.pop("poscar", None)
 
 
 def test_known_registries_separate(_register_stub: None) -> None:
@@ -59,6 +64,49 @@ def test_dispatch_by_extension_over_compression(_register_stub: None) -> None:
 
 def test_case_insensitive_basename(_register_stub: None) -> None:
     assert load("contcar")["filename"] == "contcar"
+
+
+def test_load_real_poscar_path_raw(_register_stub: None, tmp_path: Path) -> None:
+    path = tmp_path / "POSCAR"
+    path.write_text("stub", encoding="utf-8")
+    assert load(str(path), raw=True)["filename"] == str(path)
+
+
+@pytest.mark.parametrize("url", ["http://x/y.cif", "https://x/y.cif", "ftp://x/y.cif", "file:///y.cif"])
+def test_load_rejects_urls(url: str) -> None:
+    with pytest.raises(ValueError, match=r"httk\.core\.fetch"):
+        load(url)
+
+
+def test_has_loader_for_checks_registry_keys_only(_register_stub: None, monkeypatch: pytest.MonkeyPatch) -> None:
+    def fail_import(_module: str) -> Any:
+        raise AssertionError("has_loader_for resolved a lazy loader")
+
+    monkeypatch.setattr("httk.core._plugins.import_module", fail_import)
+    loaders.register(key=".lazy", handler="module_that_raises_on_import:loader", name="lazy")
+    try:
+        assert has_loader_for("x.stub")
+        assert has_loader_for("x.stub.gz")
+        assert has_loader_for("POSCAR")
+        assert has_loader_for("CONTCAR")
+        assert has_loader_for("CONTCAR.bz2")
+        assert has_loader_for("x.lazy")
+        assert has_loader_for("x.unknown") is False
+    finally:
+        loaders._by_key.pop(".lazy", None)
+
+
+def _stream_loader(source: Any, **kwargs: Any) -> dict[str, Any]:
+    return {"source": source, "kwargs": kwargs}
+
+
+def test_load_source_passes_source_identity() -> None:
+    register_loader(name="stream-loader", loader=f"{__name__}:_stream_loader", extensions=(".stream",))
+    try:
+        source = io.StringIO("data")
+        assert load_source(source, "x.stream", raw=True)["source"] is source
+    finally:
+        loaders._by_key.pop(".stream", None)
 
 
 def test_unknown_raises_clear_error(_register_stub: None) -> None:

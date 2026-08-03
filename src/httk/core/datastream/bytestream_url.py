@@ -6,6 +6,7 @@ from typing import Any, cast
 from .bytestream_backend import BytestreamBackend
 from .bytestream_common import BytestreamCommon
 from .compression import open_compressed, validate_compression
+from .network_policy import NETWORK_SCHEMES, require_network_consent, resolve_timeout
 
 _URL_SCHEMES = ("http", "https", "ftp", "file")
 
@@ -19,6 +20,7 @@ class BytestreamURL(BytestreamCommon, BytestreamBackend):
 
     _url: str
     _timeout: float | None
+    _needs_consent: bool
     _compression: str
     _f: io.IOBase | None
     _underlying: io.IOBase | None
@@ -40,6 +42,7 @@ class BytestreamURL(BytestreamCommon, BytestreamBackend):
     def __init__(self, url: str, **hints: Any) -> None:
         self._url = url
         self._timeout = hints.get("timeout")
+        self._needs_consent = hints.get("kind") != "url" and urllib.parse.urlsplit(url).scheme in NETWORK_SCHEMES
         self._compression = hints.get("compression", "auto")
         validate_compression(self._compression)
         self._f = None
@@ -50,10 +53,9 @@ class BytestreamURL(BytestreamCommon, BytestreamBackend):
         if self._closed:
             raise ValueError("I/O operation on closed stream")
         if self._f is None:
-            if self._timeout is None:
-                resp = urllib.request.urlopen(self._url)
-            else:
-                resp = urllib.request.urlopen(self._url, timeout=self._timeout)
+            if self._needs_consent:
+                require_network_consent(self._url)
+            resp = urllib.request.urlopen(self._url, timeout=resolve_timeout(self._timeout))
             raw = cast(io.IOBase, resp)
             name = urllib.parse.urlsplit(self._url).path
             opened = open_compressed(raw, compression=self._compression, name=name)
