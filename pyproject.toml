@@ -4,10 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "httk-core"
-# While httk-core 2+ is in prerelease it doesn't follow semver (or more exactly,
-# it follows semver 0.* semantics, where the non-major versions do not need to adhere to semver).
-# Its minor version should always stay 0, and only the patch-level be increased.
-version = "2.0.2"
+version = "2.1.0"
 description = "httk₂ core functionality"
 readme = "README.md"
 license = "AGPL-3.0-or-later"

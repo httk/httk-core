@@ -295,7 +295,6 @@ def initialize_project(
     *,
     name: str,
     description: str = "",
-    default_queue: str | None = None,
     manifest_exclusions: Iterable[str] = (),
 ) -> dict[str, object]:
     """Initialize the project anchor: its metadata, its key, and its remotes dir.
@@ -314,7 +313,6 @@ def initialize_project(
         project,
         name=name,
         description=description,
-        default_queue=default_queue,
         manifest_exclusions=manifest_exclusions,
     )
 
@@ -324,7 +322,6 @@ def _initialize_project_unchecked(
     *,
     name: str,
     description: str = "",
-    default_queue: str | None = None,
     manifest_exclusions: Iterable[str] = (),
 ) -> dict[str, object]:
     project.mkdir(parents=True, exist_ok=True)
@@ -336,7 +333,6 @@ def _initialize_project_unchecked(
         "project_id": str(uuid.uuid4()),
         "name": name,
         "description": description,
-        "default_queue": default_queue,
         "manifest_exclusions": list(manifest_exclusions),
     }
     write_json_atomic(control / PROJECT_FILE, metadata)
