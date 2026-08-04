@@ -3,7 +3,7 @@
 A *project* is to a campaign what a Git repository is to a source tree: a
 directory marked, at its root, by a small control directory that every command
 discovers by walking upward from wherever it is run. In *httk* that directory is
-`.httk-project` and its versioned manifest is `project.json`.
+`httk_project` and its versioned manifest is `project.json`.
 
 The anchor lives in `httk.core.project`, so a *httk-core* installation has working
 projects on its own. Capabilities that build on a project — *httk-workflow*
@@ -24,11 +24,11 @@ httk project show --json          # the same, machine-readable
 `httk project init` refuses a directory that is already a project, exactly as
 `git init` refuses nothing but the anchor here is a hard error rather than a
 re-initialization. It creates only the anchor: `project.json`, the project's
-Ed25519 signing key under `.httk-project/keys/`, and a `remotes/` directory. It
+Ed25519 signing key under `httk_project/keys/`, and a `remotes/` directory. It
 creates no workflow workspace; a workflow installation adds that.
 
 `httk project show` describes the anchor — its metadata, whether it pins a key
-and which — and any rows an installed capability contributes.
+and which.
 
 ## Discovering and reading a project
 
@@ -70,27 +70,3 @@ from httk.core.project import (
 Public keys are written as `ed25519:BASE64`; `format_public_key`,
 `parse_public_key`, `canonical_public_key`, and `read_public_key_file` convert
 between that spelling, the raw 32 bytes, and a `*.pub` file.
-
-## Extending `httk project`
-
-A capability adds subcommands and `show` rows to the umbrella command through a
-registry that mirrors {func}`~httk.core.register_cli_command`, registering
-lazily from its `httk.registry.*` package during core plugin discovery:
-
-```python
-from httk.core.project.cli import (
-    register_project_subcommand,   # add `httk project NAME ...`
-    register_project_show_section, # add rows to `httk project show`
-    ProjectShowSection,            # what a show section returns
-)
-```
-
-Registrations are strict: names are lowercase and hyphenated, the built-in
-`init` and `show` cannot be shadowed, and duplicates are errors. The command
-tree is assembled in a stable order. `register_project_subcommand(name,
-build_parser, handler)` takes a builder that declares the subcommand's arguments
-and, for a leaf, the `(argv, context) -> int` handler that runs it; a group
-passes `handler=None` and sets the handler of each of its own nested leaves.
-`register_project_show_section(name, section)` takes a `section(root, verify=...)`
-returning a {class}`~httk.core.project.cli.ProjectShowSection` whose `json` is merged
-into `show --json` and whose `rows` are appended to the human-readable listing.

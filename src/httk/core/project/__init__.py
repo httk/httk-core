@@ -1,20 +1,21 @@
-"""The httk project anchor and the umbrella ``httk project`` command.
+"""The httk project anchor and the core-owned ``httk project`` command.
 
-A *project* is a directory marked at its root by a ``.httk-project`` control
+A *project* is a directory marked at its root by a ``httk_project`` control
 directory, discovered by walking upward exactly as ``git`` finds a ``.git``.
 This package owns that anchor — creating it, reading and validating its
 ``project.json``, and managing its Ed25519 identity and trust anchors — and the
-extensible :command:`httk project` command that operates on it. It creates no
+core-only :command:`httk project` command that operates on it. It creates no
 workflow workspace; that is layered on by a workflow installation.
 
 The anchor API is re-exported here for convenience; the command and its
-extension registry live in :mod:`httk.core.project.cli`.
+implementation live in :mod:`httk.core.project.cli`.
 """
 
 from .anchor import (
     PROJECT_DIRECTORY,
     PROJECT_FILE,
     PUBLIC_KEY_PREFIX,
+    LegacyProjectError,
     canonical_public_key,
     discover_project,
     format_public_key,
@@ -38,6 +39,7 @@ __all__ = [
     "PROJECT_DIRECTORY",
     "PROJECT_FILE",
     "PUBLIC_KEY_PREFIX",
+    "LegacyProjectError",
     "canonical_public_key",
     "discover_project",
     "format_public_key",

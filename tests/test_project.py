@@ -1,9 +1,8 @@
-"""The project anchor and the umbrella ``httk project`` command.
+"""The project anchor and the core-owned ``httk project`` command.
 
 These cover the anchor moved into *httk-core*: creating one, discovering it by
 walking upward, validating ``project.json``, the key helpers, pinning and trust,
-the legacy import, and the extensible command line — including a fake extension
-that exercises the registry the way *httk-workflow* uses it.
+the legacy import, and the built-in command line.
 """
 
 import base64
@@ -14,11 +13,12 @@ from pathlib import Path
 import pytest
 
 from httk.core import CLIContext
-from httk.core.crypto import ed25519_generate_seed, ed25519_public_key
 from httk.core.cli import main
+from httk.core.crypto import ed25519_generate_seed, ed25519_public_key
 from httk.core.project import (
     PROJECT_DIRECTORY,
     PROJECT_FILE,
+    LegacyProjectError,
     canonical_public_key,
     discover_project,
     format_public_key,
@@ -35,14 +35,7 @@ from httk.core.project import (
     trust_project_key,
     trusted_project_keys,
 )
-from httk.core.project import cli as project_cli
-from httk.core.project.cli import (
-    ProjectShowSection,
-    build_parser,
-    command,
-    register_project_show_section,
-    register_project_subcommand,
-)
+from httk.core.project.cli import command
 
 
 def _write_project(project: Path, metadata: dict[str, object]) -> None:
@@ -94,7 +87,7 @@ def test_discover_walks_upward_and_require_refuses_when_absent(tmp_path: Path) -
     outside = tmp_path / "elsewhere"
     outside.mkdir()
     assert discover_project(outside) is None
-    with pytest.raises(ValueError, match="no .httk-project"):
+    with pytest.raises(ValueError, match="no httk project"):
         require_project(outside)
 
 
@@ -160,6 +153,11 @@ def test_import_v1_creates_the_anchor_and_adopts_legacy_keys(tmp_path: Path) -> 
     )
     (legacy / "config").write_text("[main]\nproject_name = legacy\n", encoding="utf-8")
 
+    with pytest.raises(LegacyProjectError, match="httk project import-v1"):
+        discover_project(project)
+    with pytest.raises(LegacyProjectError, match="httk project import-v1"):
+        require_project(project)
+
     metadata = import_v1_project(project)
     assert metadata["name"] == "legacy"
     assert metadata["imported_from"] == str(legacy.resolve())
@@ -168,6 +166,16 @@ def test_import_v1_creates_the_anchor_and_adopts_legacy_keys(tmp_path: Path) -> 
     # The anchor import makes no workspace either.
     assert not (project / ".httk-workflow").exists()
     assert (project / PROJECT_DIRECTORY / "keys" / "legacy-public" / "old.pub").is_file()
+
+
+def test_discover_refuses_a_pre_release_v2_anchor(tmp_path: Path) -> None:
+    anchor = tmp_path / ".httk-project"
+    anchor.mkdir()
+    (anchor / PROJECT_FILE).write_text("{}", encoding="utf-8")
+
+    with pytest.raises(LegacyProjectError, match="rename it: mv") as error:
+        discover_project(tmp_path)
+    assert f"mv {tmp_path}/.httk-project {tmp_path}/httk_project" in str(error.value)
 
 
 # ---------------------------------------------------------------------------
@@ -207,85 +215,20 @@ def test_cli_init_defaults_the_name_to_the_directory(tmp_path: Path, monkeypatch
     assert read_project(target)["name"] == "named-dir"
 
 
-# ---------------------------------------------------------------------------
-# The extension registry, exercised with a fake extension
-# ---------------------------------------------------------------------------
-
-
-def _fake_build_parser(parser) -> None:
-    parser.add_argument("--value", default="0")
-
-
-def _fake_handler(arguments, context) -> int:
-    print(f"fake ran with {arguments.value}")
-    return 0
-
-
-def _fake_show_section(project, *, verify: bool) -> ProjectShowSection:
-    return ProjectShowSection(
-        json={"fake": {"seen_root": str(project), "verified": verify}},
-        rows=[("fake_row", "hello")],
-    )
-
-
-@pytest.fixture
-def isolated_registry(monkeypatch):
-    """Give one test its own empty subcommand and show-section registries."""
-
-    monkeypatch.setattr(project_cli, "_subcommands", {})
-    monkeypatch.setattr(project_cli, "_show_sections", {})
-
-
-def test_registry_adds_a_subcommand_and_a_show_section(isolated_registry, tmp_path, monkeypatch, capsys) -> None:
-    register_project_subcommand(
-        "fake",
-        _fake_build_parser,
-        _fake_handler,
-        summary="a fake subcommand",
-    )
-    register_project_show_section("fake", _fake_show_section)
-
-    # The registered subcommand is on the built tree, beside the built-ins.
-    parser = build_parser("httk project")
-    actions = [action for action in parser._subparsers._group_actions if action.choices]  # type: ignore[union-attr]
-    names = set(actions[0].choices)
-    assert {"init", "show", "fake"} <= names
-
+def test_cli_show_refuses_v1_and_import_v1_creates_anchor(tmp_path: Path, monkeypatch, capsys) -> None:
+    legacy = tmp_path / "ht.project"
+    (legacy / "keys").mkdir(parents=True)
+    (legacy / "config").write_text("[main]\nproject_name = imported\n", encoding="utf-8")
     monkeypatch.chdir(tmp_path)
-    context = CLIContext("httk", tmp_path)
-    assert main(["project", "init", "--name", "x"]) == 0
-    capsys.readouterr()
 
-    assert command(["fake", "--value", "7"], context) == 0
-    assert "fake ran with 7" in capsys.readouterr().out
+    assert main(["project", "show"]) == 2
+    assert "httk project import-v1" in capsys.readouterr().err
 
-    # The show section is merged into --json and rendered into the text listing.
-    assert command(["show", "--json"], context) == 0
-    description = json.loads(capsys.readouterr().out)
-    assert description["fake"] == {"seen_root": str(tmp_path.resolve()), "verified": True}
-
-    assert command(["show"], context) == 0
-    assert "fake_row" in capsys.readouterr().out
-
-    # --no-verify reaches the section.
-    assert command(["show", "--json", "--no-verify"], context) == 0
-    assert json.loads(capsys.readouterr().out)["fake"]["verified"] is False
-
-
-def test_registry_is_strict_about_names(isolated_registry) -> None:
-    register_project_subcommand("dup", _fake_build_parser, _fake_handler)
-    with pytest.raises(ValueError, match="already registered"):
-        register_project_subcommand("dup", _fake_build_parser, _fake_handler)
-    with pytest.raises(ValueError, match="reserved"):
-        register_project_subcommand("init", _fake_build_parser, _fake_handler)
-    with pytest.raises(ValueError, match="reserved"):
-        register_project_subcommand("show", _fake_build_parser, _fake_handler)
-    with pytest.raises(ValueError, match="invalid project subcommand name"):
-        register_project_subcommand("Bad_Name", _fake_build_parser, _fake_handler)
-
-    register_project_show_section("once", _fake_show_section)
-    with pytest.raises(ValueError, match="already registered"):
-        register_project_show_section("once", _fake_show_section)
+    assert main(["project", "import-v1"]) == 0
+    output = capsys.readouterr().out
+    assert f"imported {legacy.resolve()} -> {tmp_path / PROJECT_DIRECTORY}" in output
+    assert read_project(tmp_path)["name"] == "imported"
+    assert (tmp_path / PROJECT_DIRECTORY / PROJECT_FILE).is_file()
 
 
 def test_bare_project_command_prints_help(tmp_path) -> None:

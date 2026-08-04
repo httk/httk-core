@@ -1,9 +1,9 @@
-"""The httk project anchor: the ``.httk-project`` directory and its metadata.
+"""The httk project anchor: the ``httk_project`` directory and its metadata.
 
 A *project* is to a campaign what a Git repository is to a source tree: a
 directory marked, at its root, by a small control directory that every command
 discovers by walking upward from wherever it is run. Here that directory is
-``.httk-project`` and its manifest is ``project.json``.
+``httk_project`` and its manifest is ``project.json``.
 
 This module owns the anchor and nothing above it. It creates the control
 directory, reads and validates ``project.json``, walks upward to discover the
@@ -36,15 +36,19 @@ from ._util import write_json_atomic
 #: The control directory that marks a project root, like ``.git`` marks a
 #: repository. Every command discovers a project by finding this directory at or
 #: above the working directory.
-PROJECT_DIRECTORY = ".httk-project"
+PROJECT_DIRECTORY = "httk_project"
 #: The versioned metadata document inside :data:`PROJECT_DIRECTORY`.
 PROJECT_FILE = "project.json"
 #: How a public key is written wherever project metadata records one.
 PUBLIC_KEY_PREFIX = "ed25519:"
 
 
+class LegacyProjectError(ValueError):
+    """Raised when discovery finds a legacy project directory."""
+
+
 def discover_project(start: str | os.PathLike[str] | None = None) -> Path | None:
-    """Find the nearest project root at or above *start*."""
+    """Find the nearest project root, or refuse a legacy one, at or above *start*."""
 
     path = Path.cwd() if start is None else Path(start)
     path = path.expanduser().resolve()
@@ -53,6 +57,16 @@ def discover_project(start: str | os.PathLike[str] | None = None) -> Path | None
     for candidate in (path, *path.parents):
         if (candidate / PROJECT_DIRECTORY / PROJECT_FILE).is_file():
             return candidate
+        if (candidate / "ht.project").is_dir():
+            raise LegacyProjectError(
+                f"found an httk v1 project ('ht.project') at {candidate}; "
+                f"create the httk v2 anchor with: httk project import-v1 {candidate}"
+            )
+        if (candidate / ".httk-project" / PROJECT_FILE).is_file():
+            raise LegacyProjectError(
+                f"found a project anchor from a pre-release httk v2 ('.httk-project') at {candidate}; "
+                f"rename it: mv {candidate}/.httk-project {candidate}/{PROJECT_DIRECTORY}"
+            )
     return None
 
 
@@ -61,7 +75,7 @@ def require_project(start: str | os.PathLike[str] | None = None) -> Path:
 
     project = discover_project(start)
     if project is None:
-        raise ValueError("no .httk-project project exists at or above the working directory")
+        raise ValueError("no httk project exists at or above the working directory")
     return project
 
 
@@ -261,7 +275,7 @@ def initialize_project(
 ) -> dict[str, object]:
     """Initialize the project anchor: its metadata, its key, and its remotes dir.
 
-    This creates only the anchor — ``.httk-project`` with ``project.json``, the
+    This creates only the anchor — ``httk_project`` with ``project.json``, the
     project's Ed25519 signing key, and the ``remotes`` directory. It creates no
     workflow workspace; a workflow installation layers that on top of the anchor
     so that a core-only installation still has a working project.
