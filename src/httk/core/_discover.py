@@ -20,10 +20,9 @@ import importlib.util
 import pkgutil
 
 
-def _import_registry_packages(path, prefix: str, excluded: set[str] | None = None) -> None:
-    excluded = excluded or set()
+def _import_registry_packages(path, prefix: str) -> None:
     for module in sorted(pkgutil.iter_modules(path, prefix), key=lambda item: item.name):
-        if not module.ispkg or module.name.rsplit(".", 1)[-1] in excluded:
+        if not module.ispkg:
             continue
         if importlib.util.find_spec(module.name) is not None:
             importlib.import_module(module.name)
@@ -32,19 +31,16 @@ def _import_registry_packages(path, prefix: str, excluded: set[str] | None = Non
 def discover_and_register() -> None:
     """Eagerly import registration packages from the available registry tiers.
 
-    The general ``httk.registry`` tier is walked first, excluding the reserved
-    ``cli``, ``entries``, and ``schemas`` sub-namespaces. Each present reserved
-    sub-namespace is then walked independently. Registration packages are
-    imported eagerly so installation errors fail fast, but they must only
-    register lazy references: they must not resolve registries or load resource
-    data while being imported.
+    The reserved ``cli``, ``entries``, ``io``, and ``schemas`` sub-namespaces
+    are each walked independently. Registration packages are imported eagerly
+    so installation errors fail fast, but they must only register lazy
+    references: they must not resolve registries or load resource data while
+    being imported.
     """
-    import httk.registry
+    importlib.import_module("httk.registry")
 
     prefix = "httk.registry."
-    reserved = {"cli", "entries", "schemas"}
-    _import_registry_packages(httk.registry.__path__, prefix, reserved)
-    for namespace in ("cli", "entries", "schemas"):
+    for namespace in ("cli", "entries", "io", "schemas"):
         namespace_name = f"{prefix}{namespace}"
         if importlib.util.find_spec(namespace_name) is None:
             continue

@@ -6,25 +6,25 @@ JSON/JSON-LD data files. This example runs both, end to end, against files it
 writes into a temporary directory, so it needs no network and no data package.
 
 **`httk.core.load` — dispatch by file type.** `load("some/file.cif")` does not
-itself know any file format. It resolves *which loader to call* and hands the
+itself know any file format. It resolves *which reader to call* and hands the
 original filename over. Resolution has three steps, and they are worth knowing
 because they explain what a format module has to register:
 
 1. At most one recognized *compression* suffix is stripped off the name
-   (`.gz`, `.bz2`, ...), giving an *inner* name. The loader still receives the
+   (`.gz`, `.bz2`, ...), giving an *inner* name. The reader still receives the
    original, still-compressed path — the datastream layer decompresses
-   transparently when the loader opens it.
+   transparently when the reader opens it.
 2. The inner name's *extension* is looked up in the extension registry
    (`.cif`, `.poscar`, ...).
 3. Failing that, the inner name's *exact basename* is looked up, case
    insensitively, in a separate basename registry. This is how extension-less
    files such as `POSCAR` and `CONTCAR` dispatch at all.
 
-*httk-core* ships **no** loaders of its own — it is the contract
+*httk-core* ships **no** readers of its own — it is the contract
 layer, not a format library. The registries are filled by sibling modules:
 importing `httk.core` walks the `httk.registry` namespace package and imports
 every handler package it finds there, and each of those calls
-`httk.core.register.register_loader` to claim its extensions and basenames. So
+`httk.core.register.register_reader` to claim its extensions and basenames. So
 what `known_extensions()` reports is a *statement about the installation*: with
 only *httk-core* installed both registries are empty, and with *httk-io*
 alongside it they list that module's formats. This example prints whichever is
@@ -100,7 +100,7 @@ SYMMETRY_BASICS: dict[str, Any] = {
 
 def show_load_dispatch() -> None:
     """What `httk.core.load` can currently dispatch, and how it fails."""
-    print("== httk.core.load: the loader registries ==")
+    print("== httk.core.load: the reader registries ==")
     print("known extensions:", known_extensions() or "(none registered)")
     print("known filenames: ", known_filenames() or "(none registered)")
     print("httk-core itself registers none of these; every entry above was contributed")

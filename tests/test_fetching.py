@@ -11,7 +11,7 @@ import pytest
 
 from httk.core import fetch
 from httk.core.optimade import is_optimade_entry_url
-from httk.core.register import format_adapters, loader_filenames, loaders, register_format_adapter
+from httk.core.register import format_adapters, reader_filenames, readers, register_format_adapter
 
 
 class _Response(io.BytesIO):
@@ -87,37 +87,37 @@ def _identity_loader(source: Any, **kwargs: Any) -> dict[str, Any]:
 def test_fetch_file_url_uses_stream_loader(tmp_path: Path) -> None:
     path = tmp_path / "x.stub"
     path.write_text("stream body", encoding="utf-8")
-    loaders.register(key=".stub", handler=_stream_loader, name="stream-loader")
+    readers.register(key=".stub", handler=_stream_loader, name="stream-loader")
     try:
         assert is_optimade_entry_url(path.as_uri())
         assert fetch(path.as_uri()) == {"text": "stream body", "kwargs": {}}
     finally:
-        loaders._by_key.pop(".stub", None)
+        readers._by_key.pop(".stub", None)
 
 
 def test_fetch_prefers_loader_extension_over_optimade_shape() -> None:
     url = "https://example.test/v1/structures/material.stub"
-    loaders.register(key=".stub", handler=_identity_loader, name="stream-loader")
+    readers.register(key=".stub", handler=_identity_loader, name="stream-loader")
     try:
-        # The loader branch is selected without opening its lazy stream.
+        # The reader branch is selected without opening its lazy stream.
         assert fetch(url)["kwargs"] == {}
     finally:
-        loaders._by_key.pop(".stub", None)
+        readers._by_key.pop(".stub", None)
 
 
 def test_fetch_rejects_ambiguous_loader_basename() -> None:
-    loader_filenames.register(key="material", handler=_stream_loader, name="stream-loader")
+    reader_filenames.register(key="material", handler=_stream_loader, name="stream-loader")
     try:
         with pytest.raises(ValueError, match="kind='optimade'.*kind='load'"):
             fetch("https://example.test/v1/structures/material")
     finally:
-        loader_filenames._by_key.pop("material", None)
+        reader_filenames._by_key.pop("material", None)
 
 
 def test_fetch_rejects_scheme_less_and_unknown_url() -> None:
     with pytest.raises(ValueError, match="httk\\.core\\.load"):
         fetch("local.stub")
-    with pytest.raises(ValueError, match="neither an OPTIMADE.*registered loader"):
+    with pytest.raises(ValueError, match="neither an OPTIMADE.*registered reader"):
         fetch("https://example.test/unknown")
 
 

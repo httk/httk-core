@@ -259,11 +259,11 @@ out of scope for this layer.
 
 ## Loading files by type
 
-`httk.core.load(filename)` selects a loader for a file and calls it. Capability
-modules register loaders with `register_loader`, naming the file **extensions**
+`httk.core.load(filename)` selects a reader for a file and calls it. Capability
+modules register readers with `register_reader`, naming the file **extensions**
 and/or exact **basenames** they handle:
 
-When an installed domain module has registered an adapter for the loader's
+When an installed domain module has registered an adapter for the reader's
 neutral payload `"format"` tag, `load` applies that adapter and returns the
 domain object directly. Use `load(filename, raw=True)` to keep the neutral
 payload; mappings with unknown format tags and non-mapping results pass through
@@ -271,15 +271,15 @@ unchanged.
 
 ```python
 from httk.core import load
-from httk.core.register import register_loader, known_extensions, known_filenames
+from httk.core.register import register_reader, known_extensions, known_filenames
 
-# A stand-in for a real loader (httk-io registers the CIF and POSCAR loaders).
+# A stand-in for a real reader (httk-io registers the CIF and POSCAR readers).
 def _demo_loader(filename, **kwargs):
     return {"loaded": filename}
 
-register_loader(
+register_reader(
     name="demo",
-    loader=_demo_loader,
+    reader=_demo_loader,
     extensions=(".demo",),
     filenames=("DEMOCAR",),
 )
@@ -290,18 +290,18 @@ assert "democar" in known_filenames()  # basenames are stored lower-cased
 
 Dispatch strips at most **one** recognized compression suffix (`.gz`, `.bz2`,
 `.xz`, `.lzma`) to obtain an *inner* name, then matches that name's extension
-first and its exact basename second (both case-insensitively). The loader always
+first and its exact basename second (both case-insensitively). The reader always
 receives the **original** filename, so it can open the still-compressed bytes
 through the datastream layer for transparent decompression:
 
 ```python
 from httk.core import load
-from httk.core.register import register_loader
+from httk.core.register import register_reader
 
 def _demo_loader(filename, **kwargs):
     return {"loaded": filename}
 
-register_loader(name="demo", loader=_demo_loader, extensions=(".demo",), filenames=("DEMOCAR",))
+register_reader(name="demo", reader=_demo_loader, extensions=(".demo",), filenames=("DEMOCAR",))
 
 # By extension, transparently through a compression suffix:
 assert load("/data/sample.demo.bz2") == {"loaded": "/data/sample.demo.bz2"}

@@ -35,7 +35,7 @@ from .datastream import (
 from .entry_provider import EntryProvider, RelatedEntry
 from .entry_types import Calculation, File, Reference
 from .fetching import fetch
-from .loading import has_loader_for, load, load_source
+from .loading import has_reader_for, load, load_source
 from .precision import combined_precision, decimal_precision
 from .property_definitions import (
     EntryTypeDefinition,
@@ -57,6 +57,7 @@ from .register import (
     register_format_serializer,
     register_optimade_entry_binding,
     register_property_definition,
+    register_reader,
     register_writer,
 )
 from .saving import has_writer_for, save
@@ -133,7 +134,7 @@ __all__ = [
     "content_id",
     "decimal_precision",
     "fetch",
-    "has_loader_for",
+    "has_reader_for",
     "has_writer_for",
     "known_compressions",
     "known_definition_prefixes",
@@ -154,6 +155,7 @@ __all__ = [
     "register_format_serializer",
     "register_optimade_entry_binding",
     "register_property_definition",
+    "register_reader",
     "register_writer",
     "save",
     "standard_entry_type",

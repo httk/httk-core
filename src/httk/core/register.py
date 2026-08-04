@@ -33,15 +33,15 @@ if TYPE_CHECKING:
     from .cli import CLIContext
     from .property_definitions import EntryTypeDefinition, PropertyDefinition
 
-#: Loaders selected by file *extension* (keys are lower-case ``".ext"`` suffixes).
-loaders = PluginRegistry()
+#: Readers selected by file *extension* (keys are lower-case ``".ext"`` suffixes).
+readers = PluginRegistry()
 
-#: Loaders selected by exact *basename* (keys are lower-case basenames such as
-#: ``"contcar"``). A separate key namespace from :data:`loaders` so an
+#: Readers selected by exact *basename* (keys are lower-case basenames such as
+#: ``"contcar"``). A separate key namespace from :data:`readers` so an
 #: extension-less file (``POSCAR``, ``CONTCAR``) can still dispatch by name.
-loader_filenames = PluginRegistry()
+reader_filenames = PluginRegistry()
 
-#: Domain adapters selected by a loader's neutral payload ``"format"`` tag.
+#: Domain adapters selected by a reader's neutral payload ``"format"`` tag.
 format_adapters = PluginRegistry()
 _format_adapter_lock = Lock()
 
@@ -62,14 +62,14 @@ def _same_callable_reference(left: str | Callable[..., Any], right: str | Callab
     return left is right
 
 
-def register_loader(
+def register_reader(
     *,
     name: str,
-    loader: str,
+    reader: str,
     extensions: tuple[str, ...] = (),
     filenames: tuple[str, ...] = (),
 ) -> None:
-    """Register a loader under one or more file ``extensions`` and/or ``filenames``.
+    """Register a reader under one or more file ``extensions`` and/or ``filenames``.
 
     ``extensions`` are matched (case-insensitively) against a file's suffix, e.g.
     ``".cif"``. ``filenames`` are exact basenames matched (case-insensitively)
@@ -77,17 +77,17 @@ def register_loader(
     ``"POSCAR"`` matches ``POSCAR``, ``poscar``, and ``POSCAR.bz2``.
     """
     for ext in extensions:
-        loaders.register(key=ext.lower(), handler=loader, name=name)
+        readers.register(key=ext.lower(), handler=reader, name=name)
     for filename in filenames:
-        loader_filenames.register(key=filename.lower(), handler=loader, name=name)
+        reader_filenames.register(key=filename.lower(), handler=reader, name=name)
 
 
 def known_extensions() -> list[str]:
-    return loaders.keys()
+    return readers.keys()
 
 
 def known_filenames() -> list[str]:
-    return loader_filenames.keys()
+    return reader_filenames.keys()
 
 
 def register_format_adapter(
@@ -217,7 +217,7 @@ def register_entry_provider(*, name: str, factory: str) -> None:
     ``factory`` is a lazy ``"module:callable"`` reference to a callable that
     constructs a provider (providers need data, so applications call the factory
     themselves; the registry only records how to reach it). This mirrors
-    ``register_loader``.
+    ``register_reader``.
     """
     entry_providers.register(key=name, handler=factory, name=name)
 

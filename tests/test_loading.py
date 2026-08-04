@@ -7,35 +7,35 @@ from typing import Any
 
 import pytest
 
-from httk.core import has_loader_for, load, load_source
+from httk.core import has_reader_for, load, load_source
 from httk.core.register import (
     format_adapters,
     known_extensions,
     known_filenames,
     known_format_adapters,
-    loader_filenames,
-    loaders,
+    reader_filenames,
+    readers,
     register_format_adapter,
-    register_loader,
+    register_reader,
 )
 
 
 def _stub_loader(filename: str, **kwargs: Any) -> dict[str, Any]:
-    """A loader that just echoes the filename it received."""
+    """A reader that just echoes the filename it received."""
     return {"filename": filename, "kwargs": kwargs}
 
 
 @pytest.fixture
 def _register_stub() -> Iterator[None]:
-    loaders.register(key=".stub", handler=_stub_loader, name="stub")
-    loader_filenames.register(key="contcar", handler=_stub_loader, name="stub")
-    loader_filenames.register(key="poscar", handler=_stub_loader, name="stub")
+    readers.register(key=".stub", handler=_stub_loader, name="stub")
+    reader_filenames.register(key="contcar", handler=_stub_loader, name="stub")
+    reader_filenames.register(key="poscar", handler=_stub_loader, name="stub")
     try:
         yield
     finally:
-        loaders._by_key.pop(".stub", None)
-        loader_filenames._by_key.pop("contcar", None)
-        loader_filenames._by_key.pop("poscar", None)
+        readers._by_key.pop(".stub", None)
+        reader_filenames._by_key.pop("contcar", None)
+        reader_filenames._by_key.pop("poscar", None)
 
 
 def test_known_registries_separate(_register_stub: None) -> None:
@@ -51,7 +51,7 @@ def test_dispatch_by_basename_passes_original_path(_register_stub: None) -> None
 
 
 def test_dispatch_by_basename_strips_compression(_register_stub: None) -> None:
-    # A ".bz2" suffix is stripped to reveal the CONTCAR basename, but the loader
+    # A ".bz2" suffix is stripped to reveal the CONTCAR basename, but the reader
     # still receives the original, still-compressed path.
     result = load("/some/dir/CONTCAR.bz2")
     assert result["filename"] == "/some/dir/CONTCAR.bz2"
@@ -78,22 +78,22 @@ def test_load_rejects_urls(url: str) -> None:
         load(url)
 
 
-def test_has_loader_for_checks_registry_keys_only(_register_stub: None, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_has_reader_for_checks_registry_keys_only(_register_stub: None, monkeypatch: pytest.MonkeyPatch) -> None:
     def fail_import(_module: str) -> Any:
-        raise AssertionError("has_loader_for resolved a lazy loader")
+        raise AssertionError("has_reader_for resolved a lazy reader")
 
     monkeypatch.setattr("httk.core._plugins.import_module", fail_import)
-    loaders.register(key=".lazy", handler="module_that_raises_on_import:loader", name="lazy")
+    readers.register(key=".lazy", handler="module_that_raises_on_import:loader", name="lazy")
     try:
-        assert has_loader_for("x.stub")
-        assert has_loader_for("x.stub.gz")
-        assert has_loader_for("POSCAR")
-        assert has_loader_for("CONTCAR")
-        assert has_loader_for("CONTCAR.bz2")
-        assert has_loader_for("x.lazy")
-        assert has_loader_for("x.unknown") is False
+        assert has_reader_for("x.stub")
+        assert has_reader_for("x.stub.gz")
+        assert has_reader_for("POSCAR")
+        assert has_reader_for("CONTCAR")
+        assert has_reader_for("CONTCAR.bz2")
+        assert has_reader_for("x.lazy")
+        assert has_reader_for("x.unknown") is False
     finally:
-        loaders._by_key.pop(".lazy", None)
+        readers._by_key.pop(".lazy", None)
 
 
 def _stream_loader(source: Any, **kwargs: Any) -> dict[str, Any]:
@@ -101,12 +101,12 @@ def _stream_loader(source: Any, **kwargs: Any) -> dict[str, Any]:
 
 
 def test_load_source_passes_source_identity() -> None:
-    register_loader(name="stream-loader", loader=f"{__name__}:_stream_loader", extensions=(".stream",))
+    register_reader(name="stream-loader", reader=f"{__name__}:_stream_loader", extensions=(".stream",))
     try:
         source = io.StringIO("data")
         assert load_source(source, "x.stream", raw=True)["source"] is source
     finally:
-        loaders._by_key.pop(".stream", None)
+        readers._by_key.pop(".stream", None)
 
 
 def test_unknown_raises_clear_error(_register_stub: None) -> None:
@@ -136,9 +136,9 @@ def _synthetic_adapter(payload: dict[str, Any]) -> tuple[str, str]:
 
 @pytest.fixture
 def _register_format_stubs() -> Iterator[None]:
-    loaders.register(key=".synthetic", handler=_synthetic_loader, name="synthetic-loader")
-    loaders.register(key=".no-adapter", handler=_unadapted_mapping_loader, name="unadapted-loader")
-    loaders.register(key=".scalar", handler=_scalar_loader, name="scalar-loader")
+    readers.register(key=".synthetic", handler=_synthetic_loader, name="synthetic-loader")
+    readers.register(key=".no-adapter", handler=_unadapted_mapping_loader, name="unadapted-loader")
+    readers.register(key=".scalar", handler=_scalar_loader, name="scalar-loader")
     register_format_adapter(
         name="synthetic-adapter",
         adapter=_synthetic_adapter,
@@ -148,7 +148,7 @@ def _register_format_stubs() -> Iterator[None]:
         yield
     finally:
         for key in (".synthetic", ".no-adapter", ".scalar"):
-            loaders._by_key.pop(key, None)
+            readers._by_key.pop(key, None)
         format_adapters._by_key.pop("synthetic", None)
 
 

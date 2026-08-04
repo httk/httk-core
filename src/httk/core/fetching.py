@@ -1,10 +1,10 @@
-"""Fetch URL sources through OPTIMADE or the registered file-loader pipeline."""
+"""Fetch URL sources through OPTIMADE or the registered file-reader pipeline."""
 
 from typing import Any
 from urllib.parse import urlsplit
 
 from .datastream import TextstreamFileView
-from .loading import adapt_result, has_loader_for, load_source, loader_uses_extension
+from .loading import adapt_result, has_reader_for, load_source, reader_uses_extension
 from .optimade.resources import is_optimade_entry_url, optimade_resource_from_url, redact_optimade_url
 
 
@@ -19,8 +19,8 @@ def fetch(
     """Fetch a URL as an OPTIMADE entry or a registered file format.
 
     ``kind="optimade"`` forces OPTIMADE handling and ``kind="load"`` forces
-    file-loader handling. With no ``kind``, a loader-claimed extension wins over
-    an OPTIMADE-shaped path; a loader-claimed basename is ambiguous and requires
+    file-reader handling. With no ``kind``, a reader-claimed extension wins over
+    an OPTIMADE-shaped path; a reader-claimed basename is ambiguous and requires
     an explicit ``kind``. ``file://`` URLs are supported in either branch.
     Redirects follow ``urllib`` defaults.
     """
@@ -32,19 +32,19 @@ def fetch(
         raise ValueError("fetch kind must be 'optimade' or 'load'")
 
     is_entry_url = is_optimade_entry_url(url)
-    loader_claimed = has_loader_for(split.path)
-    if kind == "optimade" or (kind is None and is_entry_url and not loader_claimed):
+    reader_claimed = has_reader_for(split.path)
+    if kind == "optimade" or (kind is None and is_entry_url and not reader_claimed):
         resource = optimade_resource_from_url(url, timeout=timeout)
         return adapt_result({"format": "optimade-entry", "resource": resource}, raw)
-    if kind == "load" or (kind is None and loader_claimed and (not is_entry_url or loader_uses_extension(split.path))):
+    if kind == "load" or (kind is None and reader_claimed and (not is_entry_url or reader_uses_extension(split.path))):
         return load_source(TextstreamFileView(url, kind="url", timeout=timeout), split.path, raw=raw, **kwargs)
-    if kind is None and is_entry_url and loader_claimed:
+    if kind is None and is_entry_url and reader_claimed:
         raise ValueError(
-            f"URL {redact_optimade_url(url)!r} is both an OPTIMADE entry and a loader-claimed file; "
+            f"URL {redact_optimade_url(url)!r} is both an OPTIMADE entry and a reader-claimed file; "
             "pass kind='optimade' or kind='load'"
         )
     raise ValueError(
         f"Could not fetch {redact_optimade_url(url)!r}: it is neither an OPTIMADE single-entry URL nor a URL with "
-        "a registered loader; "
+        "a registered reader; "
         "pass kind='optimade' or kind='load' to choose explicitly"
     )

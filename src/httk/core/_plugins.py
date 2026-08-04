@@ -65,7 +65,7 @@ class PluginRegistry:
     Registry mapping keys -> plugin specs.
 
     Intended use:
-      - loaders: key is file extension ".cif"
+      - readers: key is file extension ".cif"
       - savers: key is file extension ".cif" or format name
       - show/visualization: key is format/backend name
     """

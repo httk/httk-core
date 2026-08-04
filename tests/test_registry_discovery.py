@@ -2,23 +2,26 @@
 
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 
 import httk.core.entry_types
+import httk.registry
+from httk.core._discover import discover_and_register
 from httk.core.register import (
+    _entry_records,
+    _entry_type_definitions,
+    _property_definitions,
     entry_record_info,
+    known_cli_commands,
     known_entry_records,
+    known_entry_type_definitions,
     load_entry_type_definition,
     register_entry_record,
     register_entry_type_definition,
     register_property_definition,
     resolve_entry_record,
-    _entry_records,
-    _entry_type_definitions,
-    _property_definitions,
-    known_cli_commands,
-    known_entry_type_definitions,
 )
 
 
@@ -44,6 +47,30 @@ def test_discovery_registers_cli_and_core_records() -> None:
         "https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files",
         "https://schemas.optimade.org/defs/v1.3/entrytypes/optimade/calculations",
     } <= set(known_entry_type_definitions())
+
+
+def test_discovery_walks_io_and_not_flat_registry_tiers(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    io_package = tmp_path / "io" / "test_discovery_io"
+    io_package.mkdir(parents=True)
+    io_package.joinpath("__init__.py").write_text(
+        "from httk.core.register import register_entry_record\n"
+        "register_entry_record(name='test-discovery-io', record='test_module:Record')\n",
+        encoding="utf-8",
+    )
+    flat_package = tmp_path / "test_discovery_flat"
+    flat_package.mkdir()
+    flat_package.joinpath("__init__.py").write_text(
+        "raise AssertionError('flat registry tier was imported')\n",
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(httk.registry, "__path__", [str(tmp_path), *httk.registry.__path__])
+    try:
+        discover_and_register()
+        assert "test-discovery-io" in known_entry_records()
+        assert "httk.registry.test_discovery_flat" not in sys.modules
+    finally:
+        _entry_records.pop("test-discovery-io", None)
 
 
 def test_entry_record_registration_is_strict_and_lazy() -> None:
