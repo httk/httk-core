@@ -16,8 +16,9 @@ prefix is what routes the property's canonical `$id` to a URL the database
 controls, so `register_definition_prefix` pairs the prefix with a base URL. The
 prefix itself must be a lower-case alphanumeric token wrapped in single
 underscores — `_exmpl_` is fine, `exmpl`, `_Exmpl_` and `_exmpl` are not.
-`_httk_` and `_omdb_` come pre-registered, both under httk's ad-hoc namespace
-at `schemas.httk.org/ad-hoc/`, which is separate from the
+`_httk_` comes pre-registered under httk's ad-hoc namespace at
+`schemas.httk.org/ad-hoc/`; generated httk custom names use its
+`_httk_custom_*` sub-namespace. This is separate from the
 published definitions at `schemas.httk.org/defs/`: a synthesized `$id` names a
 property that is not published anywhere, and should not pretend otherwise.
 

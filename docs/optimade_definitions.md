@@ -60,18 +60,19 @@ re-stamped only when a definition actually uses newer features. That is why even
 
 `PropertyDefinition.from_simple` generates an implementation-neutral definition
 from a compact description. A database-specific property must carry a recognized
-prefix (`_httk_` or `_omdb_`), which routes its `$id` under `httk.org`:
+prefix. Httk-generated custom names use the `_httk_custom_*` sub-namespace
+inside the registered `_httk_` prefix, which routes their `$id` under `httk.org`:
 
 ```python
 from httk.core import PropertyDefinition
 
 energy = PropertyDefinition.from_simple(
-    "_httk_total_energy",
+    "_httk_custom_total_energy",
     description="Total energy of the calculation.",
     fulltype="float",
 )
 doc = energy.as_optimade()
-assert doc["$id"] == "https://schemas.httk.org/ad-hoc/defs/properties/_httk_total_energy"
+assert doc["$id"] == "https://schemas.httk.org/ad-hoc/defs/properties/_httk_custom_total_energy"
 assert doc["x-optimade-type"] == "float"
 assert doc["type"] == ["number", "null"]
 ```
@@ -79,8 +80,8 @@ assert doc["type"] == ["number", "null"]
 ## Registering a definition prefix
 
 The recognized database-specific prefixes are held in a small registry.
-`_httk_` and `_omdb_` are pre-registered (both under the `httk.org` base). A
-database serving its own custom properties registers its prefix once, giving the
+`_httk_` is pre-registered under the `httk.org` base. A database serving its own
+custom properties registers its prefix once, giving the
 base URL under which those properties' `$id`s are minted; a prefix must be a
 lower-case alphanumeric token wrapped in single underscores:
 
@@ -115,7 +116,7 @@ the definition itself stays neutral:
 ```python
 from httk.core import PropertyDefinition
 
-energy = PropertyDefinition.from_simple("_httk_total_energy", description="E", fulltype="float")
+energy = PropertyDefinition.from_simple("_httk_custom_total_energy", description="E", fulltype="float")
 served = energy.with_implementation(sortable=False, response_default=True)
 assert served.as_optimade()["x-optimade-implementation"] == {"sortable": False, "response-default": True}
 # The original is untouched:
@@ -131,9 +132,9 @@ standard properties):
 ```python
 from httk.core import PropertyDefinition, standard_entry_type
 
-energy = PropertyDefinition.from_simple("_httk_total_energy", description="E", fulltype="float")
-calculations = standard_entry_type("calculations").extended({"_httk_total_energy": energy})
-assert "_httk_total_energy" in calculations.properties
+energy = PropertyDefinition.from_simple("_httk_custom_total_energy", description="E", fulltype="float")
+calculations = standard_entry_type("calculations").extended({"_httk_custom_total_energy": energy})
+assert "_httk_custom_total_energy" in calculations.properties
 
 try:
     standard_entry_type("calculations").extended(

@@ -62,8 +62,8 @@ def test_entry_type_definition_id_round_trip_and_extension_provenance() -> None:
     assert standard.definition_id == "https://schemas.optimade.org/defs/v1.3/entrytypes/optimade/calculations"
     assert EntryTypeDefinition.from_optimade("calculations", standard.as_optimade()) == standard
 
-    extra = PropertyDefinition.from_simple("_httk_total_energy", description="E", fulltype="float")
-    extended = standard.extended({"_httk_total_energy": extra})
+    extra = PropertyDefinition.from_simple("_httk_custom_total_energy", description="E", fulltype="float")
+    extended = standard.extended({"_httk_custom_total_energy": extra})
     assert extended.definition_id is None
     assert extended.extends_id == standard.definition_id
     assert "$id" not in extended.as_optimade()
@@ -101,9 +101,9 @@ def test_from_simple_integer_optimade_id() -> None:
 
 
 def test_from_simple_httk_prefixed_id() -> None:
-    prop = PropertyDefinition.from_simple("_httk_total_energy", description="Total energy", fulltype="float")
+    prop = PropertyDefinition.from_simple("_httk_custom_total_energy", description="Total energy", fulltype="float")
     doc = prop.as_optimade()
-    assert doc["$id"] == "https://schemas.httk.org/ad-hoc/defs/properties/_httk_total_energy"
+    assert doc["$id"] == "https://schemas.httk.org/ad-hoc/defs/properties/_httk_custom_total_energy"
     assert doc["type"] == ["number", "null"]
 
 
@@ -162,6 +162,8 @@ def test_with_implementation_overlay_leaves_original_untouched() -> None:
     overlaid_doc = overlaid.as_optimade()
     assert overlaid_doc["x-optimade-implementation"] == {"sortable": True, "response-default": False}
     assert overlaid_doc["sortable"] is True
+    assert overlaid_doc["$id"] == prop.definition_id
+    assert overlaid_doc["x-optimade-definition"] == prop.as_optimade()["x-optimade-definition"]
     # The original is unchanged:
     assert "x-optimade-implementation" not in prop.as_optimade()
     assert "sortable" not in prop.as_optimade()
@@ -179,10 +181,10 @@ def test_with_implementation_partial_keys() -> None:
 
 def test_extended_prefixed_custom_property() -> None:
     calc = standard_entry_type("calculations")
-    energy = PropertyDefinition.from_simple("_httk_total_energy", description="E", fulltype="float")
-    extended = calc.extended({"_httk_total_energy": energy})
-    assert "_httk_total_energy" in extended.properties
-    assert "_httk_total_energy" not in calc.properties  # original untouched
+    energy = PropertyDefinition.from_simple("_httk_custom_total_energy", description="E", fulltype="float")
+    extended = calc.extended({"_httk_custom_total_energy": energy})
+    assert "_httk_custom_total_energy" in extended.properties
+    assert "_httk_custom_total_energy" not in calc.properties  # original untouched
 
 
 def test_extended_collision_error() -> None:
@@ -229,16 +231,7 @@ def _clean_example_prefix() -> Iterator[None]:
 
 def test_pre_registered_prefixes() -> None:
     prefixes = known_definition_prefixes()
-    assert "_httk_" in prefixes
-    assert "_omdb_" in prefixes
-
-
-def test_omdb_prefix_byte_identical() -> None:
-    # _omdb_ resolves under httk's own ad-hoc base, with the "httk" label: the registry
-    # maps it there deliberately rather than to a base of its own.
-    doc = PropertyDefinition.from_simple("_omdb_bandgap", description="gap", fulltype="float").as_optimade()
-    assert doc["$id"] == "https://schemas.httk.org/ad-hoc/defs/properties/_omdb_bandgap"
-    assert doc["x-optimade-definition"]["label"] == "omdb_bandgap_httk"
+    assert set(prefixes) == {"_httk_"}
 
 
 def test_register_prefix_gives_from_simple_id(_clean_example_prefix: None) -> None:

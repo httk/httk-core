@@ -62,7 +62,7 @@ _OPTIMADE_DEFS_BASE = "https://schemas.optimade.org/defs/v1.2/properties/optimad
 _HTTK_DEFS_BASE = "https://schemas.httk.org/ad-hoc/defs/properties"
 
 #: A valid definition prefix: a lower-case alphanumeric token wrapped in single
-#: underscores (e.g. ``_httk_``, ``_omdb_``, ``_exmpl_``).
+#: underscores (e.g. ``_httk_`` or ``_exmpl_``).
 _DEFINITION_PREFIX_PATTERN = re.compile(r"^_[a-z0-9]+_$")
 
 #: Registry of recognized database-specific property-name prefixes. Maps each
@@ -100,8 +100,7 @@ def known_definition_prefixes() -> tuple[str, ...]:
     """Return the registered database-specific property-name prefixes.
 
     The tuple reflects the current state of the prefix registry (see
-    :func:`register_definition_prefix`); ``_httk_`` and ``_omdb_`` are
-    pre-registered.
+    :func:`register_definition_prefix`); ``_httk_`` is pre-registered.
     """
     return tuple(_DEFINITION_PREFIXES)
 
@@ -114,10 +113,8 @@ def _matching_definition_prefix(name: str) -> str | None:
     return None
 
 
-# Pre-registered prefixes. Both historically resolve under the httk.org base
-# with the "httk" source label (byte-identical to the previous behavior).
+# Pre-registered prefixes.
 _DEFINITION_PREFIXES["_httk_"] = (_HTTK_DEFS_BASE, "httk")
-_DEFINITION_PREFIXES["_omdb_"] = (_HTTK_DEFS_BASE, "httk")
 
 _ANGSTROM_UNIT_DEFINITION = {
     "symbol": "angstrom",
@@ -296,8 +293,8 @@ class PropertyDefinition:
         This mirrors the OPTIMADE property-definition generator: it emits the
         ``$schema`` meta-schema reference, a synthesized ``$id`` (under the base
         registered for a matching prefix via
-        :func:`register_definition_prefix` — e.g. ``httk.org`` for ``_httk_`` /
-        ``_omdb_`` — under ``schemas.optimade.org`` otherwise, unless
+        :func:`register_definition_prefix` — e.g. ``httk.org`` for ``_httk_`` —
+        under ``schemas.optimade.org`` otherwise, unless
         ``definition_id`` overrides it), a title, the ``description``, the OPTIMADE type derived
         from ``fulltype`` (``"string"``, ``"integer"``, ``"float"``,
         ``"boolean"``, ``"timestamp"``, ``"dict"``, or ``"list of ..."``), the
@@ -425,7 +422,13 @@ class PropertyDefinition:
         Adds an ``x-optimade-implementation`` object with the ``sortable`` and
         ``response-default`` keys that are provided (a ``None`` argument leaves
         that key unset), and — when ``sortable`` is given — mirrors it in a
-        top-level ``sortable`` field. The original instance is untouched.
+        top-level ``sortable`` field. The original instance is untouched. The
+        original ``$id`` and ``x-optimade-definition`` are retained because
+        the vendored v1.2 ``Property Definitions`` meta-schema says definitions
+        "SHOULD be regarded as the same if they only differ by" changes to
+        ``x-optimade-implementation``; the specification says a redefinition
+        "MUST change the $id". Top-level ``sortable`` is the additional field
+        required by the ``Entry Listing Info Endpoints`` section.
         """
         payload = copy.deepcopy(self._payload)
         implementation: dict[str, Any] = dict(payload.get("x-optimade-implementation", {}))
