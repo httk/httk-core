@@ -140,3 +140,19 @@ heavy = [name for name in sys.modules
 assert not heavy, f'discovery imported domain modules: {heavy}'
 """
     subprocess.run([sys.executable, "-c", code], check=True)
+
+
+def test_reserved_tiers_are_namespace_portions() -> None:
+    # Tier directories must stay bare PEP 420 portions so every distribution
+    # can contribute registration packages to them. A regular package (an
+    # __init__.py) at a tier would shadow all other distributions' portions
+    # and silently hide their registrations.
+    import importlib.util
+
+    for tier in ("cli", "entries", "io", "schemas"):
+        spec = importlib.util.find_spec(f"httk.registry.{tier}")
+        if spec is None:
+            continue
+        assert spec.origin is None, (
+            f"httk.registry.{tier} must be a namespace portion, found regular package at {spec.origin}"
+        )

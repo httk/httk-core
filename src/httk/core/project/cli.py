@@ -43,11 +43,7 @@ def _field(name: str, value: object) -> str:
     return f"{name:<22}{value}"
 
 
-def describe_project(
-    root: str | Path | None = None,
-    *,
-    verify: bool = True,
-) -> dict[str, object]:
+def describe_project(root: str | Path | None = None) -> dict[str, object]:
     """Describe one project's anchor."""
 
     project = require_project(root)
@@ -132,7 +128,7 @@ def _handle_import_v1(arguments: argparse.Namespace, context: CLIContext) -> int
 def _handle_show(arguments: argparse.Namespace, context: CLIContext) -> int:
     """Describe the nearest project: its metadata and keys."""
 
-    description = describe_project(arguments.path or context.cwd, verify=not arguments.no_verify)
+    description = describe_project(arguments.path or context.cwd)
     if arguments.json:
         print(json.dumps(description, indent=2, sort_keys=True))
     else:
@@ -157,11 +153,6 @@ def _build_show(parser: argparse.ArgumentParser) -> None:
         metavar="PATH",
         nargs="?",
         help="the project to describe (default: the nearest project of the working directory)",
-    )
-    parser.add_argument(
-        "--no-verify",
-        action="store_true",
-        help="do not let a section walk the tree, which is much cheaper on a large project",
     )
     parser.add_argument("--json", action="store_true", help="print the description as one JSON document")
 

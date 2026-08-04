@@ -44,7 +44,39 @@ PUBLIC_KEY_PREFIX = "ed25519:"
 
 
 class LegacyProjectError(ValueError):
-    """Raised when discovery finds a legacy project directory."""
+    """Raised when discovery finds a legacy project directory.
+
+    Carries the offending directory as :attr:`root` and the legacy flavor as
+    :attr:`kind` — ``"v1"`` for an httk v1 ``ht.project`` directory,
+    ``"prerelease"`` for a pre-release httk v2 ``.httk-project`` anchor — so a
+    caller that deliberately handles one flavor (for example read-only
+    verification of a v1 manifest) does not have to parse the message.
+    """
+
+    def __init__(self, message: str, *, root: Path, kind: str) -> None:
+        super().__init__(message)
+        self.root = root
+        self.kind = kind
+
+
+def _legacy_project_error(candidate: Path, *, allow_v1: bool = False) -> LegacyProjectError | None:
+    if (candidate / PROJECT_DIRECTORY / PROJECT_FILE).is_file():
+        return None
+    if not allow_v1 and (candidate / "ht.project").is_dir():
+        return LegacyProjectError(
+            f"found an httk v1 project ('ht.project') at {candidate}; "
+            f"create the httk v2 anchor with: httk project import-v1 {candidate}",
+            root=candidate,
+            kind="v1",
+        )
+    if (candidate / ".httk-project" / PROJECT_FILE).is_file():
+        return LegacyProjectError(
+            f"found a project anchor from a pre-release httk v2 ('.httk-project') at {candidate}; "
+            f"rename it: mv {candidate}/.httk-project {candidate}/{PROJECT_DIRECTORY}",
+            root=candidate,
+            kind="prerelease",
+        )
+    return None
 
 
 def discover_project(start: str | os.PathLike[str] | None = None) -> Path | None:
@@ -57,16 +89,9 @@ def discover_project(start: str | os.PathLike[str] | None = None) -> Path | None
     for candidate in (path, *path.parents):
         if (candidate / PROJECT_DIRECTORY / PROJECT_FILE).is_file():
             return candidate
-        if (candidate / "ht.project").is_dir():
-            raise LegacyProjectError(
-                f"found an httk v1 project ('ht.project') at {candidate}; "
-                f"create the httk v2 anchor with: httk project import-v1 {candidate}"
-            )
-        if (candidate / ".httk-project" / PROJECT_FILE).is_file():
-            raise LegacyProjectError(
-                f"found a project anchor from a pre-release httk v2 ('.httk-project') at {candidate}; "
-                f"rename it: mv {candidate}/.httk-project {candidate}/{PROJECT_DIRECTORY}"
-            )
+        error = _legacy_project_error(candidate)
+        if error is not None:
+            raise error
     return None
 
 
@@ -282,6 +307,26 @@ def initialize_project(
     """
 
     project = Path(root).expanduser().resolve()
+    error = _legacy_project_error(project)
+    if error is not None:
+        raise error
+    return _initialize_project_unchecked(
+        project,
+        name=name,
+        description=description,
+        default_queue=default_queue,
+        manifest_exclusions=manifest_exclusions,
+    )
+
+
+def _initialize_project_unchecked(
+    project: Path,
+    *,
+    name: str,
+    description: str = "",
+    default_queue: str | None = None,
+    manifest_exclusions: Iterable[str] = (),
+) -> dict[str, object]:
     project.mkdir(parents=True, exist_ok=True)
     control = project / PROJECT_DIRECTORY
     control.mkdir(exist_ok=False)
@@ -325,7 +370,14 @@ def import_v1_project(
     parser = configparser.ConfigParser()
     parser.read(legacy / "config", encoding="utf-8")
     project_name = name if name is not None else str(parser.get("main", "project_name", fallback=project.name))
-    metadata = initialize_project(project, name=project_name)
+    # Importing v1 intentionally creates the v2 anchor beside its ht.project
+    # directory, so the v1 flavor of the legacy check is waived here — and only
+    # here, through the private unchecked initializer. A pre-release
+    # .httk-project anchor is still refused with its rename remedy.
+    error = _legacy_project_error(project, allow_v1=True)
+    if error is not None:
+        raise error
+    metadata = _initialize_project_unchecked(project, name=project_name)
     metadata["imported_from"] = str(legacy)
     public_keys: list[str] = []
     trusted: list[str] = []

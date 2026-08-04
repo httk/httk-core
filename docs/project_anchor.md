@@ -33,8 +33,7 @@ to an empty string. It refuses an existing project and creates
 workspace.
 
 `show` describes the nearest project, or the project named by `PATH`.
-`--json` emits one machine-readable document; `--no-verify` skips the
-command's optional tree walk. `import-v1` imports the legacy v1 project in
+`--json` emits one machine-readable document. `import-v1` imports the legacy v1 project in
 `PATH/ht.project` by default; `--source DIR` selects another v1 directory.
 
 Root options are processed before command dispatch. `-C DIR` changes directory

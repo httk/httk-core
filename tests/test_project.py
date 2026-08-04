@@ -74,6 +74,21 @@ def test_initialize_refuses_an_existing_anchor(tmp_path: Path) -> None:
         initialize_project(tmp_path, name="again")
 
 
+def test_initialize_refuses_legacy_project_directories(tmp_path: Path) -> None:
+    v1 = tmp_path / "v1"
+    (v1 / "ht.project").mkdir(parents=True)
+    with pytest.raises(LegacyProjectError, match="httk project import-v1"):
+        initialize_project(v1, name="v1")
+    assert not (v1 / PROJECT_DIRECTORY).exists()
+
+    prerelease = tmp_path / "prerelease"
+    (prerelease / ".httk-project").mkdir(parents=True)
+    (prerelease / ".httk-project" / PROJECT_FILE).write_text("{}", encoding="utf-8")
+    with pytest.raises(LegacyProjectError, match="rename it: mv"):
+        initialize_project(prerelease, name="prerelease")
+    assert not (prerelease / PROJECT_DIRECTORY).exists()
+
+
 def test_discover_walks_upward_and_require_refuses_when_absent(tmp_path: Path) -> None:
     project = tmp_path / "root"
     initialize_project(project, name="root")
@@ -221,6 +236,9 @@ def test_cli_show_refuses_v1_and_import_v1_creates_anchor(tmp_path: Path, monkey
     (legacy / "config").write_text("[main]\nproject_name = imported\n", encoding="utf-8")
     monkeypatch.chdir(tmp_path)
 
+    assert main(["project", "init"]) == 2
+    assert "httk project import-v1" in capsys.readouterr().err
+
     assert main(["project", "show"]) == 2
     assert "httk project import-v1" in capsys.readouterr().err
 
@@ -234,3 +252,25 @@ def test_cli_show_refuses_v1_and_import_v1_creates_anchor(tmp_path: Path, monkey
 def test_bare_project_command_prints_help(tmp_path) -> None:
     context = CLIContext("httk", tmp_path)
     assert command([], context) == 0
+
+
+def test_legacy_error_carries_root_and_kind(tmp_path: Path) -> None:
+    (tmp_path / "ht.project").mkdir()
+    with pytest.raises(LegacyProjectError) as error:
+        discover_project(tmp_path)
+    assert error.value.root == tmp_path
+    assert error.value.kind == "v1"
+
+    prerelease = tmp_path / "elsewhere"
+    (prerelease / ".httk-project").mkdir(parents=True)
+    (prerelease / ".httk-project" / PROJECT_FILE).write_text("{}", encoding="utf-8")
+    with pytest.raises(LegacyProjectError) as error:
+        discover_project(prerelease)
+    assert error.value.root == prerelease
+    assert error.value.kind == "prerelease"
+
+
+def test_initialize_project_has_no_legacy_bypass_parameter() -> None:
+    import inspect
+
+    assert "_allow_legacy_v1" not in inspect.signature(initialize_project).parameters
