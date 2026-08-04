@@ -41,14 +41,18 @@ class View[BackendT: Backend]:
         Normalize an arbitrary backend/view/raw object into a backend suitable for constructing a view.
 
         Behavior:
-        - if `obj` is already one of the accepted views, unwrap its underlying backend to adopt it;
+        - if `obj` is already one of the accepted views, unwrap its underlying backend to adopt it
+          (a backend-less view instance, e.g. built by inherited value-class algebra, falls through
+          to backend creation like a raw value);
         - if `obj` is a backend inheriting from the right superclass, return it unchanged.
         - if `obj` otherwise try to create a backend from that superclass via `backend_cls.create(obj, **hints)`;
 
         `hints` are forwarded for backend selection/disambiguation.
         """
         if isinstance(obj, cls._view_base_cls):
-            return obj._backend
+            backend = getattr(obj, "_backend", None)
+            if backend is not None:
+                return backend
         if not isinstance(obj, cls._backend_base_cls):
             return cls._backend_base_cls.create(obj, **hints)
         return obj

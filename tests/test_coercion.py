@@ -78,8 +78,45 @@ def test_uncoercible_pair_and_custom_registration() -> None:
 
     original = list(_coercers)
     try:
-        register_coercer(custom)
+        register_coercer(custom, str)
         assert coerce(1, str) == "custom"
+    finally:
+        _coercers[:] = original
+
+
+def test_registered_target_filters_calls() -> None:
+    calls = []
+
+    def custom(value, target):
+        calls.append(target)
+        return "custom"
+
+    original = list(_coercers)
+    try:
+        register_coercer(custom, str)
+        assert coerce(1, str) == "custom"
+        with pytest.raises(TypeError):
+            coerce(object(), int)
+    finally:
+        _coercers[:] = original
+    assert calls == [str]
+
+
+def test_register_coercer_rejects_non_class_targets() -> None:
+    for bad in ("str", (str, "int"), ()):
+        with pytest.raises(TypeError, match="register_coercer target"):
+            register_coercer(lambda value, target: None, bad)
+
+
+def test_view_targets_convert_without_registered_coercers() -> None:
+    original = list(_coercers)
+    try:
+        _coercers.clear()
+        result = coerce([1, 2], VectorNativeView)
+        assert isinstance(result, VectorNativeView)
+        assert result == (1, 2)
+        with pytest.raises(TypeError):
+            coerce(object(), VectorNativeView)
     finally:
         _coercers[:] = original
 

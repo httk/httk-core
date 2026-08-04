@@ -24,6 +24,8 @@ The exact-math helpers live in :mod:`httk.core.exactmath` (type-preserving exact
 on Fraction and Decimal) and :mod:`httk.core.vectors.vectormath` (functional math wrappers).
 """
 
+import decimal
+import fractions
 from typing import Any
 
 from httk.core.views import register_coercer, view_class_coercer
@@ -72,13 +74,7 @@ def _vector_scalar_coercer(value, target):
     for ``int``, ``Fraction``, or ``FracScalar``; unsupported reductions return ``None``.
     Lists are mutable copies of a native view, never mutable views themselves.
     """
-    import decimal
-    import fractions
-
-    from .fracvector import FracScalar, FracVector
     from .leaf_codecs import leaf_codec_for_name
-    from .surdvector import SurdScalar, SurdVector
-    from .vector_native_view import VectorNativeView
 
     if target is list:
         source = [value] if isinstance(value, (int, float, fractions.Fraction, decimal.Decimal)) else value
@@ -129,8 +125,13 @@ _view_classes = [VectorFracView, VectorSurdView]
 if _numpy_view_class is not None:
     _view_classes.append(_numpy_view_class)
 _view_classes.append(VectorNativeView)
-register_coercer(view_class_coercer(_view_classes))
-register_coercer(_vector_scalar_coercer)
+# The view scan serves any target some view class subclasses (tuple, numpy.ndarray, FracVector,
+# ...), a superclass relation issubclass on a declared target cannot express — so it declares Any.
+register_coercer(view_class_coercer(_view_classes), Any)
+register_coercer(
+    _vector_scalar_coercer,
+    (int, float, fractions.Fraction, decimal.Decimal, FracScalar, SurdScalar, list),
+)
 
 __all__ = [
     "FracScalar",

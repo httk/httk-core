@@ -189,11 +189,15 @@ guide covers the built-in codecs and their options. See {doc}`vectors`.
 (coercers)=
 ## Coercers
 
-`register_coercer(coercer)` appends a coercer to the global coercion registry.
-The callable has the shape `(value, target) -> converted value | None` and is
-tried in registration order. Returning `None` declines the conversion;
-{func}`httk.core.views.coercion.coerce` raises `TypeError` if every coercer
-declines it.
+`register_coercer(coercer, target)` appends a coercer to the global coercion
+registry. The callable has the shape `(value, target) -> converted value | None`;
+`target` declares what it can coerce *into* — a class, a tuple of classes, or
+`typing.Any` for a fully general coercer. On lookup,
+{func}`httk.core.views.coercion.coerce` first tries a direct view conversion
+when the requested class is a `View` subclass, then tries registered coercers
+whose declared targets match the requested class, in registration order.
+Returning `None` declines the conversion; `TypeError` is raised if every
+coercer declines it.
 
 ## Canonical encoders
 
