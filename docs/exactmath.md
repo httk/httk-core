@@ -1,12 +1,10 @@
 # Exact math on rationals and decimals
 
-The functions in `httk.core.exactmath` do exact and controlled-precision
-arithmetic. They are fully usable **without** `FracVector`: `FracVector`'s
-element-wise methods (`sqrt`, `cos`, `exp`, ...) delegate here, but nothing stops
-you from calling these functions directly in your own code. Every value is
-computed with 100% exact integer/rational arithmetic — there is no floating point
-anywhere in the computation, so results are platform-independent and
-deterministic by construction.
+The functions in `httk.core.exactmath` provide exact and controlled-precision
+arithmetic on their own: Fraction mode returns exact rationals or controlled rational
+approximations, while Decimal input or `digits=` selects correctly rounded Decimal results.
+Every value is computed with integer/rational arithmetic — there is no floating point anywhere in
+the core computation, so results are platform-independent and deterministic by construction.
 
 ```python
 from fractions import Fraction

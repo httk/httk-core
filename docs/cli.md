@@ -1,0 +1,49 @@
+# The extensible command line
+
+Installing *httk-core* provides the `httk` executable. Root options are
+processed before command dispatch:
+
+```console
+httk -C DIR COMMAND [ARG ...]
+httk -h
+httk --version
+httk help COMMAND
+```
+
+`-C DIR` changes directory before dispatch, with git-style semantics. The
+core-owned `httk project` command provides the project workflow; see
+{doc}`project_anchor`. There is no project-subcommand extension mechanism.
+
+Capability modules register additional top-level commands under the
+`httk.registry.cli.<module>` discovery tier. Registration is lazy, so root help
+can list command summaries without importing command implementations.
+
+```python
+from httk.core import register_cli_command
+
+register_cli_command(
+    "example",
+    "example_package.cli:command",
+    "run the example capability",
+)
+```
+
+The handler contract is
+`(argv: Sequence[str], context: CLIContext) -> int`, where
+{class}`httk.core.cli.CLIContext` supplies `program` and the post-`-C` `cwd`:
+
+```python
+from collections.abc import Sequence
+
+from httk.core import CLIContext
+
+
+def command(argv: Sequence[str], context: CLIContext) -> int:
+    print(context.cwd)
+    return 0
+```
+
+Command names use lowercase, hyphen-separated syntax. `help COMMAND` invokes
+that command with `--help`. `help` by itself is equivalent to root help;
+`help` and `version` are reserved names. See {doc}`registry` for the complete
+discovery convention and registration surfaces.

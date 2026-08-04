@@ -183,6 +183,28 @@ built from a request backend) and can be passed to any code that expects one. Sy
 `*FilenameView` raising `TypeError` for backends with no filename, these views raise `TypeError` for
 backends with no underlying URL — and remote backends have no `name`, so `*FilenameView` raises for them.
 
+The token is intended for lazy consumers that accept `DatastreamLike`-style
+inputs. A plain string remains a path; the token says that this source is a
+URL which the consumer may fetch when its data is first needed.
+
+```python
+from httk.atomistic import UnitcellStructureView
+from httk.core import DatastreamURL, fetch
+
+url = "https://example.org/data.cif"
+consent = DatastreamURL(url, timeout=10)  # validates; performs no I/O
+structure = UnitcellStructureView(consent)
+cell = structure.cell  # fetches and parses lazily, on first data access
+
+# fetch() is the eager alternative.
+result = fetch(url, timeout=10, kind="load")
+```
+
+`UnitcellStructureView` accepts the token through the atomistic structure
+input union and resolves it through the existing fetch/reader machinery. Any
+consumer whose input contract declares `DatastreamLike` can participate in
+the same lazy-consent protocol.
+
 ```python
 import urllib.request
 
@@ -259,66 +281,23 @@ out of scope for this layer.
 
 ## Loading files by type
 
-`httk.core.load(filename)` selects a reader for a file and calls it. Capability
-modules register readers with `register_reader`, naming the file **extensions**
-and/or exact **basenames** they handle:
-
-When an installed domain module has registered an adapter for the reader's
-neutral payload `"format"` tag, `load` applies that adapter and returns the
-domain object directly. Use `load(filename, raw=True)` to keep the neutral
-payload; mappings with unknown format tags and non-mapping results pass through
-unchanged.
-
-```python
-from httk.core import load
-from httk.core.register import register_reader, known_extensions, known_filenames
-
-# A stand-in for a real reader (httk-io registers the CIF and POSCAR readers).
-def _demo_loader(filename, **kwargs):
-    return {"loaded": filename}
-
-register_reader(
-    name="demo",
-    reader=_demo_loader,
-    extensions=(".demo",),
-    filenames=("DEMOCAR",),
-)
-
-assert ".demo" in known_extensions()
-assert "democar" in known_filenames()  # basenames are stored lower-cased
-```
-
-Dispatch strips at most **one** recognized compression suffix (`.gz`, `.bz2`,
-`.xz`, `.lzma`) to obtain an *inner* name, then matches that name's extension
-first and its exact basename second (both case-insensitively). The reader always
-receives the **original** filename, so it can open the still-compressed bytes
-through the datastream layer for transparent decompression:
-
-```python
-from httk.core import load
-from httk.core.register import register_reader
-
-def _demo_loader(filename, **kwargs):
-    return {"loaded": filename}
-
-register_reader(name="demo", reader=_demo_loader, extensions=(".demo",), filenames=("DEMOCAR",))
-
-# By extension, transparently through a compression suffix:
-assert load("/data/sample.demo.bz2") == {"loaded": "/data/sample.demo.bz2"}
-# By exact basename (an extension-less file), original path preserved:
-assert load("/data/DEMOCAR.gz") == {"loaded": "/data/DEMOCAR.gz"}
-```
-
-An unrecognized file raises a clear `ValueError` listing the known extensions
-and filenames.
+`httk.core.load` and its reader registry are documented in {doc}`registry`;
+see the {ref}`readers` section for dispatch details.
+Datastreams supply the reader with local or remote streaming input, including
+transparent decompression.
 
 ## Shared Behavior and `unwrap`
 
-All views/backends share two important behaviors:
+Views and backends for one datastream share the same stream state:
 
-- view/backends over the same underlying object share state:
-  - reads advance shared position
-  - close in one place closes for all
-- `unwrap(obj)` returns the most raw representation available:
-  - for stream backends/views this is commonly an `io` object
-  - for non-view/backend objects it returns the object unchanged
+- reads through one view advance the position seen by the others, and closing
+  one closes the backend for all views;
+- `unwrap` on a text or byte backend/view returns its concrete underlying
+  `io.TextIOBase` or `io.IOBase`, creating the lazy stream if needed;
+- string and bytes views still unwrap through their backends to those `io`
+  objects, while filename and URL views unwrap to the corresponding opened
+  stream rather than to their displayed `str` value;
+- raw `str`, `bytes`, and `Path` values passed directly to `unwrap` are
+  returned unchanged;
+- `unwrap` on an object that is not a datastream backend or view returns that
+  object unchanged.

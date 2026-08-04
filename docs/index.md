@@ -15,14 +15,16 @@ on the other.
 
 - **API reference**: {doc}`reference/index`
 - **Views and backends guide**: {doc}`view_backend_pattern`
+- **Registries and plugin discovery**: {doc}`registry`
 - **Datastream guide**: {doc}`datastreams`
-- **Extensible CLI and Ed25519 signing**: {doc}`cli_and_signing`
+- **Extensible CLI**: {doc}`cli`
+- **Cryptography**: {doc}`crypto`
 - **Projects and the anchor**: {doc}`project_anchor`
 - **OPTIMADE definitions & entry providers**: {doc}`optimade_definitions`
-- **Exact math on rationals and decimals**: {doc}`exactmath`
 - **Vectors guide**: {doc}`vectors`
+- **Exact math on rationals and decimals**: {doc}`exactmath`
 - **Runnable examples**: {doc}`examples/index`
-````
+```
 
 ## Install
 
@@ -38,14 +40,26 @@ python -m pip install -e .
 The main subpackages are `httk.core.datastream`, `httk.core.optimade`,
 `httk.core.storage`, `httk.core.vectors`, and `httk.core.views`.
 
+```python
+from httk.core.vectors import FracVector, VectorNumpyView
+
+cell = FracVector.create([["1/2", 0], [0, "1/3"]])
+assert cell[0, 0] == 1 / 2
+numeric = VectorNumpyView(cell)
+assert numeric.tolist() == [[0.5, 0.0], [0.0, 1 / 3]]
+print(numeric)
+```
+
 ```{toctree}
 :maxdepth: 2
 :caption: Documentation
 
 reference/index
 view_backend_pattern
+registry
 datastreams
-cli_and_signing
+cli
+crypto
 project_anchor
 optimade_definitions
 vectors

@@ -1,8 +1,48 @@
 # Vectors
 
-This page documents the exact-rational vector library in `httk.core.vectors` and the Vector
-backend/view family that lets the same tensor data be viewed as the exact representation, as
-plain nested sequences, or (optionally) as numpy arrays.
+This page documents numerical vectors and the exact-rational vector library in
+`httk.core.vectors`, including the backend/view family that lets the same tensor data be viewed as
+plain nested sequences, numpy arrays, or exact values.
+
+## Numerical vectors first
+
+The fastest way to operate on numerical vectors in *httk₂* is to choose the presentation you need:
+plain native leaves with `VectorNativeView`, numpy with `VectorNumpyView` or `to_numeric`, and
+`Decimal` values through the leaf codecs. Plain floats and numpy arrays are convenient but lossy;
+they round exact fractions to binary floating-point values. Native views preserve native leaves by
+default, while an explicit codec makes the conversion choice visible.
+
+```python
+from decimal import Decimal
+
+import numpy
+
+from httk.core.vectors import (
+    FracVector,
+    NumericVector,
+    VectorNativeView,
+    VectorNumpyView,
+    to_numeric,
+)
+
+values = [["1/3", 2], ["3/4", 4]]
+native = VectorNativeView(values)                  # nested tuples, native leaves preserved
+floats = VectorNativeView(values, leaf="float")   # nested tuples of plain floats
+array = VectorNumpyView(values)                    # float64 ndarray
+numeric: NumericVector = to_numeric(values)       # ndarray for a tensor, float for a scalar
+decimals = VectorNativeView(FracVector.create(values), leaf="decimal", digits=6)
+
+assert native == (("1/3", 2), ("3/4", 4))
+assert floats[0][0] == 1 / 3 and isinstance(array, numpy.ndarray)
+assert decimals[0][0] == Decimal("0.333333")
+```
+
+The float and numpy presentations are intentionally lossy: `1/3` becomes the nearest binary
+float. The exact backend remains available for re-viewing, while `VectorNativeView(...,
+leaf="decimal", digits=...)` gives controlled decimal output.
+
+*httk₂* can also work exact-first. Use that route when the values themselves, rather than only
+their numerical presentation, must survive arithmetic unchanged.
 
 ## Exact rational arithmetic
 

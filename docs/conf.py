@@ -147,11 +147,29 @@ def skip_member(app, what, name, obj, skip, options):
 # docs/examples/ is generated, gitignored, and removed by `make docs-clean`.
 _EXAMPLES_SRC = Path(__file__).resolve().parent.parent / "examples"
 _EXAMPLES_OUT = Path(__file__).resolve().parent / "examples"
+_EXAMPLES_ORDER = (
+    "datastreams_quickstart.py",
+    "vectors_quickstart.py",
+    "exactmath_quickstart.py",
+    "load_and_dataset_loader.py",
+    "property_definitions.py",
+    "entry_provider.py",
+    "optimade_filter.py",
+)
+
+
+def _example_sort_key(src: Path) -> tuple[int, str]:
+    name = src.relative_to(_EXAMPLES_SRC).as_posix()
+    try:
+        position = _EXAMPLES_ORDER.index(name)
+    except ValueError:
+        position = len(_EXAMPLES_ORDER)
+    return position, name
 
 
 def generate_example_pages(app):
     _EXAMPLES_OUT.mkdir(parents=True, exist_ok=True)
-    sources = sorted(_EXAMPLES_SRC.rglob("*.py")) if _EXAMPLES_SRC.is_dir() else []
+    sources = sorted(_EXAMPLES_SRC.rglob("*.py"), key=_example_sort_key) if _EXAMPLES_SRC.is_dir() else []
     entries = []
     for src in sources:
         if src.name == "__init__.py" or "__pycache__" in src.parts:
