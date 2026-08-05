@@ -193,11 +193,14 @@ guide covers the built-in codecs and their options. See {doc}`vectors`.
 registry. The callable has the shape `(value, target) -> converted value | None`;
 `target` declares what it can coerce *into* — a class, a tuple of classes, or
 `typing.Any` for a fully general coercer. On lookup,
-{func}`httk.core.views.coercion.coerce` first tries a direct view conversion
+{func}`httk.core.views.coercion.coerce_view` first tries a direct view conversion
 when the requested class is a `View` subclass, then tries registered coercers
 whose declared targets match the requested class, in registration order.
 Returning `None` declines the conversion; `TypeError` is raised if every
-coercer declines it.
+coercer declines it. Strict {func}`httk.core.views.coercion.coerce` resolves
+through the same registry and then additionally sheds view results (for
+non-`View` targets) and validates that the final result is an instance of the
+requested target. See the four-verb table in {doc}`view_backend_pattern`.
 
 ## Canonical encoders
 

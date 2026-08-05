@@ -743,7 +743,7 @@ assert "percent" in known_leaf_codecs()
 assert VectorNativeView(FracVector.create([["1/4", "1/2"]]), leaf="percent") == (("25%", "50%"),)
 ```
 
-### The numpy view, exact capture, and lossiness
+### The numpy view: adoption, conversion, and shedding
 
 numpy support is an optional dependency; install it with the extra:
 
@@ -751,9 +751,33 @@ numpy support is an optional dependency; install it with the extra:
 pip install "httk-core[numpy]"
 ```
 
-`VectorNumpyView(fracvector)` produces a plain float64 matrix — the fast path into numeric code.
-It is the one lossy step (rationals become their nearest binary value), so a 3×3 exact cell
-matrix converts to a plain float matrix identically to `FracVector.to_floats()`:
+`VectorNumpyView` has two construction paths.
+
+**Adoption (O(1), zero-copy).** A raw base-class `numpy.ndarray` of numeric dtype (integer,
+float, or complex) is *adopted* when `dtype=` is omitted or matches: the view shares the array's
+memory and preserves its dtype, and no element is scanned or converted. Both `unwrap()` and
+`unview()` recover the original array object. Values that cannot enter the exact Fraction hub
+(non-finite floats, complex numbers) fail only if and when an exact conversion is actually
+requested. Because the adopted array is not copied, the no-mutation rule applies: do not mutate
+it while the view is in use (see the borrowing lifetime contract in
+{doc}`view_backend_pattern`).
+
+```python
+import numpy
+from httk.core import unview, unwrap
+from httk.core.vectors import VectorNumpyView
+
+raw = numpy.arange(6, dtype=numpy.complex128)
+view = VectorNumpyView(raw)                  # O(1), zero-copy, dtype preserved
+assert numpy.shares_memory(view, raw)
+assert unwrap(view) is raw
+assert unview(view) is raw
+```
+
+**Conversion.** Any other input — an exact vector, a native sequence, or an explicit `dtype=`
+change — is built from the backend's exact `fractions` interchange, `float64` by default. That is
+the one lossy step (rationals become their nearest binary value), so a 3×3 exact cell matrix
+converts to a float matrix identically to `FracVector.to_floats()`:
 
 ```python
 import numpy
@@ -769,6 +793,19 @@ assert arr.dtype == numpy.float64 and arr.shape == (3, 3)
 assert arr.tolist() == cell.to_floats()   # same float matrix as to_floats()
 ```
 
+**Operations shed the view.** Operators, ufuncs, NumPy-dispatched functions (`numpy.concatenate`,
+`numpy.linalg.norm`, ...), reductions, and slicing on a `VectorNumpyView` return base-class
+ndarrays — the wrapper never follows results into numeric hot loops, so after the first
+operation there is no per-element or per-call overhead versus plain numpy. A residual numpy path
+that still produces a `VectorNumpyView` (e.g. `.reshape()`, `.T`) yields a *backend-less* view:
+its own array data is authoritative, it never unwraps to the source backend, and `unview()`
+normalizes it to a base ndarray.
+
+`unview(view)` sheds the wrapper without another copy: the adopted raw array on the adoption
+path, the already-built presentation array on the conversion path. (`numpy.asarray(view)` gives
+the same base-class result; note it may share the presentation storage — it is *shed*, not
+*detached*.)
+
 Going the other way, `VectorFracView(ndarray)` captures a float64 array's values as **exact**
 binary rationals. A value that has genuinely passed through a raw float64 array therefore does not
 return as its original decimal fraction — but `limit_denominator` recovers the intended small
@@ -779,8 +816,8 @@ import numpy
 from httk.core.vectors import FracVector, VectorNumpyView, VectorFracView
 
 one_third = FracVector.create([["1/3"]])
-detached = numpy.asarray(VectorNumpyView(one_third))   # a detached plain float64 array
-back = VectorFracView(detached)                        # captures the binary rational exactly
+plain = numpy.asarray(VectorNumpyView(one_third))      # a plain float64 array (may share storage)
+back = VectorFracView(plain)                           # captures the binary rational exactly
 
 assert back.simplify() != one_third                    # it is the float64 value of 1/3
 assert back.limit_denominator(100).simplify() == one_third
@@ -834,10 +871,17 @@ assert to_numeric_scalar("1/3") == to_numeric(F(1, 3))
 
 Use `to_numeric` when you just want numpy numbers; reach for a specific view (`VectorNumpyView`,
 `VectorNativeView`) when you need control over the exact container type, the numpy `dtype=`, or the
-leaf codec.
+leaf codec. Relation to `unview`: `to_numeric` always *converts* to base-class `float64`, while
+`unview(VectorNumpyView(...))` *sheds* — it preserves the view's dtype and is zero-copy.
 
-### `unwrap`
+### `unwrap` and `unview`
 
 `unwrap(obj)` returns the most raw representation available: the wrapped `FracVector` for a frac
 backend, the original nested sequence for a native backend, and the underlying `ndarray` for a
 numpy backend. For anything that is not a view/backend it returns the object unchanged.
+
+`unview(obj)` sheds a view wrapper sideways instead: a `VectorNativeView` becomes a plain
+`tuple`, a `VectorFracView`/`VectorSurdView` a plain `FracVector`/`SurdVector` (reusing the
+backend's object when it holds exactly the presented value), and a `VectorNumpyView` a base-class
+`ndarray` without a copy. Non-view inputs pass through unchanged. See the four-verb table in
+{doc}`view_backend_pattern`.

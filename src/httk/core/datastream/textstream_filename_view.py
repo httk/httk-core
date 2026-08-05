@@ -32,3 +32,7 @@ class TextstreamFilenameView(TextstreamView, str):
 
     def unwrap(self) -> Any:
         return unwrap(self._backend)
+
+    def unview(self) -> str:
+        # Shed to a plain str of the presented filename.
+        return str(self)

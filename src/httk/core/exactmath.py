@@ -26,10 +26,12 @@ construction — no floating point is used anywhere in the computation.
 Two output domains are supported, selected by a single documented rule. All scalar functions also
 accept ``ScalarLike`` and ``VectorLike`` inputs. Vectors are mapped elementwise and retain their
 shape. The optional keyword-only ``coerce=`` presents the natural result through a requested view
-or value type; ``coerce="natural"`` returns the pre-presentation result unchanged. By default,
-presentation is view-neutral and best-effort: ordinary inputs are presented in the input type
-family, while strings, bools, and ``Backend`` inputs retain the natural result. Explicit coercion
-is strict. ``exact=True`` keeps its exact SurdScalar/SurdVector result unless an explicit
+or value type following :func:`httk.core.coerce_view` semantics — the exact backend is retained
+behind view presentations (use :func:`httk.core.unview` on the result for a plain value);
+``coerce="natural"`` returns the pre-presentation result unchanged. By default, presentation is
+view-neutral and best-effort: ordinary inputs are presented in the input type family, while
+strings, bools, and ``Backend`` inputs retain the natural result. Explicit coercion propagates
+coercion failures. ``exact=True`` keeps its exact SurdScalar/SurdVector result unless an explicit
 ``coerce=`` is supplied.
 
 The default presentation therefore returns an ``int`` for an integral integer result, an exact
@@ -71,7 +73,7 @@ from functools import lru_cache, reduce
 from typing import Any
 
 from .views import Backend
-from .views import coerce as _view_coerce
+from .views import coerce_view as _view_coerce
 
 default_accuracy = fractions.Fraction(1, 10000000000)
 

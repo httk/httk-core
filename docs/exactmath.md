@@ -138,6 +138,16 @@ pi = exactmath.pi()
 pi.limit_denominator(1000)               # Fraction(355, 113)
 ```
 
+## Presentation and the `coerce=` keyword
+
+By default results are presented view-neutrally in the input's type family (an `int`/`Fraction`
+for int input, a `float` for float input, nested lists for list input, a native tuple view for
+tuple input, a float64 numpy view for numpy input). The keyword-only `coerce=` overrides this,
+following {func}`httk.core.coerce_view` semantics: the natural exact result stays recoverable
+behind view presentations via `unwrap()`, and coercion failures propagate. `coerce="natural"`
+returns the pre-presentation result unchanged. A caller that wants a plain, non-view value
+applies {func}`httk.core.unview` to the returned presentation.
+
 ## Decimal mode
 
 The same functions render a correctly-rounded {py:class}`decimal.Decimal` when

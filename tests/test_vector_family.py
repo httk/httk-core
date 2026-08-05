@@ -333,6 +333,127 @@ def test_numpy_view_float32_dtype() -> None:
     assert arr.dtype == numpy.float32
 
 
+# --------------------------------------------------------- numpy view adoption and shedding
+
+
+@requires_numpy
+def test_numpy_view_adopts_raw_ndarray_zero_copy() -> None:
+    from httk.core import coerce, unview, unwrap
+    from httk.core.vectors import VectorNumpyView
+
+    for dtype in (numpy.int64, numpy.float32, numpy.float64, numpy.complex128):
+        raw = numpy.arange(6).astype(dtype).reshape(2, 3)
+        view = VectorNumpyView(raw)
+        assert view.dtype == dtype  # input dtype preserved
+        assert numpy.shares_memory(view, raw)
+        assert unwrap(view) is raw
+        assert unview(view) is raw
+        assert coerce(raw, numpy.ndarray) is raw
+
+
+@requires_numpy
+def test_numpy_view_adoption_does_not_scan_elements() -> None:
+    from httk.core.vectors import VectorNumpyView
+
+    # Non-rationalizable values (non-finite, complex) adopt fine; only an actual exact-hub
+    # conversion fails, and only when requested.
+    raw = numpy.array([numpy.nan, numpy.inf, 1.0])
+    view = VectorNumpyView(raw)
+    assert numpy.shares_memory(view, raw)
+    with pytest.raises((ValueError, OverflowError)):
+        view._backend.fractions
+
+    complex_raw = numpy.array([1 + 2j])
+    complex_view = VectorNumpyView(complex_raw)
+    assert numpy.shares_memory(complex_view, complex_raw)
+    with pytest.raises((TypeError, ValueError)):
+        complex_view._backend.fractions
+
+
+@requires_numpy
+def test_numpy_view_explicit_dtype_change_converts() -> None:
+    from httk.core import unwrap
+    from httk.core.vectors import VectorNumpyView
+
+    raw = numpy.array([[1.5, 2.5]])
+    converted = VectorNumpyView(raw, dtype=numpy.int64)
+    assert converted.dtype == numpy.int64
+    assert not numpy.shares_memory(converted, raw)
+    assert converted.tolist() == [[2, 2]]  # half-even through the int codec
+    assert unwrap(converted) is raw  # the original backend is retained
+
+    # A matching explicit dtype still adopts.
+    same = VectorNumpyView(raw, dtype=numpy.float64)
+    assert numpy.shares_memory(same, raw)
+
+
+@requires_numpy
+def test_numpy_view_rewrap_with_conflicting_dtype_converts() -> None:
+    from httk.core import unwrap
+    from httk.core.vectors import VectorNumpyView
+
+    raw = numpy.array([[1.0, 2.0]])
+    view = VectorNumpyView(raw)
+    assert VectorNumpyView(view) is view
+    assert VectorNumpyView(view, dtype=numpy.float64) is view
+    changed = VectorNumpyView(view, dtype=numpy.float32)
+    assert changed is not view
+    assert changed.dtype == numpy.float32
+    assert unwrap(changed) is raw
+
+
+@requires_numpy
+def test_numpy_view_operations_return_base_arrays() -> None:
+    from httk.core.vectors import VectorNumpyView
+
+    view = VectorNumpyView(numpy.arange(4, dtype=numpy.float64).reshape(2, 2))
+    assert type(view + 1) is numpy.ndarray  # operator
+    assert type(numpy.sin(view)) is numpy.ndarray  # ufunc
+    assert type(numpy.concatenate([view, view])) is numpy.ndarray  # dispatched function
+    assert type(numpy.linalg.norm(view, axis=1)) is numpy.ndarray  # dispatched function
+    assert type(view[0]) is numpy.ndarray  # slicing
+    assert type(view[view > 1]) is numpy.ndarray  # boolean mask
+    assert not isinstance(view.sum(), VectorNumpyView)  # reduction (numpy scalar)
+    assert not isinstance(view.sum(axis=0), VectorNumpyView)
+    quotient, remainder = divmod(view, 2)  # multiple outputs
+    assert type(quotient) is numpy.ndarray and type(remainder) is numpy.ndarray
+    out = numpy.empty_like(view.view(numpy.ndarray))
+    result = numpy.add(view, 1, out=out)  # out=
+    assert type(result) is numpy.ndarray and numpy.shares_memory(result, out)
+
+
+@requires_numpy
+def test_numpy_view_fallback_results_never_inherit_the_backend() -> None:
+    from httk.core import unview, unwrap
+    from httk.core.vectors import VectorNumpyView
+
+    raw = numpy.arange(6, dtype=numpy.float64).reshape(2, 3)
+    view = VectorNumpyView(raw)
+    for derived in (view.reshape(3, 2), view.T):
+        if isinstance(derived, VectorNumpyView):
+            # Backend-less: its own data is authoritative, it never unwraps to the source.
+            assert unwrap(derived) is derived
+            plain = unview(derived)
+            assert type(plain) is numpy.ndarray
+            assert plain.tolist() == derived.tolist()
+
+
+@requires_numpy
+def test_numpy_view_conversion_keeps_exact_backend_and_unviews_plain() -> None:
+    from httk.core import coerce, coerce_view, unview, unwrap
+    from httk.core.vectors import VectorNumpyView
+
+    exact = FracVector.create([["1/3", "2/3"]])
+    view = coerce_view(exact, numpy.ndarray)
+    assert isinstance(view, VectorNumpyView)
+    assert unwrap(view) is exact  # exact backend preserved
+    plain = unview(view)
+    assert type(plain) is numpy.ndarray
+    assert numpy.shares_memory(plain, view)  # shed without another copy
+    strict = coerce(exact, numpy.ndarray)
+    assert type(strict) is numpy.ndarray
+
+
 # ------------------------------------------------------------------ numpy-absent simulation
 
 

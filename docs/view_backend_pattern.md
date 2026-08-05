@@ -38,22 +38,24 @@ Function code still stays clean because it normalizes to a single view immediate
 ## Concrete Example: Vectors
 
 Vector APIs accept native sequences, exact vectors, and numpy views through `VectorLike`. A
-function can do its work in the exact `VectorFracView`, then use `coerce()` to return the result in
-the caller's kind:
+function can do its work in the exact `VectorFracView`, then use `coerce_view()` to return the
+result in the caller's kind:
 
 ```python
-from httk.core import coerce
-from httk.core.vectors import FracVector, VectorFracView, VectorLike
+from httk.core import coerce_view
+from httk.core.vectors import VectorFracView, VectorLike
 
 
 def center(vector: VectorLike) -> VectorLike:
     view = VectorFracView(vector)
     result = view - view[0]
-    return coerce(FracVector.create(result), vector)
+    return coerce_view(result, vector)
 ```
 
 The same function can accept a `FracVector`, `VectorNativeView`, or `VectorNumpyView`; the final
-line uses the received object as a prototype when choosing the return type.
+line uses the received object as a prototype when choosing the return type, and the exact result
+stays recoverable through `unwrap()` on the returned view. A caller that instead needs a plain,
+non-view value applies `unview(...)` to the result, or uses strict `coerce(...)` from the start.
 
 ## Concrete Example: Datastreams
 
@@ -107,16 +109,37 @@ When introducing a new domain (`X`), keep these rules:
 4. In user-facing functions, normalize early (`xview = XSomeView(xlike)`).
 5. Document ambiguity hints when one raw type can represent multiple meanings.
 
-## Shared State, `coerce`, and `unwrap`
+## The Four Verbs: `unwrap`, `unview`, `coerce_view`, and `coerce`
 
-Views of the same underlying backend share stream state:
+Four verbs cover every direction of movement between views, backends, and plain values:
 
-- reading from one view advances position seen by another view on the same backend
+| Verb | Returns | May copy? | May alias? | Exact backend retained? | Fails when |
+|---|---|---|---|---|---|
+| `unwrap(v)` | the original backend/source object | never | yes (it *is* the original) | n/a (it is the source) | never (falls back to `v` itself) |
+| `unview(v)` | a plain, non-view instance of the presented type; non-view input unchanged | allowed, not promised | allowed | no — the wrapper (and its backend link) is gone | the view is interface-only with no standalone value (`TypeError`) |
+| `coerce_view(v, t)` | `v` as target `t`, best-effort; may be an httk view retaining the exact backend, or a lossless fallback of another type (e.g. `Fraction(1, 2)` for `int`) | per coercer | per coercer | yes, behind view results | no representation exists (`TypeError`) |
+| `coerce(v, t)` | a non-view instance satisfying `isinstance(result, t)` (unless `t` is a view class or `"natural"`) | allowed, not promised | allowed | no (view results are shed) | anything short of an exact-type result (`TypeError`) |
+
+`unview` means *remove the httk wrapper* — it does **not** mean *detach*. A shed result may share
+storage with the view or with the original input (e.g. an adopted numpy array). When simultaneous
+independent mutation is required, copy through the target representation's normal mechanism:
+`numpy.array(unview(view), copy=True)`.
+
+For `coerce_view`/`coerce`, a class target names the desired type and an instance target acts as
+a prototype; the exact string `"natural"` returns the value unchanged. The registry-backed
+coercers are described in {doc}`registry` under {ref}`coercers`.
+
+### The borrowing lifetime contract
+
+Views borrow their inputs. An input object, the views built on it, and zero-copy `unview` results
+may all alias the same storage; none of them may be mutated while a view on that data remains in
+use. Mutating the underlying data conceptually expires the views built on it — no runtime
+lifetime tracking is attempted, consistently with the immutable-by-default rule for
+data-representation classes.
+
+Separately from the immutable-data rule, views of the same underlying *stream* backend share
+stream state (this is governed by the streams' own shared-state rules, not the immutability
+contract):
+
+- reading from one view advances the position seen by another view on the same backend
 - closing from one view closes the underlying stream for the others
-
-`unwrap(obj)` is available when you need the most raw underlying representation that a backend/view can expose.
-
-`coerce(value, target)` is the best-effort conversion path when an algorithm has produced one
-representation but its caller's kind matters. A class target names the desired type; an instance
-target acts as a prototype. The registry-backed coercers are described in {doc}`registry` under
-{ref}`coercers`.

@@ -90,3 +90,13 @@ class VectorFracView(VectorView, FracVector):
         if backend is None:
             return self
         return unwrap(backend)
+
+    def unview(self) -> Any:
+        # A frac backend already holds exactly the presented FracVector: reuse it. Otherwise
+        # (converted or backend-less) build a plain FracVector reusing the materialized tuples.
+        backend = getattr(self, "_backend", None)
+        if isinstance(backend, VectorFrac):
+            raw = backend.unwrap()
+            if not isinstance(raw, VectorView):
+                return raw
+        return FracVector(self.noms, self.denom)

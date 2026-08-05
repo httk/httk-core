@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from httk.core import coerce
+from httk.core import coerce, coerce_view
 from httk.core.vectors import (
     FracVector,
     SurdVector,
@@ -143,11 +143,17 @@ def test_fracvector_create_accepts_frac_view() -> None:
 
 def test_coerce_falls_through_deferred_view_data_errors() -> None:
     with pytest.raises(TypeError):
+        coerce_view(["not-a-number"], FracVector)
+    with pytest.raises(TypeError):
         coerce(["not-a-number"], FracVector)
 
 
-def test_coerce_materializes_successful_lazy_view() -> None:
-    result = coerce(["1/3"], FracVector)
+def test_coerce_view_materializes_successful_lazy_view() -> None:
+    result = coerce_view(["1/3"], FracVector)
 
     assert isinstance(result, VectorFracView)
     assert {"noms", "denom", "_dim"} <= result.__dict__.keys()
+
+    # The strict verb sheds the materialized view to a plain FracVector.
+    plain = coerce(["1/3"], FracVector)
+    assert type(plain) is FracVector

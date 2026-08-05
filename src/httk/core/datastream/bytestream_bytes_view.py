@@ -29,3 +29,7 @@ class BytestreamBytesView(BytestreamView, bytes):
 
     def unwrap(self) -> Any:
         return unwrap(self._backend)
+
+    def unview(self) -> bytes:
+        # Shed to a plain bytes of the presented data (builtin subclass shedding copies).
+        return bytes(self)

@@ -73,3 +73,7 @@ class VectorNativeView(VectorView, tuple):
 
     def unwrap(self) -> Any:
         return unwrap(self._backend)
+
+    def unview(self) -> Any:
+        # The view IS its presentation tuple; shed to a plain tuple (shallow, leaves shared).
+        return tuple(self)

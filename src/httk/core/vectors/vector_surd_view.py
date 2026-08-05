@@ -73,3 +73,13 @@ class VectorSurdView(VectorView, SurdVector):
         if backend is None:
             return self
         return unwrap(backend)
+
+    def unview(self) -> Any:
+        # A surd backend already holds exactly the presented SurdVector: reuse it. Otherwise
+        # build a plain SurdVector reusing the materialized components mapping.
+        backend = getattr(self, "_backend", None)
+        if isinstance(backend, VectorSurd):
+            raw = backend.unwrap()
+            if not isinstance(raw, VectorView):
+                return raw
+        return SurdVector(self._components, self._dim)

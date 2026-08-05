@@ -87,7 +87,7 @@ from .vectors import (
     to_numeric,
     to_numeric_scalar,
 )
-from .views import Backend, View, coerce, unwrap
+from .views import Backend, View, coerce, coerce_view, unview, unwrap
 
 _discover_and_register()
 
@@ -131,6 +131,7 @@ __all__ = [
     "VectorLike",
     "View",
     "coerce",
+    "coerce_view",
     "combined_precision",
     "content_id",
     "credits",
@@ -165,5 +166,6 @@ __all__ = [
     "stored_property",
     "to_numeric",
     "to_numeric_scalar",
+    "unview",
     "unwrap",
 ]

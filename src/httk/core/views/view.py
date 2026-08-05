@@ -23,7 +23,8 @@ class View[BackendT: Backend]:
     ``cached_property`` shadows and group fills materialize presentation state on first access.
     Size fills to the subset served by each backend call; validate before assigning, never read a
     shadowed attribute from a fill, and document why a view must remain eager. The explicit
-    ``coerce()`` path materializes via ``_ensure_materialized()``; laziness is for pass-through use.
+    ``coerce_view()``/``coerce()`` paths materialize via ``_ensure_materialized()``; laziness is
+    for pass-through use.
     """
 
     # Python typing, and mypy in particular, have trouble with variables being assigned abstract base classes
@@ -64,3 +65,14 @@ class View[BackendT: Backend]:
         that representation will be returned. If this is not possible, the instance itself is returned.
         """
         return unwrap(self._backend)
+
+    def unview(self) -> Any:
+        """
+        Return the view's presented representation as a plain, non-View instance.
+
+        Concrete views that mimic a value type override this to shed the httk wrapper; the result
+        may alias the view's storage (no copy is promised). The default raises ``TypeError``,
+        which is the correct behavior for views that only adapt an interface and have no faithful
+        standalone value.
+        """
+        raise TypeError(f"{type(self).__name__} is an interface-only view with no standalone plain value")
