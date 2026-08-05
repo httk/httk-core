@@ -325,11 +325,24 @@ def _record_declaration(record_type: type[Any], name: str) -> Any:
     return _MISSING
 
 
+# Evaluated annotations are pure per class, and resolving them sits on the hot
+# path of every content_id/canonical_form call, so cache per record type. Only
+# successful resolutions are cached: the fallback stays a per-call decision, so
+# a later successful resolution (e.g. after a partial import completes) is
+# still picked up.
+_RESOLVED_ANNOTATIONS: dict[type[Any], dict[str, Any]] = {}
+
+
 def _record_annotations(record_type: type[Any]) -> dict[str, Any]:
+    cached = _RESOLVED_ANNOTATIONS.get(record_type)
+    if cached is not None:
+        return cached
     try:
-        return get_type_hints(record_type, include_extras=True)
+        resolved = get_type_hints(record_type, include_extras=True)
     except (NameError, TypeError, AttributeError):
         return {field.name: field.type for field in dataclasses.fields(record_type)}
+    _RESOLVED_ANNOTATIONS[record_type] = resolved
+    return resolved
 
 
 def _unwrap_annotation(annotation: Any) -> Any:
