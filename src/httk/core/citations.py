@@ -95,6 +95,8 @@ def _format_reference(ref: Reference) -> str:
         parts.append(f"pp. {ref.pages}")
     if ref.publisher:
         parts.append(ref.publisher)
+    if ref.school:
+        parts.append(ref.school)
     if ref.year:
         parts.append(f"({ref.year})")
     if ref.note:

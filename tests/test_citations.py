@@ -55,11 +55,18 @@ def test_author_mappings_are_copied_during_registration() -> None:
 def test_number_and_note_are_rendered() -> None:
     httk.core.register_citation(
         applies_to="number and note",
-        references={"title": "Title", "volume": "3", "number": "3", "note": "Version 0.1.0, CC BY 4.0"},
+        references={
+            "title": "Title",
+            "volume": "3",
+            "number": "3",
+            "note": "Version 0.1.0, CC BY 4.0",
+            "school": "Linköping University",
+        },
     )
     rendered = str(httk.core.credits)
     assert "no. 3" in rendered
     assert "Version 0.1.0, CC BY 4.0" in rendered
+    assert "Linköping University" in rendered
 
 
 def test_empty_references_are_rejected() -> None:
