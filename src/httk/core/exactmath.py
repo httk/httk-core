@@ -197,11 +197,7 @@ def any_to_fraction(
         else:
             return best_rational_in_interval(val - delta, val + delta)
     else:
-        try:
-            return fractions.Fraction(arg)
-        except Exception:
-            print("any_to_fraction tried to convert this argument and failed:", arg)
-            raise
+        return fractions.Fraction(arg)
 
 
 def integer_sqrt(n: int) -> int:
