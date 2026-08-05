@@ -110,19 +110,17 @@ def coerce(value: Any, target: Any) -> Any:
     The exact string ``"natural"`` returns ``value`` unchanged (no coercion, even for a View).
     Otherwise the resolution of :func:`coerce_view` applies, and then: an httk View result is
     shed via :func:`~httk.core.views.unviewing.unview` unless the requested target is itself a
-    View class, and the final result must satisfy ``isinstance(result, target)`` — a lossless
-    fallback of another type (available through :func:`coerce_view`) makes strict coercion fail
-    with ``TypeError``. An existing non-View subtype of the target is an identity result.
+    View class; a View result that cannot shed raises ``unview``'s own ``TypeError``; and the
+    final result must satisfy ``isinstance(result, target)`` — a lossless fallback of another
+    type (available through :func:`coerce_view`) makes strict coercion fail with ``TypeError``. An
+    existing non-View subtype of the target is an identity result.
     """
     if isinstance(target, str) and target == "natural":
         return value
     tcls = target if isinstance(target, type) else type(target)
     result = coerce_view(value, tcls)
     if isinstance(result, View) and not issubclass(tcls, View):
-        try:
-            result = unview(result)
-        except TypeError:
-            raise TypeError(f"Cannot coerce {type(value)} to {target!r}") from None
+        result = unview(result)
     if not isinstance(result, tcls):
         raise TypeError(f"Cannot coerce {type(value)} to {target!r}")
     return result

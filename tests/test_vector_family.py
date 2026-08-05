@@ -3,8 +3,10 @@ Tests for the Vector backend/view family: dispatch, kind overrides, view round-t
 and behavior when numpy is absent.
 """
 
+import copy
 import fractions
 import pathlib
+import pickle
 import subprocess
 import sys
 
@@ -420,6 +422,68 @@ def test_numpy_view_operations_return_base_arrays() -> None:
     out = numpy.empty_like(view.view(numpy.ndarray))
     result = numpy.add(view, 1, out=out)  # out=
     assert type(result) is numpy.ndarray and numpy.shares_memory(result, out)
+
+
+@requires_numpy
+def test_numpy_view_sheds_where_kwarg_views() -> None:
+    from httk.core.vectors import VectorNumpyView
+
+    view = VectorNumpyView(numpy.array([1.0, 2.0]))
+    mask_view = numpy.array([True, False]).view(VectorNumpyView)
+    out = numpy.zeros(2)
+    result = numpy.add(view, 1, where=mask_view, out=out)
+    assert type(result) is numpy.ndarray
+    assert result.tolist() == [2.0, 0.0]
+
+
+@requires_numpy
+def test_numpy_view_sheds_tuple_subclass_args() -> None:
+    from collections import namedtuple
+
+    from httk.core.vectors import VectorNumpyView
+
+    Point = namedtuple("Point", "x y")
+    result = numpy.reshape(VectorNumpyView(numpy.arange(4)), Point(1, 4))
+    assert type(result) is numpy.ndarray
+    assert result.shape == (1, 4)
+
+
+@requires_numpy
+def test_numpy_view_retains_backend_through_copy_round_trips() -> None:
+    from httk.core import FracVector, unview, unwrap
+    from httk.core.vectors import VectorNumpyView
+
+    exact = FracVector.create([["1/3", "2/3"]])
+    view = VectorNumpyView(exact)
+    round_trips = (
+        (pickle.loads(pickle.dumps(view)), False),
+        (copy.copy(view), True),
+        (copy.deepcopy(view), False),
+    )
+    for result, is_shallow_copy in round_trips:
+        backend = unwrap(result)
+        assert isinstance(backend, FracVector)
+        assert backend == exact
+        assert type(unview(result)) is numpy.ndarray
+        if is_shallow_copy:
+            assert result._backend is view._backend
+
+    derived = view.reshape(1, 2)
+    copied_derived = copy.deepcopy(derived)
+    assert unwrap(copied_derived) is copied_derived
+
+
+@requires_numpy
+def test_numpy_view_accepts_untagged_ndarray_state() -> None:
+    from httk.core import unwrap
+    from httk.core.vectors import VectorNumpyView
+
+    source = numpy.arange(4, dtype=numpy.float64).reshape(2, 2)
+    reconstruct, args, state = numpy.ndarray.__reduce__(source)
+    restored = reconstruct(VectorNumpyView, *args[1:])
+    restored.__setstate__(state)
+    assert numpy.array_equal(restored, source)
+    assert unwrap(restored) is restored
 
 
 @requires_numpy

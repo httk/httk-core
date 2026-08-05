@@ -142,6 +142,23 @@ def test_strict_coerce_validates_custom_coercer_results() -> None:
         _coercers[:] = original
 
 
+def test_strict_coerce_preserves_unview_error() -> None:
+    class BrokenView(View):
+        def unview(self):
+            raise TypeError("boom marker")
+
+    def broken(value, target):
+        return BrokenView()
+
+    original = list(_coercers)
+    try:
+        register_coercer(broken, int)
+        with pytest.raises(TypeError, match="boom marker"):
+            coerce(object(), int)
+    finally:
+        _coercers[:] = original
+
+
 def test_registered_target_filters_calls() -> None:
     calls = []
 

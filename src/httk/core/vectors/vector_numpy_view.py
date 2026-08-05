@@ -6,7 +6,9 @@ cannot be imported at all unless numpy is installed. The package ``__init__`` gu
 with ``try/except ImportError`` accordingly.
 """
 
-from typing import Any, Self
+import copy
+import copyreg
+from typing import Any, Self, cast
 
 import numpy
 
@@ -15,9 +17,14 @@ from httk.core.views import unwrap
 from .leaf_codecs import apply_leaf_codec, leaf_codec_for_name
 from .vector_api import Fractions
 from .vector_backend import VectorBackend
+from .vector_frac import VectorFrac
 from .vector_like import VectorLike
+from .vector_native import VectorNative
 from .vector_numpy import VectorNumpy
+from .vector_surd import VectorSurd
 from .vector_view import VectorView
+
+_BACKEND_STATE_TAG = "httk-vector-backend"
 
 
 def _to_floats(node: Fractions) -> Any:
@@ -30,11 +37,25 @@ def _shed(node: Any) -> Any:
     """Recursively replace VectorNumpyView instances with base-class ndarrays in args/kwargs."""
     if isinstance(node, VectorNumpyView):
         return node.view(numpy.ndarray)
-    if isinstance(node, (list, tuple)):
-        return type(node)(_shed(e) for e in node)
+    if isinstance(node, tuple):
+        return tuple(_shed(e) for e in node)
+    if isinstance(node, list):
+        return [_shed(e) for e in node]
     if isinstance(node, dict):
         return {k: _shed(v) for k, v in node.items()}
     return node
+
+
+def _rebuild_backend(backend_cls: type, value: Any) -> Any:
+    return backend_cls(value)
+
+
+def _reduce_backend(backend: VectorBackend) -> Any:
+    return _rebuild_backend, (type(backend), unwrap(backend))
+
+
+for _backend_cls in (VectorFrac, VectorSurd, VectorNumpy, VectorNative):
+    copyreg.pickle(_backend_cls, _reduce_backend)
 
 
 class VectorNumpyView(VectorView, numpy.ndarray):
@@ -70,6 +91,8 @@ class VectorNumpyView(VectorView, numpy.ndarray):
     """
 
     _backend: VectorBackend
+    # Route copy.copy through __reduce_ex__ so the backend survives.
+    __copy__ = None  # type: ignore[assignment]  # pyright: ignore[reportIncompatibleVariableOverride]
 
     def __new__(cls, obj: VectorLike, **hints: Any) -> Self:
         dtype = hints.pop("dtype", None)
@@ -106,9 +129,7 @@ class VectorNumpyView(VectorView, numpy.ndarray):
     def __array_ufunc__(self, ufunc: Any, method: str, *inputs: Any, **kwargs: Any) -> Any:
         # Shed the view: operate on and return base-class ndarrays.
         shed_inputs = tuple(_shed(x) for x in inputs)
-        out = kwargs.get("out")
-        if out is not None:
-            kwargs["out"] = tuple(_shed(x) for x in out)
+        kwargs = {key: _shed(value) for key, value in kwargs.items()}
         return getattr(ufunc, method)(*shed_inputs, **kwargs)
 
     def __array_function__(self, func: Any, types: Any, args: Any, kwargs: Any) -> Any:
@@ -123,6 +144,28 @@ class VectorNumpyView(VectorView, numpy.ndarray):
     def __getitem__(self, key: Any) -> Any:
         # Slicing/indexing results are presentation output: base-class ndarrays (or numpy scalars).
         return self.view(numpy.ndarray)[key]
+
+    def __reduce__(self) -> Any:
+        reduced = cast(tuple[Any, tuple[Any, ...], Any], super().__reduce__())
+        reconstruct, args, state = reduced
+        return reconstruct, args, state + ((_BACKEND_STATE_TAG, getattr(self, "_backend", None)),)
+
+    def __setstate__(self, state: Any) -> None:
+        backend = None
+        if state and isinstance(state[-1], tuple) and len(state[-1]) == 2 and state[-1][0] == _BACKEND_STATE_TAG:
+            backend = state[-1][1]
+            state = state[:-1]
+        super().__setstate__(state)
+        self.__dict__.pop("_backend", None)
+        if backend is not None:
+            self._backend = backend
+
+    def __deepcopy__(self, memo: dict[int, Any] | None) -> Self:
+        result = super().__deepcopy__(memo)
+        backend = getattr(self, "_backend", None)
+        if backend is not None:
+            result._backend = copy.deepcopy(backend, memo)
+        return result
 
     def unwrap(self) -> Any:
         backend = getattr(self, "_backend", None)
