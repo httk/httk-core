@@ -17,6 +17,7 @@
 
 from . import exactmath  # noqa: F401 - intentional module-level import for ``from httk.core import exactmath``
 from ._discover import discover_and_register as _discover_and_register
+from .citations import credits, register_citation
 from .cli import CLIContext
 from .dataset_loader import DatasetLoader, DatasetMeta, DatasetRecord
 from .datastream import (
@@ -132,6 +133,7 @@ __all__ = [
     "coerce",
     "combined_precision",
     "content_id",
+    "credits",
     "decimal_precision",
     "fetch",
     "has_reader_for",
@@ -144,6 +146,7 @@ __all__ = [
     "load_property_definition",
     "load_source",
     "numpy_available",
+    "register_citation",
     "register_cli_command",
     "register_compression",
     "register_definition_prefix",

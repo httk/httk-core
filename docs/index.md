@@ -23,6 +23,7 @@ on the other.
 - **OPTIMADE definitions & entry providers**: {doc}`optimade_definitions`
 - **Vectors guide**: {doc}`vectors`
 - **Exact math on rationals and decimals**: {doc}`exactmath`
+- **Citation credits**: {doc}`credits`
 - **Runnable examples**: {doc}`examples/index`
 ```
 
@@ -64,5 +65,6 @@ project_anchor
 optimade_definitions
 vectors
 exactmath
+credits
 examples/index
 ```
