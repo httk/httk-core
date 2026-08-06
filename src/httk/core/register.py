@@ -178,6 +178,11 @@ def known_writers() -> list[str]:
     return sorted(set(writers.keys()) | set(writer_filenames.keys()))
 
 
+def known_writer_formats() -> list[str]:
+    """Return registered writer format tags."""
+    return sorted(_writers_by_format)
+
+
 def _reindex_writer_format(format: str) -> None:
     for registry in (writers, writer_filenames, writer_formats):
         for key in registry.keys():  # noqa: SIM118 — PluginRegistry exposes keys(), not mapping iteration.

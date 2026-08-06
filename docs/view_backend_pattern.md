@@ -129,6 +129,8 @@ For `coerce_view`/`coerce`, a class target names the desired type and an instanc
 a prototype; the exact string `"natural"` returns the value unchanged. The registry-backed
 coercers are described in {doc}`registry` under {ref}`coercers`.
 
+See {ref}`save-view-semantics` for how saving treats views and their retained backends.
+
 ### The borrowing lifetime contract
 
 Views borrow their inputs. An input object, the views built on it, and zero-copy `unview` results

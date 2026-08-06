@@ -91,6 +91,44 @@ writer. A non-neutral object is first passed through the registered format
 serializer; a neutral mapping with the matching `"format"` tag is written as
 is. `known_writers` lists registered extension and basename keys.
 
+(save-view-semantics)=
+
+### Save semantics
+
+`save` writes the underlying data; views are transparent. A view presents its
+backend through another interface and holds no data of its own, so
+`save(view, dest)` and `save(backend, dest)` write the same file.
+Exact-by-default means the original representation is the source of truth:
+when the destination format matches a backend's retained native representation
+(for example, a POSCAR-backed structure saved as `.vasp`), the writer receives
+the original data verbatim and the result is byte-exact. When the destination
+format differs (the same view saved as `.cif`), the registered format
+serializer converts from the presented domain data like any other conversion.
+To deliberately save the presentation instead, shed it explicitly first:
+`save(unview(v), dest)` (or `coerce(v, ...)`), following the four-verb view
+grammar.
+
+The `format=` keyword overrides destination-name dispatch:
+
+```python
+save(obj, "data.out", format="vasp-poscar")
+```
+
+A mapping whose `"format"` key equals the selected tag is written verbatim;
+other objects go through the registered format serializer for that tag.
+
+To discover the available dispatch options, use
+`httk.core.register.known_writer_formats()` for the tags accepted by
+`format=`, `known_writers()` for writer destination keys, and
+`has_writer_for(name)` to probe destination-name dispatch. The load direction
+has the corresponding `known_format_adapters()` accessor.
+
+```python
+from httk.core.register import known_writer_formats
+
+assert known_writer_formats() == sorted(known_writer_formats())
+```
+
 ## Entry providers, records, families, and bindings
 
 `register_entry_provider(*, name, factory)` records a lazy factory for an

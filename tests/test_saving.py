@@ -1,7 +1,7 @@
 import pytest
 
 from httk.core import has_writer_for, save
-from httk.core.register import _writer_for_format, register_format_serializer, register_writer
+from httk.core.register import _writer_for_format, known_writer_formats, register_format_serializer, register_writer
 
 
 def test_save_dispatches_writer_and_serializer(tmp_path):
@@ -13,9 +13,7 @@ def test_save_dispatches_writer_and_serializer(tmp_path):
     def serializer(obj):
         return {"format": "test-save", "value": obj}
 
-    register_writer(
-        name="test-save", writer=writer, format="test-save", extensions=(".save",), filenames=("SAVEFILE",)
-    )
+    register_writer(name="test-save", writer=writer, format="test-save", extensions=(".save",), filenames=("SAVEFILE",))
     register_format_serializer(format="test-save", serializer=serializer)
 
     assert has_writer_for(tmp_path / "x.save")
@@ -42,3 +40,14 @@ def test_writer_extension_collision_reindexes_format_dispatch():
     registry, key = _writer_for_format("collision-second")
     assert key == ".collision"
     assert registry.get(key).handler is second
+
+
+def test_known_writer_formats_are_sorted_and_copied():
+    register_writer(name="format-z", writer=lambda *_args: None, format="format-z")
+    register_writer(name="format-a", writer=lambda *_args: None, format="format-a")
+
+    formats = known_writer_formats()
+    assert {"format-a", "format-z"} <= set(formats)
+    assert formats == sorted(formats)
+    formats.append("not-registered")
+    assert "not-registered" not in known_writer_formats()
