@@ -1,6 +1,6 @@
 {
     "$id": "https://schemas.httk.org/defs/v0.1/entrytypes/runs",
-    "$schema": "https://schemas.httk.org/meta/v1.2/optimade/entrytype_definition.json",
+    "$schema": "https://schemas.optimade.org/meta/v1.2/optimade/entrytype_definition.json",
     "type": "object",
     "title": "httk runs entry type",
     "x-optimade-definition": {
@@ -10,7 +10,6 @@
         "name": "runs",
         "label": "runs_entrytype_httk"
     },
-    "x-optimade-category": "execution",
     "description": "A runs entry represents one specific, individual execution of a workflow or process that consumed and/or produced other entries.\nProvenance edges (inputs, artifacts, outputs) are expressed as relationships, not properties.",
     "properties": {
         "id": {

@@ -1,6 +1,6 @@
 {
     "$id": "https://schemas.httk.org/defs/v0.1/entrytypes/records",
-    "$schema": "https://schemas.httk.org/meta/v1.2/optimade/entrytype_definition.json",
+    "$schema": "https://schemas.optimade.org/meta/v1.2/optimade/entrytype_definition.json",
     "type": "object",
     "title": "httk records entry type",
     "x-optimade-definition": {
@@ -10,7 +10,6 @@
         "name": "records",
         "label": "records_entrytype_httk"
     },
-    "x-optimade-category": "data",
     "description": "A records entry carries the value of one formally declared property (a computed or measured quantity) as its own entry, so that multiple parallel determinations of the same quantity for the same system can coexist as separate entries linked via provenance relationships.\nThe value properties served on this entry type are declared per provider through property definitions and are not enumerated here.",
     "properties": {
         "id": {
