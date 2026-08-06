@@ -469,7 +469,7 @@ class EntryTypeDefinition:
     original standard IRI in ``extends_id`` instead.
     """
 
-    __slots__ = ("_definition_id", "_description", "_extends_id", "_name", "_properties")
+    __slots__ = ("_category", "_definition_id", "_description", "_extends_id", "_name", "_properties")
 
     def __init__(
         self,
@@ -478,12 +478,16 @@ class EntryTypeDefinition:
         properties: Mapping[str, PropertyDefinition],
         definition_id: str | None = None,
         extends_id: str | None = None,
+        category: str | None = None,
     ) -> None:
+        if category is not None and category not in ("data", "execution", "metadata"):
+            raise ValueError(f"Invalid x-optimade-category value: {category!r}.")
         self._name = name
         self._description = description
         self._properties: dict[str, PropertyDefinition] = dict(properties)
         self._definition_id = definition_id
         self._extends_id = extends_id
+        self._category = category
 
     @classmethod
     def from_optimade(cls, name: str, entrytype: Mapping[str, Any]) -> Self:
@@ -503,7 +507,13 @@ class EntryTypeDefinition:
             prop_name: PropertyDefinition.from_optimade(prop_name, prop_def)
             for prop_name, prop_def in entrytype["properties"].items()
         }
-        return cls(name, entrytype["description"], properties, entrytype.get("$id"))
+        return cls(
+            name,
+            entrytype["description"],
+            properties,
+            entrytype.get("$id"),
+            category=entrytype.get("x-optimade-category"),
+        )
 
     @property
     def name(self) -> str:
@@ -522,6 +532,11 @@ class EntryTypeDefinition:
     def extends_id(self) -> str | None:
         """Return the original standard IRI extended to make this definition, if any."""
         return self._extends_id
+
+    @property
+    def category(self) -> str:
+        """Return ``x-optimade-category``, defaulting to ``"data"``."""
+        return self._category or "data"
 
     @property
     def properties(self) -> Mapping[str, PropertyDefinition]:
@@ -567,6 +582,7 @@ class EntryTypeDefinition:
             self._description,
             merged,
             extends_id=self._extends_id or self._definition_id,
+            category=self._category,
         )
 
     def as_optimade(self) -> dict[str, Any]:
@@ -577,6 +593,8 @@ class EntryTypeDefinition:
         }
         if self._definition_id is not None:
             document["$id"] = self._definition_id
+        if self._category is not None:
+            document["x-optimade-category"] = self._category
         return document
 
     def __eq__(self, other: object) -> bool:
@@ -588,12 +606,13 @@ class EntryTypeDefinition:
             and self._properties == other._properties
             and self._definition_id == other._definition_id
             and self._extends_id == other._extends_id
+            and self._category == other._category
         )
 
     def __repr__(self) -> str:
         return (
             f"EntryTypeDefinition(name={self._name!r}, definition_id={self._definition_id!r}, "
-            f"properties={list(self._properties)!r})"
+            f"category={self._category!r}, properties={list(self._properties)!r})"
         )
 
 

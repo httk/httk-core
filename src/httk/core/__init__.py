@@ -19,6 +19,7 @@ from . import exactmath  # noqa: F401 - intentional module-level import for ``fr
 from ._discover import discover_and_register as _discover_and_register
 from .citations import credits, register_citation
 from .cli import CLIContext
+from .data_records import DataRecord, DataRecordEntry
 from .dataset_loader import DatasetLoader, DatasetMeta, DatasetRecord
 from .datastream import (
     BytestreamFileView,
@@ -45,6 +46,7 @@ from .property_definitions import (
     register_definition_prefix,
     standard_entry_type,
 )
+from .provenance import ProductLink, Run, RunEdge, RunEntry
 from .register import (
     known_entry_providers,
     load_entry_type_definition,
@@ -99,6 +101,8 @@ __all__ = [
     "CLIContext",
     "Calculation",
     "CompressionCodec",
+    "DataRecord",
+    "DataRecordEntry",
     "DatasetLoader",
     "DatasetMeta",
     "DatasetRecord",
@@ -113,11 +117,15 @@ __all__ = [
     "Indexed",
     "MutableFracVector",
     "NumericVector",
+    "ProductLink",
     "PropertyDefinition",
     "Reference",
     "Related",
     "RelatedEntry",
     "RelationshipLink",
+    "Run",
+    "RunEdge",
+    "RunEntry",
     "ScalarLike",
     "Shape",
     "Skip",

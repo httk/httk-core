@@ -45,7 +45,10 @@ class RelatedEntry:
     ``role`` (the machine-readable relationship role introduced in OPTIMADE
     v1.3 as ``meta.role``, e.g. ``"input"``/``"output"`` for the
     calculations↔files relationship). An absent ``role`` means exactly that —
-    no role is declared and no default is assumed.
+    no role is declared and no default is assumed. ``label`` is the provenance
+    edge label (the OPTIMADE relation-object ``label``); until relation-object
+    serving exists, it is served on the OPTIMADE side as prefixed relationship
+    metadata.
     """
 
     entry_type: str
@@ -59,6 +62,9 @@ class RelatedEntry:
 
     role: str | None = None
     """The machine-readable role of the relationship, if declared."""
+
+    label: str | None = None
+    """The provenance edge label, if declared."""
 
 
 class EntryProvider(ABC):

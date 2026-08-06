@@ -1,6 +1,29 @@
-"""Register core entry records and typed OPTIMADE bindings lazily."""
+"""Register core entry families, records, and typed OPTIMADE bindings lazily."""
 
-from httk.core import register_entry_record, register_optimade_entry_binding
+from httk.core import register_entry_family, register_entry_record, register_optimade_entry_binding
+
+register_entry_family(
+    name="runs",
+    family="httk.core.provenance:RunEntry",
+    definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/runs",
+)
+register_entry_family(
+    name="records",
+    family="httk.core.data_records:DataRecordEntry",
+    definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/records",
+)
+register_entry_record(
+    name="core-run",
+    record="httk.core.provenance:Run",
+    family="runs",
+    definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/runs",
+)
+register_entry_record(
+    name="core-data-record",
+    record="httk.core.data_records:DataRecord",
+    family="records",
+    definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/records",
+)
 
 register_entry_record(
     name="core-reference",

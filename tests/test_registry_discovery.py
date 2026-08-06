@@ -6,7 +6,9 @@ from pathlib import Path
 
 import pytest
 
+import httk.core.data_records
 import httk.core.entry_types
+import httk.core.provenance
 import httk.registry
 from httk.core._discover import discover_and_register
 from httk.core.register import (
@@ -15,12 +17,14 @@ from httk.core.register import (
     _property_definitions,
     entry_record_info,
     known_cli_commands,
+    known_entry_families,
     known_entry_records,
     known_entry_type_definitions,
     load_entry_type_definition,
     register_entry_record,
     register_entry_type_definition,
     register_property_definition,
+    resolve_entry_family,
     resolve_entry_record,
 )
 
@@ -47,6 +51,24 @@ def test_discovery_registers_cli_and_core_records() -> None:
         "https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files",
         "https://schemas.optimade.org/defs/v1.3/entrytypes/optimade/calculations",
     } <= set(known_entry_type_definitions())
+
+
+def test_discovery_registers_httk_entry_types_families_and_records() -> None:
+    runs_id = "https://schemas.httk.org/defs/v0.1/entrytypes/runs"
+    records_id = "https://schemas.httk.org/defs/v0.1/entrytypes/records"
+    runs = load_entry_type_definition(runs_id)
+    records = load_entry_type_definition(records_id)
+    assert runs.category == "execution"
+    assert runs.name == "runs"
+    assert set(runs.properties) == {"id", "type", "immutable_id", "last_modified", "workflow_declaration_uri"}
+    assert records.category == "data"
+    assert records.name == "records"
+    assert set(records.properties) == {"id", "type", "immutable_id", "last_modified"}
+    assert resolve_entry_record("core-run") is httk.core.provenance.Run
+    assert resolve_entry_record("core-data-record") is httk.core.data_records.DataRecord
+    assert known_entry_records(family="runs") == ["core-run"]
+    assert {"runs", "records"} <= set(known_entry_families())
+    assert resolve_entry_family("runs") is httk.core.provenance.RunEntry
 
 
 def test_discovery_walks_io_and_not_flat_registry_tiers(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

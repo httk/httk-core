@@ -14,3 +14,11 @@ register_entry_type_definition(
     definition_id="https://schemas.optimade.org/defs/v1.3/entrytypes/optimade/calculations",
     resource="httk.registry.schemas.core:calculations.json",
 )
+register_entry_type_definition(
+    definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/runs",
+    resource="httk.registry.schemas.core:runs.json",
+)
+register_entry_type_definition(
+    definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/records",
+    resource="httk.registry.schemas.core:records.json",
+)

@@ -73,6 +73,19 @@ def test_entry_type_definition_id_round_trip_and_extension_provenance() -> None:
     assert chained.extends_id == standard.definition_id
 
 
+def test_entry_type_category_round_trip_and_default() -> None:
+    standard = standard_entry_type("calculations")
+    assert standard.category == "data"
+    assert "x-optimade-category" not in standard.as_optimade()
+    document = standard.as_optimade() | {"x-optimade-category": "execution"}
+    execution = EntryTypeDefinition.from_optimade("calculations", document)
+    assert execution.category == "execution"
+    assert execution.as_optimade() == document
+    assert execution.extended({}).category == "execution"
+    with pytest.raises(ValueError, match="invalid"):
+        EntryTypeDefinition("widgets", "Widgets", {}, category="invalid")
+
+
 def test_from_optimade_validation_error() -> None:
     with pytest.raises(ValueError) as excinfo:
         PropertyDefinition.from_optimade("broken", {"description": "no id/type/xtype"})

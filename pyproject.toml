@@ -52,7 +52,7 @@ namespaces = true
 [tool.setuptools.package-data]
 "httk.core" = ["py.typed"]
 "httk.core.optimade.filter" = ["*.ebnf", "README.md"]
-"httk.registry.schemas.core" = ["*.json", "LICENSE", "README.md"]
+"httk.registry.schemas.core" = ["*.json", "LICENSE", "LICENSE.httk", "README.md"]
 "httk.core.docs" = ["assets/*"]
 
 [project.optional-dependencies]
