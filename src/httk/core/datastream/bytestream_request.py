@@ -10,8 +10,13 @@ from .network_policy import resolve_timeout
 
 
 class BytestreamRequest(BytestreamCommon, BytestreamBackend):
-    """
+    r"""
     Backend for streaming byte data fetched via a urllib.request.Request.
+    Response content is transparently decompressed according to the compression hint.
+
+    :param request: Request to execute lazily when data is first read.
+    :param \**hints: Backend-selection, timeout, and compression hints.
+    :raises ValueError: If the compression hint is unknown.
     """
 
     _request: urllib.request.Request
@@ -52,16 +57,20 @@ class BytestreamRequest(BytestreamCommon, BytestreamBackend):
 
     @property
     def name(self) -> str | None:
+        """Report that a request backend has no filename."""
         return None
 
     @property
     def url(self) -> str:
+        """Return the request URL."""
         return self._request.full_url
 
     @property
     def request(self) -> urllib.request.Request:
+        """Return the request used to fetch the stream."""
         return self._request
 
     @property
     def closed(self) -> bool:
+        """Report whether the request backend is closed."""
         return self._closed

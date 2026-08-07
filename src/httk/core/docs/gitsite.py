@@ -36,7 +36,13 @@ class GitUnavailableError(GitSiteError):
 
 @dataclass(frozen=True)
 class CommitSiteResult:
-    """Summary of a site commit operation."""
+    """Summarize a site commit operation.
+
+    :param repository: Repository receiving the generated objects.
+    :param branch: Branch replaced by the new commit.
+    :param commit: Identifier of the parentless commit.
+    :param tree: Identifier of the committed site tree.
+    """
 
     repository: Path
     branch: str
@@ -145,6 +151,18 @@ def commit_site(
     checked-out files are not changed. Ref leases for concurrent publishers
     remain the caller's responsibility when pushing the resulting branch. Git
     dates remain ambient, so commit IDs are intentionally not deterministic.
+
+    :param site_directory: Generated site tree to commit.
+    :param branch: Branch to replace with the generated commit.
+    :param message: Commit message for the generated commit.
+    :param repository: Repository to update, or the site/current repository.
+    :param author_name: Git author name, using the docs-bot default when omitted.
+    :param author_email: Git author email, using the docs-bot default when omitted.
+    :param committer_name: Git committer name, using the docs-bot default when omitted.
+    :param committer_email: Git committer email, using the docs-bot default when omitted.
+    :return: Identifiers and paths for the generated commit.
+    :raises GitSiteError: If the site, repository, branch, or Git operation is invalid.
+    :raises GitUnavailableError: If the ``git`` executable is unavailable.
     """
 
     site = Path(site_directory).expanduser().resolve()

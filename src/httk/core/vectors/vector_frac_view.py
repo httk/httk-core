@@ -18,7 +18,7 @@ _NO_DENOM: Any = object()
 
 
 class VectorFracView(VectorView, FracVector):
-    """
+    r"""
     A view presenting an underlying vector backend as an exact
     :class:`~httk.core.vectors.fracvector.FracVector`.
 
@@ -34,6 +34,10 @@ class VectorFracView(VectorView, FracVector):
     ``self.__class__(noms, denom)`` constructor, this class also accepts that two-argument form;
     results built that way are plain (backend-less) FracVector values presented through this
     class.
+
+    :param obj: The source value to present, or numerator data for low-level construction.
+    :param denom: The denominator for low-level FracVector construction.
+    :param \**hints: Backend-selection and view-conversion hints.
     """
 
     _backend: VectorBackend
@@ -72,11 +76,13 @@ class VectorFracView(VectorView, FracVector):
 
     @cached_property
     def noms(self) -> Noms:  # type: ignore[override]  # pyright: ignore[reportIncompatibleVariableOverride]
+        """Return the materialized numerator data."""
         self._fill_fractions()
         return self.__dict__["noms"]
 
     @cached_property
     def denom(self) -> int:  # type: ignore[override]  # pyright: ignore[reportIncompatibleVariableOverride]
+        """Return the materialized common denominator."""
         self._fill_fractions()
         return self.__dict__["denom"]
 
@@ -86,12 +92,14 @@ class VectorFracView(VectorView, FracVector):
         return self.__dict__["_dim"]
 
     def unwrap(self) -> Any:
+        """Return the underlying unwrapped vector, or this value when no backend remains."""
         backend = getattr(self, "_backend", None)
         if backend is None:
             return self
         return unwrap(backend)
 
     def unview(self) -> Any:
+        """Return a plain FracVector containing this view's presented data."""
         # A frac backend already holds exactly the presented FracVector: reuse it. Otherwise
         # (converted or backend-less) build a plain FracVector reusing the materialized tuples.
         backend = getattr(self, "_backend", None)

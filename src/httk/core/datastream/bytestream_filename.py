@@ -8,8 +8,13 @@ from .compression import open_compressed, validate_compression
 
 
 class BytestreamFilename(BytestreamCommon, BytestreamBackend):
-    """
+    r"""
     Backend for streaming byte data via operations on a file specified by a filename.
+    Compressed content is transparently decompressed according to the compression hint.
+
+    :param filename: File path to open lazily for binary reading.
+    :param \**hints: Backend-selection and compression hints.
+    :raises ValueError: If the compression hint is unknown.
     """
 
     _filename: str
@@ -46,8 +51,10 @@ class BytestreamFilename(BytestreamCommon, BytestreamBackend):
 
     @property
     def name(self) -> str | None:
+        """Return the configured filename."""
         return self._filename
 
     @property
     def closed(self) -> bool:
+        """Report whether the filename backend is closed."""
         return self._closed

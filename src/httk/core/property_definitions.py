@@ -85,6 +85,10 @@ def register_definition_prefix(prefix: str, id_base: str) -> None:
     ``prefix`` must be a lower-case alphanumeric token wrapped in single
     underscores (matching ``_[a-z0-9]+_``); anything else raises a clear
     :class:`ValueError`. Re-registering an existing prefix overwrites its base.
+
+    :param prefix: The database-specific property-name prefix to register.
+    :param id_base: The IRI base used for synthesized property definition IDs.
+    :raises ValueError: If ``prefix`` does not match ``_[a-z0-9]+_``.
     """
     if not _DEFINITION_PREFIX_PATTERN.match(prefix):
         raise ValueError(
@@ -101,6 +105,8 @@ def known_definition_prefixes() -> tuple[str, ...]:
 
     The tuple reflects the current state of the prefix registry (see
     :func:`register_definition_prefix`); ``_httk_`` is pre-registered.
+
+    :return: The registered prefixes in registration order.
     """
     return tuple(_DEFINITION_PREFIXES)
 
@@ -246,6 +252,9 @@ class PropertyDefinition:
     (:meth:`from_simple`). The wrapped document is always deep-copied on the way
     in and out, so an instance never shares mutable state with its inputs or its
     callers.
+
+    :param name: The canonical property name.
+    :param payload: The complete property-definition document.
     """
 
     __slots__ = ("_name", "_payload")
@@ -262,6 +271,11 @@ class PropertyDefinition:
         ``definition`` must at least carry ``$id``, ``description``,
         ``x-optimade-type``, and ``type``; a clear :class:`ValueError` is raised
         otherwise. The document is deep-copied.
+
+        :param name: The canonical property name.
+        :param definition: The full property-definition document to wrap.
+        :return: A validated property definition.
+        :raises ValueError: If a required property-definition field is missing.
         """
         missing = [key for key in ("$id", "description", "x-optimade-type", "type") if key not in definition]
         if missing:
@@ -310,6 +324,17 @@ class PropertyDefinition:
         The result is implementation-neutral: per-deployment ``sortable`` and
         ``response-default`` flags are layered on later via
         :meth:`with_implementation`.
+
+        :param name: The canonical property name.
+        :param description: The human-readable property description.
+        :param fulltype: The OPTIMADE property type description.
+        :param unit: The unit associated with numeric or list values.
+        :param dimensions: Dimension names and sizes for list values.
+        :param dict_properties: Inner property names and type descriptions for dictionaries.
+        :param metadata_definition: An explicit metadata definition for the property.
+        :param required_response: Whether responses must contain a non-null value.
+        :param definition_id: An explicit property-definition IRI.
+        :return: A generated property definition.
         """
         optimade_type = _optimade_type(fulltype)
         resolved_unit = unit if unit is not None else "dimensionless"
@@ -366,39 +391,48 @@ class PropertyDefinition:
 
     @property
     def name(self) -> str:
+        """Return the canonical property name."""
         return self._name
 
     @property
     def definition_id(self) -> str:
+        """Return the property's definition IRI."""
         return self._payload["$id"]
 
     @property
     def title(self) -> str | None:
+        """Return the property's title, if declared."""
         return self._payload.get("title")
 
     @property
     def description(self) -> str:
+        """Return the property's human-readable description."""
         return self._payload.get("description", "")
 
     @property
     def optimade_type(self) -> str:
+        """Return the property's OPTIMADE type name."""
         return self._payload["x-optimade-type"]
 
     @property
     def json_type(self) -> Any:
+        """Return the property's JSON Schema type declaration."""
         return self._payload.get("type")
 
     @property
     def nullable(self) -> bool:
+        """Return whether the property's JSON type permits null."""
         json_type = self._payload.get("type")
         return isinstance(json_type, list) and "null" in json_type
 
     @property
     def unit(self) -> str | None:
+        """Return the property's declared unit, if any."""
         return self._payload.get("x-optimade-unit")
 
     @property
     def format_version(self) -> str | None:
+        """Return the property's definition-format version, if declared."""
         definition = self._payload.get("x-optimade-definition")
         if isinstance(definition, Mapping):
             return definition.get("format")
@@ -406,14 +440,17 @@ class PropertyDefinition:
 
     @property
     def requirements(self) -> Mapping[str, Any]:
+        """Return the property's OPTIMADE requirements mapping."""
         return self._payload.get("x-optimade-requirements", {})
 
     @property
     def dimensions(self) -> Mapping[str, Any] | None:
+        """Return the property's dimensions declaration, if any."""
         return self._payload.get("x-optimade-dimensions")
 
     @property
     def metadata_definition(self) -> Mapping[str, Any] | None:
+        """Return the property's metadata definition, if any."""
         return self._payload.get("x-optimade-metadata-definition")
 
     def with_implementation(self, *, sortable: bool | None = None, response_default: bool | None = None) -> Self:
@@ -429,6 +466,10 @@ class PropertyDefinition:
         ``x-optimade-implementation``; the specification says a redefinition
         "MUST change the $id". Top-level ``sortable`` is the additional field
         required by the ``Entry Listing Info Endpoints`` section.
+
+        :param sortable: Whether the property can be sorted by the deployment.
+        :param response_default: Whether the property is included by default in responses.
+        :return: A copy with the requested implementation flags.
         """
         payload = copy.deepcopy(self._payload)
         implementation: dict[str, Any] = dict(payload.get("x-optimade-implementation", {}))
@@ -442,7 +483,10 @@ class PropertyDefinition:
         return type(self)(self._name, payload)
 
     def as_optimade(self) -> dict[str, Any]:
-        """Return a deep copy of the wrapped property-definition document."""
+        """Return a deep copy of the wrapped property-definition document.
+
+        :return: The wrapped document, independent of the instance's state.
+        """
         return copy.deepcopy(self._payload)
 
     def __eq__(self, other: object) -> bool:
@@ -467,6 +511,12 @@ class EntryTypeDefinition:
     ``definition_id`` identifies the source document when present. An extended
     definition is a new document, so it clears that identity and retains the
     original standard IRI in ``extends_id`` instead.
+
+    :param name: The entry type name.
+    :param description: The human-readable entry type description.
+    :param properties: Property definitions keyed by property name.
+    :param definition_id: The source document IRI, if one exists.
+    :param extends_id: The standard document IRI extended by this definition, if any.
     """
 
     __slots__ = ("_definition_id", "_description", "_extends_id", "_name", "_properties")
@@ -494,6 +544,11 @@ class EntryTypeDefinition:
         name to full property definition. A clear :class:`ValueError` is raised
         when either required field is missing. The optional ID identifies the
         source document; ad-hoc definitions remain valid without one.
+
+        :param name: The entry type name.
+        :param entrytype: The vendored entry-type definition document.
+        :return: An entry-type definition built from the document.
+        :raises ValueError: If ``description`` or ``properties`` is missing.
         """
         if "description" not in entrytype:
             raise ValueError("Invalid OPTIMADE entry-type definition for '" + name + "': missing 'description'.")
@@ -507,10 +562,12 @@ class EntryTypeDefinition:
 
     @property
     def name(self) -> str:
+        """Return the entry type name."""
         return self._name
 
     @property
     def description(self) -> str:
+        """Return the entry type description."""
         return self._description
 
     @property
@@ -525,6 +582,7 @@ class EntryTypeDefinition:
 
     @property
     def properties(self) -> Mapping[str, PropertyDefinition]:
+        """Return a copy of the property definitions keyed by name."""
         return dict(self._properties)
 
     def extended(self, extra: Mapping[str, PropertyDefinition], *, allow_unprefixed: bool = False) -> Self:
@@ -539,6 +597,11 @@ class EntryTypeDefinition:
         The result deliberately has no ``definition_id``: it is a new document,
         not the standard resource. Its ``extends_id`` records the original
         standard ID so repeated extensions retain that provenance.
+
+        :param extra: New custom property definitions to add.
+        :param allow_unprefixed: Whether to allow custom names without a registered prefix.
+        :return: A new definition containing the original and extra properties.
+        :raises ValueError: If a property collides or violates the prefix rule.
         """
         merged = dict(self._properties)
         recognized = known_definition_prefixes()
@@ -570,7 +633,10 @@ class EntryTypeDefinition:
         )
 
     def as_optimade(self) -> dict[str, Any]:
-        """Return the entry type as a vendored-shape OPTIMADE document."""
+        """Return the entry type as a vendored-shape OPTIMADE document.
+
+        :return: The entry-type document with independent property payloads.
+        """
         document = {
             "description": self._description,
             "properties": {name: prop.as_optimade() for name, prop in self._properties.items()},
@@ -606,6 +672,10 @@ def standard_entry_type(name: str) -> EntryTypeDefinition:
     Supported names are ``"references"``, ``"files"``, and ``"calculations"``;
     an unknown name raises a :class:`ValueError` listing the known ones. The
     ``structures`` standard is vendored by *httk-atomistic*, not httk-core.
+
+    :param name: The standard entry type name to load.
+    :return: The vendored entry-type definition.
+    :raises ValueError: If ``name`` is not vendored by httk-core.
     """
     if name not in _STANDARD_ENTRY_TYPES:
         raise ValueError(

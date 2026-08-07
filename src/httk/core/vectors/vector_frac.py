@@ -22,12 +22,15 @@ def _fracvector_to_fractions(fv: FracVector) -> Fractions:
 
 
 class VectorFrac(VectorBackend):
-    """
+    r"""
     Backend for a vector backed by an actual :class:`~httk.core.vectors.fracvector.FracVector`
     (or :class:`~httk.core.vectors.fracvector.FracScalar`).
 
     Its ``fractions`` accessor produces the exact nested tuple of Fraction, and ``unwrap``
     returns the wrapped FracVector.
+
+    :param obj: The exact-rational value to wrap.
+    :param \**hints: Optional backend-selection hints.
     """
 
     _fracvector: FracVector
@@ -45,11 +48,14 @@ class VectorFrac(VectorBackend):
 
     @property
     def fractions(self) -> Fractions:
+        """Return the wrapped value in the exact Fraction interchange format."""
         return _fracvector_to_fractions(self._fracvector)
 
     @property
     def dim(self) -> tuple[int, ...]:
+        """Return the wrapped vector's shape."""
         return self._fracvector.dim
 
     def unwrap(self) -> Any:
+        """Return the wrapped FracVector or FracScalar."""
         return self._fracvector

@@ -37,6 +37,10 @@ class LeafCodec:
     canonical Fraction hub, it produces the requested element type. Its :attr:`from_fraction`
     documents both its exactness contract (when the result is exact) and its default conversion
     (what it does when an exact result is impossible); on data it never raises.
+
+    :param name: The canonical name used to select the codec.
+    :param from_fraction: The conversion operation applied to each exact hub leaf.
+    :param check_options: The option-validation operation.
     """
 
     name: str
@@ -53,18 +57,31 @@ _registry: dict[str, LeafCodec] = {}
 
 
 def register_leaf_codec(codec: LeafCodec) -> None:
-    """Register (or replace) a codec under its :attr:`~LeafCodec.name`."""
+    """
+    Register or replace a codec under its :attr:`~LeafCodec.name`.
+
+    :param codec: The codec to register.
+    """
     _registry[codec.name] = codec
 
 
 def known_leaf_codecs() -> list[str]:
-    """Return the registered leaf-codec names, in registration order."""
+    """
+    Return the registered leaf-codec names in registration order.
+
+    :return: The registered codec names.
+    """
     return list(_registry)
 
 
 def leaf_codec_for_name(name: str) -> LeafCodec:
-    """Return the registered codec named ``name``, or raise :class:`ValueError` listing the known
-    codecs."""
+    """
+    Return the registered codec named ``name``.
+
+    :param name: The codec name to resolve.
+    :return: The registered codec.
+    :raises ValueError: If ``name`` is not registered.
+    """
     try:
         return _registry[name]
     except KeyError:
@@ -78,6 +95,11 @@ def validate_leaf_codec(name: str, options: dict[str, Any]) -> LeafCodec:
     Raises :class:`ValueError` if ``name`` is not a registered codec or if ``options`` are invalid
     for it (the two configuration-error cases). This is called where a ``leaf=`` hint is received so
     that mistakes surface at view construction, never mid-conversion.
+
+    :param name: The codec name to resolve.
+    :param options: The options to validate for the codec.
+    :return: The resolved and validated codec.
+    :raises ValueError: If the codec name or options are invalid.
     """
     codec = leaf_codec_for_name(name)
     codec.check_options(options)
@@ -85,9 +107,14 @@ def validate_leaf_codec(name: str, options: dict[str, Any]) -> LeafCodec:
 
 
 def apply_leaf_codec(codec: LeafCodec, node: Any, **options: Any) -> Any:
-    """
+    r"""
     Map ``codec`` over a (possibly nested) tuple of :class:`fractions.Fraction`, returning the
     converted nested structure (a bare leaf for a scalar ``node``).
+
+    :param codec: The codec to apply.
+    :param node: The scalar or nested exact data to convert.
+    :param \**options: Options passed to the codec for each leaf.
+    :return: The converted scalar or nested structure.
     """
     if isinstance(node, tuple):
         return tuple(apply_leaf_codec(codec, e, **options) for e in node)

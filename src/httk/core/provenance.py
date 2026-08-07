@@ -64,7 +64,16 @@ def _edges(values: Iterable[Any]) -> "tuple[RunEdge, ...]":
 
 @dataclass(frozen=True)
 class RunEdge:
-    """One loose labeled reference from a run to another entry."""
+    """Store one loose labeled reference from a run to another entry.
+
+    Edges deliberately keep the related entry's type and identifier as
+    strings rather than object references, so a run can refer to entries
+    served by another provider.
+
+    :param label: The relationship label.
+    :param entry_type: The related entry type name.
+    :param entry_id: The related entry identifier.
+    """
 
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
         storage_name="core_run_edge_v1", identity_name="core_run_edge_v1"
@@ -80,6 +89,13 @@ class RunEdge:
 
     @classmethod
     def create(cls, obj: "RunEdge | Mapping[str, Any]") -> Self:
+        """Coerce a mapping or existing edge into a :class:`RunEdge`.
+
+        :param obj: A run edge instance or field mapping.
+        :return: The existing or newly constructed run edge.
+        :raises TypeError: If ``obj`` is neither a run edge nor a mapping.
+        :raises ValueError: If the mapping has unknown or invalid fields.
+        """
         return _create(cls, obj)
 
 
@@ -94,6 +110,17 @@ class Run:
 
     Every invariant is cheap and total, so there is deliberately no
     ``__httk_validate__`` hook.
+
+    Edges remain loose string triples by design, never object references.
+    Labels are unique independently on each of ``inputs``, ``artifacts``, and
+    ``outputs``.
+
+    :param workflow_declaration_uri: The workflow declaration IRI, if declared.
+    :param inputs: The labeled entries consumed by the run.
+    :param artifacts: The labeled entries created by the run.
+    :param outputs: The labeled entries returned by the run.
+    :param immutable_id: An optional provider-specific immutable identifier.
+    :param last_modified: The optional timezone-aware metadata timestamp.
     """
 
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
@@ -111,10 +138,12 @@ class Run:
 
     @property
     def type(self) -> str:
+        """Return the served entry type name."""
         return "_httk_runs"
 
     @property
     def id(self) -> str:
+        """Return the content identity of this run."""
         return content_id(self)
 
     def __post_init__(self) -> None:
@@ -131,6 +160,13 @@ class Run:
 
     @classmethod
     def create(cls, obj: "Run | Mapping[str, Any]") -> Self:
+        """Coerce a mapping or existing run into a :class:`Run`.
+
+        :param obj: A run instance or field mapping.
+        :return: The existing or newly constructed run.
+        :raises TypeError: If ``obj`` is neither a run nor a mapping.
+        :raises ValueError: If the mapping has unknown or invalid fields.
+        """
         return _create(cls, obj)
 
 
@@ -140,6 +176,13 @@ class ProductLink:
 
     A label is unique per source entry across links; that constraint is
     enforced at the serving projection rather than on each record.
+
+    :param source_type: The source entry type name.
+    :param source_id: The source entry identifier.
+    :param target_type: The target entry type name.
+    :param target_id: The target entry identifier.
+    :param label: The relationship label, unique per source entry at serving time.
+    :param workflow_declaration_uri: The workflow declaration IRI, if declared.
     """
 
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
@@ -165,6 +208,13 @@ class ProductLink:
 
     @classmethod
     def create(cls, obj: "ProductLink | Mapping[str, Any]") -> Self:
+        """Coerce a mapping or existing link into a :class:`ProductLink`.
+
+        :param obj: A product-link instance or field mapping.
+        :return: The existing or newly constructed product link.
+        :raises TypeError: If ``obj`` is neither a product link nor a mapping.
+        :raises ValueError: If the mapping has unknown or invalid fields.
+        """
         return _create(cls, obj)
 
 

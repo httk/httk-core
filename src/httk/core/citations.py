@@ -39,7 +39,18 @@ def register_citation(
     applies_to: str,
     references: Reference | Mapping[str, Any] | Sequence[Reference | Mapping[str, Any]],
 ) -> None:
-    """Register one or more references under a human-readable explanation."""
+    """Register one or more references under a human-readable explanation.
+
+    References are normalized on registration and duplicate references under
+    the same explanation are retained only once. The registration is visible
+    through :data:`credits`, allowing imported modules to contribute their
+    citation requirements as they are loaded.
+
+    :param applies_to: Human-readable explanation of when the references apply.
+    :param references: One reference, mapping, or sequence of references to register.
+    :raises TypeError: If ``references`` is not a reference, mapping, or sequence of references.
+    :raises ValueError: If ``applies_to`` is invalid or ``references`` is empty.
+    """
     if not isinstance(applies_to, str) or not applies_to.strip() or applies_to != applies_to.strip():
         raise ValueError("applies_to must be a nonempty string without surrounding whitespace")
     items: Sequence[Reference | Mapping[str, Any]]
@@ -111,14 +122,21 @@ def _format_reference(ref: Reference) -> str:
 
 
 class Credits:
-    """The presentation object for registered citation credits."""
+    """Present the citation credits registered by imported modules."""
 
     def entries(self) -> dict[str, tuple[Reference, ...]]:
-        """Return a snapshot of the registered citation entries."""
+        """Return a snapshot of the registered citation entries.
+
+        :return: Explanations mapped to immutable snapshots of their references.
+        """
         with _citations_lock:
             return {heading: tuple(references) for heading, references in _citations.items()}
 
     def __str__(self) -> str:
+        """Render the registered citation credits as readable text.
+
+        :return: Formatted citation text for the current registrations.
+        """
         lines = ["This program used the high-throughput toolkit (httk). The authors ask you to cite:"]
         for heading, references in self.entries().items():
             lines.extend(("", f"{heading}:"))

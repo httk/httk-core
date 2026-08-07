@@ -64,7 +64,12 @@ _ERRORS = (
 
 
 def build_parser(program: str, project_dir: Path) -> argparse.ArgumentParser:
-    """Build the ``httk docs`` parser with a project-directory default."""
+    """Build the ``httk docs`` parser with a project-directory default.
+
+    :param program: Program name displayed by the parser.
+    :param project_dir: Default project directory for project-aware commands.
+    :return: Configured command-line parser.
+    """
 
     parser = argparse.ArgumentParser(prog=program, description="Maintain versioned httk documentation sites")
     parser.set_defaults(handler=None, help_parser=parser)
@@ -315,7 +320,12 @@ def _handle_ecosystem_manifest(arguments: argparse.Namespace, _context: CLIConte
 
 
 def command(argv: Sequence[str], context: CLIContext) -> int:
-    """Handle the registered top-level ``docs`` command."""
+    """Handle the registered top-level ``docs`` command.
+
+    :param argv: Command-line arguments after the ``docs`` subcommand.
+    :param context: CLI execution context supplied by the top-level command runner.
+    :return: Process-style exit status.
+    """
 
     parser = build_parser(f"{context.program} docs", context.cwd)
     try:

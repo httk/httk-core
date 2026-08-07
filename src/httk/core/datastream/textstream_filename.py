@@ -8,8 +8,13 @@ from .textstream_common import TextstreamCommon
 
 
 class TextstreamFilename(TextstreamCommon, TextstreamBackend):
-    """
+    r"""
     Backend for streaming text via operations on a file specfied by a filename
+    Compressed content is transparently decompressed before text decoding.
+
+    :param filename: File path to open lazily for text reading.
+    :param \**hints: Backend-selection, encoding, and compression hints.
+    :raises ValueError: If the compression hint is unknown.
     """
 
     _filename: str
@@ -48,8 +53,10 @@ class TextstreamFilename(TextstreamCommon, TextstreamBackend):
 
     @property
     def name(self) -> str | None:
+        """Return the configured filename."""
         return self._filename
 
     @property
     def closed(self) -> bool:
+        """Report whether the filename backend is closed."""
         return self._closed

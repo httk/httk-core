@@ -17,7 +17,7 @@ _HUB_GUARD_DIGITS = 3
 
 
 class VectorSurd(VectorBackend):
-    """
+    r"""
     Backend for a vector backed by an exact :class:`~httk.core.vectors.surdvector.SurdVector`
     (or :class:`~httk.core.vectors.surdvector.SurdScalar`), kind ``"surd"``.
 
@@ -27,6 +27,9 @@ class VectorSurd(VectorBackend):
     reduced to a *deterministic* rational approximation at the active decimal context precision plus
     a small guard (lossy but reproducible), and the exact original remains recoverable via
     ``unwrap``.
+
+    :param obj: The exact surd value to wrap.
+    :param \**hints: Optional backend-selection hints.
     """
 
     _surdvector: SurdVector
@@ -44,6 +47,7 @@ class VectorSurd(VectorBackend):
 
     @property
     def fractions(self) -> Fractions:
+        """Return the exact or deterministic rational hub representation."""
         surd = self._surdvector
         if surd.is_rational:
             return _fracvector_to_fractions(surd.coefficient(1))
@@ -52,7 +56,9 @@ class VectorSurd(VectorBackend):
 
     @property
     def dim(self) -> tuple[int, ...]:
+        """Return the wrapped vector's shape."""
         return self._surdvector.dim
 
     def unwrap(self) -> Any:
+        """Return the wrapped SurdVector or SurdScalar."""
         return self._surdvector

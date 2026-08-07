@@ -7,8 +7,13 @@ from .compression import open_compressed, validate_compression
 
 
 class BytestreamFile(BytestreamCommon, BytestreamBackend):
-    """
+    r"""
     Backend for file-based (io.IOBase-conforming) streaming byte data.
+    Compressed content is transparently decompressed according to the compression hint.
+
+    :param obj: Open binary stream to adopt and close with this backend.
+    :param \**hints: Backend-selection and compression hints.
+    :raises ValueError: If the compression hint is unknown.
     """
 
     _source: io.IOBase
@@ -45,9 +50,11 @@ class BytestreamFile(BytestreamCommon, BytestreamBackend):
 
     @property
     def name(self) -> str | None:
+        """Return the adopted stream's name when it provides one."""
         self._ensure_f()
         return getattr(self._source, "name", None)
 
     @property
     def closed(self) -> bool:
+        """Report whether the adopted stream is closed."""
         return self._closed or self._source.closed

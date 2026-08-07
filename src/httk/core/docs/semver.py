@@ -30,7 +30,13 @@ class VersionError(ValueError):
 
 @dataclass(frozen=True, order=True)
 class Version:
-    """One non-negative three-component documentation release version."""
+    """Represent one non-negative three-component documentation release version.
+
+    :param major: Major release component.
+    :param minor: Minor release component.
+    :param patch: Patch release component.
+    :raises VersionError: If a component is negative, non-integral, or boolean.
+    """
 
     major: int
     minor: int
@@ -71,25 +77,43 @@ def _parse(text: str, pattern: re.Pattern[str], spelling: str) -> Version:
 
 
 def parse_version(text: str) -> Version:
-    """Parse exactly ``X.Y.Z`` without prerelease or build metadata."""
+    """Parse exactly ``X.Y.Z`` without prerelease or build metadata.
+
+    :param text: Version spelling to validate.
+    :return: Parsed release version.
+    :raises VersionError: If *text* is not an exact ``X.Y.Z`` version.
+    """
 
     return _parse(text, _VERSION_PATTERN, "version X.Y.Z")
 
 
 def parse_tag(text: str) -> Version:
-    """Parse exactly the release tag ``vX.Y.Z``."""
+    """Parse exactly the release tag ``vX.Y.Z``.
+
+    :param text: Git tag spelling to validate.
+    :return: Parsed release version.
+    :raises VersionError: If *text* is not an exact ``vX.Y.Z`` tag.
+    """
 
     return _parse(text, _TAG_PATTERN, "tag vX.Y.Z")
 
 
 def highest_version(versions: Iterable[Version]) -> Version | None:
-    """Return the greatest version in *versions*, or ``None`` when empty."""
+    """Return the greatest version in *versions*, or ``None`` when empty.
+
+    :param versions: Versions to compare.
+    :return: Greatest version, or ``None`` when the iterable is empty.
+    """
 
     return max(versions, default=None)
 
 
 def is_release_dir_name(name: str) -> bool:
-    """Return whether *name* is a valid release directory such as ``v2.1.0``."""
+    """Return whether *name* is a valid release directory such as ``v2.1.0``.
+
+    :param name: Directory name to validate.
+    :return: Whether *name* is an exact release tag spelling.
+    """
 
     try:
         parse_tag(name)

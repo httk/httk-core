@@ -99,6 +99,11 @@ class JsonFormatter(logging.Formatter):
     """Render one record as a single line of JSON."""
 
     def format(self, record: logging.LogRecord) -> str:
+        """Render ``record`` as one JSON line, including non-standard fields.
+
+        :param record: Log record to serialize.
+        :return: JSON text containing the record's report fields.
+        """
         payload: dict[str, object] = {
             "ts": datetime.fromtimestamp(record.created, UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
             "level": record.levelname.lower(),
@@ -115,7 +120,12 @@ class JsonFormatter(logging.Formatter):
 
 
 def resolve_level(level: str | int) -> int:
-    """Return the numeric level for a protocol log-level name."""
+    """Return the numeric level for a protocol log-level name.
+
+    :param level: Numeric level or case-insensitive logging level name.
+    :return: Numeric logging threshold.
+    :raises ValueError: If ``level`` is not a recognized logging level name.
+    """
 
     if isinstance(level, int):
         return level
@@ -131,6 +141,9 @@ class ReportFilter(logging.Filter):
     A context threshold replaces the general threshold for records carrying
     that context, so it can deliberately demote a noisy context by using a
     higher level.
+
+    :param level: General minimum level for records without an overriding context.
+    :param context_levels: Optional per-context minimum levels.
     """
 
     def __init__(
@@ -144,6 +157,11 @@ class ReportFilter(logging.Filter):
         self.minimum_level = _minimum_level(self.level, self.context_levels)
 
     def filter(self, record: logging.LogRecord) -> bool:
+        """Return whether ``record`` meets its applicable reporting threshold.
+
+        :param record: Log record to test against the general or context level.
+        :return: Whether the record should be handled.
+        """
         applicable = [
             self.context_levels[name]
             for name in _contexts(getattr(record, "context", None))
@@ -166,11 +184,15 @@ class _ContextLoggerAdapter(logging.LoggerAdapter):
 
 
 def context_logger(logger: logging.Logger | logging.LoggerAdapter, *contexts: str) -> logging.LoggerAdapter:
-    """Return an adapter which attaches ``contexts`` to every record.
+    r"""Return an adapter which attaches ``contexts`` to every record.
 
     Passed adapters are flattened so their ``extra`` values survive logging's
     default adapter processing. Custom adapter :meth:`~logging.LoggerAdapter.process` logic is
     deliberately bypassed.
+
+    :param logger: Logger or adapter whose records receive the contexts.
+    :param \*contexts: Context names to attach to each emitted record.
+    :return: A logger adapter that merges these contexts with call-specific ones.
     """
 
     extra: dict[str, object] = {"context": contexts}
@@ -241,7 +263,19 @@ def configure_reporting(
     capture_warnings: bool = False,
     logger: str = DEFAULT_LOGGER,
 ) -> None:
-    """Install one console handler for a reporting logger hierarchy."""
+    """Install one console handler for a reporting logger hierarchy.
+
+    The general level and optional per-context levels control admission to the
+    handler. When requested, warning capture is rearmed and kept in the same
+    logging pipeline.
+
+    :param level: General minimum level for reports.
+    :param json_logs: Whether to render records as JSON lines.
+    :param context_levels: Optional minimum levels for named contexts.
+    :param capture_warnings: Whether to route Python warnings through logging.
+    :param logger: Logger hierarchy that receives the handler.
+    :raises ValueError: If a supplied log level is not recognized.
+    """
 
     reset_reporting(logger)
     report_filter = ReportFilter(level, context_levels)
@@ -263,7 +297,18 @@ def add_report_file(
     backup_count: int = DEFAULT_BACKUP_COUNT,
     logger: str = DEFAULT_LOGGER,
 ) -> Path:
-    """Add one rotating report file handler and return the path it writes."""
+    """Add one rotating report file handler and return the path it writes.
+
+    :param path: File path for the rotating report log.
+    :param level: General minimum level for reports.
+    :param json_logs: Whether to render records as JSON lines.
+    :param context_levels: Optional minimum levels for named contexts.
+    :param maximum_bytes: Maximum size of one report file before rotation.
+    :param backup_count: Number of rotated report files to retain.
+    :param logger: Logger hierarchy that receives the handler.
+    :return: The report path supplied by the caller.
+    :raises ValueError: If a supplied log level is not recognized.
+    """
 
     path.parent.mkdir(parents=True, exist_ok=True)
     report_filter = ReportFilter(level, context_levels)
@@ -275,7 +320,10 @@ def add_report_file(
 
 
 def reset_reporting(logger: str = DEFAULT_LOGGER) -> None:
-    """Remove the reporting handlers installed for ``logger``."""
+    """Remove the reporting handlers installed for ``logger``.
+
+    :param logger: Logger hierarchy whose handlers are reset.
+    """
 
     target = logging.getLogger(logger)
     for handler in list(target.handlers):
@@ -293,7 +341,10 @@ def reset_reporting(logger: str = DEFAULT_LOGGER) -> None:
 
 
 class ReportCollection:
-    """Append-only records accepted by one :func:`collect_reports` block."""
+    """Store append-only records accepted by one :func:`collect_reports` block.
+
+    :param report_filter: Threshold policy used to accept records.
+    """
 
     def __init__(self, report_filter: ReportFilter) -> None:
         self.records: list[logging.LogRecord] = []
@@ -385,6 +436,18 @@ def collect_reports(
     Warning-registry invalidation is process-global. Concurrent collection
     scopes can double-collect or zero-collect repeated warnings, so callers
     should avoid task switches inside the block or pass ``rearm=False``.
+
+    The active collections are stored in a :class:`contextvars.ContextVar`, so
+    nested and copied execution contexts retain their own collection scope.
+    Entering a collection installs the shared collecting handler and captures
+    warnings; by default it rearms warning registries first. Exiting restores
+    the prior collection scope and warning-capture state.
+
+    :param level: General minimum level for collected records.
+    :param context_levels: Optional minimum levels for named contexts.
+    :param rearm: Whether to invalidate warning deduplication before collection.
+    :return: A context manager yielding the collection for the current context.
+    :raises ValueError: If a supplied log level is not recognized.
     """
 
     return _CollectionContext(ReportCollection(ReportFilter(level, context_levels)), rearm)
@@ -396,6 +459,8 @@ def active_collections() -> tuple[ReportCollection, ...]:
     Outermost first; the last entry is the innermost enclosing block. Code that
     presents collected records (for example a server building a response) reads
     them from here instead of threading a collection through call signatures.
+
+    :return: Active collections from the outermost to the innermost scope.
     """
 
     return _collections.get()

@@ -53,6 +53,8 @@ def numpy_available() -> bool:
     This reads the vectors package's ``_numpy_available`` flag freshly on each call (the flag set
     when :mod:`httk.core.vectors` conditionally imports/registers the numpy backend), so tests may
     monkeypatch ``httk.core.vectors._numpy_available`` to exercise the numpy-absent path.
+
+    :return: ``True`` when numpy is available, otherwise ``False``.
     """
     from httk.core import vectors
 
@@ -78,6 +80,10 @@ def to_numeric_scalar(obj: Any) -> float:
 
     Unlike :func:`to_numeric`, this needs **no numpy**: a plain ``float`` conversion has no numpy
     dependency, so it works unconditionally and never raises for a missing numpy.
+
+    :param obj: The scalar value to convert.
+    :return: The converted scalar value.
+    :raises TypeError: If ``obj`` is not scalar or cannot be converted to a scalar float.
     """
     if isinstance(obj, SurdScalar):
         return obj.to_float()
@@ -107,6 +113,11 @@ def to_numeric(obj: VectorLike) -> NumericVector:
     :class:`ImportError` (naming the ``httk-core[numpy]`` extra) when numpy is not installed,
     uniformly, so the contract is predictable regardless of the input shape. Use
     :func:`to_numeric_scalar` directly for a single float without a numpy requirement.
+
+    :param obj: The vector-like value to present numerically.
+    :return: The converted scalar or tensor value.
+    :raises ImportError: If numpy is unavailable.
+    :raises TypeError: If the value cannot be converted to the numeric presentation.
     """
     _require_numpy()
 

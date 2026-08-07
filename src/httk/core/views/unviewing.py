@@ -13,6 +13,10 @@ def unview(obj: Any) -> Any:
     the view's (or the original input's) storage; use the target representation's normal copy
     operation when independent mutation is required. A non-View input is returned unchanged.
     Views that only adapt an interface and have no faithful standalone value raise ``TypeError``.
+
+    :param obj: Value or view to shed.
+    :return: The presented value without its httk view wrapper.
+    :raises TypeError: If a view has no faithful standalone value.
     """
     if isinstance(obj, View):
         return obj.unview()

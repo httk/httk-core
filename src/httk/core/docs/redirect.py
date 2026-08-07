@@ -24,7 +24,11 @@ __all__ = ["root_redirect_html", "write_root_redirect"]
 
 
 def root_redirect_html(target_relative_path: str) -> str:
-    """Return a complete HTML5 document redirecting to a relative site path."""
+    """Return a complete HTML5 document redirecting to a relative site path.
+
+    :param target_relative_path: Relative path receiving the redirect.
+    :return: HTML redirect document.
+    """
 
     target = escape(target_relative_path, quote=True)
     return (
@@ -38,7 +42,11 @@ def root_redirect_html(target_relative_path: str) -> str:
 
 
 def write_root_redirect(site_root: str | Path, target: str) -> None:
-    """Write ``index.html`` at *site_root* with a relative redirect to *target*."""
+    """Write ``index.html`` at *site_root* with a relative redirect to *target*.
+
+    :param site_root: Site root receiving the redirect file.
+    :param target: Relative path receiving the redirect.
+    """
 
     root = Path(site_root)
     root.mkdir(parents=True, exist_ok=True)

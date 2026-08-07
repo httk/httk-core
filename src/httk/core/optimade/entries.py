@@ -108,6 +108,12 @@ def decode_optimade_value(definition: PropertyDefinition, value: object) -> obje
     exact property-definition IRI.  JSON floats are retained as
     :class:`~decimal.Decimal`; nested lists and dictionaries become tuples and
     immutable mappings.
+
+    :param definition: Local property definition that describes the value.
+    :param value: Raw value to decode.
+    :return: Decoded value with nested containers made immutable.
+    :raises TypeError: If the value does not match the declared property shape.
+    :raises ValueError: If the property definition is unsupported or malformed.
     """
 
     return _decode_by_payload(cast(Mapping[str, object], definition.as_optimade()), value)
@@ -115,7 +121,10 @@ def decode_optimade_value(definition: PropertyDefinition, value: object) -> obje
 
 @dataclass(frozen=True)
 class OptimadeEntryBackend:
-    """One storable, typed handle around an authoritative OPTIMADE resource."""
+    """Store one typed handle around an authoritative OPTIMADE resource.
+
+    :param resource: Source resource and its schema provenance.
+    """
 
     resource: OptimadeResource
 
@@ -134,12 +143,17 @@ class OptimadeEntryBackend:
         return self.resource.unwrap()
 
     def unwrap(self) -> OptimadeResource:
-        """Return the exact source resource, including document and schema provenance."""
+        """Return the exact source resource, including document and schema provenance.
+
+        :return: The source resource represented by this backend.
+        """
 
         return self.resource
 
     @property
     def local_schema(self) -> EntryTypeDefinition:
+        """Return the standard local schema for this backend."""
+
         return standard_entry_type(self.entry_type_name)
 
     @property
@@ -179,6 +193,11 @@ class OptimadeEntryBackend:
         Values are intentionally undecoded here.  This lets record views name
         missing/null semantic properties accurately and gives callers access to
         exact raw JSON before selecting a representation.
+
+        :param definition_id: Semantic property IRI to look up.
+        :param default: Value to return when the property is not present.
+        :return: The raw property value, or ``default`` when it is absent.
+        :raises ValueError: If the resource attributes or schema mapping is malformed.
         """
 
         if definition_id not in self._remote_names_by_definition_id:
@@ -195,7 +214,14 @@ class OptimadeEntryBackend:
         return attributes.get(self._remote_names_by_definition_id[definition_id], default)
 
     def decode_value(self, definition: PropertyDefinition, value: object) -> object:
-        """Decode *value*, applying an exact-IRI binding override when present."""
+        """Decode *value*, applying an exact-IRI binding override when present.
+
+        :param definition: Local property definition for the value.
+        :param value: Raw value to decode.
+        :return: Decoded value from the matching generic or binding-specific decoder.
+        :raises TypeError: If the value does not match the selected property decoder.
+        :raises ValueError: If the property definition or value is invalid.
+        """
 
         binding = optimade_entry_binding(self.entry_type_definition_id)
         decoder = binding.resolve_property_decoder(definition.definition_id) if binding is not None else None
@@ -205,6 +231,8 @@ class OptimadeEntryBackend:
 
     @stored_property
     def id(self) -> str:
+        """Return the semantic resource identifier."""
+
         value = self.value_by_definition_id(_CORE_ID)
         if not isinstance(value, str) or not value:
             raise ValueError("OPTIMADE semantic property 'id' must be a nonempty string")
@@ -212,6 +240,8 @@ class OptimadeEntryBackend:
 
     @stored_property
     def type(self) -> str:
+        """Return the semantic resource type identifier."""
+
         value = self.value_by_definition_id(_CORE_TYPE)
         if not isinstance(value, str) or not value:
             raise ValueError("OPTIMADE semantic property 'type' must be a nonempty string")
@@ -219,10 +249,14 @@ class OptimadeEntryBackend:
 
     @stored_property
     def immutable_id(self) -> str | None:
+        """Return the optional immutable semantic identifier."""
+
         return cast(str | None, self._portable_value("immutable_id", str))
 
     @stored_property
     def last_modified(self) -> datetime.datetime | None:
+        """Return the optional last-modified timestamp."""
+
         return cast(datetime.datetime | None, self._portable_value("last_modified", datetime.datetime))
 
     def _portable_value(self, name: str, expected_class: object) -> object:
@@ -238,7 +272,10 @@ class OptimadeEntryBackend:
 
 @dataclass(frozen=True)
 class OptimadeReference(OptimadeEntryBackend):
-    """OPTIMADE backend semantically bound to the standard references schema."""
+    """Bind an OPTIMADE resource to the standard references schema.
+
+    :param resource: Source resource and its schema provenance.
+    """
 
     entry_type_name: ClassVar[str] = "references"
     entry_type_definition_id: ClassVar[str] = "https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/references"
@@ -246,7 +283,10 @@ class OptimadeReference(OptimadeEntryBackend):
 
 @dataclass(frozen=True)
 class OptimadeFile(OptimadeEntryBackend):
-    """OPTIMADE backend semantically bound to the standard files schema."""
+    """Bind an OPTIMADE resource to the standard files schema.
+
+    :param resource: Source resource and its schema provenance.
+    """
 
     entry_type_name: ClassVar[str] = "files"
     entry_type_definition_id: ClassVar[str] = "https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files"
@@ -254,7 +294,10 @@ class OptimadeFile(OptimadeEntryBackend):
 
 @dataclass(frozen=True)
 class OptimadeCalculation(OptimadeEntryBackend):
-    """OPTIMADE backend semantically bound to standard calculations schema."""
+    """Bind an OPTIMADE resource to the standard calculations schema.
+
+    :param resource: Source resource and its schema provenance.
+    """
 
     entry_type_name: ClassVar[str] = "calculations"
     entry_type_definition_id: ClassVar[str] = "https://schemas.optimade.org/defs/v1.3/entrytypes/optimade/calculations"
@@ -262,7 +305,10 @@ class OptimadeCalculation(OptimadeEntryBackend):
 
 @dataclass(frozen=True, slots=True, init=False)
 class OptimadeEntryView:
-    """A lazy generated-record presentation over one typed resource backend."""
+    """Present one typed resource backend as a lazy generated record.
+
+    :param backend: Typed backend to present, or an existing compatible view.
+    """
 
     _backend: OptimadeEntryBackend
     _record: object | None = field(default=None, init=False, repr=False, compare=False, hash=False)
@@ -285,21 +331,31 @@ class OptimadeEntryView:
 
     @property
     def backend(self) -> OptimadeEntryBackend:
+        """Return the typed backend behind this view."""
+
         return self._backend
 
     def unwrap(self) -> OptimadeResource:
+        """Return the exact source resource behind this view."""
+
         return self._backend.unwrap()
 
     @property
     def id(self) -> str:
+        """Return the resource identifier."""
+
         return self._backend.id
 
     @property
     def type(self) -> str:
+        """Return the resource type identifier."""
+
         return self._backend.type
 
     @property
     def record(self) -> Reference | File | Calculation:
+        """Return the lazily materialized canonical record."""
+
         cached = self._record
         if cached is None:
             cached = self._materialize_record()
@@ -343,21 +399,30 @@ class OptimadeEntryView:
 
 
 class ReferenceView(OptimadeEntryView):
-    """Lazy canonical :class:`~httk.core.Reference` view of an :class:`OptimadeReference`."""
+    """Present an :class:`OptimadeReference` as a lazy canonical view.
+
+    :param backend: Reference backend to present, or an existing compatible view.
+    """
 
     backend_class = OptimadeReference
     record_class = Reference
 
 
 class FileView(OptimadeEntryView):
-    """Lazy canonical :class:`~httk.core.File` view of an :class:`OptimadeFile`."""
+    """Present an :class:`OptimadeFile` as a lazy canonical view.
+
+    :param backend: File backend to present, or an existing compatible view.
+    """
 
     backend_class = OptimadeFile
     record_class = File
 
 
 class CalculationView(OptimadeEntryView):
-    """Lazy canonical :class:`~httk.core.Calculation` view of an :class:`OptimadeCalculation`."""
+    """Present an :class:`OptimadeCalculation` as a lazy canonical view.
+
+    :param backend: Calculation backend to present, or an existing compatible view.
+    """
 
     backend_class = OptimadeCalculation
     record_class = Calculation

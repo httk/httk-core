@@ -48,6 +48,9 @@ class MutableFracVector(FracVector):
     Other than this, the FracVector methods exist and do the same, i.e., they return *copies*
     of the fracvector, rather than modifying it.
 
+    :param noms: Nested lists of integer nominators.
+    :param denom: The shared denominator for the nominators.
+
     Methods with ``set_*`` prefixes perform mutating operations, e.g.::
 
        A.set_T()
@@ -73,24 +76,15 @@ class MutableFracVector(FracVector):
     noms: Any
 
     def __init__(self, noms: Any, denom: int = 1) -> None:
-        """
-        Low overhead constructor.
-
-        Args:
-            noms: nested *lists* of nominator integers.
-            denom: the integer denominator.
-
-        Represents the tensor ``(1/denom)*(noms)``.
-
-        If you want to create a MutableFracVector from something else than lists, use the
-        :meth:`create` method.
-        """
         super().__init__(noms, denom)
 
     @classmethod
     def use(cls, old: Any) -> "FracVector":
         """
         Make sure the variable is a MutableFracVector, and if not, convert it.
+
+        :param old: An existing vector or value to convert.
+        :return: A mutable vector containing the same value.
         """
         if isinstance(old, MutableFracVector):
             return old
@@ -103,6 +97,7 @@ class MutableFracVector(FracVector):
         return cls.create(old)
 
     def validate(self) -> bool:
+        """Return whether the vector's stored list structure is valid."""
         # TODO: check all dimensions and make sure noms is a square tensor of only lists
         return True
 
@@ -110,6 +105,8 @@ class MutableFracVector(FracVector):
         """
         Internal method to call when the MutableFracVector is changed in such a way that cached
         properties are invalidated (e.g., ``_dim``).
+
+        :return: None.
         """
         self._dim = None
 
@@ -185,6 +182,8 @@ class MutableFracVector(FracVector):
     def set_inv(self) -> Any:
         """
         Change the MutableFracVector inline into its own inverse: ``self -> self^-1``.
+
+        :return: The inverse scalar when ``self`` is scalar; otherwise ``None`` after mutation.
         """
         dim = self.dim
         if dim == ():
@@ -251,8 +250,7 @@ class MutableFracVector(FracVector):
         """
         Change the MutableFracVector; reduces resolution.
 
-        Args:
-            resolution: the new denominator; each element becomes the closest numerical
+        :param resolution: The new denominator; each element becomes the closest numerical
                 approximation using this denominator.
         """
         denom = self.denom

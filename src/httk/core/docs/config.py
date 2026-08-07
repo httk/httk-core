@@ -45,7 +45,13 @@ class ConfigError(ValueError):
 
 @dataclass(frozen=True)
 class InternalDependency:
-    """Documentation-site metadata for one internal httk distribution."""
+    """Describe one internal httk distribution used by a documentation site.
+
+    :param distribution: Distribution name used by dependency metadata.
+    :param slug: Documentation-site slug for the dependency.
+    :param repository_url: Repository URL for the dependency.
+    :param main_branch: Branch containing the dependency's development docs.
+    """
 
     distribution: str
     slug: str
@@ -55,7 +61,14 @@ class InternalDependency:
 
 @dataclass(frozen=True)
 class VersioningConfig:
-    """Configuration for one versioned documentation site."""
+    """Configure one versioned documentation site.
+
+    :param slug: Documentation-site slug.
+    :param repository_url: Repository URL for the site.
+    :param main_branch: Branch containing the site's development docs.
+    :param import_roots: Import roots whose documentation is generated.
+    :param internal_dependencies: Internal distributions documented alongside the site.
+    """
 
     slug: str
     repository_url: str
@@ -81,7 +94,12 @@ def _mapping(value: object, path: Path, key: str) -> dict[str, object]:
 
 
 def load_versioning_config(path: str | Path) -> VersioningConfig:
-    """Read and validate a versioning TOML file, rejecting unknown keys."""
+    """Read and validate a versioning TOML file, rejecting unknown keys.
+
+    :param path: Versioning TOML file to read.
+    :return: Validated documentation-site configuration.
+    :raises ConfigError: If the file cannot be read or contains invalid configuration.
+    """
 
     config_path = Path(path)
     try:

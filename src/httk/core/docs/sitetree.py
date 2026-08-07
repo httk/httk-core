@@ -47,7 +47,13 @@ class ImmutabilityError(RuntimeError):
 
 @dataclass(frozen=True)
 class ComposeResult:
-    """Summary of one site composition operation."""
+    """Summarize one site composition operation.
+
+    :param changed: Whether any generated site file changed.
+    :param unchanged: Whether the requested target tree already matched.
+    :param default_target: Manifest name selected as the site's default.
+    :param versions: All published version labels, including development channels.
+    """
 
     changed: bool
     unchanged: bool
@@ -224,6 +230,17 @@ def compose_site(
     ``repair=True`` is reserved for replacing an existing release after an
     approved manual repair. The replacement uses the same rename transaction
     as the development swap and never removes the live release in place.
+
+    :param site_root: Root directory of the composed documentation site.
+    :param build_html: Generated HTML tree to publish.
+    :param slug: Site slug stored in the version manifest.
+    :param site_url: Public site URL stored in the version manifest.
+    :param source_commit: Source commit recorded in the version manifest.
+    :param target: Release version or the replaceable development target.
+    :param repair: Whether to replace an existing release after manual approval.
+    :return: Summary of the composition result.
+    :raises ComposeError: If the source, destination, or target is unsafe or invalid.
+    :raises ImmutabilityError: If an existing release differs from the rebuilt tree.
     """
 
     root = Path(site_root)

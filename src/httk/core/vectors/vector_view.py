@@ -12,6 +12,9 @@ from .vector_backend import VectorBackend
 class VectorView(View[VectorBackend]):
     """
     Abstract base class for all views of vector (tensor) data.
+
+    Concrete views present a backend through a specific container or leaf domain while retaining
+    access to the underlying backend.
     """
 
     _backend_base_cls: ClassVar[type[VectorBackend]] = VectorBackend  # type: ignore[type-abstract]

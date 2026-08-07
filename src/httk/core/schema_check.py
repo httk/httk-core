@@ -165,6 +165,13 @@ def check_record_matches_definition(
     field.  ``internal_fields`` are skipped on the dataclass side, and
     ``ignore_properties`` are skipped on the definition side.  Messages are
     sorted for stable output.
+
+    :param record: Dataclass whose fields are checked.
+    :param definition: Entry definition whose properties are checked.
+    :param property_keys: Optional mapping from record field names to served property names.
+    :param internal_fields: Record fields to exclude from compatibility checks.
+    :param ignore_properties: Definition properties to exclude from compatibility checks.
+    :return: Sorted descriptions of structural mismatches, or an empty list when compatible.
     """
     hints = get_type_hints(record, include_extras=True)
     record_fields = {field.name: field for field in fields(record)}

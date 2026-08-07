@@ -42,7 +42,12 @@ class ReleaseError(RuntimeError):
 
 @dataclass(frozen=True)
 class ReleaseCheck:
-    """Summary of a successful release preflight."""
+    """Summarize a successful release preflight.
+
+    :param tag: Release tag validated by the preflight.
+    :param version: Parsed release version.
+    :param lock_path: Documentation lock checked by the preflight.
+    """
 
     tag: str
     version: Version
@@ -50,7 +55,13 @@ class ReleaseCheck:
 
 
 def check_release(project_dir: str | Path, tag: str) -> ReleaseCheck:
-    """Validate a release tag against ``pyproject.toml`` and its docs lock."""
+    """Validate a release tag against ``pyproject.toml`` and its docs lock.
+
+    :param project_dir: Project directory containing release metadata.
+    :param tag: Release tag to validate.
+    :return: Summary of the successful release preflight.
+    :raises ReleaseError: If project metadata, the release tag, lock, or inventories are invalid.
+    """
 
     project = Path(project_dir).resolve()
     try:
@@ -131,7 +142,16 @@ def dependency_doc_targets(
     base_url: str,
     channel: str,
 ) -> dict[str, str]:
-    """Derive exact release or ``dev/main`` inventory URLs for internal dependencies."""
+    """Derive exact release or ``dev/main`` inventory URLs for internal dependencies.
+
+    :param config: Documentation-site configuration declaring the dependencies.
+    :param pins: Locked distribution versions used for release URLs.
+    :param base_url: Base URL containing the dependency documentation sites.
+    :param channel: Documentation channel, either ``release`` or ``dev``.
+    :return: Mapping of dependency distributions to inventory base URLs.
+    :raises ReleaseError: If a release dependency has no valid locked version.
+    :raises ValueError: If *channel* or a locked dependency version is invalid.
+    """
 
     if channel not in {"release", "dev"}:
         raise ValueError(f"unknown documentation channel: {channel!r}")

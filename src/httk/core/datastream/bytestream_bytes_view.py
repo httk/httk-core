@@ -7,11 +7,14 @@ from .bytestream_view import BytestreamView
 
 
 class BytestreamBytesView(BytestreamView, bytes):
-    """
+    r"""
     A view presenting underlying streaming byte data as bytes.
     This view can be used both to pass bytes in place of streaming data, and for reading streaming data into bytes.
     Note: this view is not lazy (this is impossible for views inheriting bytes, since bytes is immutable), hence all
     streaming data is read immediately upon creating this view.
+
+    :param obj: Byte-stream source to present or consume.
+    :param \**hints: Backend-selection and compression hints.
     """
 
     _backend: BytestreamBackend
@@ -28,8 +31,16 @@ class BytestreamBytesView(BytestreamView, bytes):
         super().__init__()
 
     def unwrap(self) -> Any:
+        """Return the raw representation of the wrapped backend.
+
+        :return: The backend's most raw available representation.
+        """
         return unwrap(self._backend)
 
     def unview(self) -> bytes:
+        """Return the presented data as plain bytes.
+
+        :return: A plain bytes value containing the presented data.
+        """
         # Shed to a plain bytes of the presented data (builtin subclass shedding copies).
         return bytes(self)

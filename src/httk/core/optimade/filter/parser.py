@@ -39,6 +39,14 @@ type FilterAst = tuple[Any, ...]
 
 
 def parse_optimade_filter(filter_string: str, verbosity: int | Any = 0) -> FilterAst:
+    """Parse an OPTIMADE filter into the public abstract syntax tree format.
+
+    :param filter_string: OPTIMADE filter expression to parse.
+    :param verbosity: Diagnostic verbosity setting passed to the parser.
+    :return: Nested tuple abstract syntax tree in ``ojf`` format.
+    :raises ParserError: If the filter cannot be parsed.
+    """
+
     # To get diagnostic output, pass, e.g., verbosity=LogVerbosity(0, parser_verbosity=5)
 
     parse_tree = parse_optimade_filter_raw(filter_string, verbosity)
@@ -47,6 +55,14 @@ def parse_optimade_filter(filter_string: str, verbosity: int | Any = 0) -> Filte
 
 
 def parse_optimade_filter_raw(filter_string: str, verbosity: int | Any = 0) -> tuple[Any, ...]:
+    """Parse an OPTIMADE filter and return its raw grammar parse tree.
+
+    :param filter_string: OPTIMADE filter expression to parse.
+    :param verbosity: Diagnostic verbosity setting passed to the parser.
+    :return: Raw nested tuple parse tree before ``ojf`` conversion.
+    :raises ParserError: If the filter cannot be parsed.
+    """
+
     return _miniparser.parser(_optimade_parser_ls(), filter_string, verbosity=verbosity)
 
 
@@ -131,6 +147,13 @@ def _optimade_parser_ls() -> _miniparser.LanguageSpec:
 
 
 def optimade_parse_tree_to_ojf(ast: tuple[Any, ...]) -> FilterAst:
+    """Convert a raw OPTIMADE parse tree into the public AST format.
+
+    :param ast: Raw parse tree rooted at ``Filter``.
+    :return: Nested tuple abstract syntax tree in ``ojf`` format.
+    :raises ParserInternalError: If the tree has an invalid internal shape.
+    """
+
     if ast[0] != 'Filter':
         raise ParserInternalError("Parse tree does not start with a Filter node: " + str(ast[0]))
     return optimade_parse_tree_to_ojf_recurse(ast[1])
@@ -152,6 +175,13 @@ def _fix_const(node: tuple[Any, ...]) -> tuple[Any, ...]:
 
 
 def optimade_parse_tree_to_ojf_recurse(node: tuple[Any, ...], recursion: int = 0) -> FilterAst:
+    """Convert one raw parse-tree node recursively into the public AST format.
+
+    :param node: Raw parse-tree node to convert.
+    :param recursion: Current nesting depth used while descending the tree.
+    :return: Nested tuple abstract syntax tree for the node.
+    :raises ParserInternalError: If the tree has an invalid internal shape.
+    """
 
     tree: list[Any] = [None]
     pos = tree

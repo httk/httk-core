@@ -59,7 +59,7 @@ for _backend_cls in (VectorFrac, VectorSurd, VectorNumpy, VectorNative):
 
 
 class VectorNumpyView(VectorView, numpy.ndarray):
-    """
+    r"""
     A view presenting an underlying vector backend as a :class:`numpy.ndarray`.
 
     This view is a genuine ndarray, so it can be passed anywhere a numpy array is accepted.
@@ -88,6 +88,9 @@ class VectorNumpyView(VectorView, numpy.ndarray):
     array data is authoritative; it never falsely unwraps to the source backend and is
     normalized with :func:`~httk.core.unview`. numpy is an optional dependency
     (``httk-core[numpy]``).
+
+    :param obj: The source value to present numerically.
+    :param \**hints: Backend-selection hints and an optional ``dtype`` conversion.
     """
 
     _backend: VectorBackend
@@ -168,12 +171,14 @@ class VectorNumpyView(VectorView, numpy.ndarray):
         return result
 
     def unwrap(self) -> Any:
+        """Return the original backend value, or this view when it has no backend."""
         backend = getattr(self, "_backend", None)
         if backend is None:
             return self
         return unwrap(backend)
 
     def unview(self) -> Any:
+        """Return a base-class numpy array containing this view's data."""
         # Instances built by __new__ sit directly on their presentation array: the adopted raw
         # array or the converted base array, either way `self.base`. Derived (backend-less)
         # instances have some other base; their own data is authoritative.

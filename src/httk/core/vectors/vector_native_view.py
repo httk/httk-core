@@ -24,7 +24,7 @@ def _tupleize(node: Any) -> Any:
 
 
 class VectorNativeView(VectorView, tuple):
-    """
+    r"""
     A view presenting an underlying vector backend as nested tuples, with a selectable *leaf codec*.
 
     The leaf codec is the element-domain axis (see :mod:`httk.core.vectors.leaf_codecs`); it is
@@ -43,6 +43,9 @@ class VectorNativeView(VectorView, tuple):
     invalid option raises :class:`ValueError`); a codec never raises on the *data* — a value it
     cannot represent exactly takes the codec's documented default conversion, because the backend
     keeps the exact original. A scalar source is presented as a single-element tuple.
+
+    :param obj: The source value to present.
+    :param \**hints: Backend-selection, leaf-codec, and codec-option hints.
     """
 
     _backend: VectorBackend
@@ -72,8 +75,10 @@ class VectorNativeView(VectorView, tuple):
         super().__init__()
 
     def unwrap(self) -> Any:
+        """Return the underlying unwrapped vector."""
         return unwrap(self._backend)
 
     def unview(self) -> Any:
+        """Return a plain tuple containing the presented leaves."""
         # The view IS its presentation tuple; shed to a plain tuple (shallow, leaves shared).
         return tuple(self)

@@ -75,7 +75,12 @@ def _build_requirements(metadata: dict[str, object], path: Path) -> list[str]:
 
 
 def compute_input_hash(pyproject_path: str | Path) -> str:
-    """Hash the documentation dependency inputs, independent of TOML formatting."""
+    """Hash the documentation dependency inputs, independent of TOML formatting.
+
+    :param pyproject_path: Project metadata file containing the dependency inputs.
+    :return: SHA-256 digest of the canonicalized lock inputs.
+    :raises LockError: If the project metadata or dependency inputs are invalid.
+    """
 
     path = Path(pyproject_path)
     metadata = _load_pyproject(path)
@@ -135,7 +140,13 @@ def generate_lock(
     *,
     command_prefix: Sequence[str] | None = None,
 ) -> None:
-    """Generate a lock by invoking ``uv pip compile`` or an injected command."""
+    """Generate a lock by invoking ``uv pip compile`` or an injected command.
+
+    :param project_dir: Project directory containing ``pyproject.toml``.
+    :param output_path: Lock path, relative to the project directory when relative.
+    :param command_prefix: Command to invoke instead of ``uv``.
+    :raises LockError: If inputs are invalid, compilation fails, or the lock cannot be written.
+    """
 
     project = Path(project_dir).resolve()
     pyproject = project / "pyproject.toml"
@@ -226,7 +237,12 @@ def _read_hash_header(lock_path: Path) -> str:
 
 
 def check_lock(project_dir: str | Path, lock_path: str | Path) -> None:
-    """Raise :class:`LockError` if a lock is missing or stale for *project_dir*."""
+    """Raise :class:`LockError` if a lock is missing or stale for *project_dir*.
+
+    :param project_dir: Project directory whose dependency inputs are checked.
+    :param lock_path: Lock path, relative to the project directory when relative.
+    :raises LockError: If the lock is missing, malformed, stale, or has invalid pins.
+    """
 
     project = Path(project_dir).resolve()
     path = Path(lock_path)
@@ -242,7 +258,11 @@ def check_lock(project_dir: str | Path, lock_path: str | Path) -> None:
 
 
 def read_lock_pins(lock_path: str | Path) -> dict[str, str]:
-    """Read normalized distribution names and versions from a lock file."""
+    """Read normalized distribution names and versions from a lock file.
+
+    :param lock_path: Lock file to read.
+    :return: Mapping of normalized distribution names to pinned versions.
+    """
 
     pins: dict[str, str] = {}
     for line in Path(lock_path).read_text(encoding="utf-8").splitlines():
@@ -255,7 +275,12 @@ def read_lock_pins(lock_path: str | Path) -> dict[str, str]:
 
 
 def filter_lock_pins(pins: Mapping[str, str], *, drop: Iterable[str]) -> dict[str, str]:
-    """Return pins excluding all ``httk-*`` names and the explicitly dropped names."""
+    """Return pins excluding all ``httk-*`` names and the explicitly dropped names.
+
+    :param pins: Distribution pins to normalize and filter.
+    :param drop: Additional distribution names to exclude.
+    :return: Filtered pins keyed by normalized distribution name.
+    """
 
     dropped = {_normalize_name(name) for name in drop}
     normalized = {_normalize_name(name): version for name, version in pins.items()}
@@ -265,7 +290,11 @@ def filter_lock_pins(pins: Mapping[str, str], *, drop: Iterable[str]) -> dict[st
 
 
 def internal_pins(pins: Mapping[str, str]) -> dict[str, str]:
-    """Return the normalized subset of pins belonging to internal httk distributions."""
+    """Return the normalized subset of pins belonging to internal httk distributions.
+
+    :param pins: Distribution pins to normalize and filter.
+    :return: Pins whose normalized names start with ``httk-``.
+    """
 
     normalized = {_normalize_name(name): version for name, version in pins.items()}
     return {name: version for name, version in normalized.items() if name.startswith("httk-")}

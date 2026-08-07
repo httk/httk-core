@@ -12,10 +12,17 @@ _URL_SCHEMES = ("http", "https", "ftp", "file")
 
 
 class BytestreamURL(BytestreamCommon, BytestreamBackend):
-    """
+    r"""
     Backend for streaming byte data fetched from a URL string.
     A bare string is interpreted as a URL when its scheme is one of http, https, ftp, or file,
     or when an explicit kind="url" hint is given.
+    Network access from an implicit bare network URL requires explicit consent before opening;
+    URL views and ``kind="url"`` provide that consent. Content is transparently decompressed
+    according to the compression hint.
+
+    :param url: URL to fetch lazily when data is first read.
+    :param \**hints: Backend-selection, consent, timeout, and compression hints.
+    :raises ValueError: If the compression hint is unknown.
     """
 
     _url: str
@@ -65,12 +72,15 @@ class BytestreamURL(BytestreamCommon, BytestreamBackend):
 
     @property
     def name(self) -> str | None:
+        """Report that a URL backend has no filename."""
         return None
 
     @property
     def url(self) -> str:
+        """Return the source URL."""
         return self._url
 
     @property
     def closed(self) -> bool:
+        """Report whether the URL backend is closed."""
         return self._closed

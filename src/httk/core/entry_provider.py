@@ -49,6 +49,12 @@ class RelatedEntry:
     edge label (the OPTIMADE relation-object ``label``); until relation-object
     serving exists, it is served on the OPTIMADE side as prefixed relationship
     metadata.
+
+    :param entry_type: The entry type of the related entry.
+    :param id: The identifier of the related entry.
+    :param description: The human-readable relationship description, if declared.
+    :param role: The machine-readable relationship role, if declared.
+    :param label: The provenance edge label, if declared.
     """
 
     entry_type: str
@@ -120,6 +126,8 @@ class EntryProvider(ABC):
         the entry type and its properties. The subset a provider actually serves
         is named by :meth:`property_keys`; a definition may describe more
         properties than are served.
+
+        :return: The served entry-type definitions keyed by entry type name.
         """
         raise NotImplementedError
 
@@ -131,6 +139,9 @@ class EntryProvider(ABC):
         key names a property described by :meth:`entry_types`; every value names
         the key under which that property's value is found in a record from
         :meth:`records`.
+
+        :param entry_type: The entry type whose property mapping is requested.
+        :return: The served property names mapped to record keys.
         """
         raise NotImplementedError
 
@@ -141,6 +152,9 @@ class EntryProvider(ABC):
         Each record is a mapping keyed by the record keys named in
         :meth:`property_keys`; values are JSON-able (strings, numbers, booleans,
         ``None``, or nested lists/dicts of the same).
+
+        :param entry_type: The entry type whose records are requested.
+        :return: An iterable of JSON-able records.
         """
         raise NotImplementedError
 
@@ -160,5 +174,8 @@ class EntryProvider(ABC):
         provider overrides it to declare them. Ids referring to records this
         provider (or a sibling provider serving the related type) does not supply
         are simply not resolvable by the consumer.
+
+        :param entry_type: The entry type whose relationships are requested.
+        :return: Related entries keyed by the source record identifier.
         """
         return {}

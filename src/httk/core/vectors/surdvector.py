@@ -163,6 +163,9 @@ class SurdVector:
 
     See the module docstring for the field facts, the fractional-vs-Cartesian motivation, and the
     magnitude-vs-linear-structure purpose boundary.
+
+    :param components: Coefficients keyed by squarefree radicand.
+    :param dim: The shared tensor shape of the coefficients.
     """
 
     _components: dict[int, FracVector]
@@ -171,12 +174,6 @@ class SurdVector:
     #### Construction
 
     def __init__(self, components: dict[int, FracVector], dim: tuple[int, ...]) -> None:
-        """
-        Low-level constructor: store ``components`` (canonicalized) over shape ``dim``.
-
-        Prefer :meth:`~httk.core.vectors.surdvector.SurdVector.create`, :meth:`~httk.core.vectors.surdvector.SurdVector.sqrt_of` or :meth:`~httk.core.vectors.surdvector.SurdVector.from_radicand_map`; this assumes the
-        coefficients are already FracVectors sharing ``dim``.
-        """
         canon: dict[int, FracVector] = {}
         for radicand, comp in components.items():
             simplified = comp.simplify()
@@ -199,6 +196,9 @@ class SurdVector:
         A SurdVector is returned unchanged; anything else is built through
         :meth:`~httk.core.vectors.fracvector.FracVector.create` and embedded exactly at radicand 1 (so every rational value is
         representable, and a rational input stays rational).
+
+        :param obj: A rational tensor, FracVector, or existing SurdVector.
+        :return: The exact SurdVector representation.
         """
         if isinstance(obj, SurdVector):
             return obj
@@ -213,6 +213,9 @@ class SurdVector:
         Radicands are positive integers and need not be squarefree — each is normalized via
         ``square_part`` (``sqrt(radicand) = s*sqrt(r)``) and the
         coefficients (FracVector-like, all of one shape) folded together canonically.
+
+        :param mapping: Radicands mapped to their coefficient tensors.
+        :return: The canonical SurdVector representation.
         """
         components: dict[int, FracVector] = {}
         dim: tuple[int, ...] | None = None
@@ -240,6 +243,9 @@ class SurdVector:
         normalized as ``sqrt(p*q)/q`` so the stored radicand is always a positive squarefree integer
         (``sqrt_of(1/2) == sqrt(2)/2``). Raises :class:`ValueError` on a negative argument — there is
         no exact square root of a surd (no nested radicals), only of a rational.
+
+        :param q: A nonnegative rational value.
+        :return: Its exact square root.
         """
         qf = _scalar_to_fraction(q)
         if qf < 0:
@@ -253,7 +259,11 @@ class SurdVector:
 
     @classmethod
     def zero(cls, dim: tuple[int, ...] = ()) -> "SurdVector":
-        """The zero SurdVector of shape ``dim`` (a :class:`SurdScalar` for the default ``()``)."""
+        """The zero SurdVector of shape ``dim`` (a :class:`SurdScalar` for the default ``()``).
+
+        :param dim: The shape of the zero tensor.
+        :return: The zero SurdVector or SurdScalar.
+        """
         return cls._make({}, dim)
 
     @classmethod
@@ -283,7 +293,11 @@ class SurdVector:
         return tuple(sorted(self._components))
 
     def coefficient(self, radicand: int) -> FracVector:
-        """The FracVector coefficient of ``sqrt(radicand)`` (a zero tensor when absent)."""
+        """Return the FracVector coefficient of ``sqrt(radicand)`` (a zero tensor when absent).
+
+        :param radicand: The radicand whose coefficient to retrieve.
+        :return: The coefficient, or a zero tensor when absent.
+        """
         return self._components.get(radicand, _zero_fracvector(self._dim))
 
     def _rational_fraction(self) -> fractions.Fraction:
@@ -401,13 +415,20 @@ class SurdVector:
         return SurdVector._make(components, dim)
 
     def T(self) -> "SurdVector":
-        """Return the transpose, transposing each radicand's coefficient tensor."""
+        """Return the transpose, transposing each radicand's coefficient tensor.
+
+        :return: The transposed tensor.
+        """
         transposed = {radicand: comp.T() for radicand, comp in self._components.items()}
         dim = _zero_fracvector(self._dim).T().dim
         return self._make(transposed, dim)
 
     def dot(self, other: Any) -> "SurdScalar":
-        """Vector dot product of two 1-D SurdVectors (``sum a_i b_i``)."""
+        """Return the vector dot product of two 1-D SurdVectors (``sum a_i b_i``).
+
+        :param other: The other 1-D SurdVector.
+        :return: The exact scalar dot product.
+        """
         coerced = self._coerce(other)
         if coerced is None:
             raise TypeError("SurdVector.dot: unsupported operand")
@@ -419,7 +440,10 @@ class SurdVector:
         return total._as_scalar()
 
     def lengthsqr(self) -> "SurdScalar":
-        """Return the squared length ``A * A^T`` as a :class:`SurdScalar`."""
+        """Return the squared length ``A * A^T`` as a :class:`SurdScalar`.
+
+        :return: The exact squared length.
+        """
         if self._dim == ():
             return (self._as_scalar() * self._as_scalar())._as_scalar()
         if len(self._dim) == 1:
@@ -438,6 +462,8 @@ class SurdVector:
         difference of Cartesian sites under a rational metric (the crystallographic case). When
         ``lengthsqr`` is itself irrational the length would be a nested radical
         (``sqrt(a + b*sqrt(c))``), which is outside the field, so this raises :class:`ValueError`.
+
+        :return: The exact length when the squared length is rational.
         """
         lsq = self.lengthsqr()
         if not lsq.is_rational:
@@ -448,7 +474,10 @@ class SurdVector:
         return self.sqrt_of(lsq._rational_fraction())
 
     def det(self) -> "SurdScalar":
-        """Return the determinant of a 3x3 SurdVector as a :class:`SurdScalar`."""
+        """Return the determinant of a 3x3 SurdVector as a :class:`SurdScalar`.
+
+        :return: The exact determinant.
+        """
         if self._dim != (3, 3):
             raise ValueError(f"SurdVector.det: only 3x3 implemented, got shape {self._dim}")
 
@@ -465,7 +494,10 @@ class SurdVector:
         )._as_scalar()
 
     def inv(self) -> "SurdVector":
-        """Return the inverse of a 3x3 SurdVector via the adjugate and the scalar field inverse."""
+        """Return the inverse of a 3x3 SurdVector via the adjugate and the scalar field inverse.
+
+        :return: The exact inverse matrix.
+        """
         if self._dim != (3, 3):
             raise ValueError(f"SurdVector.inv: only 3x3 implemented, got shape {self._dim}")
 
@@ -534,11 +566,18 @@ class SurdVector:
 
         Exact (not merely within ``prec``) whenever the value is rational. This is the
         ``compute(prec)``-shaped rational approximation reused by the Decimal rendering.
+
+        :param prec: The maximum elementwise approximation error.
+        :return: Nested rational approximations of the values.
         """
         return self._approx_fracvector(prec).to_fractions()
 
     def to_floats(self, prec: fractions.Fraction = fractions.Fraction(1, 10**30)) -> Any:
-        """A nested list of floats (via a high-precision exact rational approximation)."""
+        """Return a nested list of floats via a high-precision exact rational approximation.
+
+        :param prec: The maximum elementwise approximation error.
+        :return: Nested floating-point approximations of the values.
+        """
         return self._approx_fracvector(prec).to_floats()
 
     #### Equality / hashing / display
@@ -596,6 +635,9 @@ class SurdScalar(SurdVector):
 
     Adds the scalar-only operations — the field inverse, exact sign and ordering, and Decimal
     rendering — that need a single value rather than a tensor.
+
+    :param components: Coefficients keyed by squarefree radicand.
+    :param dim: The scalar shape, normally ``()``.
     """
 
     #### Field inverse
@@ -636,7 +678,10 @@ class SurdScalar(SurdVector):
         return num._mul_surd(SurdScalar({1: FracVector(den_frac.denominator, den_frac.numerator)}, ()))._as_scalar()
 
     def inverse(self) -> "SurdScalar":
-        """The multiplicative inverse ``1/self`` (raises :class:`ZeroDivisionError` on zero)."""
+        """Return the multiplicative inverse ``1/self`` (raises :class:`ZeroDivisionError` on zero).
+
+        :return: The exact multiplicative inverse.
+        """
         return self._inverse()
 
     #### Exact sign and ordering
@@ -649,6 +694,8 @@ class SurdScalar(SurdVector):
         ``sqrt(r)`` (from :func:`~httk.core.exactmath.integer_sqrt` at increasing precision)
         and summing the weighted intervals until the total interval excludes zero — which always
         happens in finitely many steps because a nonzero surd is bounded away from zero.
+
+        :return: ``-1``, ``0``, or ``1`` according to the exact sign.
         """
         if self.is_zero():
             return 0
@@ -723,6 +770,9 @@ class SurdScalar(SurdVector):
         A ``None`` result is therefore a proof that the exact cosine lies outside
         :math:`\\mathbb{Q}[\\sqrt n]` — use :func:`~httk.core.exactmath.cos` with
         ``degrees=True`` for a deterministic rational approximation in that case.
+
+        :param q: The angle in degrees.
+        :return: The exact cosine, or ``None`` outside the surd field.
         """
         qf = exactmath.any_to_fraction(q)
         reduced = qf - 360 * (qf // 360)
@@ -733,13 +783,16 @@ class SurdScalar(SurdVector):
     @classmethod
     def sin_degrees(cls, q: Any) -> "SurdScalar | None":
         """
-        Return ``sin(q degrees)`` as an exact :class:`SurdScalar`, or None when it is irrational.
+        Return ``sin(q degrees)`` as an exact :class:`SurdScalar`, or ``None`` when the value lies
+        outside the supported surd field (when ``90 - q`` is not in the exact surd-cosine set).
 
         Computed as ``cos(90 - q)`` degrees, so exactness follows the same classification as
-        :meth:`cos_degrees` applied to ``90 - q``: exact for all multiples of 15 degrees, otherwise
-        None (a proof that the exact sine is outside the field). Note the asymmetry with
-        :meth:`cos_degrees` for the 36° family: :math:`\\cos 36°` is an exact surd but
-        :math:`\\sin 36° = \\cos 54°` is not (54 is a multiple of neither 15 nor 36).
+        :meth:`cos_degrees` applied to ``90 - q``: exact when ``90 - q`` is a multiple of 15 or
+        36 degrees, and ``None`` otherwise (a proof that the exact sine is outside the field).
+        For example, ``sin(54°)`` is exact because it is ``cos(36°)``.
+
+        :param q: The angle in degrees.
+        :return: The exact sine, or ``None`` outside the surd field.
         """
         qf = exactmath.any_to_fraction(q)
         return cls.cos_degrees(90 - qf)
@@ -754,6 +807,8 @@ class SurdScalar(SurdVector):
         equality; otherwise None (the exact angle is then irrational in degrees). Raises
         :class:`ValueError` — decided exactly via :meth:`sign` — when the value lies outside
         :math:`[-1, 1]`.
+
+        :return: The exact angle in degrees, or ``None`` when not represented by the table.
         """
         if self > 1 or self < -1:
             raise ValueError(f"SurdScalar.acos_degrees: value {self} is outside the domain [-1, 1]")
@@ -771,7 +826,11 @@ class SurdScalar(SurdVector):
         return self._approx_fracvector(prec).to_fraction()
 
     def to_float(self, prec: fractions.Fraction = fractions.Fraction(1, 10**30)) -> float:
-        """The value as a float (via a high-precision exact rational approximation)."""
+        """Return the value as a float via a high-precision exact rational approximation.
+
+        :param prec: The maximum approximation error.
+        :return: The value as a float.
+        """
         return float(self._scalar_approx(prec))
 
     def __float__(self) -> float:
@@ -794,6 +853,11 @@ class SurdScalar(SurdVector):
         determined. ``digits`` (significant digits; default: the active decimal context precision),
         ``rounding`` (``"half_even"``/``"down"``) and ``max_refinements`` match
         :func:`~httk.core.exactmath.sqrt` in Decimal mode.
+
+        :param digits: The number of significant decimal digits, or the active context precision when omitted.
+        :param rounding: The decimal rounding mode.
+        :param max_refinements: The maximum number of approximation refinements.
+        :return: The correctly rounded decimal value.
         """
         exactmath._validate_decimal_params(digits, rounding, max_refinements)
         if self.is_rational:

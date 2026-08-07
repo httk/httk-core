@@ -10,7 +10,7 @@ from .vector_backend import VectorBackend
 
 
 class VectorNumpy(VectorBackend):
-    """
+    r"""
     Backend for a vector backed by a :class:`numpy.ndarray`.
 
     numpy is an optional dependency (``httk-core[numpy]``) and is imported lazily; if numpy is
@@ -19,6 +19,9 @@ class VectorNumpy(VectorBackend):
     numpy float64 values are themselves binary rationals, so the ``fractions`` interchange is
     produced *exactly* from the array (each float becomes its exact rational value). Only the
     reverse direction (building a numpy view) is lossy. ``unwrap`` returns the wrapped array.
+
+    :param obj: The source data to wrap.
+    :param \**hints: Optional backend-selection hints.
     """
 
     _array: Any
@@ -40,6 +43,8 @@ class VectorNumpy(VectorBackend):
 
     @property
     def fractions(self) -> Fractions:
+        """Return the array in the exact Fraction interchange format."""
+
         def rec(x: Any) -> Fractions:
             if isinstance(x, list):
                 return tuple(rec(e) for e in x)
@@ -49,7 +54,9 @@ class VectorNumpy(VectorBackend):
 
     @property
     def dim(self) -> tuple[int, ...]:
+        """Return the array shape."""
         return tuple(self._array.shape)
 
     def unwrap(self) -> Any:
+        """Return the wrapped numpy array."""
         return self._array

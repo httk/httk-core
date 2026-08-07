@@ -7,12 +7,16 @@ from .bytestream_view import BytestreamView
 
 
 class BytestreamURLView(BytestreamView, str):
-    """
+    r"""
     A view presenting an underlying data streaming backend via a URL string.
     This view is mostly useful for providing a URL to functions that will open it.
     Note: this view is not lazy (this is impossible for views inheriting str, since str is immutable).
 
     Raises TypeError if created with a streaming data source that does not come with a URL.
+
+    :param obj: Byte-stream source whose URL should be presented.
+    :param \**hints: Backend-selection, consent, timeout, and compression hints.
+    :raises TypeError: If the source has no URL.
     """
 
     _backend: BytestreamBackend
@@ -34,4 +38,8 @@ class BytestreamURLView(BytestreamView, str):
         super().__init__()
 
     def unwrap(self) -> Any:
+        """Return the raw representation of the wrapped backend.
+
+        :return: The backend's most raw available representation.
+        """
         return unwrap(self._backend)

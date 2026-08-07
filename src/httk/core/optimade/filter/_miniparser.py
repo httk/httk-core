@@ -373,14 +373,9 @@ def logger(*args: Any, **kargs: Any) -> None:
     This is the default logging function for diagnostic output. It
     prints the output in `args` on stdout.
 
-    Args:
-      loglevel:
-         the level designated to the diagnostic output
-      args:
-         list of arguments to print out
-      kargs:
-         keyword flags. These are:
-         pretty=True: formats the output using pprint.pprint(arg).
+    :param *args: Arguments to print out.
+    :param **kargs: Keyword flags. These are:
+        ``pretty=True`` formats the output using ``pprint.pprint(arg)``.
     """
     pretty = kargs.get('pretty', False)
 
@@ -421,17 +416,15 @@ class LogVerbosity:
 
     prints out diagnostic output on level 3 for the parser function, but
     skips any other diagnostic output.
+
+    Create LogVerbosity object.
+
+    :param verbosity: Main verbosity level to display.
+    :param **flags: Keywords to adjust output of diagnostic information
+        (see help(LogVerbosity) for more info.)
     """
 
     def __init__(self, verbosity: int, **flags: Any) -> None:
-        """
-        Create LogVerbosity object.
-
-        Args:
-          verbosity(int): main verbosity level to display
-          flags: keywords to adjust output of diagnostic information
-              (see help(LogVerbosity) for more info.)
-        """
         self.verbosity = verbosity
         self.flags = flags
         for flag, value in flags.items():
@@ -478,14 +471,16 @@ def parser(
     It should do well for parsing somewhat simple grammars.
 
     The parser takes a language specification (ls),
-    and a string to parse (source). The string is then parsed according
+    and source to parse. The source is then parsed according
     to that ls into a syntax tree, which is returned.
 
     An ls is produced by calling the function `build_ls` (see help(build_ls))
 
-    Args:
-      ls: language specification produced by build_ls.
-      source: source string to parse.
+    :param ls: Language specification produced by ``build_ls``.
+    :param source: Source text to parse.
+    :param verbosity: Verbosity setting for parser diagnostics.
+    :param logger: Logging function for parser diagnostics.
+    :return: Parsed syntax tree.
     """
     if 'parse_table' not in ls:
         build_ls(ls=ls, verbosity=verbosity, logger=logger)
@@ -634,11 +629,8 @@ def split_chars_strip_comments(
     Helper function for the lexer that reads input and strips comments, while
     keeping track of absolute position in the file.
 
-    Args:
-      source (str):
-        input string
-      comment_markers (list of tuples):
-        a list of entries (start_marker, end_marker)
+    :param source: Input text.
+    :param comment_markers: Comment delimiter pairs ``(start_marker, end_marker)``
         that designate comments. A marker can be end-of-line or end with end-of-line, but
         multiline comment separators are not allowed, i.e., no characters may follow
         the end-of-line.
@@ -714,22 +706,18 @@ def lexer(
     """
     A generator that turn source into tokens.
 
-    Args:
-      source (str):
-                     input string
-      tokens (dict):
-                     a dictonary that maps all tokens of the
-                     language on regular expressions that match them.
-      partial_tokens (dict):
-                     a dictionary that maps token names on
-                     regular expressions for partial token matches.
-                     This is used to allow finding longer matches if
-                     there is intermediate length input that does not
-                     match. E.g., to match 5.32e6 as a number instead
-                     as as Number(5.32) + Identifier(e) + Number(6).
-      literals (list):
-                     a list of single character strings that are
-                     to be treated as literals.
+    :param source: Input text.
+    :param tokens: Token patterns that match the language tokens.
+    :param partial_tokens: Patterns for partial token matches. This is used to allow finding
+        longer matches if there is intermediate length input that does not
+        match. E.g., to match 5.32e6 as a number instead as as
+        ``Number(5.32) + Identifier(e) + Number(6)``.
+    :param literals: Literal symbols to be treated as literals.
+    :param ignore: Symbols withheld by the tokenizer.
+    :param comment_markers: Comment delimiters to strip while lexing.
+    :param verbosity: Verbosity setting for lexer diagnostics.
+    :param logger: Logging function for lexer diagnostics.
+    :yield: Token and source-position tuples.
 
     """
     comment_markers = [] if comment_markers is None else comment_markers
@@ -856,56 +844,57 @@ def build_ls(
     """
     Build a language specification from an ebnf grammar and some meta-info of the language.
 
-    Args:
-         ebnf_grammar (str):
-             a string containing the ebnf describing the language.
-         tokens (dict,optional):
-             a dict of token names and the regexs that defines them, they
+    :param ebnf_grammar:
+             EBNF text describing the language.
+    :param tokens:
+             Token patterns and the regexs that define them; they
              are considered terminals in the parsing. (They may also be defined
              as production rules in the ebnf, but if so, those definitions are ignored.)
-         partial_tokens (dict):
-             a dictionary that maps token names on
-             regular expressions for partial token matches.
+    :param partial_tokens:
+             Partial token patterns for
+             regular-expression matches.
              This is used to allow finding longer matches if
              there is intermediate length input that does not
              match. E.g., to match 5.32e6 as a number instead
              as as Number(5.32) + Identifier(e) + Number(6).
-         literals (list of str):
-             a list of strings of 1 or more characters which
-             define literal symbols of the language (i.e, the tokenizer name the
-             tokens the same as the string), if not given, an attemt is made to
+    :param literals:
+             Literal symbols of one or more characters which
+             define symbols of the language (i.e, the tokenizer names the
+             tokens by their spelling), if not given, an attemt is made to
              auto-extract them from the grammar.
-         precedence (list,optional):
-             list of tuples of the format (associativity, symbol, ...),
-             the order of this list defines the precedence of those symbols,
-             later in the list = higher precedence. The associativity
+    :param precedence:
+             Precedence declarations in the format (associativity, symbol, ...),
+             the order of these declarations defines the precedence of those
+             symbols; later declarations have higher precedence. The associativity
              can be 'left', 'right', or 'noassoc'.
-         ignore (str,optional):
-             a string of characters, or a list of strings for symbols,
-             which are withheld by the tokenizer. (This is commonly used to skip emitting
+    :param ignore:
+             Symbols withheld by the tokenizer. (This is commonly used to skip emitting
              whitespace tokens, while still supprting whitespace inside tokens,
              e.g., quoted strings.)
-         simplify (list,optional):
-             a list of symbol identifiers that are simplified away
-             when the parse tree is generated.
-         aggregate (list,optional):
-             a list of symbol identifiers that when consituting
-             consequtive nodes are 'flattened', removing the ambiguity of left or right
-             associativity.
-         start (str,optional):
+    :param simplify:
+             Symbol identifiers that are simplified away when the parse tree is
+             generated.
+    :param aggregate:
+             Symbol identifiers whose consecutive nodes are 'flattened', removing
+             the ambiguity of left or right associativity.
+    :param start:
              the start (topmost) symbol of the grammar. A successful
              parsing means reducing all input into this symbol.
-         remove (list):
-             list of symbols to just skip in the output parse tree
-             (useful to, e.g., skip uninteresting literals).
-         skip (list):
-             list of rules to completely ignore in the grammar.
+    :param skip:
+             Grammar rules to completely ignore.
              (useful to skip rules in a complete EBNF which reduces the tokens
              into single characters entities, when one rather wants to handle
              those tokens by regex:es by passing the token argument)
-         ls (dict):
-             As an alternative to giving the above parameters, a dict can
-             be given with the same attributes as the arguments defined above.
+    :param remove:
+             Symbols to just skip in the output parse tree
+             (useful to, e.g., skip uninteresting literals).
+    :param comment_markers: Comment delimiters to strip while lexing.
+    :param ls:
+             An alternative language specification with the same attributes as
+             the arguments defined above.
+    :param verbosity: Verbosity setting for parser-generator diagnostics.
+    :param logger: Logging function for parser-generator diagnostics.
+    :return: Constructed language specification.
     """
     tokens = {} if tokens is None else tokens
     partial_tokens = {} if partial_tokens is None else partial_tokens
@@ -1028,13 +1017,10 @@ def _build_rule_table(
     bnf_grammar_ast: tuple[tuple[str, tuple[str, ...]], ...], terminals: set[str | None], skip: list[str]
 ) -> dict[str, list[tuple[str, ...]]]:
     """
-    Args:
-      bnf_grammar_ast: grammar on bnf ast form produced by _ebnf_grammar_to_bnf
-      terminals (list): list of terminals of the language
-
-    Returns:
-      A dict that maps every non-terminal to a list of
-      right hand sides of production rules from that non-terminal.
+    :param bnf_grammar_ast: grammar on bnf ast form produced by _ebnf_grammar_to_bnf
+    :param terminals: The unique terminal symbols of the language.
+    :param skip: Rules to skip.
+    :return: Production rules grouped by non-terminal.
     """
     rule_table: dict[str, list[tuple[str, ...]]] = {}
     for rule in bnf_grammar_ast:
@@ -1052,14 +1038,10 @@ def _build_first_table(
     rule_table: dict[str, list[tuple[str, ...]]], terminals: set[str | None]
 ) -> dict[str | None, set[str | None]]:
     """
-    Args:
-      rule_table: a rule table produced by _build_rule_table
-      terminals (list): list of terminals of the language
-
-    Returns:
-      A dict of the FIRST(symbol) function in LR parsing.  It maps all
-      symbols on a list of terminals that may be the very first thing
-      seen in the input when matching that production rule.
+    :param rule_table: a rule table produced by _build_rule_table
+    :param terminals: The unique terminal symbols of the language.
+    :return: FIRST symbols mapped to terminals that may be the first input
+        symbol when matching each production rule.
     """
     first: dict[str | None, set[str | None]] = {}
     lastcount = 0
@@ -1089,14 +1071,11 @@ def _closure(
     terminals: set[str | None],
 ) -> frozenset[tuple[Any, ...]]:
     """
-    Args:
-      items: a list of LR "items" to get the CLOSURE set for.
-      rule_table: a rule table produced by _build_rule_table
-      first_table: a first table produced by _build_first_table
-      terminals (list): list of terminals of the language
-
-    Returns:
-      A set of all LR "items" that form the CLOSURE of the given items.
+    :param items: LR "items" whose CLOSURE set should be computed.
+    :param rule_table: a rule table produced by _build_rule_table
+    :param first_table: a first table produced by _build_first_table
+    :param terminals: The unique terminal symbols of the language.
+    :return: The LR ``items`` that form the CLOSURE of the given items.
     """
     c = set(items)
 
@@ -1139,19 +1118,16 @@ def _build_parse_tables(
     precedence: Sequence[tuple[str, ...]],
 ) -> _ParseTable:
     """
-    Args:
-      rule_table: a rule table produced by _build_rule_tables
-      first_table: a first table produced by _build_first_table
-      terminals (list): extra symbols apart from tokens and literals that are to
-         be treated as terminals
-      start (str,optional): the start (topmost) symbol of the grammar. A successful
-         parsing means reducing all input into this symbol.
-
-    Returns:
-        A parse_table dict with two tables 'action_table' and 'goto_table'
-        which encode a state machine that for every starting state S tells
-        the LR state machine to either shift or reduce, and when doing so,
-        the state the machine progresses to.
+    :param rule_table: a rule table produced by _build_rule_tables
+    :param first_table: a first table produced by _build_first_table
+    :param terminals: extra symbols apart from tokens and literals that are to
+        be treated as terminals
+    :param start: the start (topmost) symbol of the grammar. A successful
+        parsing means reducing all input into this symbol.
+    :param precedence: Precedence declarations for grammar symbols.
+    :return: Parse-state transitions in ``action_table`` and ``goto_table``;
+        each starting state identifies whether the LR machine shifts or reduces
+        and the state it enters.
     """
 
     if start not in rule_table:
@@ -1317,13 +1293,12 @@ def _ebnf_to_bnf_rhs(
     rhs: Any, bnf_grammar_ast: list[Any], lhs_name: str = '', recursion: int = 0
 ) -> list[tuple[Any, ...]]:
     """
-    Args:
-      rhs: a right hand side of a EBNF grammar rule.
-      bnf_grammar_ast: a list of BNF grammar rules that this function
-          can add to when expanding repetition-type rules.
-
-    Returns:
-        A list of BNF grammar rules that correspond to the EBNF rhs.
+    :param rhs: a right hand side of a EBNF grammar rule.
+    :param bnf_grammar_ast: BNF grammar rules that this function can add to
+        when expanding repetition-type rules.
+    :param lhs_name: Name of the left-hand-side grammar rule.
+    :param recursion: Current recursion depth while expanding the rule.
+    :return: BNF grammar rules corresponding to the EBNF right-hand side.
 
     Modifies:
         bnf_grammar_ast to include extra rules if needed.
@@ -1391,15 +1366,12 @@ def _ebnf_grammar_to_bnf(
     """
     Converts/expands an EBNF ast grammar into a BNF ast grammar.
 
-    Args:
-      ebnf_grammar_ast: an ast representation of the EBNF grammar
-          as produced by parser when ebnf_ls is used for the
-          language specification.
-      tokens (dict): a dictionary defining tokens of the language.
-      skip (list): skip the rules for these symbols.
-
-    Returns:
-        An ast BNF representation of the grammar.
+    :param ebnf_grammar_ast: an ast representation of the EBNF grammar
+        as produced by parser when ebnf_ls is used for the
+        language specification.
+    :param tokens: Token definitions for the language.
+    :param skip: skip the rules for these symbols.
+    :return: BNF AST representation of the grammar.
     """
     bnf_grammar: list[Any] = []
 

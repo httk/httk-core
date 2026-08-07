@@ -36,7 +36,11 @@ def _writer_key(name: str) -> tuple[PluginRegistry, str] | None:
 
 
 def has_writer_for(name: str) -> bool:
-    """Return whether ``name`` matches a registered writer key."""
+    """Return whether ``name`` matches a registered writer key.
+
+    :param name: Destination filename whose writer registration is checked.
+    :return: Whether the name matches a registered extension or exact basename.
+    """
     return _writer_key(name) is not None
 
 
@@ -60,7 +64,20 @@ def _writer_for(name: str, format: str | None) -> tuple[PluginRegistry, str]:
 
 
 def save(obj: Any, destination: str | os.PathLike[str], *, format: str | None = None, **kwargs: Any) -> None:
-    """Save ``obj`` to a local destination selected by its name or ``format`` hint."""
+    r"""Save ``obj`` to a local destination selected by its name or ``format`` hint.
+
+    The writer registry selects by extension first and exact basename second,
+    case-insensitively after stripping one recognized compression suffix, unless
+    ``format`` selects a registered writer directly. The format-serializer
+    registry converts non-neutral objects before writing, and a recognized
+    compression suffix wraps the destination transparently.
+
+    :param obj: Object or neutral payload to serialize and write.
+    :param destination: Local filename or path to write.
+    :param format: Optional registered format name that selects the writer.
+    :param \**kwargs: Additional options passed to the selected writer.
+    :raises ValueError: If the destination or format has no writer, no serializer exists, or the destination is a URL.
+    """
     if isinstance(destination, str) and urlsplit(destination).scheme in {"http", "https", "ftp", "file"}:
         raise ValueError("save writes local files; URL destinations are not supported")
     destination_name = os.fspath(destination)

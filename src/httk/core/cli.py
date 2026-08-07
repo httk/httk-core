@@ -12,7 +12,11 @@ from .register import cli_command, known_cli_commands
 
 @dataclass(frozen=True)
 class CLIContext:
-    """Invocation context passed to a registered top-level command."""
+    """Carry invocation context to a registered top-level command.
+
+    :param program: Program name used in command output and help.
+    :param cwd: Working directory selected for the command invocation.
+    """
 
     program: str
     cwd: Path
@@ -54,7 +58,14 @@ def _error(program: str, message: str) -> int:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """Dispatch the :command:`httk` executable."""
+    """Dispatch the httk executable.
+
+    The optional -C prefix changes the process working directory before
+    resolving the command, and the returned value is the command's exit code.
+
+    :param argv: Command-line arguments without the executable name, or None to use sys.argv.
+    :return: Exit status for the requested command.
+    """
 
     arguments = list(sys.argv[1:] if argv is None else argv)
     program = Path(sys.argv[0]).name if argv is None else "httk"

@@ -140,7 +140,13 @@ def build_ecosystem_manifest(
     *,
     require_release_tags: bool = False,
 ) -> dict[str, object]:
-    """Build the sorted manifest for direct Git checkouts under *submodules_dir*."""
+    """Build the sorted manifest for direct Git checkouts under *submodules_dir*.
+
+    :param submodules_dir: Directory containing the expected direct checkouts.
+    :param require_release_tags: Require each checkout tag to match its distribution version.
+    :return: Manifest describing the checked-out modules.
+    :raises EcosystemManifestError: If checkout structure, Git state, or release metadata is invalid.
+    """
 
     directory = Path(submodules_dir).expanduser().resolve()
     if not directory.is_dir():
@@ -183,7 +189,12 @@ def build_ecosystem_manifest(
 
 
 def read_ecosystem_manifest(path: str | Path) -> dict[str, object]:
-    """Read a JSON manifest and report malformed files as typed errors."""
+    """Read a JSON manifest and report malformed files as typed errors.
+
+    :param path: Manifest file to read.
+    :return: Validated ecosystem manifest.
+    :raises EcosystemManifestError: If the file cannot be read or has an invalid schema.
+    """
 
     manifest_path = Path(path)
     try:
@@ -196,7 +207,12 @@ def read_ecosystem_manifest(path: str | Path) -> dict[str, object]:
 
 
 def write_ecosystem_manifest(manifest: Mapping[str, object], output: str | Path) -> None:
-    """Write *manifest* as sorted, newline-terminated JSON using an atomic replace."""
+    """Write *manifest* as sorted, newline-terminated JSON using an atomic replace.
+
+    :param manifest: Ecosystem manifest to serialize.
+    :param output: Destination manifest path.
+    :raises EcosystemManifestError: If the destination cannot safely be written.
+    """
 
     destination = Path(output).expanduser()
     if destination.is_symlink():
@@ -225,7 +241,13 @@ def verify_ecosystem_manifest(
     *,
     require_release_tags: bool = False,
 ) -> None:
-    """Verify a committed manifest against the current checkout state."""
+    """Verify a committed manifest against the current checkout state.
+
+    :param submodules_dir: Directory containing the expected direct checkouts.
+    :param manifest_path: Committed manifest to compare with the checkout state.
+    :param require_release_tags: Require each checkout tag to match its distribution version.
+    :raises EcosystemManifestError: If the checkout or manifest differs from the expected state.
+    """
 
     expected = build_ecosystem_manifest(submodules_dir, require_release_tags=require_release_tags)
     actual = read_ecosystem_manifest(manifest_path)

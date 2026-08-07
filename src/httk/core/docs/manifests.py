@@ -41,7 +41,15 @@ def build_version_manifest(
     release_versions: list[Version] | tuple[Version, ...],
     has_dev: bool,
 ) -> dict[str, Any]:
-    """Build a root manifest with releases newest-first and optional dev last."""
+    """Build a root manifest with releases newest-first and optional dev last.
+
+    :param slug: Documentation-site project slug.
+    :param url: Public documentation-site URL.
+    :param source_commit: Source commit represented by the site, when known.
+    :param release_versions: Published release versions.
+    :param has_dev: Whether the replaceable development site is published.
+    :return: Root version manifest.
+    """
 
     releases = sorted(release_versions, reverse=True)
     versions: list[dict[str, str]] = [
@@ -64,7 +72,11 @@ def build_version_manifest(
 
 
 def write_version_manifest(path: str | Path, manifest: dict[str, Any]) -> None:
-    """Write one JSON version manifest using stable, human-readable formatting."""
+    """Write one JSON version manifest using stable, human-readable formatting.
+
+    :param path: Destination manifest path.
+    :param manifest: Manifest to serialize.
+    """
 
     manifest_path = Path(path)
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -72,7 +84,12 @@ def write_version_manifest(path: str | Path, manifest: dict[str, Any]) -> None:
 
 
 def read_version_manifest(path: str | Path) -> dict[str, Any]:
-    """Read a JSON version manifest from *path*."""
+    """Read a JSON version manifest from *path*.
+
+    :param path: Manifest file to read.
+    :return: Parsed version manifest.
+    :raises ValueError: If the JSON value is not an object.
+    """
 
     with Path(path).open(encoding="utf-8") as stream:
         value = json.load(stream)
@@ -82,7 +99,12 @@ def read_version_manifest(path: str | Path) -> dict[str, Any]:
 
 
 def build_page_manifest(version_name: str, html_dir: str | Path) -> dict[str, Any]:
-    """List every HTML page below *html_dir* as sorted POSIX paths."""
+    """List every HTML page below *html_dir* as sorted POSIX paths.
+
+    :param version_name: Version name recorded in the manifest.
+    :param html_dir: Root directory containing generated HTML.
+    :return: Per-version page manifest.
+    """
 
     root = Path(html_dir)
     pages = sorted(path.relative_to(root).as_posix() for path in root.rglob("*.html") if path.is_file())
@@ -90,7 +112,11 @@ def build_page_manifest(version_name: str, html_dir: str | Path) -> dict[str, An
 
 
 def write_page_manifest(path: str | Path, manifest: dict[str, Any]) -> None:
-    """Write one per-version page manifest."""
+    """Write one per-version page manifest.
+
+    :param path: Destination manifest path.
+    :param manifest: Manifest to serialize.
+    """
 
     manifest_path = Path(path)
     manifest_path.parent.mkdir(parents=True, exist_ok=True)

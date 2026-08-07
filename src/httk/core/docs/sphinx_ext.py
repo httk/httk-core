@@ -46,7 +46,12 @@ __all__ = [
 
 
 def document_label(value: str | None) -> str:
-    """Return a validated documentation label, defaulting to ``dev:local``."""
+    """Return a validated documentation label, defaulting to ``dev:local``.
+
+    :param value: Requested release or development label.
+    :return: Validated documentation label.
+    :raises ValueError: If *value* is not a supported label.
+    """
 
     label = value or "dev:local"
     if label == "dev:local" or label == "dev:main":
@@ -60,13 +65,21 @@ def document_label(value: str | None) -> str:
 
 
 def channel_for_label(label: str) -> Literal["release", "dev"]:
-    """Return ``release`` for a version tag and ``dev`` for a development label."""
+    """Return ``release`` for a version tag and ``dev`` for a development label.
+
+    :param label: Documentation label to classify.
+    :return: Channel associated with the label.
+    """
 
     return "release" if label.startswith("v") else "dev"
 
 
 def version_depth(label: str) -> int:
-    """Return the URL path depth used by the selector for *label*."""
+    """Return the URL path depth used by the selector for *label*.
+
+    :param label: Documentation label whose URL depth is needed.
+    :return: Number of path components before a page URL.
+    """
 
     if label.startswith("v"):
         return 1
@@ -76,7 +89,12 @@ def version_depth(label: str) -> int:
 
 
 def selector_config_literal(label: str) -> str:
-    """Render the tiny JSON configuration literal consumed by ``selector.js``."""
+    """Render the tiny JSON configuration literal consumed by ``selector.js``.
+
+    :param label: Documentation label to encode.
+    :return: JavaScript assignment containing selector configuration.
+    :raises ValueError: If *label* is not a supported documentation label.
+    """
 
     normalized = document_label(label)
     value = {
@@ -104,6 +122,17 @@ def derive_internal_intersphinx_mapping(
     ``dev:local`` is handled by the callback before this function is called so
     that the configuration object remains byte-for-byte untouched for local
     builds.
+
+    :param mapping: Existing intersphinx mappings to copy and update.
+    :param config: Configuration declaring internal dependencies.
+    :param pins: Locked dependency versions for release mappings.
+    :param base_url: Base URL containing dependency documentation sites.
+    :param label: Release or development documentation label.
+    :param temporary_inventory_dir: Directory for fetched development inventories.
+    :param committed_inventory_dir: Directory containing committed release inventories.
+    :return: Mapping with internal dependency targets and inventories updated.
+    :raises ReleaseError: If a release dependency has no valid locked version.
+    :raises ValueError: If the label or development inventory directory is invalid.
     """
 
     normalized = document_label(label)
@@ -238,7 +267,11 @@ def _rewrite_internal_mappings(app: object, _config: object) -> None:
 
 
 def setup(app: object) -> dict[str, object]:
-    """Register the extension with Sphinx and inject version-selector assets."""
+    """Register the extension with Sphinx and inject version-selector assets.
+
+    :param app: Sphinx application receiving the extension callbacks and assets.
+    :return: Sphinx extension metadata.
+    """
 
     # This is the sanctioned optional edge: importing this module remains
     # possible in the stdlib-only lock and release tooling.

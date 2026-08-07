@@ -15,6 +15,11 @@ class CompressionCodec:
     A codec is an orthogonal layer below the datastream backends: it turns a compressed
     binary stream into an uncompressed binary stream, independently of where the compressed
     bytes come from (a filename, an open file, raw bytes, or a remote response).
+
+    :param name: Canonical name used to select the codec explicitly.
+    :param extensions: Filename suffixes that identify the codec.
+    :param magics: Leading byte signatures used to detect the codec.
+    :param open_stream: Function that wraps compressed bytes for reading.
     """
 
     name: str
@@ -35,17 +40,27 @@ _MODES = frozenset({"auto", "detect", "extension", "none"})
 
 
 def register_compression(codec: CompressionCodec) -> None:
-    """Register (or replace) a codec under its :attr:`~CompressionCodec.name` (case-insensitive)."""
+    """Register (or replace) a codec under its :attr:`~CompressionCodec.name` (case-insensitive).
+
+    :param codec: Codec to add to the registry.
+    """
     _registry[codec.name.lower()] = codec
 
 
 def known_compressions() -> list[str]:
-    """Return the registered codec names, in registration order."""
+    """Return the registered codec names, in registration order.
+
+    :return: The registered codec names.
+    """
     return list(_registry)
 
 
 def codec_for_name(name: str) -> CompressionCodec | None:
-    """Return the codec whose extension matches the trailing suffix of ``name``, else ``None``."""
+    """Return the codec whose extension matches the trailing suffix of ``name``, else ``None``.
+
+    :param name: Filename or URL path to inspect.
+    :return: The matching codec, or ``None`` when no suffix is recognized.
+    """
     lowered = name.lower()
     for codec in _registry.values():
         for ext in codec.extensions:
@@ -60,6 +75,9 @@ def split_compression_suffix(name: str) -> tuple[str, CompressionCodec | None]:
 
     ``"data.json.gz"`` becomes ``("data.json", <gzip codec>)``; a name with no recognized
     compression extension is returned unchanged with ``None``.
+
+    :param name: Filename or URL path to split.
+    :return: The name without its recognized suffix and the matching codec, if any.
     """
     codec = codec_for_name(name)
     if codec is None:
@@ -90,6 +108,9 @@ def sniff_codec(stream: io.IOBase) -> tuple[io.IOBase, CompressionCodec | None]:
     A seekable stream is read and rewound; an unseekable stream is peeked (directly when it
     supports ``peek``, otherwise via a wrapping :class:`io.BufferedReader`). The returned
     stream must be used in place of the input, since it may be the wrapper.
+
+    :param stream: Binary stream whose leading bytes should be inspected.
+    :return: The stream to continue reading and the detected codec, if any.
     """
     max_len = _max_magic_len()
     if max_len == 0:
@@ -115,6 +136,12 @@ def open_compressed(stream: io.IOBase, *, compression: str = "auto", name: str |
     ``"detect"`` (always sniff magic bytes), ``"auto"`` (extension if recognized, else sniff),
     or a registered codec name (force that codec; an unknown name raises :class:`ValueError`).
     When no codec applies the stream is returned unchanged.
+
+    :param stream: Compressed or uncompressed binary stream to expose.
+    :param compression: Mode or codec name controlling decompression.
+    :param name: Optional source name used for extension-based selection.
+    :return: A decompressed stream, or the original stream when no codec applies.
+    :raises ValueError: If ``compression`` names an unknown codec.
     """
     token = compression.lower()
     if token == "none":
@@ -138,7 +165,11 @@ def open_compressed(stream: io.IOBase, *, compression: str = "auto", name: str |
 
 
 def validate_compression(compression: str) -> None:
-    """Raise :class:`ValueError` unless ``compression`` is a known mode or registered codec name."""
+    """Raise :class:`ValueError` unless ``compression`` is a known mode or registered codec name.
+
+    :param compression: Mode or codec name to validate.
+    :raises ValueError: If ``compression`` is unknown.
+    """
     token = compression.lower()
     if token in _MODES or token in _registry:
         return
@@ -155,6 +186,9 @@ def reject_text_native_compression(compression: str | None) -> None:
     Such sources carry no compressed bytes to decode, so only the no-op modes ``"auto"``,
     ``"extension"``, and ``"none"`` are accepted; a codec name or ``"detect"`` raises
     :class:`ValueError`. ``None`` (no hint given) is accepted.
+
+    :param compression: Optional compression hint supplied for a text-native source.
+    :raises ValueError: If the hint requests native decompression or magic detection.
     """
     if compression is None or compression.lower() in ("auto", "extension", "none"):
         return

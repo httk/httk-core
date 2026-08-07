@@ -87,11 +87,19 @@ class QueryScope(Protocol):
     """
 
     def field(self, name: str) -> QueryField:
-        """Return the durable scalar field named ``name`` in this scope."""
+        """Return the durable scalar field named ``name`` in this scope.
+
+        :param name: The durable field name.
+        :return: A query value representing that field.
+        """
         ...
 
     def scope(self, name: str) -> "QueryScope":
-        """Return the correlated child or reference scope named ``name``."""
+        """Return the correlated child or reference scope named ``name``.
+
+        :param name: The durable relationship name.
+        :return: A distinct correlated peer scope.
+        """
         ...
 
 
@@ -107,19 +115,32 @@ class QueryContext(QueryScope, Protocol):
     """
 
     def constant(self, value: object) -> QueryValue:
-        """Return a query value for an already validated literal constant."""
+        """Return a query value for an already validated literal constant.
+
+        :param value: The validated literal to place in the query.
+        :return: A query value for the literal.
+        """
         ...
 
     def null(self) -> QueryValue:
-        """Return the explicit null query value."""
+        """Return the explicit null query value.
+
+        :return: A query value representing null.
+        """
         ...
 
     def always_true(self) -> QueryExpression:
-        """Return the predicate which matches every backing record."""
+        """Return the predicate which matches every backing record.
+
+        :return: A predicate that always matches.
+        """
         ...
 
     def always_false(self) -> QueryExpression:
-        """Return the predicate which matches no backing record."""
+        """Return the predicate which matches no backing record.
+
+        :return: A predicate that never matches.
+        """
         ...
 
     def compare(self, left: QueryValue, operator: str, right: QueryValue) -> QueryExpression:
@@ -129,23 +150,47 @@ class QueryContext(QueryScope, Protocol):
         explicit operator dispatch for a protocol's filter grammar.  The
         operator is deliberately a string so this contract does not own an
         external query language's token enum.
+
+        :param left: The left query value.
+        :param operator: The backend-supported comparison operator.
+        :param right: The right query value.
+        :return: The comparison predicate.
         """
         ...
 
     def equal(self, left: QueryValue, right: QueryValue) -> QueryExpression:
-        """Compare values using the backing's ordinary stored semantics."""
+        """Compare values using the backing's ordinary stored semantics.
+
+        :param left: The left query value.
+        :param right: The right query value.
+        :return: The equality predicate.
+        """
         ...
 
     def exact_equal(self, left: QueryValue, right: QueryValue) -> QueryExpression:
-        """Compare values in their exact canonical stored representation."""
+        """Compare values in their exact canonical stored representation.
+
+        :param left: The left query value.
+        :param right: The right query value.
+        :return: The exact equality predicate.
+        """
         ...
 
     def is_null(self, value: QueryValue) -> QueryExpression:
-        """Test a value for null; invert this predicate for a known-value test."""
+        """Test a value for null; invert this predicate for a known-value test.
+
+        :param value: The query value to test.
+        :return: The null-test predicate.
+        """
         ...
 
     def exists(self, scope: QueryScope, predicate: QueryExpression) -> QueryExpression:
-        """Test whether a correlated scope contains a row satisfying ``predicate``."""
+        """Test whether a correlated scope contains a row satisfying ``predicate``.
+
+        :param scope: The correlated scope to inspect.
+        :param predicate: The predicate required of a matching row.
+        :return: The existence predicate.
+        """
         ...
 
     def filtered(self, scope: QueryScope, predicate: QueryExpression) -> QueryScope:
@@ -155,15 +200,28 @@ class QueryContext(QueryScope, Protocol):
         it lets a declaration compare a required multiplicity with the exact
         number of matching child values rather than reusing one ``exists``
         witness for repeated values.
+
+        :param scope: The correlated scope to filter.
+        :param predicate: The predicate required of retained rows.
+        :return: A correlated scope containing only matching rows.
         """
         ...
 
     def count(self, scope: QueryScope) -> QueryValue:
-        """Return the number of rows in a correlated child/reference scope."""
+        """Return the number of rows in a correlated child/reference scope.
+
+        :param scope: The correlated scope to count.
+        :return: A query value containing the row count.
+        """
         ...
 
     def distinct_count(self, scope: QueryScope, value: QueryValue) -> QueryValue:
-        """Return the count of distinct ``value`` values in ``scope``."""
+        """Return the count of distinct ``value`` values in ``scope``.
+
+        :param scope: The correlated scope to count.
+        :param value: The value whose distinct occurrences are counted.
+        :return: A query value containing the distinct count.
+        """
         ...
 
     def scaled_exact_equal(
@@ -179,19 +237,37 @@ class QueryContext(QueryScope, Protocol):
         avoids requiring a backend to divide fractions or approximate a ratio
         through a presentation float: it asserts ``left * left_factor ==
         right * right_factor`` in the backing's canonical exact domain.
+
+        :param left: The first exact value.
+        :param left_factor: The factor applied to the first value.
+        :param right: The second exact value.
+        :param right_factor: The factor applied to the second value.
+        :return: The cross-multiplied equality predicate.
         """
         ...
 
     def and_(self, *predicates: QueryExpression) -> QueryExpression:
-        """Conjoin predicates; an empty conjunction is :meth:`always_true`."""
+        r"""Conjoin predicates; an empty conjunction is :meth:`always_true`.
+
+        :param \*predicates: The predicates to conjoin.
+        :return: The conjunction predicate.
+        """
         ...
 
     def or_(self, *predicates: QueryExpression) -> QueryExpression:
-        """Disjoin predicates; an empty disjunction is :meth:`always_false`."""
+        r"""Disjoin predicates; an empty disjunction is :meth:`always_false`.
+
+        :param \*predicates: The predicates to disjoin.
+        :return: The disjunction predicate.
+        """
         ...
 
     def not_(self, predicate: QueryExpression) -> QueryExpression:
-        """Negate a predicate without relying on a backend's Python truthiness."""
+        """Negate a predicate without relying on a backend's Python truthiness.
+
+        :param predicate: The predicate to negate.
+        :return: The negated predicate.
+        """
         ...
 
     def when_known(self, known: QueryExpression, predicate: QueryExpression) -> QueryExpression:
@@ -201,6 +277,10 @@ class QueryContext(QueryScope, Protocol):
         known THEN predicate ELSE NULL END``.  It keeps incomplete nullable
         domain data unknown under both a predicate and its negation instead
         of silently treating the missing representation as a non-match.
+
+        :param known: The predicate establishing that the value is available.
+        :param predicate: The predicate evaluated only when ``known`` matches.
+        :return: The conditional three-valued predicate.
         """
         ...
 
@@ -227,6 +307,11 @@ class StoredPropertyProjection:
     is response-only for this backing.  ``sort`` identifies a direct sortable
     value and is intentionally separate from filtering because not every
     predicate has a meaningful total ordering.
+
+    :param response: The operation that extracts the served value from a backing record.
+    :param query: The optional operation that builds filtering predicates.
+    :param sort: The optional operation that selects a value for ordering.
+    :raises TypeError: If a supplied projection operation cannot be invoked.
     """
 
     response: StoredPropertyResponse
@@ -249,6 +334,11 @@ def stored_property_projections(cls: type[Any]) -> Mapping[str, StoredPropertyPr
     A representation-specific property mapping must be opted into by the
     exact backing class; subclasses never inherit a parent's mapping by
     accident.  A class without the declaration serves no stored properties.
+
+    :param cls: The exact frozen dataclass backing class to inspect.
+    :return: Its validated projection map, or an empty map when undeclared.
+    :raises TypeError: If ``cls`` is not a directly declared frozen dataclass or its map is invalid.
+    :raises ValueError: If a projection name is invalid.
     """
 
     if not isinstance(cls, type):

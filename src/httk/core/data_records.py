@@ -52,7 +52,20 @@ def _create(cls: type[Any], obj: Any) -> Any:
 
 @dataclass(frozen=True)
 class DataRecord:
-    """One canonical JSON value of one declared property."""
+    """Store one canonical JSON value of one declared property.
+
+    ``value_json`` is canonical JSON, with sorted object keys, compact
+    separators, and no non-finite numeric values. ``value`` decodes it on
+    access; ``value_number`` exposes finite numeric values for numeric queries.
+    The immutable and timestamp metadata fields are excluded from content
+    identity.
+
+    :param definition_id: The property definition IRI for the value.
+    :param name: The property name.
+    :param value_json: The canonical JSON representation of the value.
+    :param immutable_id: An optional provider-specific immutable identifier.
+    :param last_modified: The optional timezone-aware metadata timestamp.
+    """
 
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
         storage_name="core_data_record_v1",
@@ -68,14 +81,17 @@ class DataRecord:
 
     @property
     def type(self) -> str:
+        """Return the served entry type name."""
         return "_httk_records"
 
     @property
     def id(self) -> str:
+        """Return the content identity of this record."""
         return content_id(self)
 
     @property
     def value(self) -> Any:
+        """Decode and return the stored property value."""
         return json.loads(self.value_json)
 
     @stored_property
@@ -114,6 +130,17 @@ class DataRecord:
         immutable_id: str | None = None,
         last_modified: datetime.datetime | None = None,
     ) -> Self:
+        """Encode a value canonically and construct its data record.
+
+        :param definition_id: The property definition IRI for the value.
+        :param name: The property name.
+        :param value: The JSON value to encode.
+        :param immutable_id: An optional provider-specific immutable identifier.
+        :param last_modified: The optional timezone-aware metadata timestamp.
+        :return: A data record containing the canonical JSON value.
+        :raises TypeError: If the value contains an unsupported object.
+        :raises ValueError: If the value is circular or contains a non-finite number, or if ``definition_id`` or ``name`` is invalid or ``last_modified`` is not timezone-aware.
+        """
         return cls(
             definition_id,
             name,
@@ -124,6 +151,13 @@ class DataRecord:
 
     @classmethod
     def create(cls, obj: "DataRecord | Mapping[str, Any]") -> Self:
+        """Coerce a mapping or existing record into a :class:`DataRecord`.
+
+        :param obj: A data record instance or field mapping.
+        :return: The existing or newly constructed data record.
+        :raises TypeError: If ``obj`` is neither a data record nor a mapping.
+        :raises ValueError: If the mapping has unknown or invalid fields.
+        """
         return _create(cls, obj)
 
 

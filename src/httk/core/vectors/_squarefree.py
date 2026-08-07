@@ -42,11 +42,8 @@ def square_part(n: int) -> tuple[int, int]:
     computation is exact integer arithmetic; at the tiny magnitudes that arise in crystallographic
     geometry (products of small squarefree radicands) it is trivial.
 
-    Args:
-        n: a positive integer (``n >= 1``).
-
-    Returns:
-        The pair ``(s, r)`` with ``n == s * s * r`` and ``r`` squarefree.
+    :param n: A positive value (``n >= 1``).
+    :return: The pair ``(s, r)`` with ``n == s * s * r`` and ``r`` squarefree.
     """
     if n < 1:
         raise ValueError(f"square_part: expected a positive integer, got {n!r}")

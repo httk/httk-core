@@ -8,7 +8,11 @@ NETWORK_SCHEMES = frozenset({"http", "https", "ftp"})
 
 
 def require_network_consent(url: str) -> None:
-    """Future seam for an opt-in network policy; currently all implicit access is refused."""
+    """Future seam for an opt-in network policy; currently all implicit access is refused.
+
+    :param url: URL whose implicit access was requested.
+    :raises PermissionError: Always for implicit network access.
+    """
     from ..optimade.resources import redact_optimade_url
 
     redacted_url = redact_optimade_url(url)
@@ -20,5 +24,9 @@ def require_network_consent(url: str) -> None:
 
 
 def resolve_timeout(hint: float | None) -> float | None:
-    """Return an explicit timeout or the current module default."""
+    """Return an explicit timeout or the current module default.
+
+    :param hint: Explicit timeout, or ``None`` to use the module default.
+    :return: The timeout to pass to the network opener.
+    """
     return hint if hint is not None else DEFAULT_NETWORK_TIMEOUT

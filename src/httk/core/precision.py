@@ -43,7 +43,7 @@ _NON_VALUES = frozenset({"?", "."})
 
 
 def decimal_precision(text: object) -> fractions.Fraction | None:
-    """The absolute precision implied by how a number was written, or ``None``.
+    """Return the absolute precision implied by how a number was written, or ``None``.
 
     ``None`` means the literal makes no precision claim, which is a different thing from
     claiming perfect precision. It is returned for an empty or missing value, for CIF's
@@ -62,6 +62,9 @@ def decimal_precision(text: object) -> fractions.Fraction | None:
     * ``"1.2e-3"`` -> ``1/10000`` — one digit, then scaled by the exponent
     * ``"1/3"`` -> ``None`` — exact, not measured
     * ``"?"`` -> ``None`` — no value at all
+
+    :param text: Value whose textual representation supplies the precision claim.
+    :return: The absolute precision bound, or ``None`` when the value makes no measured-precision claim.
     """
     if text is None:
         return None
@@ -91,7 +94,7 @@ def decimal_precision(text: object) -> fractions.Fraction | None:
 
 
 def combined_precision(values: Iterable[object]) -> fractions.Fraction | None:
-    """The precision of a set of values taken together: the **coarsest** of them.
+    """Return the precision of a set of values taken together: the **coarsest** of them.
 
     A structure is only as precisely stated as its least precisely stated number, so one
     sloppy ``0.5`` among a table of six-decimal coordinates really does mean the table is
@@ -99,11 +102,13 @@ def combined_precision(values: Iterable[object]) -> fractions.Fraction | None:
     keeps a derived tolerance from being too tight to match anything.
 
     Each value may be a literal to be interpreted by :func:`decimal_precision`, or an
-    already-computed precision as a :class:`~fractions.Fraction`, :class:`int`, or
-    :class:`float` — a standard uncertainty read from a file, say. Floats convert through
-    their decimal spelling, so ``0.005`` lands on ``1/200`` rather than a binary
-    approximation of it. Values that state no precision are skipped, and ``None`` is
-    returned when none of them state one.
+    already-computed precision, such as a standard uncertainty read from a file. Numeric
+    values convert through their decimal spelling, so ``0.005`` lands on ``1/200`` rather
+    than a binary approximation of it. Values that state no precision are skipped, and
+    ``None`` is returned when none of them state one.
+
+    :param values: Values or precision bounds to combine.
+    :return: The largest absolute precision bound, or ``None`` if none is stated.
     """
     coarsest: fractions.Fraction | None = None
     for value in values:

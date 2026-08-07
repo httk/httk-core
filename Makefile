@@ -71,6 +71,7 @@ format-check: lint
 
 lint:
 	$(PYTHON) -m ruff check src examples
+	pydoclint --quiet src
 
 typecheck_pyright:
 	$(PYTHON) -m pyright

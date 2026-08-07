@@ -10,8 +10,11 @@ from .bytestream_view import BytestreamView
 
 
 class BytestreamFileView(BytestreamView, io.IOBase, BytestreamAPI):
-    """
+    r"""
     A view presenting an underlying data streaming backend via an io.IOBase-like API.
+
+    :param obj: Byte-stream source to present through the file API.
+    :param \**hints: Backend-selection and compression hints.
     """
 
     _backend: BytestreamBackend
@@ -30,29 +33,52 @@ class BytestreamFileView(BytestreamView, io.IOBase, BytestreamAPI):
         pass
 
     def unwrap(self) -> Any:
+        """Return the raw representation of the wrapped backend.
+
+        :return: The backend's most raw available representation.
+        """
         return unwrap(self._backend)
 
     @property
     def name(self) -> str | None:
+        """Return the backend's source name when one exists."""
         return self._backend.name
 
     @property
     def closed(self) -> bool:
+        """Report whether the backend is closed."""
         return self._backend.closed
 
     def close(self) -> None:
+        """Close the underlying backend."""
         self._backend.close()
 
     def readable(self) -> bool:
+        """Report that the view supports reading.
+
+        :return: Always ``True``.
+        """
         return True
 
     def writable(self) -> bool:
+        """Report that the view does not support writing.
+
+        :return: Always ``False``.
+        """
         return False
 
     def seekable(self) -> bool:
+        """Report whether the backend supports seeking and telling.
+
+        :return: Whether both operations are available.
+        """
         return hasattr(self._backend, "seek") and hasattr(self._backend, "tell")
 
     def flush(self) -> None:
+        """Flush the backend when it provides flushing.
+
+        :raises ValueError: If the view is closed.
+        """
         if self.closed:
             raise ValueError("I/O operation on closed file.")
         flush = getattr(self._backend, "flush", None)
@@ -60,6 +86,12 @@ class BytestreamFileView(BytestreamView, io.IOBase, BytestreamAPI):
             flush()
 
     def read(self, size: int | None = -1) -> bytes:
+        """Read up to ``size`` bytes, or all remaining bytes when ``size`` is negative.
+
+        :param size: Maximum number of bytes to read; ``None`` also means all remaining bytes.
+        :return: The bytes read from the stream.
+        :raises ValueError: If the view is closed.
+        """
         if self.closed:
             raise ValueError("I/O operation on closed file.")
 
@@ -85,6 +117,12 @@ class BytestreamFileView(BytestreamView, io.IOBase, BytestreamAPI):
         return self._backend.read(size)
 
     def readline(self, size: int | None = -1) -> bytes:
+        """Read one line, optionally limited to ``size`` bytes.
+
+        :param size: Maximum number of bytes to read; ``None`` means no limit.
+        :return: The line read, including its newline when present.
+        :raises ValueError: If the view is closed.
+        """
         if self.closed:
             raise ValueError("I/O operation on closed file.")
         if size == 0:
@@ -139,6 +177,12 @@ class BytestreamFileView(BytestreamView, io.IOBase, BytestreamAPI):
         return b"".join(parts)
 
     def readlines(self, hint: int = -1) -> list[bytes]:
+        """Read lines until EOF or until the accumulated size reaches ``hint``.
+
+        :param hint: Approximate minimum number of bytes to collect, or a negative value for no limit.
+        :return: The lines read from the stream.
+        :raises ValueError: If the view is closed.
+        """
         if self.closed:
             raise ValueError("I/O operation on closed file.")
 
@@ -157,15 +201,32 @@ class BytestreamFileView(BytestreamView, io.IOBase, BytestreamAPI):
         return lines
 
     def __iter__(self) -> Iterator[bytes]:
+        """Iterate over the stream one line at a time.
+
+        :return: This stream as its line iterator.
+        """
         return self
 
     def __next__(self) -> bytes:
+        """Return the next line from the stream.
+
+        :return: The next line.
+        :raises StopIteration: When the stream is exhausted.
+        """
         line = self.readline()
         if line == b"":
             raise StopIteration
         return line
 
     def seek(self, offset: int, whence: int = io.SEEK_SET) -> int:
+        """Move the stream position and discard buffered line data.
+
+        :param offset: Position adjustment interpreted according to ``whence``.
+        :param whence: Reference point for ``offset``.
+        :return: The resulting absolute stream position.
+        :raises ValueError: If the view is closed.
+        :raises io.UnsupportedOperation: If the backend is not seekable.
+        """
         if self.closed:
             raise ValueError("I/O operation on closed file.")
         seek = getattr(self._backend, "seek", None)
@@ -177,6 +238,12 @@ class BytestreamFileView(BytestreamView, io.IOBase, BytestreamAPI):
         return pos
 
     def tell(self) -> int:
+        """Return the logical stream position before buffered line data.
+
+        :return: The logical absolute stream position.
+        :raises ValueError: If the view is closed.
+        :raises io.UnsupportedOperation: If the backend does not support telling.
+        """
         if self.closed:
             raise ValueError("I/O operation on closed file.")
         tell = getattr(self._backend, "tell", None)
@@ -187,4 +254,8 @@ class BytestreamFileView(BytestreamView, io.IOBase, BytestreamAPI):
         return pos - len(self._readline_buffer)
 
     def detach(self) -> NoReturn:
+        """Reject detaching because the view owns its backend interface.
+
+        :raises io.UnsupportedOperation: Always, because detaching is unsupported.
+        """
         raise io.UnsupportedOperation("detach")

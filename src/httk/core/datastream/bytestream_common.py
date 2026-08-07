@@ -18,12 +18,22 @@ class BytestreamCommon(ABC):
         pass
 
     def unwrap(self) -> io.IOBase:
+        """Return the currently opened underlying stream.
+
+        :return: The stream used for reading and writing data.
+        """
         return self._ensure_f()
 
     def read(self, size: int = -1) -> bytes:
+        """Read up to ``size`` bytes, or all remaining bytes when ``size`` is negative.
+
+        :param size: Maximum number of bytes to read.
+        :return: The bytes read from the stream.
+        """
         return cast(bytes, self._ensure_f().read(size))
 
     def close(self) -> None:
+        """Close the opened stream and any source stream owned by it."""
         if self._f is not None and not self._f.closed:
             self._f.close()
         # A decompression wrapper does not close the source stream it reads from, so close it too.
@@ -32,7 +42,17 @@ class BytestreamCommon(ABC):
         self._closed = True
 
     def seek(self, offset: int, whence: int = os.SEEK_SET) -> int:
+        """Move the stream position.
+
+        :param offset: Position adjustment interpreted according to ``whence``.
+        :param whence: Reference point for ``offset``.
+        :return: The resulting absolute stream position.
+        """
         return cast(int, self._ensure_f().seek(offset, whence))
 
     def tell(self) -> int:
+        """Return the current stream position.
+
+        :return: The absolute stream position.
+        """
         return cast(int, self._ensure_f().tell())

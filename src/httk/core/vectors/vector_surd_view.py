@@ -16,7 +16,7 @@ from .vector_view import VectorView
 
 
 class VectorSurdView(VectorView, SurdVector):
-    """
+    r"""
     A view presenting an underlying vector backend as an exact
     :class:`~httk.core.vectors.surdvector.SurdVector`.
 
@@ -30,6 +30,9 @@ class VectorSurdView(VectorView, SurdVector):
     (numpy values are binary rationals, so a numpy source embeds the exact float64 rational, not
     necessarily the original decimal fraction — the same caveat as
     :class:`~httk.core.vectors.vector_frac_view.VectorFracView`.)
+
+    :param obj: The source value to present.
+    :param \**hints: Backend-selection and view-conversion hints.
     """
 
     _backend: VectorBackend
@@ -69,12 +72,14 @@ class VectorSurdView(VectorView, SurdVector):
         return self.__dict__["_dim"]
 
     def unwrap(self) -> Any:
+        """Return the underlying unwrapped vector, or this value when no backend remains."""
         backend = getattr(self, "_backend", None)
         if backend is None:
             return self
         return unwrap(backend)
 
     def unview(self) -> Any:
+        """Return a plain SurdVector containing this view's presented data."""
         # A surd backend already holds exactly the presented SurdVector: reuse it. Otherwise
         # build a plain SurdVector reusing the materialized components mapping.
         backend = getattr(self, "_backend", None)

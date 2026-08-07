@@ -51,6 +51,10 @@ class LegacyProjectError(ValueError):
     ``"prerelease"`` for a pre-release httk v2 ``.httk-project`` anchor — so a
     caller that deliberately handles one flavor (for example read-only
     verification of a v1 manifest) does not have to parse the message.
+
+    :param message: Diagnostic explaining the legacy project and its remedy.
+    :param root: Directory containing the legacy project marker.
+    :param kind: Legacy flavor, either v1 or prerelease.
     """
 
     def __init__(self, message: str, *, root: Path, kind: str) -> None:
@@ -80,7 +84,17 @@ def _legacy_project_error(candidate: Path, *, allow_v1: bool = False) -> LegacyP
 
 
 def discover_project(start: str | os.PathLike[str] | None = None) -> Path | None:
-    """Find the nearest project root, or refuse a legacy one, at or above *start*."""
+    """Find the nearest project root, or refuse a legacy one, at or above *start*.
+
+    Discovery walks from start and its parents, treating a file start as its
+    containing directory. If it finds a legacy marker, the exception identifies
+    the required remedy: run httk project import-v1 PATH for ht.project, or
+    rename .httk-project to httk_project for the pre-release anchor.
+
+    :param start: Directory or file from which to begin the upward search, or None for the current directory.
+    :return: Nearest project root, or None when no marker is found.
+    :raises httk.core.project.LegacyProjectError: If discovery finds a v1 or pre-release project marker.
+    """
 
     path = Path.cwd() if start is None else Path(start)
     path = path.expanduser().resolve()
@@ -96,7 +110,13 @@ def discover_project(start: str | os.PathLike[str] | None = None) -> Path | None
 
 
 def require_project(start: str | os.PathLike[str] | None = None) -> Path:
-    """Return the nearest project root, refusing when there is none."""
+    """Return the nearest project root, refusing when there is none.
+
+    :param start: Directory or file from which to begin the upward search, or None for the current directory.
+    :return: Nearest project root.
+    :raises httk.core.project.LegacyProjectError: If discovery finds a v1 or pre-release project marker.
+    :raises ValueError: If no project marker is found.
+    """
 
     project = discover_project(start)
     if project is None:
@@ -105,7 +125,12 @@ def require_project(start: str | os.PathLike[str] | None = None) -> Path:
 
 
 def read_project(root: str | os.PathLike[str]) -> dict[str, object]:
-    """Read and validate the ``project.json`` of the project rooted at *root*."""
+    """Read and validate the ``project.json`` of the project rooted at *root*.
+
+    :param root: Project root whose manifest is read.
+    :return: Validated project metadata.
+    :raises ValueError: If the manifest is not an httk project manifest.
+    """
 
     path = Path(root).resolve() / PROJECT_DIRECTORY / PROJECT_FILE
     with path.open(encoding="utf-8") as stream:
@@ -126,6 +151,11 @@ def read_project_section(root: str | os.PathLike[str], name: str) -> dict[str, o
     it only guarantees that what a caller stores under a name comes back as the
     object it was, and refuses a member that some other writer has left as a
     non-object so a caller never silently reads a scalar as a mapping.
+
+    :param root: Project root whose manifest is read.
+    :param name: Top-level manifest member to retrieve.
+    :return: A copy of the named object, or an empty object when absent.
+    :raises ValueError: If the named manifest member is not an object.
     """
 
     value = read_project(root).get(name, {})
@@ -145,6 +175,12 @@ def write_project_section(
     members the anchor owns are preserved untouched and only the named section is
     replaced. The section must be a mapping; the anchor stores its members
     verbatim without interpreting them.
+
+    :param root: Project root whose manifest is updated.
+    :param name: Top-level manifest member to replace.
+    :param value: Object members to store under the name.
+    :return: Updated project metadata.
+    :raises ValueError: If the named section is not a mapping.
     """
 
     if not isinstance(value, Mapping):
@@ -156,7 +192,12 @@ def write_project_section(
 
 
 def format_public_key(raw: bytes) -> str:
-    """Return the recorded representation of one raw Ed25519 public key."""
+    """Return the recorded representation of one raw Ed25519 public key.
+
+    :param raw: Raw public-key bytes to record.
+    :return: Canonical prefixed public-key text.
+    :raises ValueError: If the key is not 32 bytes long.
+    """
 
     if len(raw) != 32:
         raise ValueError("an Ed25519 public key is 32 bytes")
@@ -164,7 +205,12 @@ def format_public_key(raw: bytes) -> str:
 
 
 def parse_public_key(value: str) -> bytes:
-    """Decode a recorded public key, accepting the bare base64 spelling too."""
+    """Decode a recorded public key, accepting the bare base64 spelling too.
+
+    :param value: Public-key text to decode.
+    :return: Raw public-key bytes.
+    :raises ValueError: If the algorithm, encoding, or key length is invalid.
+    """
 
     text = value.strip()
     if text.startswith(PUBLIC_KEY_PREFIX):
@@ -181,13 +227,23 @@ def parse_public_key(value: str) -> bytes:
 
 
 def canonical_public_key(value: str) -> str:
-    """Normalize any accepted public key spelling to the recorded one."""
+    """Normalize any accepted public key spelling to the recorded one.
+
+    :param value: Accepted public-key text to normalize.
+    :return: Canonical prefixed public-key text.
+    :raises ValueError: If the public-key text is invalid.
+    """
 
     return format_public_key(parse_public_key(value))
 
 
 def key_fingerprint(value: str) -> str:
-    """Return the stable display fingerprint of one public key."""
+    """Return the stable display fingerprint of one public key.
+
+    :param value: Public-key text whose fingerprint is calculated.
+    :return: Stable SHA-256 fingerprint text.
+    :raises ValueError: If the public-key text is invalid.
+    """
 
     return "sha256:" + hashlib.sha256(parse_public_key(value)).hexdigest()
 
@@ -210,13 +266,22 @@ def _write_project_key(control: Path) -> str:
 
 
 def project_public_key_path(root: str | os.PathLike[str]) -> Path:
-    """Return where a project keeps its own signing key's public half."""
+    """Return where a project keeps its own signing key's public half.
+
+    :param root: Project root containing the anchor.
+    :return: Path to the project's public key file.
+    """
 
     return Path(root).expanduser().resolve() / PROJECT_DIRECTORY / "keys" / "project.pub"
 
 
 def read_public_key_file(path: str | os.PathLike[str]) -> str:
-    """Read one ``*.pub`` file and return its recorded public key."""
+    """Read one public-key file and return its recorded public key.
+
+    :param path: Public-key file to read.
+    :return: Canonical public-key text from the first line.
+    :raises ValueError: If the file cannot be read, is empty, or contains an invalid key.
+    """
 
     try:
         text = Path(path).expanduser().read_text(encoding="ascii").strip()
@@ -228,7 +293,12 @@ def read_public_key_file(path: str | os.PathLike[str]) -> str:
 
 
 def pinned_project_key(metadata: Mapping[str, object]) -> str | None:
-    """Return the project's own pinned public key, or ``None`` when absent."""
+    """Return the project's own pinned public key, or None when absent.
+
+    :param metadata: Project metadata containing the optional public-key member.
+    :return: Canonical pinned key, or None when the metadata has no key.
+    :raises ValueError: If the pinned key is present but invalid.
+    """
 
     value = metadata.get("public_key")
     return canonical_public_key(value) if isinstance(value, str) and value else None
@@ -241,6 +311,10 @@ def trusted_project_keys(metadata: Mapping[str, object]) -> tuple[str, ...]:
     against. ``trusted_keys`` carries the additional anchors an operator has
     adopted deliberately — most often the legacy identities an imported *httk*
     v1 project signed its old manifests with.
+
+    :param metadata: Project metadata whose trust anchors are read.
+    :return: Unique canonical project and adopted trust anchors.
+    :raises ValueError: If trusted_keys is not a string array or contains an invalid key.
     """
 
     keys: list[str] = []
@@ -264,6 +338,10 @@ def pin_project_key(root: str | os.PathLike[str] | None = None) -> dict[str, obj
     ``project.json`` and never the key a manifest carries in its own header, so
     adopting the key that is in the tree right now is exactly the decision an
     operator has to make consciously for an older project that has no pin.
+
+    :param root: Project root, or None to discover the nearest project.
+    :return: Updated project metadata.
+    :raises ValueError: If no project exists or its public key is invalid.
     """
 
     project = require_project(root)
@@ -274,7 +352,13 @@ def pin_project_key(root: str | os.PathLike[str] | None = None) -> dict[str, obj
 
 
 def trust_project_key(root: str | os.PathLike[str] | None, key: str) -> dict[str, object]:
-    """Adopt one further public key as a trust anchor of this project."""
+    """Adopt one further public key as a trust anchor of this project.
+
+    :param root: Project root, or None to discover the nearest project.
+    :param key: Public key to add to the project's trusted anchors.
+    :return: Updated project metadata.
+    :raises ValueError: If no project exists, the key is invalid, or trusted_keys is invalid.
+    """
 
     project = require_project(root)
     metadata = read_project(project)
@@ -303,6 +387,13 @@ def initialize_project(
     project's Ed25519 signing key, and the ``remotes`` directory. It creates no
     workflow workspace; a workflow installation layers that on top of the anchor
     so that a core-only installation still has a working project.
+
+    :param root: Directory in which to create the project anchor.
+    :param name: Human-readable project name.
+    :param description: Optional project description.
+    :param manifest_exclusions: Relative paths excluded from project manifests.
+    :return: Newly written project metadata.
+    :raises httk.core.project.LegacyProjectError: If root contains a v1 or pre-release project marker.
     """
 
     project = Path(root).expanduser().resolve()
@@ -357,6 +448,13 @@ def import_v1_project(
     Only the anchor is created: the project's metadata and the adoption of the
     legacy identities its old manifests were signed with. A workflow
     installation adds the workspace and any queue import on top of this.
+
+    :param root: Directory in which to create the new project anchor.
+    :param source: Legacy project directory, or root/ht.project when omitted.
+    :param name: Optional replacement project name.
+    :return: Imported project metadata.
+    :raises FileNotFoundError: If the legacy project directory does not exist.
+    :raises httk.core.project.LegacyProjectError: If root contains an incompatible project anchor.
     """
 
     project = Path(root).expanduser().resolve()

@@ -151,7 +151,12 @@ def _cryptography_modules() -> tuple[Any, Any, Any]:
 
 
 def ed25519_backend_available(backend: str = "cryptography") -> bool:
-    """Return whether *backend* can perform Ed25519 operations."""
+    """Return whether *backend* can perform Ed25519 operations.
+
+    :param backend: Backend name: ``"cryptography"``, ``"pure"``, or ``"stdlib"``.
+    :return: Whether the selected backend is available.
+    :raises ValueError: If ``backend`` is not a supported backend name.
+    """
 
     if backend in {"pure", "stdlib"}:
         return True
@@ -178,13 +183,23 @@ def _seed(value: bytes) -> bytes:
 
 
 def ed25519_generate_seed() -> bytes:
-    """Generate a standard 32-byte Ed25519 private seed."""
+    """Generate a standard 32-byte Ed25519 private seed.
+
+    :return: A newly generated private seed.
+    """
 
     return secrets.token_bytes(32)
 
 
 def ed25519_public_key(seed: bytes, *, backend: str | None = None) -> bytes:
-    """Derive the 32-byte public key for a 32-byte private *seed*."""
+    """Derive the public key for a private seed.
+
+    :param seed: 32-byte Ed25519 private seed.
+    :param backend: Backend name, ``"auto"``, or ``None`` to select the accelerated backend when available.
+    :return: The 32-byte Ed25519 public key.
+    :raises ValueError: If ``seed`` is not exactly 32 bytes or ``backend`` is unsupported.
+    :raises ImportError: If the requested ``cryptography`` backend is unavailable.
+    """
 
     private_seed = _seed(seed)
     if _backend(backend) == "cryptography":
@@ -198,7 +213,15 @@ def ed25519_public_key(seed: bytes, *, backend: str | None = None) -> bytes:
 
 
 def ed25519_sign(seed: bytes, message: bytes, *, backend: str | None = None) -> bytes:
-    """Return an RFC 8032 Ed25519 signature for *message*."""
+    """Return an RFC 8032 Ed25519 signature for ``message``.
+
+    :param seed: 32-byte Ed25519 private seed.
+    :param message: Bytes to sign.
+    :param backend: Backend name, ``"auto"``, or ``None`` to select the accelerated backend when available.
+    :return: The 64-byte Ed25519 signature.
+    :raises ValueError: If ``seed`` is not exactly 32 bytes or ``backend`` is unsupported.
+    :raises ImportError: If the requested ``cryptography`` backend is unavailable.
+    """
 
     private_seed = _seed(seed)
     payload = bytes(message)
@@ -215,7 +238,16 @@ def ed25519_verify(
     *,
     backend: str | None = None,
 ) -> bool:
-    """Return whether *signature* is valid, treating malformed input as false."""
+    """Return whether ``signature`` is valid, treating malformed input as false.
+
+    :param public_key: 32-byte Ed25519 public key.
+    :param message: Bytes whose signature is being checked.
+    :param signature: 64-byte Ed25519 signature.
+    :param backend: Backend name, ``"auto"``, or ``None`` to select the accelerated backend when available.
+    :return: Whether the signature verifies for the public key and message.
+    :raises ValueError: If ``backend`` is unsupported.
+    :raises ImportError: If the requested ``cryptography`` backend is unavailable.
+    """
 
     key = bytes(public_key)
     payload = bytes(message)

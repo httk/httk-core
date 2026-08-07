@@ -7,8 +7,12 @@ from .textstream_common import TextstreamCommon
 
 
 class TextstreamString(TextstreamCommon, TextstreamBackend):
-    """
+    r"""
     Backend for streaming text backed by an actual string
+
+    :param content: Text to expose as a stream.
+    :param \**hints: Backend-selection and compression hints.
+    :raises ValueError: If the compression hint is not a no-op mode for text-native content.
     """
 
     s: str
@@ -40,8 +44,10 @@ class TextstreamString(TextstreamCommon, TextstreamBackend):
 
     @property
     def name(self) -> str | None:
+        """Report that an in-memory stream has no source name."""
         return None
 
     @property
     def closed(self) -> bool:
+        """Report whether the in-memory stream is closed."""
         return self._closed

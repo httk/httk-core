@@ -7,6 +7,8 @@ from .bytestream_backend import BytestreamBackend
 class BytestreamView(View[BytestreamBackend]):
     """
     Abstract base class for all views of streaming byte data.
+
+    Views retain the backend and expose it through a byte-stream interface.
     """
 
     _backend_base_cls: ClassVar[type[BytestreamBackend]] = BytestreamBackend  # type: ignore[type-abstract]

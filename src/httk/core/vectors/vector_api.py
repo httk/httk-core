@@ -33,19 +33,25 @@ class VectorAPI(ABC):
     @property
     @abstractmethod
     def fractions(self) -> Fractions:
+        """Return the exact Fraction interchange representation."""
         raise NotImplementedError
 
     @property
     @abstractmethod
     def dim(self) -> tuple[int, ...]:
+        """Return the tensor shape as a tuple of dimensions."""
         raise NotImplementedError
 
     def to_floats(self) -> Any:
         """
+        Return the value as nested lists of floats.
+
         The value as (possibly nested) plain lists of ``float`` — a bare ``float`` for a scalar.
 
         Derived from the exact ``fractions`` hub; nested lists match the
         ``numpy.ndarray.tolist()`` convention and are directly JSON-serializable.
+
+        :return: The rendered value.
         """
 
         def rec(node: Fractions) -> Any:
@@ -56,7 +62,14 @@ class VectorAPI(ABC):
         return rec(self.fractions)
 
     def to_float(self) -> float:
-        """The scalar value as a plain ``float``; raises :class:`TypeError` on a non-scalar."""
+        """
+        Return the scalar value as a plain ``float``.
+
+        Raises :class:`TypeError` on a non-scalar.
+
+        :return: The rendered scalar value.
+        :raises TypeError: If the value is not scalar.
+        """
         value = self.fractions
         if isinstance(value, tuple):
             raise TypeError(f"to_float: expected a scalar, got shape {self.dim}")

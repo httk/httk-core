@@ -75,6 +75,11 @@ def register_reader(
     ``".cif"``. ``filenames`` are exact basenames matched (case-insensitively)
     against a file's name with any recognized compression suffix stripped, e.g.
     ``"POSCAR"`` matches ``POSCAR``, ``poscar``, and ``POSCAR.bz2``.
+
+    :param name: The registry name for the reader.
+    :param reader: A lazy ``"module:callable"`` reference to the reader.
+    :param extensions: File suffixes that select the reader.
+    :param filenames: Exact basenames that select the reader.
     """
     for ext in extensions:
         readers.register(key=ext.lower(), handler=reader, name=name)
@@ -83,10 +88,18 @@ def register_reader(
 
 
 def known_extensions() -> list[str]:
+    """Return the registered reader extensions.
+
+    :return: Lower-case reader suffixes.
+    """
     return readers.keys()
 
 
 def known_filenames() -> list[str]:
+    """Return the registered reader basenames.
+
+    :return: Lower-case reader basenames.
+    """
     return reader_filenames.keys()
 
 
@@ -101,6 +114,11 @@ def register_format_adapter(
     ``adapter`` may be a callable or a lazy ``"module:callable"`` reference.
     A format tag has one owner: registering it again raises an error naming both
     the existing and attempted registrants.
+
+    :param name: The registry name for the adapter.
+    :param adapter: The adapter callable or lazy ``"module:callable"`` reference.
+    :param formats: Neutral payload format tags served by the adapter.
+    :raises ValueError: If a format tag is invalid, duplicated, or already owned.
     """
     if isinstance(formats, str):
         raise ValueError("formats must be a sequence of nonempty format-tag strings, not a string")
@@ -132,7 +150,10 @@ def register_format_adapter(
 
 
 def known_format_adapters() -> dict[str, str]:
-    """Return format tags mapped to their registered adapter names."""
+    """Return format tags mapped to their registered adapter names.
+
+    :return: Format tags mapped to registry names.
+    """
     known: dict[str, str] = {}
     for format_tag, spec in sorted(format_adapters.items()):
         if spec.name is not None:
@@ -148,7 +169,18 @@ def register_writer(
     extensions: tuple[str, ...] = (),
     filenames: tuple[str, ...] = (),
 ) -> None:
-    """Register a writer under one or more extensions and/or exact basenames."""
+    """Register a writer under one or more extensions and/or exact basenames.
+
+    A format can have one writer owner; registering a conflicting writer raises
+    an error. Extension and basename keys are matched case-insensitively.
+
+    :param name: The registry name for the writer.
+    :param writer: The writer callable or lazy ``"module:callable"`` reference.
+    :param format: The neutral payload format emitted by the writer.
+    :param extensions: File suffixes that select the writer.
+    :param filenames: Exact basenames that select the writer.
+    :raises ValueError: If ``format`` is invalid or conflicts with an existing writer.
+    """
     if not isinstance(format, str) or not format:
         raise ValueError(f"writer format must be a nonempty string, got {format!r}")
     keys = [(writers, extension.lower()) for extension in extensions]
@@ -175,11 +207,18 @@ def register_writer(
 
 
 def known_writers() -> list[str]:
+    """Return the registered writer extension and basename dispatch keys.
+
+    :return: Writer keys selected by extensions or exact basenames.
+    """
     return sorted(set(writers.keys()) | set(writer_filenames.keys()))
 
 
 def known_writer_formats() -> list[str]:
-    """Return registered writer format tags."""
+    """Return registered writer format tags.
+
+    :return: Registered neutral payload format tags.
+    """
     return sorted(_writers_by_format)
 
 
@@ -201,7 +240,12 @@ def _writer_format(registry: PluginRegistry, key: str) -> str:
 
 
 def register_format_serializer(*, format: str, serializer: str | Callable[..., Any]) -> None:
-    """Register one lazy serializer for a neutral payload format tag."""
+    """Register one lazy serializer for a neutral payload format tag.
+
+    :param format: The neutral payload format tag.
+    :param serializer: The serializer callable or lazy reference.
+    :raises ValueError: If ``format`` is invalid or already has another serializer.
+    """
     if not isinstance(format, str) or not format:
         raise ValueError(f"format tag must be a nonempty string, got {format!r}")
     with _format_serializer_lock:
@@ -223,11 +267,18 @@ def register_entry_provider(*, name: str, factory: str) -> None:
     constructs a provider (providers need data, so applications call the factory
     themselves; the registry only records how to reach it). This mirrors
     ``register_reader``.
+
+    :param name: The provider registry name.
+    :param factory: The lazy ``"module:callable"`` factory reference.
     """
     entry_providers.register(key=name, handler=factory, name=name)
 
 
 def known_entry_providers() -> list[str]:
+    """Return registered entry-provider names.
+
+    :return: Registered provider names.
+    """
     return entry_providers.keys()
 
 
@@ -236,24 +287,42 @@ _property_definitions: dict[str, str] = {}
 
 
 def register_entry_type_definition(*, definition_id: str, resource: str) -> None:
-    """Register one resource for an entry-type definition IRI."""
+    """Register one resource for an entry-type definition IRI.
+
+    :param definition_id: The entry-type definition IRI.
+    :param resource: The package resource reference to load.
+    :raises ValueError: If ``definition_id`` is already registered.
+    """
     if definition_id in _entry_type_definitions:
         raise ValueError(f"entry-type definition is already registered: {definition_id!r}")
     _entry_type_definitions[definition_id] = resource
 
 
 def known_entry_type_definitions() -> list[str]:
+    """Return registered entry-type definition IRIs.
+
+    :return: Registered entry-type definition identifiers.
+    """
     return sorted(_entry_type_definitions)
 
 
 def register_property_definition(*, definition_id: str, resource: str) -> None:
-    """Register one resource for a property definition IRI."""
+    """Register one resource for a property definition IRI.
+
+    :param definition_id: The property definition IRI.
+    :param resource: The package resource reference to load.
+    :raises ValueError: If ``definition_id`` is already registered.
+    """
     if definition_id in _property_definitions:
         raise ValueError(f"property definition is already registered: {definition_id!r}")
     _property_definitions[definition_id] = resource
 
 
 def known_property_definitions() -> list[str]:
+    """Return registered property definition IRIs.
+
+    :return: Registered property definition identifiers.
+    """
     return sorted(_property_definitions)
 
 
@@ -266,7 +335,12 @@ def _resource(resource: str) -> dict[str, Any]:
 
 @cache
 def load_entry_type_definition(definition_id: str) -> "EntryTypeDefinition":
-    """Load and verify a registered entry-type definition resource."""
+    """Load and verify a registered entry-type definition resource.
+
+    :param definition_id: The registered entry-type definition IRI.
+    :return: The loaded and validated entry-type definition.
+    :raises ValueError: If the IRI is unregistered or disagrees with the document.
+    """
     try:
         resource = _entry_type_definitions[definition_id]
     except KeyError as exc:
@@ -286,7 +360,12 @@ def load_entry_type_definition(definition_id: str) -> "EntryTypeDefinition":
 
 @cache
 def load_property_definition(definition_id: str) -> "PropertyDefinition":
-    """Load and verify a registered property definition resource."""
+    """Load and verify a registered property definition resource.
+
+    :param definition_id: The registered property definition IRI.
+    :return: The loaded and validated property definition.
+    :raises ValueError: If the IRI is unregistered or disagrees with the document.
+    """
     try:
         resource = _property_definitions[definition_id]
     except KeyError as exc:
@@ -311,7 +390,14 @@ _entry_records: dict[str, tuple[str, str | None, str | None]] = {}
 def register_entry_record(
     *, name: str, record: str, family: str | None = None, definition_id: str | None = None
 ) -> None:
-    """Register a lazy record-class reference and optional family and definition IRI."""
+    """Register a lazy record-class reference and optional family and definition IRI.
+
+    :param name: The record registry name.
+    :param record: The lazy ``"module:class"`` record reference.
+    :param family: The logical entry-family name, if any.
+    :param definition_id: The record's definition IRI, if any.
+    :raises ValueError: If validation fails or ``name`` is already registered.
+    """
     _validate_nonempty_optimade_string(name, label="entry record name")
     _validate_optimade_reference(record, label="entry record")
     if family is not None:
@@ -326,6 +412,11 @@ def register_entry_record(
 
 
 def known_entry_records(family: str | None = None) -> list[str]:
+    """Return registered record names, optionally limited to a family.
+
+    :param family: An entry-family name to filter by, or ``None`` for all records.
+    :return: Matching record registry names.
+    """
     return sorted(
         name
         for name, (_, registered_family, _) in _entry_records.items()
@@ -334,7 +425,12 @@ def known_entry_records(family: str | None = None) -> list[str]:
 
 
 def entry_record_info(name: str) -> tuple[str, str | None, str | None]:
-    """Return record, family, and definition metadata without importing the record class."""
+    """Return record, family, and definition metadata without importing the record class.
+
+    :param name: The registered record name.
+    :return: The lazy record reference and optional family and definition IRI.
+    :raises ValueError: If ``name`` is not registered.
+    """
     try:
         return _entry_records[name]
     except KeyError as exc:
@@ -343,7 +439,13 @@ def entry_record_info(name: str) -> tuple[str, str | None, str | None]:
 
 
 def resolve_entry_record(name: str) -> type:
-    """Import and return a registered record class."""
+    """Import and return a registered record class.
+
+    :param name: The registered record name.
+    :return: The resolved frozen dataclass record class.
+    :raises ValueError: If ``name`` is not registered.
+    :raises TypeError: If the reference does not resolve to a frozen dataclass.
+    """
     resolved = resolve_callable(entry_record_info(name)[0])
     if not isinstance(resolved, type):
         raise TypeError(f"Resolved entry record {name!r} to non-class object {resolved!r}")
@@ -357,7 +459,13 @@ _entry_families: dict[str, tuple[str, str | None]] = {}
 
 
 def register_entry_family(*, name: str, family: str, definition_id: str | None = None) -> None:
-    """Register a lazy entry-family class reference without importing it."""
+    """Register a lazy entry-family class reference without importing it.
+
+    :param name: The entry-family registry name.
+    :param family: The lazy ``"module:class"`` family reference.
+    :param definition_id: The family's definition IRI, if any.
+    :raises ValueError: If validation fails or ``name`` is already registered.
+    """
     _validate_nonempty_optimade_string(name, label="entry family name")
     _validate_optimade_reference(family, label="entry family")
     if definition_id is not None:
@@ -368,11 +476,20 @@ def register_entry_family(*, name: str, family: str, definition_id: str | None =
 
 
 def known_entry_families() -> list[str]:
+    """Return registered entry-family names.
+
+    :return: Registered entry-family names.
+    """
     return sorted(_entry_families)
 
 
 def entry_family_info(name: str) -> tuple[str, str | None]:
-    """Return entry-family metadata without importing its class."""
+    """Return entry-family metadata without importing its class.
+
+    :param name: The registered entry-family name.
+    :return: The lazy family reference and optional definition IRI.
+    :raises ValueError: If ``name`` is not registered.
+    """
     try:
         return _entry_families[name]
     except KeyError as exc:
@@ -381,7 +498,13 @@ def entry_family_info(name: str) -> tuple[str, str | None]:
 
 
 def resolve_entry_family(name: str) -> type:
-    """Import and return a registered entry-family class."""
+    """Import and return a registered entry-family class.
+
+    :param name: The registered entry-family name.
+    :return: The resolved entry-family class.
+    :raises ValueError: If ``name`` is not registered.
+    :raises TypeError: If the reference does not resolve to a class.
+    """
     resolved = resolve_callable(entry_family_info(name)[0])
     if not isinstance(resolved, type):
         raise TypeError(f"Resolved entry family {name!r} to non-class object {resolved!r}")
@@ -410,7 +533,15 @@ def _validate_nonempty_optimade_string(value: str, *, label: str) -> None:
 
 @dataclass(frozen=True)
 class OptimadeEntryBinding:
-    """Lazy typed handling for one exact OPTIMADE entry-type definition IRI."""
+    """Describe lazy typed handling for one exact entry-type definition IRI.
+
+    :param name: The binding registry name.
+    :param definition_id: The exact entry-type definition IRI selected by the binding.
+    :param backend: The lazy backend class reference.
+    :param view: The lazy view class reference.
+    :param property_decoders: Property definition IRIs mapped to lazy decoder references.
+    :param query_fields: Property definition IRIs supported for querying, if restricted.
+    """
 
     name: str
     definition_id: str
@@ -443,7 +574,11 @@ class OptimadeEntryBinding:
         object.__setattr__(self, "property_decoders", MappingProxyType(decoders))
 
     def resolve_backend(self) -> type:
-        """Import and return this binding's backend class on demand."""
+        """Import and return this binding's backend class on demand.
+
+        :return: The resolved backend class.
+        :raises TypeError: If the lazy reference does not resolve to a class.
+        """
 
         resolved = resolve_callable(self.backend)
         if not isinstance(resolved, type):
@@ -451,7 +586,11 @@ class OptimadeEntryBinding:
         return resolved
 
     def resolve_view(self) -> type:
-        """Import and return this binding's view class on demand."""
+        """Import and return this binding's view class on demand.
+
+        :return: The resolved view class.
+        :raises TypeError: If the lazy reference does not resolve to a class.
+        """
 
         resolved = resolve_callable(self.view)
         if not isinstance(resolved, type):
@@ -459,7 +598,11 @@ class OptimadeEntryBinding:
         return resolved
 
     def resolve_property_decoder(self, definition_id: str) -> Callable[..., Any] | None:
-        """Resolve one property decoder, or return ``None`` when it is unbound."""
+        """Resolve one property decoder, or return ``None`` when it is unbound.
+
+        :param definition_id: The property definition IRI to resolve.
+        :return: The decoder callable, or ``None`` when no decoder is registered.
+        """
 
         try:
             reference = self.property_decoders[definition_id]
@@ -480,7 +623,16 @@ def register_optimade_entry_binding(
     property_decoders: Mapping[str, str] | None = None,
     query_fields: tuple[str, ...] | None = None,
 ) -> None:
-    """Register one lazy typed binding, selected only by exact definition IRI."""
+    """Register one lazy typed binding, selected only by exact definition IRI.
+
+    :param name: The binding registry name.
+    :param definition_id: The exact entry-type definition IRI selected by the binding.
+    :param backend: The lazy backend class reference.
+    :param view: The lazy view class reference.
+    :param property_decoders: Property definition IRIs mapped to lazy decoder references.
+    :param query_fields: Property definition IRIs supported for querying, if restricted.
+    :raises ValueError: If the definition IRI is already registered or input is invalid.
+    """
 
     binding = OptimadeEntryBinding(
         name=name,
@@ -496,13 +648,20 @@ def register_optimade_entry_binding(
 
 
 def known_optimade_entry_bindings() -> tuple[str, ...]:
-    """Return registered entry-type definition IRIs without resolving imports."""
+    """Return registered entry-type definition IRIs without resolving imports.
+
+    :return: Exact definition IRIs with registered bindings.
+    """
 
     return tuple(sorted(_optimade_entry_bindings))
 
 
 def optimade_entry_binding(definition_id: str) -> OptimadeEntryBinding | None:
-    """Return the exact-IRI binding without importing its backend or view."""
+    """Return the exact-IRI binding without importing its backend or view.
+
+    :param definition_id: The exact entry-type definition IRI to look up.
+    :return: The binding, or ``None`` if no exact match is registered.
+    """
 
     return _optimade_entry_bindings.get(definition_id)
 
@@ -512,14 +671,22 @@ CLIHandler = Callable[[Sequence[str], "CLIContext"], int]
 
 @dataclass(frozen=True)
 class CLICommand:
-    """Registration metadata for one top-level :command:`httk` command."""
+    """Store registration metadata for one top-level :command:`httk` command.
+
+    :param name: The lowercase hyphen-separated command name.
+    :param handler: The command callable or lazy reference.
+    :param summary: The one-line command summary.
+    """
 
     name: str
     handler: str | Callable[..., Any]
     summary: str
 
     def resolve(self) -> CLIHandler:
-        """Import and return the registered command implementation."""
+        """Import and return the registered command implementation.
+
+        :return: The resolved command handler.
+        """
 
         resolved = resolve_callable(self.handler)
         return cast(CLIHandler, resolved)
@@ -538,6 +705,12 @@ def register_cli_command(name: str, handler: str | Callable[..., Any], summary: 
     Names use lowercase, hyphen-separated command syntax. Registration is
     intentionally strict: reserved names and duplicate registrations are
     errors rather than order-dependent overrides.
+
+    :param name: The lowercase hyphen-separated command name.
+    :param handler: The command callable or lazy ``"module:callable"`` reference.
+    :param summary: The nonempty one-line command summary.
+    :raises TypeError: If ``handler`` is neither callable nor a lazy reference.
+    :raises ValueError: If the name, handler reference, summary, or registration is invalid.
     """
 
     if not isinstance(name, str) or _CLI_NAME.fullmatch(name) is None:
@@ -558,12 +731,19 @@ def register_cli_command(name: str, handler: str | Callable[..., Any], summary: 
 
 
 def known_cli_commands() -> list[str]:
-    """Return registered top-level command names without resolving handlers."""
+    """Return registered top-level command names without resolving handlers.
+
+    :return: Registered command names in sorted order.
+    """
 
     return sorted(_cli_commands)
 
 
 def cli_command(name: str) -> CLICommand | None:
-    """Return command metadata without importing its implementation."""
+    """Return command metadata without importing its implementation.
+
+    :param name: The command name to look up.
+    :return: Command metadata, or ``None`` if it is not registered.
+    """
 
     return _cli_commands.get(name)

@@ -42,7 +42,7 @@ def _valid(node: Any) -> bool:
 
 
 class VectorNative(VectorBackend):
-    """
+    r"""
     Backend for a vector backed by plain nested sequences.
 
     The native representation is a (possibly nested) rectangular list or tuple whose leaves are
@@ -50,6 +50,9 @@ class VectorNative(VectorBackend):
     Conversion into the exact ``fractions`` interchange goes through
     :meth:`~httk.core.vectors.fracvector.FracVector.create`, so string-uncertainty parsing
     (e.g. ``"0.33342(10)"``) works here too. ``unwrap`` returns the original raw object.
+
+    :param obj: The rectangular source data to wrap.
+    :param \**hints: Optional backend-selection hints.
     """
 
     _raw: Any
@@ -85,11 +88,14 @@ class VectorNative(VectorBackend):
 
     @property
     def fractions(self) -> Fractions:
+        """Return the native value in the exact Fraction interchange format."""
         return _fracvector_to_fractions(self._as_fracvector())
 
     @property
     def dim(self) -> tuple[int, ...]:
+        """Return the native value's shape."""
         return self._as_fracvector().dim
 
     def unwrap(self) -> Any:
+        """Return the original nested list or tuple."""
         return self._raw

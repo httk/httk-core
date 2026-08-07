@@ -24,6 +24,10 @@ def register_coercer(coercer: Coercer, target: Any) -> None:
     ``typing.Any`` for a fully general coercer. During :func:`coerce`, a registered coercer is
     only tried when the requested target class is a subclass of (one of) its declared targets;
     ``Any`` matches every target. Invalid declarations raise ``TypeError`` eagerly.
+
+    :param coercer: Conversion function to append to the registry.
+    :param target: Class, tuple of classes, or ``Any`` accepted by the coercer.
+    :raises TypeError: If ``target`` is not a class, tuple of classes, or ``Any``.
     """
     if target is Any:
         targets: tuple[type, ...] = (object,)
@@ -55,9 +59,19 @@ def _try_view(view_cls: type, value: Any) -> Any | None:
 
 
 def view_class_coercer(view_classes: Sequence[type]) -> Coercer:
-    """Return a coercer that tries matching view classes in ``view_classes`` order."""
+    """Create a coercer that tries matching view classes in ``view_classes`` order.
+
+    :param view_classes: View classes to try in order.
+    :return: A coercer for the supplied view classes.
+    """
 
     def try_view_classes(value: Any, target: type) -> Any | None:
+        """Try each compatible view class in registration order.
+
+        :param value: Value to convert.
+        :param target: Requested target class.
+        :return: The first successful view conversion, or ``None``.
+        """
         for cls in view_classes:
             if issubclass(cls, target):
                 candidate = _try_view(cls, value)
@@ -84,6 +98,11 @@ def coerce_view(value: Any, target: Any) -> Any:
     lossless fallback of another type (e.g. ``Fraction(1, 2)`` for target ``int``), and
     individual coercers document any deliberately lossy conversion. Callers that need a plain,
     exactly-typed result use :func:`coerce` instead.
+
+    :param value: Value to convert.
+    :param target: Target class, prototype instance, or the ``"natural"`` sentinel.
+    :return: The best available backend-aware conversion.
+    :raises TypeError: If no registered or direct conversion succeeds.
     """
     if isinstance(target, str) and target == "natural":
         return value
@@ -114,6 +133,11 @@ def coerce(value: Any, target: Any) -> Any:
     final result must satisfy ``isinstance(result, target)`` — a lossless fallback of another
     type (available through :func:`coerce_view`) makes strict coercion fail with ``TypeError``. An
     existing non-View subtype of the target is an identity result.
+
+    :param value: Value to convert.
+    :param target: Target class, prototype instance, or the ``"natural"`` sentinel.
+    :return: A non-View instance matching the requested target.
+    :raises TypeError: If strict conversion cannot produce the requested target.
     """
     if isinstance(target, str) and target == "natural":
         return value

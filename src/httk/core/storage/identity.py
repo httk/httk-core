@@ -31,7 +31,11 @@ _canonical_encoders: dict[type[Any], Callable[[Any], Any]] = {}
 
 
 class StorageProjectionCycleError(ValueError):
-    """Raised when a projected record graph contains an active cycle."""
+    """Raise when a projected record graph contains an active cycle.
+
+    :param path: The canonical field path where the cycle was detected.
+    :param record_type: The record class being projected when the cycle was found.
+    """
 
     def __init__(self, path: str, record_type: type[Any]) -> None:
         self.path = path
@@ -41,7 +45,16 @@ class StorageProjectionCycleError(ValueError):
 
 
 def register_canonical_encoder(python_type: type[Any], encoder: Callable[[Any], Any]) -> None:
-    """Register one deterministic encoder for an exact custom Python type."""
+    """Register one deterministic encoder for an exact custom Python type.
+
+    Leaf values use exact-type lookup, so a registered encoder for a base class
+    does not apply to subclasses. The encoder must return JSON-compatible data.
+
+    :param python_type: The exact custom class to encode.
+    :param encoder: The deterministic encoder callable.
+    :raises TypeError: If the type or encoder is invalid.
+    :raises ValueError: If an encoder is already registered for the class.
+    """
     if not isinstance(python_type, type):
         raise TypeError("python_type must be a class")
     if not callable(encoder):
@@ -52,7 +65,13 @@ def register_canonical_encoder(python_type: type[Any], encoder: Callable[[Any], 
 
 
 def resolve_storage_record(source: Any, *, as_record: type[Any] | None = None) -> type[Any]:
-    """Resolve the exact record target for ``source`` without constructing it."""
+    """Resolve the exact record target for ``source`` without constructing it.
+
+    :param source: The source value whose storage record target is requested.
+    :param as_record: An explicit record class override, if supplied.
+    :return: The validated frozen dataclass record class.
+    :raises TypeError: If the resolved target is not a frozen dataclass.
+    """
     if as_record is not None:
         target = as_record
     else:
@@ -63,7 +82,17 @@ def resolve_storage_record(source: Any, *, as_record: type[Any] | None = None) -
 
 
 def project_storage_record(record_type: type[Any], source: Any) -> Mapping[str, object]:
-    """Project and validate one record level, returning field values by name."""
+    """Project and validate one record level, returning field values by name.
+
+    Projection classes may declare a source class and classmethod projection;
+    otherwise ``source`` must already be an instance of ``record_type``.
+
+    :param record_type: The frozen dataclass record class to project.
+    :param source: A record instance or declared projection source.
+    :return: Field values present at this record level.
+    :raises TypeError: If the record or projection declaration is invalid.
+    :raises ValueError: If a projection omits a required field or names an unknown one.
+    """
     _validate_record_type(record_type)
     fields = dataclasses.fields(record_type)
     source_marker = _record_declaration(record_type, CANONICAL_SOURCE_ATTRIBUTE)
@@ -112,7 +141,12 @@ def project_storage_record(record_type: type[Any], source: Any) -> Mapping[str, 
 
 
 def storage_identity_name(record_type: type[Any]) -> str:
-    """Return the logical identity name, independent of physical storage naming."""
+    """Return the logical identity name, independent of physical storage naming.
+
+    :param record_type: The record class whose logical identity name is requested.
+    :return: The declared identity name or the fully qualified class name.
+    :raises TypeError: If ``record_type`` is not a class or has an invalid storage declaration.
+    """
     if not isinstance(record_type, type):
         raise TypeError("record_type must be a class")
     for base in record_type.__mro__:
@@ -136,6 +170,17 @@ def canonical_form(
 
     Storage integrations may supply a caching ``projector`` to reuse the exact
     per-record mappings traversed while computing identity.
+
+    Record fields marked with :class:`~httk.core.storage.IdentitySkip`, or
+    represented by :class:`~httk.core.storage.stored_property`, are outside the
+    content identity. Registered custom encoders apply only to exact leaf types.
+
+    :param obj: The record or projected source to encode.
+    :param as_record: An explicit record class override, if supplied.
+    :param projector: The record-level projection function.
+    :return: Versioned, type-tagged canonical JSON.
+    :raises TypeError: If a value or projection cannot be represented.
+    :raises ValueError: If a projection is invalid or contains a cycle.
     """
     encoder = _Encoder(projector)
     target = resolve_storage_record(obj, as_record=as_record)
@@ -149,7 +194,18 @@ def content_id(
     as_record: type[Any] | None = None,
     projector: Callable[[type[Any], Any], Mapping[str, object]] = project_storage_record,
 ) -> str:
-    """Return the lowercase SHA-256 content identity of ``obj``."""
+    """Return the lowercase SHA-256 content identity of ``obj``.
+
+    The digest covers :func:`~httk.core.storage.identity.canonical_form`, including exact-type leaf
+    encodings and excluding fields marked with :class:`~httk.core.storage.markers.IdentitySkip`.
+
+    :param obj: The record or projected source to identify.
+    :param as_record: An explicit record class override, if supplied.
+    :param projector: The record-level projection function.
+    :return: The lowercase SHA-256 hexadecimal digest.
+    :raises TypeError: If a value or projection cannot be represented.
+    :raises ValueError: If a projection is invalid or contains a cycle.
+    """
     return hashlib.sha256(canonical_form(obj, as_record=as_record, projector=projector).encode("utf-8")).hexdigest()
 
 

@@ -33,6 +33,10 @@ def redact_optimade_url(url: str) -> str:
     Non-sensitive URL spelling is retained byte-for-byte; decoding is used
     only to recognize query keys. Fragments are not semantically load-bearing
     for OPTIMADE URLs or file fetches and are never retained in diagnostics.
+
+    :param url: URL or diagnostic string to sanitize.
+    :return: Sanitized URL or unchanged non-URL string.
+    :raises TypeError: If *url* is not a string.
     """
 
     if not isinstance(url, str):
@@ -224,6 +228,10 @@ def redact_optimade_document_text(text: str) -> str:
     extension values, whitespace, and number spelling are semantic source
     data. Malformed JSON is returned unchanged because its envelope path cannot
     be identified safely without guessing.
+
+    :param text: JSON document text to sanitize.
+    :return: Text with only recognized pagination credentials removed.
+    :raises TypeError: If *text* is not a string.
     """
 
     if not isinstance(text, str):
@@ -246,6 +254,9 @@ class OptimadeDocument:
 
     Direct construction performs no sanitization. Use :meth:`create` before
     storing an externally sourced document or URL.
+
+    :param text: Original response text, optionally sanitized by :meth:`create`.
+    :param source_url: URL from which the response was obtained.
     """
 
     text: str
@@ -253,21 +264,34 @@ class OptimadeDocument:
 
     @classmethod
     def create(cls, text: str, source_url: str) -> "OptimadeDocument":
-        """Construct a source-exact document with safe pagination provenance."""
+        """Construct a source-exact document with safe pagination provenance.
+
+        :param text: Response text to sanitize and retain.
+        :param source_url: Source URL to sanitize and retain.
+        :return: A source document with safe pagination provenance.
+        """
 
         return cls(redact_optimade_document_text(text), redact_optimade_url(source_url))
 
 
 @dataclass(frozen=True)
 class OptimadeSchemaSnapshot:
-    """The ``/info/<entry_type>`` document applicable to a resource response."""
+    """Describe the ``/info/<entry_type>`` document for a resource response.
+
+    :param entry_type: Entry type named by the schema endpoint.
+    :param info_document: Source-exact schema response document.
+    """
 
     entry_type: str
     info_document: OptimadeDocument
 
 
 def optimade_entry_url_info(url: str) -> tuple[str, str] | None:
-    """Return an OPTIMADE entry type and its derived info URL, if *url* has that shape."""
+    """Return an OPTIMADE entry type and its derived info URL, if *url* has that shape.
+
+    :param url: Candidate single-entry URL.
+    :return: Entry type and derived info URL, or ``None`` when the shape is invalid.
+    """
 
     split = urlsplit(url)
     path = split.path.rstrip("/")
@@ -286,7 +310,11 @@ def optimade_entry_url_info(url: str) -> tuple[str, str] | None:
 
 
 def is_optimade_entry_url(url: str) -> bool:
-    """Return whether *url* has the shape of an OPTIMADE single-entry URL."""
+    """Return whether *url* has the shape of an OPTIMADE single-entry URL.
+
+    :param url: Candidate URL to inspect.
+    :return: Whether the URL identifies one OPTIMADE entry.
+    """
 
     return optimade_entry_url_info(url) is not None
 
@@ -304,6 +332,11 @@ def optimade_resource_from_url(url: str, *, timeout: float | None = None) -> "Op
 
     Redirects follow ``urllib`` defaults. Both requests use the datastream
     layer and honor ``timeout`` (or its configured default when it is ``None``).
+
+    :param url: Single-entry URL to fetch.
+    :param timeout: Optional timeout applied to both requests.
+    :return: Resource backed by the entry and its schema snapshot.
+    :raises ValueError: If the URL or either response is not a valid OPTIMADE resource.
     """
 
     shape = optimade_entry_url_info(url)
@@ -372,6 +405,10 @@ def optimade_document_root(document: OptimadeDocument) -> Mapping[str, FrozenJso
     need to interpret an OPTIMADE envelope or an ``/info`` document without
     duplicating JSON parsing.  The returned mapping is cached per equal
     :class:`OptimadeDocument` and must be treated as immutable.
+
+    :param document: Source document to parse lazily.
+    :return: Cached immutable document root.
+    :raises ValueError: If the document is invalid JSON or has a non-object root.
     """
 
     return _parsed_root(document)
@@ -379,14 +416,25 @@ def optimade_document_root(document: OptimadeDocument) -> Mapping[str, FrozenJso
 
 @dataclass(frozen=True)
 class OptimadeResource(Mapping[str, FrozenJson]):
-    """An immutable, lazily decoded OPTIMADE resource from an array or single-entry envelope."""
+    """Represent one immutable resource in an OPTIMADE response envelope.
+
+    :param document: Source-exact response document to decode lazily.
+    :param data_index: Index of the resource in the response ``data`` member.
+    :param schema: Schema snapshot applicable to the response.
+    """
 
     document: OptimadeDocument
     data_index: int
     schema: OptimadeSchemaSnapshot
 
     def unwrap(self) -> Mapping[str, FrozenJson]:
-        """Return the immutable resource object at this response's data index."""
+        """Return the immutable resource object at this response's data index.
+
+        :return: Immutable resource mapping selected from the response.
+        :raises TypeError: If ``data_index`` is not an integer.
+        :raises IndexError: If ``data_index`` is outside the response data.
+        :raises ValueError: If the response data is not an object or array of objects.
+        """
 
         root = _parsed_root(self.document)
         data = root.get("data")

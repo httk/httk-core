@@ -1,3 +1,9 @@
+"""Public core APIs for loading, reporting, project anchors, and registration.
+
+Importing this package discovers installed capability modules and exposes
+their registered readers, writers, adapters, and related public APIs.
+"""
+
 #
 #    The high-throughput toolkit (httk)
 #    Copyright (C) 2012-2024 the httk AUTHORS

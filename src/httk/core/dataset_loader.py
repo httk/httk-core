@@ -36,6 +36,8 @@ class DatasetRecord:
     Top-level keys are reachable both as attributes (``record.name``) and as items
     (``record["name"]``); the wrapped values are the plain parsed JSON and are not
     themselves wrapped. Supports iteration over keys, ``len()``, ``in``, and ``keys()``.
+
+    :param data: The parsed top-level object exposed by this view.
     """
 
     def __init__(self, data: dict[str, Any]) -> None:
@@ -64,6 +66,10 @@ class DatasetRecord:
         return key in self._data
 
     def keys(self) -> KeysView[str]:
+        """Return a dynamic view of the record's top-level keys.
+
+        :return: The wrapped mapping's keys view.
+        """
         return self._data.keys()
 
     def __repr__(self) -> str:
@@ -72,7 +78,15 @@ class DatasetRecord:
 
 @dataclass(frozen=True)
 class DatasetMeta:
-    """Header metadata extracted from a structured JSON-LD dataset document."""
+    """Describe header metadata extracted from a structured JSON-LD document.
+
+    :param context: The raw document context.
+    :param id: The document identifier, if present.
+    :param type_: The document type, if present.
+    :param header: Remaining top-level header fields.
+    :param dataset_ids: Dataset names mapped to their identifiers.
+    :param fields: Dataset names mapped to their field property URLs.
+    """
 
     context: dict[str, Any]
     """The raw ``@context`` object."""
@@ -166,7 +180,7 @@ def _apply_decode(data: dict[str, Any], meta: DatasetMeta, decode: DecodeObjectC
 
 
 class DatasetLoader:
-    """Lazy loader for httk dataset files, resolved only when data is first accessed.
+    r"""Lazy loader for httk dataset files, resolved only when data is first accessed.
 
     A ``DatasetLoader`` is a declare-time placeholder: constructing it records its arguments
     and performs no I/O. The source is read the first time ``data``, ``meta``, or ``index``
@@ -192,6 +206,11 @@ class DatasetLoader:
     Example:
         symmetry_basics = DatasetLoader("symmetry_basics", "data/spacegroup_symbols.json")
         spacegroups = symmetry_basics.data.spacegroups  # first access triggers the load
+
+    :param identifier: The deduplication key for this load.
+    :param source: The filename, URL-like stream, request, or literal content to read.
+    :param decode_object: An optional callback for JSON-LD objects identified by context URLs.
+    :param \**hints: Stream interpretation hints such as ``kind``.
     """
 
     _loaded: ClassVar[dict[str, _LoadedData]] = {}
@@ -253,12 +272,15 @@ class DatasetLoader:
 
     @cached_property
     def data(self) -> Any:
+        """Return the lazily loaded dataset value."""
         return self._load().data
 
     @cached_property
     def meta(self) -> DatasetMeta | None:
+        """Return structured-document metadata, or ``None`` for plain JSON."""
         return self._load().meta
 
     @cached_property
     def index(self) -> DatasetRecord | None:
+        """Return structured-document lookup indices, or ``None`` when absent."""
         return self._load().index

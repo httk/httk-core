@@ -52,18 +52,31 @@ def _reader_key(name: str) -> tuple[PluginRegistry, str] | None:
 
 
 def has_reader_for(name: str) -> bool:
-    """Return whether ``name`` matches a registered reader key."""
+    """Return whether ``name`` matches a registered reader key.
+
+    :param name: Filename or URL path whose reader registration is checked.
+    :return: Whether the name matches a registered extension or exact basename.
+    """
     return _reader_key(name) is not None
 
 
 def reader_uses_extension(name: str) -> bool:
-    """Return whether ``name`` is claimed by an extension rather than a basename."""
+    """Return whether ``name`` is claimed by an extension rather than a basename.
+
+    :param name: Filename or URL path whose reader registration is checked.
+    :return: Whether an extension registration claims the name.
+    """
     key = _reader_key(name)
     return key is not None and key[0] is readers
 
 
 def adapt_result(result: Any, raw: bool) -> Any:
-    """Apply a registered format adapter unless ``raw`` is requested."""
+    """Apply a registered format adapter unless ``raw`` is requested.
+
+    :param result: Neutral reader result to inspect for a format tag.
+    :param raw: Whether to return the neutral result without adaptation.
+    :return: The adapted domain value or the unchanged reader result.
+    """
     if raw or not isinstance(result, Mapping):
         return result
     format_tag = result.get("format")
@@ -73,7 +86,15 @@ def adapt_result(result: Any, raw: bool) -> Any:
 
 
 def load_source(source: Any, name: str, *, raw: bool = False, **kwargs: Any) -> Any:
-    """Load ``source`` using the reader selected by ``name``."""
+    r"""Load ``source`` using the reader selected by ``name``.
+
+    :param source: Source passed to the selected reader.
+    :param name: Name used for extension or exact-basename dispatch.
+    :param raw: Whether to return the neutral reader result without adaptation.
+    :param \**kwargs: Additional options passed to the selected reader.
+    :return: The reader result, optionally adapted to a domain value.
+    :raises ValueError: If no reader matches the name; the error lists known extensions and basenames.
+    """
     key = _reader_key(name)
     if key is None:
         basename = PurePath(name).name
@@ -95,7 +116,7 @@ def load_source(source: Any, name: str, *, raw: bool = False, **kwargs: Any) -> 
 
 
 def load(filename: str, *, raw: bool = False, **kwargs: Any) -> Any:
-    """Load ``filename`` and adapt its neutral payload to a domain object.
+    r"""Load ``filename`` and adapt its neutral payload to a domain object.
 
     Dispatch strips at most one recognized compression suffix (``.gz``,
     ``.bz2``, ...) to obtain an *inner* name, then selects a reader by that
@@ -107,6 +128,12 @@ def load(filename: str, *, raw: bool = False, **kwargs: Any) -> Any:
     adapter for that format. ``raw=True`` is the neutral-payload escape hatch.
     Payloads with unknown formats, and non-mapping reader results, pass through
     unchanged.
+
+    :param filename: Local filename to read.
+    :param raw: Whether to return the neutral reader result without adaptation.
+    :param \**kwargs: Additional options passed to the selected reader.
+    :return: The loaded and optionally adapted value.
+    :raises ValueError: If ``filename`` is a URL or no reader matches it.
     """
     if isinstance(filename, str) and urlsplit(filename).scheme in {"http", "https", "ftp", "file"}:
         raise ValueError("load reads local files; httk.core.fetch(url) is the URL entry point")

@@ -56,7 +56,12 @@ def _inventory_bytes(path_or_bytes: str | Path | bytes) -> bytes:
 
 
 def read_inventory_header(path_or_bytes: str | Path | bytes) -> tuple[str, str]:
-    """Return project and version from the plain-text inventory header."""
+    """Return project and version from the plain-text inventory header.
+
+    :param path_or_bytes: Inventory file path or its contents.
+    :return: Project and version declared by the inventory.
+    :raises InventoryError: If the inventory does not have the expected header.
+    """
 
     raw = _inventory_bytes(path_or_bytes)
     lines = raw.splitlines()
@@ -76,7 +81,15 @@ def fetch_inventory(
     expected_project: str | None = None,
     expected_version: str | None = None,
 ) -> tuple[str, str]:
-    """Fetch an inventory from HTTP(S) or ``file://``, validate it, and save it."""
+    """Fetch an inventory from HTTP(S) or ``file://``, validate it, and save it.
+
+    :param url: HTTP(S) or ``file://`` URL of the inventory.
+    :param dest: Destination path for the validated inventory.
+    :param expected_project: Required project header, when supplied.
+    :param expected_version: Required version header, when supplied.
+    :return: Project and version declared by the fetched inventory.
+    :raises InventoryError: If fetching, validation, or saving the inventory fails.
+    """
 
     _validate_url(url)
     try:

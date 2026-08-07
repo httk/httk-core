@@ -7,8 +7,12 @@ from .textstream_common import TextstreamCommon
 
 
 class TextstreamFile(TextstreamCommon, TextstreamBackend):
-    """
+    r"""
     Backend for file-based (io.TextIOBase-conforming) streaming text data
+
+    :param obj: Open text stream to adopt and close with this backend.
+    :param \**hints: Backend-selection and compression hints.
+    :raises ValueError: If the compression hint is not a no-op mode for text-native content.
     """
 
     _f: io.TextIOBase | None
@@ -37,9 +41,11 @@ class TextstreamFile(TextstreamCommon, TextstreamBackend):
 
     @property
     def name(self) -> str | None:
+        """Return the adopted stream's name when it provides one."""
         self._ensure_f()
         return getattr(self._f, "name", None)
 
     @property
     def closed(self) -> bool:
+        """Report whether the adopted stream is closed."""
         return self._f is None or self._f.closed

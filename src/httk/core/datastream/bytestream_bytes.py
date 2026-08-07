@@ -7,8 +7,13 @@ from .compression import open_compressed, validate_compression
 
 
 class BytestreamBytes(BytestreamCommon, BytestreamBackend):
-    """
+    r"""
     Backend for streaming byte data backed by an actual bytes object.
+    Compressed content is transparently decompressed according to the compression hint.
+
+    :param content: Bytes to expose as a stream.
+    :param \**hints: Backend-selection and compression hints.
+    :raises ValueError: If the compression hint is unknown.
     """
 
     b: bytes
@@ -45,8 +50,10 @@ class BytestreamBytes(BytestreamCommon, BytestreamBackend):
 
     @property
     def name(self) -> str | None:
+        """Report that an in-memory stream has no source name."""
         return None
 
     @property
     def closed(self) -> bool:
+        """Report whether the in-memory stream is closed."""
         return self._closed

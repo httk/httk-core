@@ -46,7 +46,7 @@ class View[BackendT: Backend]:
           (a backend-less view instance, e.g. built by inherited value-class algebra, falls through
           to backend creation like a raw value);
         - if `obj` is a backend inheriting from the right superclass, return it unchanged.
-        - if `obj` otherwise try to create a backend from that superclass via `backend_cls.create(obj, **hints)`;
+        - if `obj` otherwise try to create a backend from that superclass via ``backend_cls.create(obj, **hints)``;
 
         `hints` are forwarded for backend selection/disambiguation.
         """
@@ -63,6 +63,8 @@ class View[BackendT: Backend]:
         Return the most raw representation possible of this view, i.e., if it uses a backend with an internal representaion -
         or if it can (possibly lossly) convert itself into a more raw representation that still would be recognized as a <Something>Like type,
         that representation will be returned. If this is not possible, the instance itself is returned.
+
+        :return: The backend's most raw available representation.
         """
         return unwrap(self._backend)
 
@@ -74,5 +76,8 @@ class View[BackendT: Backend]:
         may alias the view's storage (no copy is promised). The default raises ``TypeError``,
         which is the correct behavior for views that only adapt an interface and have no faithful
         standalone value.
+
+        :return: The presented value as a plain, non-View instance.
+        :raises TypeError: If this interface-only view has no standalone plain value.
         """
         raise TypeError(f"{type(self).__name__} is an interface-only view with no standalone plain value")

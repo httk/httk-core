@@ -8,12 +8,16 @@ from .bytestream_view import BytestreamView
 
 
 class BytestreamRequestView(BytestreamView, urllib.request.Request):
-    """
+    r"""
     A view presenting an underlying data streaming backend via a urllib.request.Request.
     This view is mostly useful for providing a Request to functions that will open it.
     Note: this view is not lazy (it does not fetch); it only mirrors the underlying request/URL.
 
     Raises TypeError if created with a streaming data source that does not come with a URL.
+
+    :param obj: Byte-stream source to present as a request.
+    :param \**hints: Backend-selection and compression hints.
+    :raises TypeError: If the source has no URL.
     """
 
     _backend: BytestreamBackend
@@ -41,4 +45,8 @@ class BytestreamRequestView(BytestreamView, urllib.request.Request):
         pass
 
     def unwrap(self) -> Any:
+        """Return the raw representation of the wrapped backend.
+
+        :return: The backend's most raw available representation.
+        """
         return unwrap(self._backend)

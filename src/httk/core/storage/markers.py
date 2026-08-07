@@ -50,8 +50,9 @@ frozen dataclasses with no markers at all, and may also accept an external
 :class:`StorageInfo` override for classes that cannot be modified.
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Final, Literal
+from typing import Any, Final, Literal
 
 __all__ = [
     "STORAGE_INFO_ATTRIBUTE",
@@ -116,9 +117,9 @@ class Shape:
     with ``cols`` fixed columns each, stored out-of-line (one row per entry,
     in insertion order).
 
-    Args:
-        rows: Number of rows; ``0`` means variable-length.
-        cols: Number of columns per row; must be at least ``1``.
+    :param rows: Number of rows; ``0`` means variable-length.
+    :param cols: Number of columns per row; must be at least ``1``.
+    :raises ValueError: If ``rows`` is negative or ``cols`` is less than ``1``.
     """
 
     rows: int
@@ -145,10 +146,9 @@ class Related:
     OPTIMADE v1.2 ``meta.description``). ``serve=False`` suppresses the field
     as a relationship entirely.
 
-    Args:
-        role: The machine-readable relationship role, if any.
-        description: The human-readable relationship description, if any.
-        serve: Whether the field is served as a relationship at all.
+    :param role: The machine-readable relationship role, if any.
+    :param description: The human-readable relationship description, if any.
+    :param serve: Whether the field is served as a relationship at all.
     """
 
     role: str | None = None
@@ -161,8 +161,8 @@ class RelationshipLink:
     """Class-level relationship declaration: each stored row expresses one FROM→TO relationship.
 
     Declared in :attr:`StorageInfo.links`. ``source`` and ``target`` each name
-    a reference field of the declaring class, or are ``None`` to mean *the
-    declaring class's own entry*: for every stored row, one relationship is
+    a reference field of the declaring class, or are ``None`` to mean ``the
+    declaring class's own entry``: for every stored row, one relationship is
     declared from the entry the source side resolves to, to the entry the
     target side resolves to. The two canonical shapes:
 
@@ -178,18 +178,11 @@ class RelationshipLink:
     ``role`` and ``description`` carry the same OPTIMADE per-identifier
     metadata as :class:`Related` into each relationship the link declares.
 
-    Args:
-        source: The reference field naming the FROM-side entry, or ``None``
-            for the declaring class's own entry.
-        target: The reference field naming the TO-side entry, or ``None``
-            for the declaring class's own entry.
-        role: The machine-readable relationship role, if any.
-        description: The human-readable relationship description, if any.
-
-    Raises:
-        ValueError: If both endpoints are ``None`` (the link would relate every
-            entry to itself), or if ``source`` and ``target`` name the same
-            field.
+    :param source: The reference field naming the FROM-side entry, or ``None`` for the declaring class's own entry.
+    :param target: The reference field naming the TO-side entry, or ``None`` for the declaring class's own entry.
+    :param role: The machine-readable relationship role, if any.
+    :param description: The human-readable relationship description, if any.
+    :raises ValueError: If both endpoints are ``None`` (which would relate every entry to itself), or if they name the same field.
     """
 
     source: str | None
@@ -216,15 +209,12 @@ class StorageInfo:
     processing ignores it. A storage layer may also accept an instance as an
     external override for classes that cannot be modified.
 
-    Args:
-        storage_name: The name this class is stored under; ``None`` derives one from
-            the class name. A relational backend uses it as the table name, a document
-            store as the collection name.
-        identity_name: The logical name included in content identity; ``None`` derives
-            it from the declaring class and its bases.
-        indexes: Composite indexes, each a tuple of field names.
-        dedup: Deduplication policy applied when saving; see :data:`~httk.core.storage.markers.DedupPolicy`.
-        links: Class-level relationship declarations; see :class:`RelationshipLink`.
+    :param storage_name: The physical storage name; ``None`` derives one from the class name. Relational backends use it as the table name, and document stores use it as the collection name.
+    :param indexes: Composite indexes, each a tuple of field names.
+    :param dedup: The deduplication policy applied when saving; see :data:`~httk.core.storage.markers.DedupPolicy`.
+    :param links: Class-level relationship declarations; see :class:`~httk.core.storage.markers.RelationshipLink`.
+    :param identity_name: The logical name included in content identity; ``None`` derives it from the declaring class and its bases.
+    :raises ValueError: If ``dedup`` or an identity name or index declaration is invalid.
     """
 
     storage_name: str | None = None
@@ -255,10 +245,23 @@ class stored_property(property):
     Use exactly like :class:`property` (getter only). The value type is read
     from the getter's return annotation. On save, the storage layer evaluates
     and stores the value alongside the declared fields; on load, the value is
-    recomputed by the property rather than passed to ``__init__``.
+    recomputed by the property rather than passed to ``__init__``. The getter
+    must declare a return annotation when the property is created.
+
+    :param fget: The getter function whose derived value is stored.
+    :param fset: An optional setter, normally unused by storage declarations.
+    :param fdel: An optional deleter, normally unused by storage declarations.
+    :param doc: An optional property documentation string.
+    :raises TypeError: If ``fget`` has no return annotation.
     """
 
-    def __init__(self, fget=None, fset=None, fdel=None, doc=None):
+    def __init__(
+        self,
+        fget: Callable[..., Any] | None = None,
+        fset: Callable[..., Any] | None = None,
+        fdel: Callable[..., Any] | None = None,
+        doc: str | None = None,
+    ) -> None:
         if fget is not None and "return" not in getattr(fget, "__annotations__", {}):
             raise TypeError("stored_property getter needs a return annotation")
         super().__init__(fget, fset, fdel, doc)

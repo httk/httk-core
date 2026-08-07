@@ -44,7 +44,12 @@ def _field(name: str, value: object) -> str:
 
 
 def describe_project(root: str | Path | None = None) -> dict[str, object]:
-    """Describe one project's anchor."""
+    """Describe one project's anchor.
+
+    :param root: Project root, or None to discover the nearest project.
+    :return: JSON-ready description of project metadata and trust keys.
+    :raises ValueError: If no project exists or its metadata is invalid.
+    """
 
     project = require_project(root)
     metadata = read_project(project)
@@ -185,7 +190,11 @@ def _add_leaf(
 
 
 def build_parser(program: str) -> argparse.ArgumentParser:
-    """Build the core-owned ``httk project`` command tree."""
+    """Build the core-owned project command tree.
+
+    :param program: Program name used by the parser in help and errors.
+    :return: Configured project command parser.
+    """
 
     parser = argparse.ArgumentParser(prog=program, description="Create and inspect httk projects")
     parser.set_defaults(handler=None, help_parser=parser)
@@ -209,7 +218,12 @@ def build_parser(program: str) -> argparse.ArgumentParser:
 
 
 def command(argv: Sequence[str], context: CLIContext) -> int:
-    """Handle the registered top-level ``project`` command."""
+    """Handle the registered top-level project command.
+
+    :param argv: Arguments following the project command name.
+    :param context: Root CLI invocation context.
+    :return: Command exit status.
+    """
 
     parser = build_parser(f"{context.program} project")
     try:
