@@ -12,6 +12,11 @@ register_entry_family(
     family="httk.core.data_records:DataRecordEntry",
     definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/records",
 )
+register_entry_family(
+    name="files",
+    family="httk.core.files:FileEntry",
+    definition_id="https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files",
+)
 register_entry_record(
     name="core-run",
     record="httk.core.provenance:Run",
@@ -54,7 +59,8 @@ register_optimade_entry_binding(
 )
 register_entry_record(
     name="core-file",
-    record="httk.core.entry_types:File",
+    record="httk.core.files:FileRecord",
+    family="files",
     definition_id="https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files",
 )
 register_entry_record(

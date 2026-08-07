@@ -43,6 +43,7 @@ from .datastream import (
 from .entry_provider import EntryProvider, RelatedEntry
 from .entry_types import Calculation, File, Reference
 from .fetching import fetch
+from .files import FileEntry, FileRecord
 from .loading import has_reader_for, load, load_source
 from .precision import combined_precision, decimal_precision
 from .property_definitions import (
@@ -117,6 +118,8 @@ __all__ = [
     "EntryProvider",
     "EntryTypeDefinition",
     "File",
+    "FileEntry",
+    "FileRecord",
     "FracScalar",
     "FracVector",
     "IdentitySkip",
