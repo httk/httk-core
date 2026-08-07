@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
+from httk.core.docs import sitetree
 from httk.core.docs.manifests import read_version_manifest
 from httk.core.docs.semver import Version
-from httk.core.docs import sitetree
 from httk.core.docs.sitetree import ComposeError, ImmutabilityError, compose_site
 
 
@@ -17,7 +17,9 @@ def make_build(path: Path, text: str = "home") -> None:
 
 
 def compose(root: Path, build: Path, target: Version | str):
-    return compose_site(root, build, slug="core", site_url="https://docs.httk.org/core", source_commit="sha", target=target)  # type: ignore[arg-type]
+    return compose_site(
+        root, build, slug="core", site_url="https://docs.httk.org/core", source_commit="sha", target=target
+    )  # type: ignore[arg-type]
 
 
 def test_fresh_dev_and_release_composition(tmp_path: Path) -> None:
@@ -31,6 +33,8 @@ def test_fresh_dev_and_release_composition(tmp_path: Path) -> None:
     release = compose(root, build, Version(1, 0, 0))
     assert release.default_target == "v1.0.0"
     assert (root / "dev/main/index.html").is_file()
+    assert sitetree._tree(root / "latest") == sitetree._tree(root / "v1.0.0")
+    assert "url=latest/" in (root / "index.html").read_text(encoding="utf-8")
 
 
 def test_dev_replace_and_release_add_preserve_other_versions(tmp_path: Path) -> None:
@@ -47,7 +51,28 @@ def test_dev_replace_and_release_add_preserve_other_versions(tmp_path: Path) -> 
     assert (root / "v2.0.0/index.html").read_text(encoding="utf-8") == "one"
     assert (root / "dev/main/index.html").read_text(encoding="utf-8") == "two"
     assert read_version_manifest(root / "versions.json")["default"]["name"] == "v2.0.0"
-    assert "url=v2.0.0/" in (root / "index.html").read_text(encoding="utf-8")
+    assert "url=latest/" in (root / "index.html").read_text(encoding="utf-8")
+
+
+def test_newest_release_refreshes_latest(tmp_path: Path) -> None:
+    root = tmp_path / "site"
+    first = tmp_path / "first"
+    second = tmp_path / "second"
+    make_build(first, "one")
+    make_build(second, "two")
+    compose(root, first, Version(1, 0, 0))
+    compose(root, second, Version(2, 0, 0))
+    assert sitetree._tree(root / "latest") == sitetree._tree(root / "v2.0.0")
+    assert (root / "latest/index.html").read_text(encoding="utf-8") == "two"
+
+
+def test_dev_only_compose_has_no_latest(tmp_path: Path) -> None:
+    root = tmp_path / "site"
+    build = tmp_path / "build"
+    make_build(build)
+    compose(root, build, "dev")
+    assert not (root / "latest").exists()
+    assert "url=dev/main/" in (root / "index.html").read_text(encoding="utf-8")
 
 
 def test_identical_release_noop_and_different_release_fails(tmp_path: Path) -> None:
@@ -57,13 +82,18 @@ def test_identical_release_noop_and_different_release_fails(tmp_path: Path) -> N
     make_build(build)
     make_build(changed, "changed")
     compose(root, build, Version(1, 0, 0))
+    latest_inode = (root / "latest").stat().st_ino
     result = compose(root, build, Version(1, 0, 0))
     assert result.unchanged
+    assert not result.changed
+    assert (root / "latest").stat().st_ino == latest_inode
     with pytest.raises(ImmutabilityError, match="immutable.*manual repair workflow"):
         compose(root, changed, Version(1, 0, 0))
 
 
-def test_failed_release_copy_leaves_no_release_and_retry_succeeds(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_failed_release_copy_leaves_no_release_and_retry_succeeds(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     root = tmp_path / "site"
     build = tmp_path / "build"
     make_build(build)
@@ -95,6 +125,46 @@ def test_stale_staging_is_cleaned_at_start(tmp_path: Path) -> None:
     make_build(build)
     compose(root, build, "dev")
     assert not stale.exists()
+
+
+def test_latest_swap_recovery_restores_or_cleans_leftovers(tmp_path: Path) -> None:
+    root = tmp_path / "site"
+    build = tmp_path / "build"
+    make_build(build)
+    compose(root, build, Version(1, 0, 0))
+    os.rename(root / "latest", root / ".old-latest-interrupted")
+    compose(root, build, Version(1, 0, 0))
+    assert (root / "latest").is_dir()
+    leftover = root / ".old-latest-cleanup"
+    leftover.mkdir()
+    (leftover / "partial.html").write_text("partial", encoding="utf-8")
+    compose(root, build, Version(1, 0, 0))
+    assert not leftover.exists()
+
+
+def test_latest_symlink_is_rejected(tmp_path: Path) -> None:
+    root = tmp_path / "site"
+    build = tmp_path / "build"
+    make_build(build)
+    compose(root, build, Version(1, 0, 0))
+    (root / "latest").rename(root / "latest.old")
+    (root / "latest").symlink_to(root / "v1.0.0", target_is_directory=True)
+    with pytest.raises(ComposeError, match="latest"):
+        compose(root, build, Version(1, 0, 0))
+
+
+def test_stale_latest_is_removed_by_dev_compose(tmp_path: Path) -> None:
+    root = tmp_path / "site"
+    build = tmp_path / "build"
+    make_build(build)
+    (root / "latest").mkdir(parents=True)
+    (root / "latest/index.html").write_text("stale", encoding="utf-8")
+    stale_staging = root / ".staging-latest-interrupted"
+    stale_staging.mkdir()
+    (stale_staging / "partial.html").write_text("partial", encoding="utf-8")
+    compose(root, build, "dev")
+    assert not (root / "latest").exists()
+    assert not stale_staging.exists()
 
 
 def test_source_symlink_and_fifo_are_rejected(tmp_path: Path) -> None:

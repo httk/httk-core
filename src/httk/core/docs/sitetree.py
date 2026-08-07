@@ -170,16 +170,16 @@ def _remove_old_dev(path: Path) -> None:
         shutil.rmtree(path)
 
 
-def _recover_dev_swap(root: Path) -> None:
-    """Recover an interrupted dev swap before starting a new composition."""
+def _recover_swap(root: Path, destination: Path, prefix: str) -> None:
+    """Recover an interrupted directory swap before starting a new composition."""
 
-    dev_parent = root / "dev"
-    if dev_parent.is_symlink():
-        raise ComposeError(f"symlink is not allowed for dev directory: {dev_parent}")
-    if dev_parent.exists() and not dev_parent.is_dir():
-        raise ComposeError(f"dev path is not a directory: {dev_parent}")
-    destination = root / "dev" / "main"
-    old_paths = sorted(path for path in root.iterdir() if path.name.startswith(".old-dev-main-"))
+    if destination == root / "dev" / "main":
+        dev_parent = root / "dev"
+        if dev_parent.is_symlink():
+            raise ComposeError(f"symlink is not allowed for dev directory: {dev_parent}")
+        if dev_parent.exists() and not dev_parent.is_dir():
+            raise ComposeError(f"dev path is not a directory: {dev_parent}")
+    old_paths = sorted(path for path in root.iterdir() if path.name.startswith(prefix))
     if not old_paths:
         return
     if destination.exists() or destination.is_symlink():
@@ -190,6 +190,44 @@ def _recover_dev_swap(root: Path) -> None:
     os.rename(old_paths[-1], destination)
     for path in old_paths[:-1]:
         _remove_old_dev(path)
+
+
+def _reconcile_latest(root: Path, release_versions: list[Version]) -> bool:
+    """Refresh the maintained latest duplicate to match the newest release."""
+
+    latest = root / "latest"
+    if latest.is_symlink():
+        raise ComposeError(f"symlink is not allowed for latest directory: {latest}")
+    if latest.exists() and not latest.is_dir():
+        raise ComposeError(f"latest path is not a directory: {latest}")
+    if not release_versions:
+        if latest.exists():
+            staging = _new_empty_sibling(root, ".staging-latest-")
+            os.rename(latest, staging)
+            _remove_old_dev(staging)
+            return True
+        return False
+
+    source = root / release_versions[0].tag
+    if latest.exists() and _tree(latest) == _tree(source):
+        return False
+    staging = _new_staging(root, "latest")
+    old = None
+    try:
+        _copy_tree(source, staging)
+        if latest.exists():
+            old = _new_empty_sibling(root, ".old-latest-")
+            os.rename(latest, old)
+        os.rename(staging, latest)
+    except BaseException:
+        if old is not None and old.exists() and not latest.exists():
+            os.rename(old, latest)
+        if staging.exists():
+            _remove_old_dev(staging)
+        raise
+    if old is not None and old.exists():
+        _remove_old_dev(old)
+    return True
 
 
 def _new_staging(root: Path, version_name: str) -> Path:
@@ -225,7 +263,10 @@ def compose_site(
     target: Version | Literal["dev"],
     repair: bool = False,
 ) -> ComposeResult:
-    """Compose a docs-site tree while preserving all existing release directories.
+    """Compose a docs-site tree while preserving releases and maintaining latest.
+
+    The root redirect lands on ``latest/`` when a release exists; ``latest/``
+    is a replaceable duplicate of the newest release tree.
 
     ``repair=True`` is reserved for replacing an existing release after an
     approved manual repair. The replacement uses the same rename transaction
@@ -249,7 +290,8 @@ def compose_site(
         raise ComposeError(f"symlink is not allowed for site root: {root}")
     root.mkdir(parents=True, exist_ok=True)
     _remove_staging(root)
-    _recover_dev_swap(root)
+    _recover_swap(root, root / "dev" / "main", ".old-dev-main-")
+    _recover_swap(root, root / "latest", ".old-latest-")
     _validate_tree(source)
     is_dev = target == "dev"
     if repair and is_dev:
@@ -333,10 +375,12 @@ def compose_site(
             _remove_old_dev(staging)
 
     release_versions = _release_versions(root)
+    latest_changed = _reconcile_latest(root, release_versions)
     has_dev = (root / "dev" / "main").is_dir()
     manifest = build_version_manifest(slug, site_url, source_commit, release_versions, has_dev)
     manifest_text = json.dumps(manifest, indent=2, sort_keys=False) + "\n"
     changed = not unchanged
+    changed |= latest_changed
     versions_path = root / "versions.json"
     if _write_if_changed(versions_path, manifest_text):
         changed = True

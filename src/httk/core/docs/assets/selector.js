@@ -38,9 +38,15 @@
         var targetRoot = new URL(target.value, siteRootUrl);
         var currentRoot = new URL(config.version === "dev:main" ? "dev/main/" : config.version + "/", siteRootUrl);
         var currentUrl = new URL(window.location.href);
-        var currentPagePath = currentUrl.pathname.indexOf(currentRoot.pathname) === 0
-          ? currentUrl.pathname.slice(currentRoot.pathname.length)
-          : "";
+        var currentPagePath = "";
+        if (currentUrl.pathname.indexOf(currentRoot.pathname) === 0) {
+          currentPagePath = currentUrl.pathname.slice(currentRoot.pathname.length);
+        } else {
+          currentRoot = new URL("latest/", siteRootUrl);
+          if (currentUrl.pathname.indexOf(currentRoot.pathname) === 0) {
+            currentPagePath = currentUrl.pathname.slice(currentRoot.pathname.length);
+          }
+        }
         fetch(siteRoot + target.value + "pages.json").then(function (response) {
           if (!response.ok) throw new Error("pages unavailable");
           return response.json();

@@ -1,7 +1,13 @@
 import json
 from pathlib import Path
 
-from httk.core.docs.manifests import build_page_manifest, build_version_manifest, read_version_manifest, write_page_manifest, write_version_manifest
+from httk.core.docs.manifests import (
+    build_page_manifest,
+    build_version_manifest,
+    read_version_manifest,
+    write_page_manifest,
+    write_version_manifest,
+)
 from httk.core.docs.redirect import root_redirect_html, write_root_redirect
 from httk.core.docs.semver import Version
 
@@ -14,9 +20,12 @@ def test_manifests_are_ordered(tmp_path: Path) -> None:
     (html / "reference" / "a.html").write_text("", encoding="utf-8")
     pages = build_page_manifest("v2.0.0", html)
     assert pages["pages"] == ["index.html", "reference/a.html", "reference/z.html"]
-    root = build_version_manifest("core", "https://docs.httk.org/core", "abc", [Version(1, 0, 0), Version(2, 0, 0)], True)
+    root = build_version_manifest(
+        "core", "https://docs.httk.org/core", "abc", [Version(1, 0, 0), Version(2, 0, 0)], True
+    )
     assert [item["name"] for item in root["versions"]] == ["v2.0.0", "v1.0.0", "dev:main"]
     assert root["default"]["name"] == "v2.0.0"
+    assert root["default"]["path"] == "latest/"
     write_version_manifest(tmp_path / "versions.json", root)
     write_page_manifest(html / "pages.json", pages)
     assert read_version_manifest(tmp_path / "versions.json")["project"] == "core"

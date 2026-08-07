@@ -37,6 +37,7 @@ def test_repair_replaces_existing_release_transactionally(tmp_path: Path, caplog
 
     assert result.changed
     assert (site / "v1.0.0" / "index.html").read_text(encoding="utf-8") == "replacement"
+    assert (site / "latest" / "index.html").read_text(encoding="utf-8") == "replacement"
     assert "repairing immutable documentation release v1.0.0" in caplog.text
     assert not list(site.glob(".old-release-*"))
 

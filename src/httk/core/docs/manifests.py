@@ -43,6 +43,9 @@ def build_version_manifest(
 ) -> dict[str, Any]:
     """Build a root manifest with releases newest-first and optional dev last.
 
+    The default release points to the maintained ``latest/`` duplicate of
+    the newest release tree.
+
     :param slug: Documentation-site project slug.
     :param url: Public documentation-site URL.
     :param source_commit: Source commit represented by the site, when known.
@@ -58,7 +61,7 @@ def build_version_manifest(
     if has_dev:
         versions.append({"name": "dev:main", "path": "dev/main/", "channel": "dev"})
     if releases:
-        default = {"name": releases[0].tag, "path": f"{releases[0].tag}/", "channel": "release"}
+        default = {"name": releases[0].tag, "path": "latest/", "channel": "release"}
     else:
         default = {"name": "dev:main", "path": "dev/main/", "channel": "dev"}
     return {

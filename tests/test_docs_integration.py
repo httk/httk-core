@@ -111,7 +111,8 @@ def test_versioned_site_lifecycle_and_orphan_site_commits(tmp_path: Path) -> Non
     manifest = json.loads((site / "versions.json").read_text(encoding="utf-8"))
     assert [item["name"] for item in manifest["versions"]] == ["v0.2.0", "v0.1.0", "dev:main"]
     assert manifest["default"]["name"] == "v0.2.0"
-    assert 'url=v0.2.0/' in (site / "index.html").read_text(encoding="utf-8")
+    assert 'url=latest/' in (site / "index.html").read_text(encoding="utf-8")
+    assert _tree_bytes(site / "latest") == _tree_bytes(site / "v0.2.0")
     for version in ("v0.1.0", "v0.2.0", "dev/main"):
         assert (site / version / "pages.json").is_file()
     assert (site / ".nojekyll").is_file()
