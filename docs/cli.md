@@ -47,3 +47,16 @@ Command names use lowercase, hyphen-separated syntax. `help COMMAND` invokes
 that command with `--help`. `help` by itself is equivalent to root help;
 `help` and `version` are reserved names. See {doc}`registry` for the complete
 discovery convention and registration surfaces.
+
+## Memory-guarded runs
+
+The Linux-only `httk.core.memguard` module runs a command in its own process
+group and kills the group when its summed RSS exceeds the selected budget:
+
+```console
+python -m httk.core.memguard --max-rss-gb 8 -- python -m pytest
+```
+
+It reports the peak RSS on standard error. The module requires a visible
+`/proc` filesystem and is intended for the repository Makefile test and
+benchmark targets.

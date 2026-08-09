@@ -79,17 +79,19 @@ typecheck_pyright:
 typecheck:
 	$(PYTHON) -m mypy
 
+MEMGUARD = $(PYTHON) -m httk.core.memguard --max-rss-gb $(or $(HTTK_TEST_MAX_RSS_GB),$(1)) --
+
 test:
-	$(PYTHON) -m pytest
+	$(call MEMGUARD,8) $(PYTHON) -m pytest
 
 test_fastfail:
-	$(PYTHON) -m pytest -q -x
+	$(call MEMGUARD,8) $(PYTHON) -m pytest -q -x
 
 test-extended:
-	HTTK_TEST_PROFILE=extended $(PYTHON) -m pytest -q -m ""
+	HTTK_TEST_PROFILE=extended $(call MEMGUARD,24) $(PYTHON) -m pytest -q -m ""
 
 test-extended-fastfail:
-	HTTK_TEST_PROFILE=extended $(PYTHON) -m pytest -q -m "" -x
+	HTTK_TEST_PROFILE=extended $(call MEMGUARD,24) $(PYTHON) -m pytest -q -m "" -x
 
 check: format-check typecheck typecheck_pyright test
 
