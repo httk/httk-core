@@ -160,6 +160,32 @@ def test_registered_generation_rejects_wrong_format(tmp_path: Path) -> None:
     )
 
 
+def test_registered_generation_allows_unspecified_source_digest(tmp_path: Path) -> None:
+    source = _source(tmp_path, "cp src.txt bin-out")
+    builds_root = tmp_path / "builds"
+    write_generation(
+        builds_root,
+        "item",
+        DEFAULT_TAG,
+        source,
+        ("src.txt",),
+        {"format": "httk-test-build", "format_version": 1, "source_sha256": "abc"},
+    )
+
+    assert (
+        registered_generation(
+            builds_root, "item", DEFAULT_TAG, format_name="httk-test-build", expected_source_sha256=None
+        )
+        is not None
+    )
+    assert (
+        registered_generation(
+            builds_root, "item", DEFAULT_TAG, format_name="httk-test-build", expected_source_sha256="wrong"
+        )
+        is None
+    )
+
+
 def test_overlay_artifacts_copies_nested_files(tmp_path: Path) -> None:
     artifacts = tmp_path / "artifacts" / "nested"
     artifacts.mkdir(parents=True)

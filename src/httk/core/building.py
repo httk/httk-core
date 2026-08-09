@@ -402,7 +402,7 @@ def registered_generation(
     tag: str,
     *,
     format_name: str,
-    expected_source_sha256: str,
+    expected_source_sha256: str | None,
 ) -> Path | None:
     """Return registered artifacts when the build stamp still matches.
 
@@ -410,7 +410,7 @@ def registered_generation(
     :param relative: Identify the source registration relative to the store.
     :param tag: Identify the platform registration.
     :param format_name: Require this build stamp format name.
-    :param expected_source_sha256: Require this source digest.
+    :param expected_source_sha256: Require this source digest when supplied.
     :return: The registered artifact directory, or ``None`` when unusable.
     """
 
@@ -439,7 +439,7 @@ def registered_generation(
         return None
     if value.get("format") != format_name or value.get("format_version") != 1:
         return None
-    if value.get("source_sha256") != expected_source_sha256:
+    if expected_source_sha256 is not None and value.get("source_sha256") != expected_source_sha256:
         return None
     return artifacts
 
