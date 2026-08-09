@@ -614,16 +614,9 @@ class FracVector:
         if self._dim is None:
             dimchk: Any = self.noms
             dims: list[int] = []
-            while True:
-                try:
-                    d = len(dimchk)
-                except TypeError:
-                    break
-                if d > 0:
-                    dims.append(d)
-                    dimchk = dimchk[0]
-                else:
-                    break
+            while isinstance(dimchk, (list, tuple)) and dimchk:
+                dims.append(len(dimchk))
+                dimchk = dimchk[0]
             self._dim = tuple(dims)
         return self._dim
 

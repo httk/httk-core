@@ -362,6 +362,11 @@ def test_get_stacked_matrices() -> None:
     assert stacked[0] == a and stacked[1] == b
 
 
+def test_dim_treats_string_nominators_as_scalar_leaves() -> None:
+    """A string leaf must not be followed through forever by ``dim``."""
+    assert FracVector([["1", "0"], ["0", "1"]]).dim == (2, 2)
+
+
 def test_use_returns_plain_fracvector_unchanged() -> None:
     v = FracVector.create([1, 2, 3])
     assert FracVector.use(v) is v
