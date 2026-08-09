@@ -14,17 +14,20 @@ on the other.
 :class: tip
 
 - **API reference**: {doc}`reference/index`
-- **Views and backends guide**: {doc}`view_backend_pattern`
+- **Views and backends**: {doc}`view_backend_pattern`
 - **Registries and plugin discovery**: {doc}`registry`
-- **Datastream guide**: {doc}`datastreams`
+- **Datastreams**: {doc}`datastreams`
 - **Extensible CLI**: {doc}`cli`
 - **Cryptography**: {doc}`crypto`
 - **Projects and the anchor**: {doc}`project_anchor`
 - **OPTIMADE definitions & entry providers**: {doc}`optimade_definitions`
-- **Vectors guide**: {doc}`vectors`
+- **Vectors**: {doc}`vectors`
 - **Exact math on rationals and decimals**: {doc}`exactmath`
 - **Citation credits**: {doc}`credits`
 - **Runnable examples**: {doc}`examples/index`
+
+The topic pages above are short and practical; each links onward to its full
+guide in the **Details** section of the sidebar.
 ```
 
 ## Install
@@ -67,4 +70,16 @@ vectors
 exactmath
 credits
 examples/index
+```
+
+```{toctree}
+:maxdepth: 1
+:caption: Details
+
+details/view_backend_pattern
+details/registry
+details/datastreams
+details/optimade_definitions
+details/vectors
+details/exactmath
 ```
