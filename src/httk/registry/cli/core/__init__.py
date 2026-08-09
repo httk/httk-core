@@ -32,6 +32,7 @@ register_cli_command(
     "httk.core.project.cli:command",
     "initialize and inspect httk projects",
 )
+register_cli_command("plugin", "httk.core.plugins.cli:command", "install and manage httk plugins")
 register_cli_command(
     "docs",
     "httk.core.docs.cli:command",

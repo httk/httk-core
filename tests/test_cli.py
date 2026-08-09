@@ -30,6 +30,13 @@ def command(argv, context):
     assert "one,two" in capsys.readouterr().out
 
 
+def test_core_registers_plugin_command() -> None:
+    from httk import core
+
+    assert core is not None
+    assert "plugin" in known_cli_commands()
+
+
 def test_chdir_is_exposed_in_context(tmp_path: Path) -> None:
     observed: list[CLIContext] = []
 
