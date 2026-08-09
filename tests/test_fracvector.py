@@ -11,6 +11,7 @@ import copy
 import decimal
 import fractions
 import pickle
+from typing import cast
 
 import pytest
 
@@ -369,13 +370,13 @@ def test_dim_treats_string_nominators_as_scalar_leaves() -> None:
     """A string leaf must not be followed through forever by ``dim``."""
     assert FracVector([["1", "0"], ["0", "1"]]).dim == (2, 2)
 
-    
+
 def test_constructor_copies_plain_fracvector() -> None:
     v = FracVector([1, 2, 3])
     assert FracVector(v) == v
     assert FracVector(v) is not v
 
-    
+
 def test_constructor_converts_mutable_to_immutable() -> None:
     from httk.core.vectors import MutableFracVector
 
@@ -503,7 +504,7 @@ def test_constructor_matches_fraction_conversion() -> None:
     for _ in range(60):
         depth = rng.choice([2, 3])
         if depth == 2:
-            data = [[rng.randint(-40, 40) for _ in range(3)] for _ in range(3)]
+            data: object = [[rng.randint(-40, 40) for _ in range(3)] for _ in range(3)]
         else:
             data = [[[rng.randint(-9, 9) for _ in range(2)] for _ in range(2)] for _ in range(2)]
         cd = rng.randint(1, 24)
@@ -511,7 +512,7 @@ def test_constructor_matches_fraction_conversion() -> None:
         def as_fraction(node: object, denominator: int) -> object:
             if isinstance(node, list):
                 return [as_fraction(x, denominator) for x in node]
-            return F(node, denominator)  # type: ignore[arg-type]
+            return F(cast(int, node), denominator)
 
         fast = FracVector(data, denom=cd)
         slow = FracVector(as_fraction(data, cd))

@@ -2,6 +2,7 @@ import json
 import os
 import subprocess
 from pathlib import Path
+from typing import cast
 
 import pytest
 
@@ -71,7 +72,7 @@ def test_build_and_write_ecosystem_manifest(tmp_path: Path) -> None:
 
     manifest = build_ecosystem_manifest(submodules)
     assert manifest["schema_version"] == 1
-    modules = manifest["modules"]
+    modules = cast(dict[str, dict[str, str | None]], manifest["modules"])
     assert list(modules) == ["tagged", "untagged"]
     assert modules["tagged"]["version"] == "v1.2.3"
     assert modules["untagged"]["version"] is None

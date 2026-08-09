@@ -1,6 +1,7 @@
 """Tests for the core file records."""
 
 import datetime
+from typing import Any, cast
 
 import pytest
 
@@ -24,7 +25,7 @@ def _record(**metadata: object) -> FileRecord:
         version="v1",
         description="A generated plot",
         sha256="0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-        **metadata,
+        **cast(Any, metadata),
     )
 
 
@@ -79,4 +80,4 @@ def test_file_registry_registration() -> None:
     )
     assert known_entry_records(family="files") == ["core-file"]
     assert resolve_entry_record("core-file") is FileRecord
-    assert resolve_entry_family("files").type == "files"
+    assert cast(type[FileEntry], resolve_entry_family("files")).type == "files"

@@ -2,6 +2,7 @@ import gzip
 import io
 import urllib.request
 from pathlib import Path
+from typing import cast
 
 import pytest
 
@@ -538,7 +539,7 @@ def test_compression_close_releases_underlying_file(tmp_path: Path) -> None:
     p = tmp_path / "close.bin.gz"
     with gzip.open(p, "wb") as f:
         f.write(b"data")
-    backend = BytestreamBackend.create(str(p))
+    backend = cast(BytestreamFilename, BytestreamBackend.create(str(p)))
     assert backend.read() == b"data"
     backend.close()
     assert backend.closed

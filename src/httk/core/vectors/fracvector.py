@@ -1604,7 +1604,7 @@ class FracScalar(FracVector):
     ``FracScalar(something)`` where ``something`` may be any object that can be used
     in the constructor of the Python Fraction class (also works with strings!).
 
-    For signature compatibility with :meth:`FracVector.__init__`, this accepts but ignores
+    For signature compatibility with the :class:`~httk.core.vectors.fracvector.FracVector` constructor, this accepts but ignores
     ``chain`` and ``min_accuracy``, and converts strings exactly via the Fraction constructor.
 
     :param value: The scalar value or values to convert.
@@ -1649,9 +1649,9 @@ class FracScalar(FracVector):
             self._dim = ()
 
     @classmethod
-    def from_noms_and_denom(cls, nom: Noms, denom: int = 1) -> Self:
+    def from_noms_and_denom(cls, noms: Noms, denom: int = 1) -> Self:
         """Build from a trusted raw integer nominator and denominator, without validation."""
         instance = object.__new__(cls)
-        instance._assign_raw(nom, denom)
+        instance._assign_raw(noms, denom)
         instance._dim = ()
         return instance

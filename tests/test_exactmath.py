@@ -83,7 +83,7 @@ def test_continued_fraction_roundtrip() -> None:
         (exactmath.log, math.log, F(1, 2)),
     ],
 )
-def test_transcendentals_agree_with_math(fn, mathfn, arg) -> None:  # type: ignore[no-untyped-def]
+def test_transcendentals_agree_with_math(fn, mathfn, arg) -> None:
     assert abs(float(fn(arg)) - mathfn(float(arg))) < 1e-6
 
 

@@ -6,6 +6,7 @@ their tests live there. httk-core keeps only the stdlib-only record models.
 """
 
 import datetime
+from typing import Any, cast
 
 import pytest
 
@@ -64,7 +65,7 @@ def test_direct_construction_rejects_tzinfo_without_offset() -> None:
             return None
 
     with pytest.raises(ValueError, match="last_modified"):
-        Calculation(last_modified=datetime.datetime(2024, 1, 1, tzinfo=NoneOffset()))
+        Calculation(last_modified=datetime.datetime(2024, 1, 1, tzinfo=cast(Any, NoneOffset)()))
 
 
 def test_aware_timestamp_round_trips_with_non_utc_offset() -> None:

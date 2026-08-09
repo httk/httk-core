@@ -1,6 +1,7 @@
 import errno
 import os
 from pathlib import Path
+from typing import Literal
 
 import pytest
 
@@ -16,10 +17,10 @@ def make_build(path: Path, text: str = "home") -> None:
     (path / "reference" / "api.html").write_text("api", encoding="utf-8")
 
 
-def compose(root: Path, build: Path, target: Version | str):
+def compose(root: Path, build: Path, target: Version | Literal["dev"]):
     return compose_site(
         root, build, slug="core", site_url="https://docs.httk.org/core", source_commit="sha", target=target
-    )  # type: ignore[arg-type]
+    )
 
 
 def test_fresh_dev_and_release_composition(tmp_path: Path) -> None:

@@ -4,6 +4,7 @@ Tests for the numeric presentation helpers: ``to_numeric`` (numpy-backed), ``to_
 """
 
 import fractions
+from typing import Any, cast
 
 import pytest
 
@@ -55,10 +56,10 @@ def test_to_numeric_matches_floats_for_surd() -> None:
 @requires_numpy
 def test_to_numeric_accepts_varied_matrix_inputs() -> None:
     expected = [[1.0, 2.0], [3.0, 4.0]]
-    assert to_numeric(FracVector([[1, 2], [3, 4]])).tolist() == expected
-    assert to_numeric(SurdVector([[1, 2], [3, 4]])).tolist() == expected
-    assert to_numeric([[1, 2], [3, 4]]).tolist() == expected
-    assert to_numeric(numpy.array([[1.0, 2.0], [3.0, 4.0]])).tolist() == expected
+    assert cast(numpy.ndarray, to_numeric(FracVector([[1, 2], [3, 4]]))).tolist() == expected
+    assert cast(numpy.ndarray, to_numeric(SurdVector([[1, 2], [3, 4]]))).tolist() == expected
+    assert cast(numpy.ndarray, to_numeric([[1, 2], [3, 4]])).tolist() == expected
+    assert cast(numpy.ndarray, to_numeric(numpy.array([[1.0, 2.0], [3.0, 4.0]]))).tolist() == expected
 
 
 @requires_numpy
@@ -75,7 +76,7 @@ def test_to_numeric_scalar_inputs_return_plain_float() -> None:
 @requires_numpy
 def test_to_numeric_rejects_unrepresentable() -> None:
     with pytest.raises(TypeError):
-        to_numeric(object())
+        to_numeric(cast(Any, object()))
 
 
 # ------------------------------------------------------------------ to_numeric_scalar (numpy-free)

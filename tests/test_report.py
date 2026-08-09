@@ -3,6 +3,7 @@ import json
 import logging
 import warnings
 from collections.abc import Iterator
+from typing import Any, cast
 
 import pytest
 
@@ -23,7 +24,7 @@ def _restore_logging() -> Iterator[None]:
     for logger, level, propagate in state:
         logger.setLevel(level)
         logger.propagate = propagate
-    warnings.filters[:] = filters
+    cast(Any, warnings.filters)[:] = filters
     logging.captureWarnings(False)
     warnings.showwarning = showwarning
     report._capture_scopes = capture_scopes
@@ -307,11 +308,11 @@ def test_report_file_writes_json_with_extra(tmp_path) -> None:
 def test_context_logger_merges_contexts_and_extra() -> None:
     logger = logging.getLogger("httk.tests.adapter")
     adapter = report.context_logger(logger, "web", "optimade")
-    adapter.extra["request_id"] = "adapter"
+    cast(dict[str, object], adapter.extra)["request_id"] = "adapter"
     with report.collect_reports(level="info") as collection:
         adapter.info("contextual", extra={"context": ["optimade", "user"], "request_id": "call"})
 
-    record = collection.records[0]
+    record = cast(Any, collection.records[0])
     assert record.context == ("web", "optimade", "user")
     assert record.request_id == "call"
 
@@ -323,7 +324,7 @@ def test_context_logger_flattens_foreign_adapter() -> None:
     with report.collect_reports(context_levels={"optimade": "info"}) as collection:
         adapter.info("contextual")
 
-    record = collection.records[0]
+    record = cast(Any, collection.records[0])
     assert record.context == ("web", "optimade")
     assert record.request_id == "r"
 

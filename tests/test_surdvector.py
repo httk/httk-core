@@ -11,6 +11,7 @@ import decimal
 import fractions
 import math
 import pickle
+from typing import cast
 
 import pytest
 
@@ -214,7 +215,7 @@ def test_sqrt2_plus_sqrt3_less_than_sqrt10() -> None:
     assert rhs > lhs
     assert not (lhs > rhs)
     # sanity: the float ordering agrees
-    assert float(lhs.to_float()) < float(rhs.to_float())
+    assert float(cast(SurdScalar, lhs).to_float()) < float(cast(SurdScalar, rhs).to_float())
 
 
 def test_tight_pell_convergent_comparison_exercises_refinement() -> None:
@@ -417,7 +418,9 @@ def test_niven_symmetry_and_reduction_cases() -> None:
     assert SurdScalar.cos_degrees(-60) == SurdScalar.cos_degrees(60)
     assert SurdScalar.cos_degrees(390) == SurdScalar.cos_degrees(30)
     assert SurdScalar.sin_degrees(210) == SurdVector(F(-1, 2))
-    assert SurdScalar.sin_degrees(-60) == -SurdScalar.sin_degrees(60)
+    sin_60 = SurdScalar.sin_degrees(60)
+    assert sin_60 is not None
+    assert SurdScalar.sin_degrees(-60) == -sin_60
     # Accepts int, Fraction and numeric strings.
     assert SurdScalar.cos_degrees(F(60)) == SurdScalar.cos_degrees("60")
 

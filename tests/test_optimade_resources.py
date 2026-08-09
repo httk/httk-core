@@ -1,5 +1,6 @@
 """Focused tests for exact, immutable OPTIMADE source resources and bindings."""
 
+import datetime
 import io
 import json
 import sys
@@ -10,10 +11,11 @@ from decimal import Decimal
 from email.message import Message
 from pathlib import Path
 from types import ModuleType
+from typing import Any, cast
 
 import pytest
 
-import httk.core.optimade.resources as resources
+from httk.core.entry_types import File, Reference
 from httk.core.optimade import (
     CalculationView,
     FileView,
@@ -29,19 +31,20 @@ from httk.core.optimade import (
     is_optimade_entry_url,
     optimade_document_root,
     redact_optimade_url,
-)
-from httk.core.register import (
-    OptimadeEntryBinding,
-    known_optimade_entry_bindings,
-    optimade_entry_binding,
-    register_optimade_entry_binding,
+    resources,
 )
 from httk.core.optimade.resources import (
     optimade_entry_url_info,
     optimade_resource_from_url,
     redact_optimade_document_text,
 )
-from httk.core.register import _optimade_entry_bindings
+from httk.core.register import (
+    OptimadeEntryBinding,
+    _optimade_entry_bindings,
+    known_optimade_entry_bindings,
+    optimade_entry_binding,
+    register_optimade_entry_binding,
+)
 
 
 class _Response(io.BytesIO):
@@ -102,7 +105,7 @@ def test_resource_is_lazy_decimal_exact_and_immutable() -> None:
     assert isinstance(resource["number"], Decimal)
     assert resource["number"] == Decimal("1.2300e+4")
     assert isinstance(resource.unwrap(), Mapping)
-    nested = resource["list"]
+    nested = cast(tuple[Mapping[str, object], ...], resource["list"])
     assert isinstance(nested[0], Mapping)
     assert nested[0]["x"] == Decimal("2.50")
     with pytest.raises(TypeError):
@@ -170,7 +173,9 @@ def test_optimade_resource_from_url_assembles_single_entry_and_schema(monkeypatc
     assert resource.schema.entry_type == "structures"
     assert resource.document.source_url == url
     assert resource.schema.info_document.source_url == info_url
-    assert optimade_document_root(resource.schema.info_document)["data"]["properties"] is not None
+    info_data = optimade_document_root(resource.schema.info_document)["data"]
+    assert isinstance(info_data, Mapping)
+    assert info_data["properties"] is not None
     assert calls == [(url, 4.5), (info_url, 4.5)]
 
 
@@ -240,7 +245,7 @@ def test_equivalent_documents_share_process_local_lazy_parse_cache(monkeypatch: 
     def counting_loads(*args: object, **kwargs: object) -> object:
         nonlocal calls
         calls += 1
-        return original_loads(*args, **kwargs)
+        return cast(Any, original_loads)(*args, **kwargs)
 
     monkeypatch.setattr(resources.json, "loads", counting_loads)
     first = _resource(text)
@@ -321,10 +326,10 @@ def _install_binding_module(monkeypatch: pytest.MonkeyPatch) -> str:
     def decoder(value: object) -> object:
         return value
 
-    module.Backend = Backend
-    module.View = View
-    module.decoder = decoder
-    module.not_a_class = 3
+    cast(Any, module).Backend = Backend
+    cast(Any, module).View = View
+    cast(Any, module).decoder = decoder
+    cast(Any, module).not_a_class = 3
     monkeypatch.setitem(sys.modules, name, module)
     return name
 
@@ -354,7 +359,9 @@ def test_optimade_binding_registry_is_strict_lazy_and_copy_isolated(monkeypatch:
         assert definition_id in known_optimade_entry_bindings()
         assert binding.resolve_backend().__name__ == "Backend"
         assert binding.resolve_view().__name__ == "View"
-        assert binding.resolve_property_decoder(property_id)("value") == "value"  # type: ignore[operator]
+        property_decoder = binding.resolve_property_decoder(property_id)
+        assert property_decoder is not None
+        assert property_decoder("value") == "value"
         assert binding.resolve_property_decoder("https://missing.example/property") is None
         with pytest.raises(ValueError, match="already registered"):
             register_optimade_entry_binding(
@@ -498,7 +505,8 @@ def test_typed_backend_uses_property_iris_not_transport_names_and_stores_portabl
     assert [field.name for field in fields(backend)] == ["resource"]
     assert backend.kind == "optimade"
     assert backend.unwrap() is resource
-    assert backend.raw["_unknown"]["number"] == Decimal("1.2300")
+    unknown = cast(Mapping[str, Decimal], backend.raw["_unknown"])
+    assert unknown["number"] == Decimal("1.2300")
     assert backend.id == "entry-1"
     assert backend.type == "transport-references"
     assert backend.immutable_id == "immutable-1"
@@ -527,10 +535,10 @@ def test_typed_backend_never_recognizes_same_spelled_wrong_or_missing_iri() -> N
     backend = OptimadeReference(resource)
     with pytest.raises(ValueError, match="semantic property 'id'"):
         _ = backend.id
-    assert ReferenceView(backend).record.title is None
+    assert cast(Reference, ReferenceView(backend).record).title is None
 
     invalid_id = _typed_resource("references", {"title": 1}, '{"title": "also unrecognized"}')
-    assert ReferenceView(OptimadeReference(invalid_id)).record.title is None
+    assert cast(Reference, ReferenceView(OptimadeReference(invalid_id)).record).title is None
 
 
 def test_info_document_shape_and_duplicate_iris_are_rejected() -> None:
@@ -572,15 +580,15 @@ def test_typed_view_is_parse_and_materialization_lazy(monkeypatch: pytest.Monkey
     def counting_loads(*args: object, **kwargs: object) -> object:
         nonlocal calls
         calls += 1
-        return original(*args, **kwargs)
+        return cast(Any, original)(*args, **kwargs)
 
     monkeypatch.setattr(resources.json, "loads", counting_loads)
     backend = OptimadeFile(resource)
     view = FileView(backend)
     assert calls == 0
-    assert view.record.name == "a"
+    assert cast(File, view.record).name == "a"
     assert calls == 2
-    assert view.record.name == "a"
+    assert cast(File, view.record).name == "a"
     assert calls == 2
 
 
@@ -610,10 +618,13 @@ def test_generic_decoder_is_exact_and_immutable() -> None:
     timestamp = PropertyDefinition.from_simple("value", description="value", fulltype="timestamp")
     assert decode_optimade_value(floats, Decimal("1.2300")) == Decimal("1.2300")
     assert decode_optimade_value(lists, (Decimal("2.50"),)) == (Decimal("2.50"),)
-    decoded_dictionary = decode_optimade_value(dictionary, {"nested": [Decimal("3.40")]})
+    decoded_dictionary = cast(
+        Mapping[str, tuple[Decimal, ...]], decode_optimade_value(dictionary, {"nested": [Decimal("3.40")]})
+    )
     assert decoded_dictionary["nested"] == (Decimal("3.40"),)
     with pytest.raises(TypeError):
         decoded_dictionary["x"] = "no"  # type: ignore[index]
-    assert decode_optimade_value(timestamp, "2024-01-01T00:00:00Z").tzinfo is not None
+    decoded_timestamp = cast(datetime.datetime, decode_optimade_value(timestamp, "2024-01-01T00:00:00Z"))
+    assert decoded_timestamp.tzinfo is not None
     with pytest.raises(ValueError, match="UTC offset"):
         decode_optimade_value(timestamp, "2024-01-01T00:00:00")

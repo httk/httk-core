@@ -167,12 +167,13 @@ class SurdVector:
     magnitude-vs-linear-structure purpose boundary.
 
     :param value: An existing SurdVector or SurdScalar, returned unchanged, or a rational
-        scalar/nested sequence accepted by :class:`FracVector`; rational values become the
+        scalar/nested sequence accepted by :class:`~httk.core.vectors.fracvector.FracVector`; rational values become the
         radicand-1 component.
     """
 
     _components: dict[int, FracVector]
     _dim: tuple[int, ...]
+    _pending_fracvector: FracVector
 
     #### Construction
 
@@ -651,7 +652,7 @@ class SurdScalar(SurdVector):
     Adds the scalar-only operations — the field inverse, exact sign and ordering, and Decimal
     rendering — that need a single value rather than a tensor.
 
-    :param value: A rational scalar/nested sequence accepted by :class:`FracVector`, or an
+    :param value: A rational scalar/nested sequence accepted by :class:`~httk.core.vectors.fracvector.FracVector`, or an
         existing SurdVector or SurdScalar, returned unchanged.
     """
 

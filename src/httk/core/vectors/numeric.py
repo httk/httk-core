@@ -100,7 +100,7 @@ def to_numeric_scalar(obj: Any) -> float:
     raise TypeError(f"to_numeric_scalar: cannot convert {type(obj).__name__} to a scalar float")
 
 
-def to_numeric(obj: VectorLike) -> NumericVector:
+def to_numeric(obj: VectorLike | float | str | fractions.Fraction) -> NumericVector:
     """
     Present ``obj`` as plain numpy numbers: a :class:`numpy.ndarray` for a tensor, a ``float`` for a
     scalar.

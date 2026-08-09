@@ -24,7 +24,7 @@ def test_field_markers_are_frozen_and_equal_by_value():
     assert Unique() == Unique()
     assert Skip() == Skip()
     with pytest.raises(dataclasses.FrozenInstanceError):
-        Indexed().anything = 1  # type: ignore[attr-defined]
+        Indexed().anything = 1
 
 
 def test_shape_fixed_and_variable():
@@ -55,7 +55,7 @@ def test_related_defaults_and_equality():
 
 def test_related_is_frozen():
     with pytest.raises(dataclasses.FrozenInstanceError):
-        Related().role = "input"  # type: ignore[misc]
+        Related().role = "input"
 
 
 def test_relationship_link_endpoints():
@@ -78,7 +78,7 @@ def test_relationship_link_invariants():
 
 def test_relationship_link_is_frozen():
     with pytest.raises(dataclasses.FrozenInstanceError):
-        RelationshipLink("a", "b").role = "input"  # type: ignore[misc]
+        RelationshipLink("a", "b").role = "input"
 
 
 def test_storage_info_defaults():
@@ -98,14 +98,14 @@ def test_storage_info_carries_links():
 
 def test_storage_info_validation():
     with pytest.raises(ValueError):
-        StorageInfo(dedup="never")  # type: ignore[arg-type]
+        StorageInfo(dedup="never")
     with pytest.raises(ValueError):
         StorageInfo(indexes=((),))
     assert StorageInfo(dedup="by_value").dedup == "by_value"
     assert StorageInfo(indexes=(("tag", "value"),)).indexes == (("tag", "value"),)
 
 
-def test_storage_info_attribute_is_classvar_and_ignored_by_dataclass():
+def test_storage_info_attribute_is_classvar_and_ignored_by_dataclass() -> None:
     @dataclass(frozen=True)
     class Record:
         __httk_storage__: ClassVar[StorageInfo] = StorageInfo(indexes=(("a", "b"),))
@@ -122,7 +122,7 @@ def test_storage_info_attribute_is_classvar_and_ignored_by_dataclass():
     assert Skip() in hints["c"].__metadata__
 
 
-def test_stored_property_is_a_property_with_readable_annotation():
+def test_stored_property_is_a_property_with_readable_annotation() -> None:
     @dataclass(frozen=True)
     class Record:
         symbols: tuple[str, ...]

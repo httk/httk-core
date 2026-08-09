@@ -1,6 +1,7 @@
 """Tests for the core provenance records."""
 
 import datetime
+from typing import Any, cast
 
 import pytest
 
@@ -25,9 +26,9 @@ def test_run_constructor_and_create_coerce_edges_and_timestamp() -> None:
     timestamp = datetime.datetime(2026, 1, 2, 3, 4, 5, tzinfo=datetime.UTC)
     run = Run(
         "https://example.org/workflow/1",
-        inputs=[{"label": "input", "entry_type": "calculations", "entry_id": "calc-1"}],
+        inputs=cast(Any, [{"label": "input", "entry_type": "calculations", "entry_id": "calc-1"}]),
         artifacts=(RunEdge("artifact", "files", "file-1"),),
-        outputs=iter((RunEdge("output", "_httk_records", "record-1"),)),
+        outputs=cast(Any, iter((RunEdge("output", "_httk_records", "record-1"),))),
         immutable_id="immutable",
         last_modified=timestamp,
     )

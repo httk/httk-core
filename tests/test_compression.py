@@ -56,9 +56,12 @@ def test_builtin_registry_contents() -> None:
 
 
 def test_codec_for_name_is_case_insensitive() -> None:
-    assert codec_for_name("data.json.gz").name == "gzip"
-    assert codec_for_name("ARCHIVE.TAR.BZ2").name == "bzip2"
-    assert codec_for_name("blob.xz").name == "xz"
+    gzip_codec = codec_for_name("data.json.gz")
+    bzip2_codec = codec_for_name("ARCHIVE.TAR.BZ2")
+    xz_codec = codec_for_name("blob.xz")
+    assert gzip_codec is not None and gzip_codec.name == "gzip"
+    assert bzip2_codec is not None and bzip2_codec.name == "bzip2"
+    assert xz_codec is not None and xz_codec.name == "xz"
     assert codec_for_name("plain.json") is None
 
 
@@ -172,7 +175,8 @@ def test_custom_codec_registration(clean_registry: None) -> None:
     register_compression(CompressionCodec("foo", (".foo",), (b"FOO",), open_foo))
 
     assert "foo" in known_compressions()
-    assert codec_for_name("blob.foo").name == "foo"
+    foo_codec = codec_for_name("blob.foo")
+    assert foo_codec is not None and foo_codec.name == "foo"
 
     _, codec = sniff_codec(io.BytesIO(b"FOObar"))
     assert codec is not None and codec.name == "foo"

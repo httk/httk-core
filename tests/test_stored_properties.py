@@ -1,5 +1,6 @@
+from collections.abc import MutableMapping
 from dataclasses import dataclass
-from typing import Any, cast
+from typing import Any, ClassVar, cast
 
 import pytest
 
@@ -33,7 +34,7 @@ def _formula_sort(context: QueryContext) -> QueryValue:
 class EntryRecord:
     formula: str
 
-    __httk_stored_properties__ = {
+    __httk_stored_properties__: ClassVar[dict[str, StoredPropertyProjection]] = {
         "chemical_formula_reduced": StoredPropertyProjection(
             response=_formula_response,
             query=_formula_query,
@@ -69,7 +70,7 @@ def test_stored_property_projections_are_immutable_and_invoke_domain_callbacks()
     assert projection.sort is not None
     assert projection.sort(cast(QueryContext, _ProbeContext())) == ("field", "formula")
     with pytest.raises(TypeError):
-        projections["elements"] = projection
+        cast(MutableMapping[str, StoredPropertyProjection], projections)["elements"] = projection
 
 
 def test_property_projections_use_exact_class_declarations() -> None:
@@ -84,7 +85,7 @@ def test_property_projections_use_exact_class_declarations() -> None:
         __setattr__ = object.__setattr__
 
     mutable = MutableSubclass("Fe")
-    mutable.formula = "O"
+    cast(Any, mutable).formula = "O"
     assert mutable.formula == "O"
     with pytest.raises(TypeError, match="declared directly as a frozen dataclass"):
         stored_property_projections(MutableSubclass)
@@ -102,7 +103,7 @@ def test_stored_property_projection_rejects_invalid_contracts() -> None:
     class BrokenValue:
         value: str
 
-        __httk_stored_properties__ = {"id": cast(Any, _formula_response)}
+        __httk_stored_properties__: ClassVar[dict[str, Any]] = {"id": cast(Any, _formula_response)}
 
     with pytest.raises(TypeError, match="StoredPropertyProjection"):
         stored_property_projections(BrokenValue)
@@ -111,7 +112,9 @@ def test_stored_property_projection_rejects_invalid_contracts() -> None:
     class BrokenName:
         value: str
 
-        __httk_stored_properties__ = {" ": StoredPropertyProjection(response=_formula_response)}
+        __httk_stored_properties__: ClassVar[dict[str, StoredPropertyProjection]] = {
+            " ": StoredPropertyProjection(response=_formula_response)
+        }
 
     with pytest.raises(ValueError, match="non-empty stripped"):
         stored_property_projections(BrokenName)
@@ -120,7 +123,9 @@ def test_stored_property_projection_rejects_invalid_contracts() -> None:
     class MutableRecord:
         value: str
 
-        __httk_stored_properties__ = {"value": StoredPropertyProjection(response=_formula_response)}
+        __httk_stored_properties__: ClassVar[dict[str, StoredPropertyProjection]] = {
+            "value": StoredPropertyProjection(response=_formula_response)
+        }
 
     with pytest.raises(TypeError, match="frozen dataclass"):
         stored_property_projections(MutableRecord)

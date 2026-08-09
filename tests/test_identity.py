@@ -7,7 +7,7 @@ import random
 import sys
 from dataclasses import dataclass, fields
 from fractions import Fraction
-from typing import Annotated, ClassVar
+from typing import Annotated, Any, ClassVar, cast
 
 import pytest
 
@@ -226,8 +226,8 @@ def test_nested_projection_does_not_construct_records_and_as_record_is_alternate
                 "mapping": source.mapping,
             }
 
-    ChildSource.__httk_storage_record__ = AlternateRecord
-    ParentSource.__httk_storage_record__ = ParentRecord
+    cast(Any, ChildSource).__httk_storage_record__ = AlternateRecord
+    cast(Any, ParentSource).__httk_storage_record__ = ParentRecord
     source = ParentSource(
         ChildSource(4),
         [ChildSource(5)],
@@ -330,7 +330,7 @@ def test_content_id_cache_is_keyed_by_as_record_type() -> None:
     first = content_id(source, as_record=First)
     second = content_id(source, as_record=Second)
     assert first != second
-    cached = source._httk_cached_content_ids
+    cached = cast(Any, source)._httk_cached_content_ids
     assert set(cached[1]) == {First, Second}
 
 
@@ -423,17 +423,17 @@ def test_views_are_valid_sources_but_never_cache_carriers() -> None:
 def test_epoch_replaces_stale_cache_and_pickle_miss_is_replaced() -> None:
     record = _PickleRecord(11)
     content_id(record)
-    old = record._httk_cached_content_ids
+    old = cast(Any, record)._httk_cached_content_ids
 
     class EpochLeaf:
         pass
 
     register_canonical_encoder(EpochLeaf, lambda value: {"value": 1})
     assert content_id(record) == content_id(_PickleRecord(11))
-    assert record._httk_cached_content_ids is not old
+    assert cast(Any, record)._httk_cached_content_ids is not old
 
     pickled = pickle.loads(pickle.dumps(record))
-    stale = pickled._httk_cached_content_ids
+    stale = cast(Any, pickled)._httk_cached_content_ids
     content_id(pickled)
     assert pickled._httk_cached_content_ids is not stale
 
@@ -461,7 +461,7 @@ def test_late_annotation_resolution_does_not_install_fallback_cache() -> None:
     class Child:
         value: int
 
-    late_type = dataclass(frozen=True)(
+    late_type: type[Any] = dataclass(frozen=True)(
         type(
             "LateIdentityRecord",
             (),
@@ -474,7 +474,7 @@ def test_late_annotation_resolution_does_not_install_fallback_cache() -> None:
     assert not hasattr(source, "_httk_cached_content_ids")
 
     module = sys.modules[__name__]
-    module._LateIdentityChild = Child
+    cast(Any, module)._LateIdentityChild = Child
     try:
         content_id(source)
         assert hasattr(source, "_httk_cached_content_ids")
@@ -571,7 +571,7 @@ def test_cache_hot_and_epoch_cold_graphs_have_identical_digests(monkeypatch: pyt
         hot_digest = content_id(graph)
         assert json_calls == before_json
         assert sha_calls == before_sha
-        assert graph._httk_cached_content_ids[1][Graph] == hot_digest
+        assert cast(Any, graph)._httk_cached_content_ids[1][Graph] == hot_digest
         hot.append(hot_digest)
 
     class ColdEpochMarker:

@@ -1,5 +1,7 @@
 """Tests for import-tracked citation credits."""
 
+from typing import Any, cast
+
 import pytest
 
 import httk.core
@@ -49,7 +51,9 @@ def test_author_mappings_are_copied_during_registration() -> None:
     author = {"name": "Original"}
     httk.core.register_citation(applies_to="author copy", references={"authors": [author]})
     author["name"] = "Changed"
-    assert httk.core.credits.entries()["author copy"][0].authors[0]["name"] == "Original"
+    authors = httk.core.credits.entries()["author copy"][0].authors
+    assert authors is not None
+    assert authors[0]["name"] == "Original"
 
 
 def test_number_and_note_are_rendered() -> None:
@@ -81,7 +85,7 @@ def test_registration_delegates_mapping_validation_to_reference() -> None:
 
 def test_registration_validates_references_and_heading() -> None:
     with pytest.raises(TypeError):
-        httk.core.register_citation(applies_to="citation test", references="a string")
+        httk.core.register_citation(applies_to="citation test", references=cast(Any, "a string"))
     with pytest.raises(ValueError):
         httk.core.register_citation(applies_to="", references={"title": "Title"})
     with pytest.raises(ValueError):

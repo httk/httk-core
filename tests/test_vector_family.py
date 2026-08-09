@@ -9,6 +9,7 @@ import pathlib
 import pickle
 import subprocess
 import sys
+from typing import Any, cast
 
 import pytest
 
@@ -479,7 +480,7 @@ def test_numpy_view_accepts_untagged_ndarray_state() -> None:
     from httk.core.vectors import VectorNumpyView
 
     source = numpy.arange(4, dtype=numpy.float64).reshape(2, 2)
-    reconstruct, args, state = numpy.ndarray.__reduce__(source)
+    reconstruct, args, state = cast(tuple[Any, tuple[Any, ...], Any], numpy.ndarray.__reduce__(source))
     restored = reconstruct(VectorNumpyView, *args[1:])
     restored.__setstate__(state)
     assert numpy.array_equal(restored, source)
