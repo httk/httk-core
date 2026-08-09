@@ -46,7 +46,7 @@ def test_dispatch_list_to_native() -> None:
 
 
 def test_dispatch_fracvector_to_frac() -> None:
-    backend = VectorBackend.create(FracVector.create([[1, 2], [3, 4]]))
+    backend = VectorBackend.create(FracVector([[1, 2], [3, 4]]))
     assert isinstance(backend, VectorFrac)
 
 
@@ -66,7 +66,7 @@ def test_kind_override_forces_native() -> None:
 def test_kind_mismatch_is_rejected() -> None:
     # A FracVector cannot be interpreted as kind="native".
     with pytest.raises(TypeError):
-        VectorBackend.create(FracVector.create([1, 2, 3]), kind="native")
+        VectorBackend.create(FracVector([1, 2, 3]), kind="native")
 
 
 def test_unrepresentable_raises() -> None:
@@ -84,7 +84,7 @@ def test_backend_fractions_are_exact() -> None:
 
 
 def test_native_string_uncertainty_parsing() -> None:
-    # Conversion goes through FracVector.create, so uncertainty strings parse here too.
+    # Conversion goes through FracVector, so uncertainty strings parse here too.
     backend = VectorBackend.create(["0.33342(10)"])
     assert backend.fractions == (F(1, 3),)
 
@@ -96,7 +96,7 @@ def test_frac_view_is_a_fracvector_with_algebra() -> None:
     v = VectorFracView([[2, 3, 5], [3, 5, 4], [4, 6, 7]])
     assert isinstance(v, FracVector)
     assert v.det() == -3
-    assert v.inv().simplify() == FracVector.create([[2, 3, 5], [3, 5, 4], [4, 6, 7]]).inv().simplify()
+    assert v.inv().simplify() == FracVector([[2, 3, 5], [3, 5, 4], [4, 6, 7]]).inv().simplify()
 
 
 def test_native_view_preserves_native_leaves_verbatim() -> None:
@@ -116,14 +116,14 @@ def test_native_view_preserves_native_leaves_verbatim() -> None:
 def test_native_view_cross_representation_default_is_exact() -> None:
     # Crossing from a frac backend (no native leaves to preserve) uses the exact codec, as before:
     # int when integral, else Fraction, never a float.
-    nv = VectorNativeView(FracVector.create([["1/3", "2/3"], [1, 2]]))
+    nv = VectorNativeView(FracVector([["1/3", "2/3"], [1, 2]]))
     assert nv == ((F(1, 3), F(2, 3)), (1, 2))
     assert isinstance(nv[0][0], fractions.Fraction)
     assert all(isinstance(x, int) for x in nv[1])
 
 
 def test_frac_to_native_to_frac_is_exact_identity() -> None:
-    src = FracVector.create([["1/3", "2/5"], ["3/7", "4/9"]])
+    src = FracVector([["1/3", "2/5"], ["3/7", "4/9"]])
     roundtrip = VectorFracView(VectorNativeView(VectorFracView(src)))
     assert roundtrip == src
 
@@ -138,7 +138,7 @@ def test_rewrap_identity() -> None:
 def test_unwrap_returns_raw_objects() -> None:
     raw = [[1, 2], [3, 4]]
     assert unwrap(VectorNative(raw)) is raw
-    fv = FracVector.create([[1, 2], [3, 4]])
+    fv = FracVector([[1, 2], [3, 4]])
     assert unwrap(VectorFrac(fv)) is fv
 
 
@@ -165,7 +165,7 @@ def test_native_view_preserves_mixed_leaves() -> None:
 
 
 def test_native_view_leaf_int_rounding_modes() -> None:
-    src = FracVector.create([["5/2", "7/2", "-5/2", "-7/2"]])
+    src = FracVector([["5/2", "7/2", "-5/2", "-7/2"]])
     assert VectorNativeView(src, leaf="int") == ((2, 4, -2, -4),)  # nearest, ties to even
     assert VectorNativeView(src, leaf="int", rounding="floor") == ((2, 3, -3, -4),)
     assert VectorNativeView(src, leaf="int", rounding="ceil") == ((3, 4, -2, -3),)
@@ -175,16 +175,16 @@ def test_native_view_leaf_int_rounding_modes() -> None:
 def test_native_view_leaf_decimal_exact_and_quantized() -> None:
     import decimal
 
-    exact = VectorNativeView(FracVector.create([["1/8"]]), leaf="decimal")
+    exact = VectorNativeView(FracVector([["1/8"]]), leaf="decimal")
     assert exact == ((decimal.Decimal("0.125"),),)
     assert isinstance(exact[0][0], decimal.Decimal)
     # 1/3 has no finite decimal expansion: quantized to `digits` significant digits, half-even.
-    assert VectorNativeView(FracVector.create([["1/3"]]), leaf="decimal", digits=6) == ((decimal.Decimal("0.333333"),),)
-    assert VectorNativeView(FracVector.create([["2/3"]]), leaf="decimal", digits=6) == ((decimal.Decimal("0.666667"),),)
+    assert VectorNativeView(FracVector([["1/3"]]), leaf="decimal", digits=6) == ((decimal.Decimal("0.333333"),),)
+    assert VectorNativeView(FracVector([["2/3"]]), leaf="decimal", digits=6) == ((decimal.Decimal("0.666667"),),)
 
 
 def test_native_view_leaf_float_is_lossy() -> None:
-    fv = VectorNativeView(FracVector.create([["1/3"]]), leaf="float")
+    fv = VectorNativeView(FracVector([["1/3"]]), leaf="float")
     assert fv == ((1.0 / 3.0,),)
     assert isinstance(fv[0][0], float)
 
@@ -218,7 +218,7 @@ def test_lossy_view_leaves_backend_untouched() -> None:
 def test_native_view_leaf_applies_across_backends() -> None:
     # An explicit codec converts from the exact fractions hub regardless of the source backend.
     from_native = VectorNativeView([["1/2"]], leaf="int")
-    from_frac = VectorNativeView(FracVector.create([["1/2"]]), leaf="int")
+    from_frac = VectorNativeView(FracVector([["1/2"]]), leaf="int")
     assert from_native == ((0,),) == from_frac  # 1/2 -> 0 by half-even
 
 
@@ -239,7 +239,7 @@ def test_native_to_surd_view_exact_round_trip() -> None:
     # Rationals embed exactly at radicand 1, so native -> surd -> native is exact.
     v = VectorSurdView([["1/3", "2/5"], ["3/7", "4/9"]])
     assert isinstance(v, SurdVector)
-    assert v == SurdVector.create([["1/3", "2/5"], ["3/7", "4/9"]])
+    assert v == SurdVector([["1/3", "2/5"], ["3/7", "4/9"]])
     assert v.is_rational
 
 
@@ -252,7 +252,7 @@ def test_surd_view_of_surd_backend_keeps_exact_value() -> None:
 
 
 def test_surd_backend_fractions_hub_rational_is_exact() -> None:
-    backend = VectorBackend.create(SurdVector.create([["1/3", "2/3"]]))
+    backend = VectorBackend.create(SurdVector([["1/3", "2/3"]]))
     assert backend.fractions == ((F(1, 3), F(2, 3)),)
 
 
@@ -293,7 +293,7 @@ def test_rewrap_numpy_view_identity() -> None:
 def test_frac_to_numpy_to_frac_is_binary_rational() -> None:
     from httk.core.vectors import VectorNumpyView
 
-    one_third = FracVector.create([["1/3"]])
+    one_third = FracVector([["1/3"]])
     # A detached raw float64 array (as one truly has when handed a numpy array).
     detached = numpy.asarray(VectorNumpyView(one_third))
     lossy = VectorFracView(detached)
@@ -322,7 +322,7 @@ def test_numpy_view_integer_dtype_exact_and_rounded() -> None:
     assert integral.tolist() == [[1, 2], [3, 4]]
     # Fractional values are rounded through the int codec (nearest, half-even) BEFORE array
     # construction — never silently truncated by numpy. 1/2 -> 0, 3/2 -> 2, 5/2 -> 2, 7/2 -> 4.
-    rounded = VectorNumpyView(FracVector.create([["1/2", "3/2", "5/2", "7/2"]]), dtype=numpy.int64)
+    rounded = VectorNumpyView(FracVector([["1/2", "3/2", "5/2", "7/2"]]), dtype=numpy.int64)
     assert rounded.dtype == numpy.int64
     assert rounded.tolist() == [[0, 2, 2, 4]]
 
@@ -363,13 +363,13 @@ def test_numpy_view_adoption_does_not_scan_elements() -> None:
     view = VectorNumpyView(raw)
     assert numpy.shares_memory(view, raw)
     with pytest.raises((ValueError, OverflowError)):
-        view._backend.fractions
+        _ = view._backend.fractions
 
     complex_raw = numpy.array([1 + 2j])
     complex_view = VectorNumpyView(complex_raw)
     assert numpy.shares_memory(complex_view, complex_raw)
     with pytest.raises((TypeError, ValueError)):
-        complex_view._backend.fractions
+        _ = complex_view._backend.fractions
 
 
 @requires_numpy
@@ -453,7 +453,7 @@ def test_numpy_view_retains_backend_through_copy_round_trips() -> None:
     from httk.core import FracVector, unview, unwrap
     from httk.core.vectors import VectorNumpyView
 
-    exact = FracVector.create([["1/3", "2/3"]])
+    exact = FracVector([["1/3", "2/3"]])
     view = VectorNumpyView(exact)
     round_trips = (
         (pickle.loads(pickle.dumps(view)), False),
@@ -507,7 +507,7 @@ def test_numpy_view_conversion_keeps_exact_backend_and_unviews_plain() -> None:
     from httk.core import coerce, coerce_view, unview, unwrap
     from httk.core.vectors import VectorNumpyView
 
-    exact = FracVector.create([["1/3", "2/3"]])
+    exact = FracVector([["1/3", "2/3"]])
     view = coerce_view(exact, numpy.ndarray)
     assert isinstance(view, VectorNumpyView)
     assert unwrap(view) is exact  # exact backend preserved
@@ -542,6 +542,7 @@ def test_dispatch_and_import_work_without_numpy() -> None:
     result = subprocess.run(
         [sys.executable, "-c", script],
         capture_output=True,
+        check=False,
         text=True,
     )
     assert result.returncode == 0, result.stderr
@@ -554,11 +555,11 @@ def test_dispatch_and_import_work_without_numpy() -> None:
 def test_every_backend_renders_to_floats() -> None:
     # to_floats()/to_float() are part of the VectorAPI contract, derived from the fractions hub,
     # so whatever backend the family dispatches to, the float rendering works (nested lists).
-    frac_backend = VectorBackend.create(FracVector.create([["1/2", "1/4"]]))
+    frac_backend = VectorBackend.create(FracVector([["1/2", "1/4"]]))
     native_backend = VectorBackend.create([[1, 2], [3, 4]])
     assert frac_backend.to_floats() == [[0.5, 0.25]]
     assert native_backend.to_floats() == [[1.0, 2.0], [3.0, 4.0]]
-    surd_backend = VectorBackend.create(SurdVector.create([[1, 0], [0, 2]]))
+    surd_backend = VectorBackend.create(SurdVector([[1, 0], [0, 2]]))
     assert surd_backend.to_floats() == [[1.0, 0.0], [0.0, 2.0]]
 
 
@@ -571,7 +572,7 @@ def test_numpy_backend_renders_to_floats() -> None:
 
 
 def test_backend_to_float_scalar_contract() -> None:
-    scalar_backend = VectorBackend.create(FracVector.create("1/2"))
+    scalar_backend = VectorBackend.create(FracVector("1/2"))
     assert scalar_backend.to_float() == 0.5
     with pytest.raises(TypeError, match="scalar"):
         VectorBackend.create([[1, 2]]).to_float()

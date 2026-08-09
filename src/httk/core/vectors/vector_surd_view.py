@@ -41,7 +41,7 @@ class VectorSurdView(VectorView, SurdVector):
         if isinstance(obj, cls):
             return obj
         backend = cls._prepare_backend(obj, hints)
-        instance = super().__new__(cls)
+        instance = object.__new__(cls)
         instance._backend = backend
         return instance
 
@@ -54,8 +54,8 @@ class VectorSurdView(VectorView, SurdVector):
         if isinstance(self._backend, VectorSurd):
             surd = self._backend.unwrap()
         else:
-            surd = SurdVector.create(self._backend.fractions)
-        SurdVector.__init__(self, surd._components, surd._dim)
+            surd = SurdVector(self._backend.fractions)
+        SurdVector._set_components(self, surd._components, surd._dim)
 
     def _ensure_materialized(self) -> None:
         if "_backend" in self.__dict__ and "_components" not in self.__dict__:
@@ -87,4 +87,4 @@ class VectorSurdView(VectorView, SurdVector):
             raw = backend.unwrap()
             if not isinstance(raw, VectorView):
                 return raw
-        return SurdVector(self._components, self._dim)
+        return SurdVector.from_components(self._components, self._dim)

@@ -19,6 +19,7 @@
 A mutable, list-backed variant of :class:`~httk.core.vectors.fracvector.FracVector`.
 """
 
+import fractions
 import operator
 from collections.abc import Callable
 from math import gcd as calc_gcd
@@ -48,8 +49,11 @@ class MutableFracVector(FracVector):
     Other than this, the FracVector methods exist and do the same, i.e., they return *copies*
     of the fracvector, rather than modifying it.
 
-    :param noms: Nested lists of integer nominators.
-    :param denom: The shared denominator for the nominators.
+    :param values: A rational value-like to convert, such as nested sequences or scalars.
+    :param denom: An optional additional common denominator.
+    :param simplify: Whether to reduce the resulting denominator.
+    :param chain: Whether to flatten the outermost nested sequence.
+    :param min_accuracy: Minimum accuracy for decimal values, or ``None`` for exact conversion.
 
     Methods with ``set_*`` prefixes perform mutating operations, e.g.::
 
@@ -75,26 +79,22 @@ class MutableFracVector(FracVector):
     # so the recursive tuple-oriented Noms type from FracVector is loosened to Any here.
     noms: Any
 
-    def __init__(self, noms: Any, denom: int = 1) -> None:
-        super().__init__(noms, denom)
-
-    @classmethod
-    def use(cls, old: Any) -> "FracVector":
-        """
-        Make sure the variable is a MutableFracVector, and if not, convert it.
-
-        :param old: An existing vector or value to convert.
-        :return: A mutable vector containing the same value.
-        """
-        if isinstance(old, MutableFracVector):
-            return old
-        elif isinstance(old, FracVector):
-            return MutableFracVector.create(old)
-        try:
-            return old.to_MutableFracVector()
-        except Exception:  # noqa: S110  # conversion probe intentionally ignores failures
-            pass
-        return cls.create(old)
+    def __init__(
+        self,
+        values: Any,
+        *,
+        denom: int | None = None,
+        simplify: bool = True,
+        chain: bool = False,
+        min_accuracy: fractions.Fraction | None = fractions.Fraction(1, 10000),
+    ) -> None:
+        super().__init__(
+            values,
+            denom=denom,
+            simplify=simplify,
+            chain=chain,
+            min_accuracy=min_accuracy,
+        )
 
     def validate(self) -> bool:
         """Return whether the vector's stored list structure is valid."""
@@ -118,21 +118,21 @@ class MutableFracVector(FracVector):
 
         Hashing one would let it be used as a dict key or set member and then mutated out
         from under its own hash bucket. :class:`~httk.core.FracVector` is the immutable,
-        hashable counterpart — call ``FracVector.create(self)`` first.
+        hashable counterpart — call ``FracVector(self)`` first.
 
         Raises :class:`TypeError` specifically, which is what Python's data model
         prescribes for an unhashable type and what callers doing ``try: hash(x)`` expect.
         """
         raise TypeError(
             "MutableFracVector is mutable and therefore unhashable; "
-            "call FracVector.create(self) for a hashable snapshot of its current value"
+            "call FracVector(self) for a hashable snapshot of its current value"
         )
 
     def __setitem__(self, key: Any, values: Any) -> None:
         if not isinstance(key, tuple):
             key = (key,)
 
-        other = FracVector.create(values)
+        other = FracVector(values)
         one, two, denom = self.set_common_denom(self, other)
         self.noms = one.noms
         self.denom = denom
@@ -149,7 +149,7 @@ class MutableFracVector(FracVector):
         if not isinstance(key, tuple):
             key = (key,)
         noms = list_slice(self.noms, key)
-        return MutableFracVector(noms, self.denom)
+        return MutableFracVector.from_noms_and_denom(noms, self.denom)
 
     def set_negative(self) -> None:
         """
@@ -187,7 +187,7 @@ class MutableFracVector(FracVector):
         """
         dim = self.dim
         if dim == ():
-            return self.__class__(self.denom, self.nom)
+            return self.__class__.from_noms_and_denom(self.denom, self.nom)
 
         if dim != (3, 3):
             raise Exception("FracVector.inv: only scalar and 3x3 matrix implemented")

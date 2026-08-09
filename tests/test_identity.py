@@ -699,18 +699,18 @@ def test_exact_numeric_and_datetime_values_are_stable() -> None:
 
     value = Values(
         Fraction(2, 3),
-        FracScalar(2, 3),
-        FracVector.create([[Fraction(1, 2), 2]]),
+        FracScalar.from_noms_and_denom(2, 3),
+        FracVector([[Fraction(1, 2), 2]]),
         SurdVector.sqrt_of(2),
-        SurdVector.create([1, 2]),
+        SurdVector([1, 2]),
         datetime.datetime(2026, 1, 1, tzinfo=datetime.timezone(datetime.timedelta(hours=2))),
     )
     equivalent = Values(
         Fraction(2, 3),
-        FracScalar(4, 6),
-        FracVector.create([[Fraction(1, 2), Fraction(4, 2)]]),
+        FracScalar.from_noms_and_denom(4, 6),
+        FracVector([[Fraction(1, 2), Fraction(4, 2)]]),
         SurdVector.sqrt_of(2),
-        SurdVector.create([1, 2]),
+        SurdVector([1, 2]),
         datetime.datetime(2025, 12, 31, 22, tzinfo=datetime.UTC),
     )
     assert content_id(value) == content_id(equivalent)
@@ -724,8 +724,8 @@ def test_rational_leaf_text_and_structural_vector_nodes() -> None:
     assert node(Fraction(-3, 2)) == {"type": "rational", "value": "-3/2"}
     assert node(Fraction(5)) == {"type": "rational", "value": "5/1"}
     assert node(decimal.Decimal("1.50")) == {"type": "rational", "value": "3/2"}
-    assert node(FracScalar(10, 2)) == {"type": "rational", "value": "5/1"}
-    assert node(FracVector.create([[Fraction(1, 2), 2]])) == {
+    assert node(FracScalar.from_noms_and_denom(10, 2)) == {"type": "rational", "value": "5/1"}
+    assert node(FracVector([[Fraction(1, 2), 2]])) == {
         "type": "frac_vector",
         "value": {"denominator": 2, "nominators": [[1, 4]]},
     }
@@ -734,7 +734,7 @@ def test_rational_leaf_text_and_structural_vector_nodes() -> None:
         "type": "surd_scalar",
         "value": [[2, {"type": "frac_vector", "value": {"denominator": 1, "nominators": 1}}]],
     }
-    assert node(SurdVector.create([1, 2])) == {
+    assert node(SurdVector([1, 2])) == {
         "dimension": [2],
         "type": "surd_vector",
         "value": [[1, {"type": "frac_vector", "value": {"denominator": 1, "nominators": [1, 2]}}]],

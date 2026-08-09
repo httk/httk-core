@@ -13,9 +13,6 @@ from .vector_frac import VectorFrac
 from .vector_like import VectorLike
 from .vector_view import VectorView
 
-# Sentinel distinguishing the two ways this class is constructed (see __new__).
-_NO_DENOM: Any = object()
-
 
 class VectorFracView(VectorView, FracVector):
     r"""
@@ -31,26 +28,16 @@ class VectorFracView(VectorView, FracVector):
     necessarily the original decimal fraction.)
 
     Because inherited FracVector algebra builds its results with the low-level
-    ``self.__class__(noms, denom)`` constructor, this class also accepts that two-argument form;
-    results built that way are plain (backend-less) FracVector values presented through this
-    class.
+    ``self.__class__.from_noms_and_denom(noms, denom)`` constructor, results built that way are
+    plain (backend-less) FracVector values presented through this class.
 
-    :param obj: The source value to present, or numerator data for low-level construction.
-    :param denom: The denominator for low-level FracVector construction.
+    :param obj: The source value to present.
     :param \**hints: Backend-selection and view-conversion hints.
     """
 
     _backend: VectorBackend
 
-    def __new__(cls, obj: VectorLike, denom: Any = _NO_DENOM, **hints: Any) -> Self:
-        if denom is not _NO_DENOM:
-            # Low-level FracVector construction: VectorFracView(noms, denom). Results built this
-            # way by inherited algebra are plain (backend-less) FracVector values; _backend is
-            # left unset (see unwrap).
-            instance = super().__new__(cls)
-            FracVector.__init__(instance, obj, denom)  # type: ignore[arg-type]
-            return instance
-        # View-building path: VectorFracView(vector_like, **hints)
+    def __new__(cls, obj: VectorLike, **hints: Any) -> Self:
         if isinstance(obj, cls):
             return obj
         backend = cls._prepare_backend(obj, hints)
@@ -58,7 +45,7 @@ class VectorFracView(VectorView, FracVector):
         instance._backend = backend
         return instance
 
-    def __init__(self, obj: VectorLike, denom: Any = _NO_DENOM, **hints: Any) -> None:
+    def __init__(self, obj: VectorLike, **hints: Any) -> None:
         pass
 
     def _fill_fractions(self) -> None:
@@ -67,8 +54,8 @@ class VectorFracView(VectorView, FracVector):
         if isinstance(self._backend, VectorFrac):
             built = self._backend.unwrap()
         else:
-            built = FracVector.create(self._backend.fractions)
-        FracVector.__init__(self, built.noms, built.denom)
+            built = FracVector(self._backend.fractions)
+        FracVector._assign_raw(self, built.noms, built.denom)
 
     def _ensure_materialized(self) -> None:
         if "_backend" in self.__dict__ and "noms" not in self.__dict__:
@@ -107,4 +94,4 @@ class VectorFracView(VectorView, FracVector):
             raw = backend.unwrap()
             if not isinstance(raw, VectorView):
                 return raw
-        return FracVector(self.noms, self.denom)
+        return FracVector.from_noms_and_denom(self.noms, self.denom)

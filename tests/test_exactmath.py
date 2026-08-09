@@ -264,8 +264,8 @@ def test_correct_rounding_versus_correct_truncation_near_a_boundary() -> None:
 def test_exact_value_on_rounding_boundary_uses_exact_arithmetic() -> None:
     # sqrt(2.25) == 1.5 sits exactly on the 1-significant-digit boundary between 1 and 2.
     # Half-even resolves it exactly (1.5 -> 2, ties to even); down truncates exactly (1.5 -> 1).
-    assert exactmath.sqrt(D("2.25"), digits=1, rounding="half_even") == decimal.Decimal("2")
-    assert exactmath.sqrt(D("2.25"), digits=1, rounding="down") == decimal.Decimal("1")
+    assert exactmath.sqrt(D("2.25"), digits=1, rounding="half_even") == decimal.Decimal(2)
+    assert exactmath.sqrt(D("2.25"), digits=1, rounding="down") == decimal.Decimal(1)
 
 
 def test_pi_digits_50_matches_known_reference() -> None:
@@ -330,10 +330,10 @@ def test_rational_logarithms_are_decided_exactly() -> None:
     # log_base(x) = p/q iff x**q == base**p; q is bounded by base's largest prime
     # exponent, making rationality a finite exact decision. The exact tie log_4(8)
     # = 3/2 at one significant digit resolves by exact arithmetic in both modes.
-    assert exactmath.log(decimal.Decimal(8), decimal.Decimal(4), digits=1) == decimal.Decimal("2")
-    assert exactmath.log(decimal.Decimal(8), decimal.Decimal(4), digits=1, rounding="down") == decimal.Decimal("1")
+    assert exactmath.log(decimal.Decimal(8), decimal.Decimal(4), digits=1) == decimal.Decimal(2)
+    assert exactmath.log(decimal.Decimal(8), decimal.Decimal(4), digits=1, rounding="down") == decimal.Decimal(1)
     assert exactmath.log(decimal.Decimal(8), decimal.Decimal(4), digits=3) == decimal.Decimal("1.50")
-    assert exactmath.log(decimal.Decimal(1024), decimal.Decimal(2), digits=2) == decimal.Decimal("10")
+    assert exactmath.log(decimal.Decimal(1024), decimal.Decimal(2), digits=2) == decimal.Decimal(10)
     assert exactmath.log(decimal.Decimal(8), decimal.Decimal("0.5"), digits=3) == decimal.Decimal("-3.00")
     # Irrational logarithms still take the adaptive path.
     assert str(exactmath.log(decimal.Decimal(3), decimal.Decimal(2), digits=20)) == "1.5849625007211561815"
@@ -342,20 +342,20 @@ def test_rational_logarithms_are_decided_exactly() -> None:
 def test_niven_special_values_are_exact_in_truncation_mode() -> None:
     # Truncating an approximation of an exact value must not lose the last digit:
     # these all previously returned 29.99-style results under rounding="down".
-    assert exactmath.asin(decimal.Decimal("0.5"), degrees=True, digits=4, rounding="down") == decimal.Decimal("30")
-    assert exactmath.asin(decimal.Decimal("-0.5"), degrees=True, digits=4, rounding="down") == decimal.Decimal("-30")
-    assert exactmath.acos(decimal.Decimal("0.5"), degrees=True, digits=4, rounding="down") == decimal.Decimal("60")
-    assert exactmath.acos(decimal.Decimal("-0.5"), degrees=True, digits=4, rounding="down") == decimal.Decimal("120")
-    assert exactmath.atan(decimal.Decimal(1), degrees=True, digits=4, rounding="down") == decimal.Decimal("45")
-    assert exactmath.atan(decimal.Decimal(-1), degrees=True, digits=4, rounding="down") == decimal.Decimal("-45")
-    assert exactmath.tan(decimal.Decimal(45), degrees=True, digits=4, rounding="down") == decimal.Decimal("1")
-    assert exactmath.tan(decimal.Decimal(135), degrees=True, digits=4, rounding="down") == decimal.Decimal("-1")
+    assert exactmath.asin(decimal.Decimal("0.5"), degrees=True, digits=4, rounding="down") == decimal.Decimal(30)
+    assert exactmath.asin(decimal.Decimal("-0.5"), degrees=True, digits=4, rounding="down") == decimal.Decimal(-30)
+    assert exactmath.acos(decimal.Decimal("0.5"), degrees=True, digits=4, rounding="down") == decimal.Decimal(60)
+    assert exactmath.acos(decimal.Decimal("-0.5"), degrees=True, digits=4, rounding="down") == decimal.Decimal(120)
+    assert exactmath.atan(decimal.Decimal(1), degrees=True, digits=4, rounding="down") == decimal.Decimal(45)
+    assert exactmath.atan(decimal.Decimal(-1), degrees=True, digits=4, rounding="down") == decimal.Decimal(-45)
+    assert exactmath.tan(decimal.Decimal(45), degrees=True, digits=4, rounding="down") == decimal.Decimal(1)
+    assert exactmath.tan(decimal.Decimal(135), degrees=True, digits=4, rounding="down") == decimal.Decimal(-1)
     assert exactmath.atan2(
         decimal.Decimal(1), decimal.Decimal(-1), degrees=True, digits=5, rounding="down"
-    ) == decimal.Decimal("135")
+    ) == decimal.Decimal(135)
     assert exactmath.atan2(
         decimal.Decimal(-1), decimal.Decimal(1), degrees=True, digits=5, rounding="down"
-    ) == decimal.Decimal("-45")
+    ) == decimal.Decimal(-45)
 
 
 # --------------------------------------------------------------- bounded-time mode
@@ -388,14 +388,14 @@ def test_sqrt_exact_returns_surd_scalar() -> None:
     result = exactmath.sqrt(F(2), exact=True)
     assert isinstance(result, SurdScalar)
     # exact: squares back to precisely 2, no approximation
-    assert result * result == SurdVector.create(2)
+    assert result * result == SurdVector(2)
 
 
 def test_sqrt_exact_perfect_square_is_rational_surd() -> None:
     from httk.core.vectors import SurdVector
 
     result = exactmath.sqrt(F(9, 4), exact=True)
-    assert result == SurdVector.create(F(3, 2))
+    assert result == SurdVector(F(3, 2))
     assert result.is_rational
 
 

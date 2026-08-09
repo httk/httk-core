@@ -87,8 +87,8 @@ import fractions
 from httk.core.vectors import SurdVector
 
 root2 = exactmath.sqrt(fractions.Fraction(2), exact=True)
-assert root2 * root2 == SurdVector.create(2)                       # squares back to exactly 2
-assert exactmath.sqrt(fractions.Fraction(9, 4), exact=True) == SurdVector.create(fractions.Fraction(3, 2))
+assert root2 * root2 == SurdVector(2)                       # squares back to exactly 2
+assert exactmath.sqrt(fractions.Fraction(9, 4), exact=True) == SurdVector(fractions.Fraction(3, 2))
 ```
 
 See {doc}`vectors` ("Exact radicals: `SurdVector`") for the field itself — exact Cartesian
@@ -322,7 +322,7 @@ element, so everything above applies vector-wide:
 ```python
 from httk.core.vectors import FracVector
 
-v = FracVector.create([["9/4", "1/4"]])
+v = FracVector([["9/4", "1/4"]])
 v.sqrt().to_fractions()                  # [[Fraction(3, 2), Fraction(1, 2)]] — exact
 ```
 

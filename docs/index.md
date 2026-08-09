@@ -47,7 +47,7 @@ The main subpackages are `httk.core.datastream`, `httk.core.optimade`,
 ```python
 from httk.core.vectors import FracVector, VectorNumpyView
 
-cell = FracVector.create([["1/2", 0], [0, "1/3"]])
+cell = FracVector([["1/2", 0], [0, "1/3"]])
 assert cell[0, 0] == 1 / 2
 numeric = VectorNumpyView(cell)
 assert numeric.tolist() == [[0.5, 0.0], [0.0, 1 / 3]]

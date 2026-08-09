@@ -11,7 +11,7 @@ from httk.core import exactmath
 from httk.core.vectors import SurdVector
 
 root = exactmath.sqrt(Fraction(2), exact=True)
-assert root * root == SurdVector.create(2)
+assert root * root == SurdVector(2)
 assert exactmath.cos(Fraction(30), degrees=True, exact=True) == SurdVector.sqrt_of(3) / 2
 
 fraction_root = exactmath.sqrt(Fraction(9, 4))

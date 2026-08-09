@@ -110,8 +110,8 @@ def test_decimal_codec_exact_when_finite_expansion() -> None:
     assert codec.from_fraction(F(-1, 8)) == decimal.Decimal("-0.125")
     assert codec.from_fraction(F(5, 2)) == decimal.Decimal("2.5")
     assert codec.from_fraction(F(3, 20)) == decimal.Decimal("0.15")
-    assert codec.from_fraction(F(6, 2)) == decimal.Decimal("3")
-    assert codec.from_fraction(F(0)) == decimal.Decimal("0")
+    assert codec.from_fraction(F(6, 2)) == decimal.Decimal(3)
+    assert codec.from_fraction(F(0)) == decimal.Decimal(0)
 
 
 def test_decimal_codec_exact_is_context_independent() -> None:
@@ -175,7 +175,7 @@ def test_register_and_use_custom_codec() -> None:
     register_leaf_codec(LeafCodec("percent", _to_percent, _no_options))
     try:
         assert "percent" in known_leaf_codecs()
-        assert VectorNativeView(FracVector.create([["1/4", "1/2"]]), leaf="percent") == (("25%", "50%"),)
+        assert VectorNativeView(FracVector([["1/4", "1/2"]]), leaf="percent") == (("25%", "50%"),)
     finally:
         # Keep the global registry clean for other tests.
         from httk.core.vectors import leaf_codecs

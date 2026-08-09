@@ -31,7 +31,7 @@ def test_identity_prototype_and_natural() -> None:
 
 
 def test_coerce_view_results_are_lossless_views() -> None:
-    source = FracVector.create([[1, 2], [3, 4]])
+    source = FracVector([[1, 2], [3, 4]])
     for target in (FracVector, SurdVector, tuple):
         result = coerce_view(source, target)
         assert isinstance(result, target)
@@ -44,7 +44,7 @@ def test_coerce_view_results_are_lossless_views() -> None:
 
 
 def test_strict_coerce_returns_plain_instances() -> None:
-    source = FracVector.create([[1, 2], [3, 4]])
+    source = FracVector([[1, 2], [3, 4]])
     for target in (FracVector, SurdVector, tuple):
         result = coerce(source, target)
         assert isinstance(result, target)
@@ -56,7 +56,7 @@ def test_strict_coerce_returns_plain_instances() -> None:
 
 
 def test_strict_coerce_sheds_a_view_input() -> None:
-    source = FracVector.create([[1, 2], [3, 4]])
+    source = FracVector([[1, 2], [3, 4]])
     view = coerce_view(source, tuple)
     assert isinstance(view, View)
     shed = coerce(view, tuple)
@@ -67,7 +67,7 @@ def test_strict_coerce_sheds_a_view_input() -> None:
 
 
 def test_natural_returns_even_a_view_unchanged() -> None:
-    source = FracVector.create([1, 2])
+    source = FracVector([1, 2])
     view = coerce_view(source, tuple)
     assert coerce(view, "natural") is view
 
@@ -92,10 +92,10 @@ def test_lossless_fallback_splits_the_verbs() -> None:
 
 
 def test_surd_scalar_targets() -> None:
-    rational = SurdVector.create(F(3, 2))._as_scalar()
+    rational = SurdVector(F(3, 2))._as_scalar()
     irrational = SurdVector.sqrt_of(2)
     for verb in (coerce_view, coerce):
-        assert verb(rational, FracScalar) == FracScalar.create(F(3, 2))
+        assert verb(rational, FracScalar) == FracScalar(F(3, 2))
         assert verb(irrational, SurdScalar) is irrational
         with pytest.raises(TypeError):
             verb(irrational, int)
@@ -108,13 +108,13 @@ def test_lists_are_mutable_copies_and_preserve_native_decimal_leaves() -> None:
         assert result == [D("1.25"), D("2.5")]
         assert result is not value
         assert all(isinstance(item, D) for item in result)
-        assert verb(FracScalar.create(4), list) == [4]
+        assert verb(FracScalar(4), list) == [4]
 
 
 def test_uncoercible_pair_and_custom_registration() -> None:
     for verb in (coerce_view, coerce):
         with pytest.raises(TypeError, match="dict"):
-            verb(FracVector.create([1, 2]), dict)
+            verb(FracVector([1, 2]), dict)
 
     def custom(value, target):
         return "custom" if target is str and value == 1 else None
@@ -208,5 +208,5 @@ def test_unrepresentable_numpy_values_raise_type_error() -> None:
 
 
 def test_native_view_scalar_shape_is_a_tuple() -> None:
-    view = VectorNativeView(FracScalar.create(4))
+    view = VectorNativeView(FracScalar(4))
     assert view == (4,)

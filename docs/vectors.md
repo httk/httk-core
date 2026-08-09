@@ -25,8 +25,8 @@ metric products) and no floating point anywhere:
 ```python
 from httk.core.vectors import FracVector
 
-cell = FracVector.create([["1/2", 0, 0], [0, "1/3", 0], [0, 0, 2]])
-identity = FracVector.create([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+cell = FracVector([["1/2", 0, 0], [0, "1/3", 0], [0, 0, 2]])
+identity = FracVector([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
 assert (cell * cell.inv()).simplify() == identity
 ```
 

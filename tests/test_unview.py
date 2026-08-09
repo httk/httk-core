@@ -25,12 +25,12 @@ F = fractions.Fraction
 
 
 def test_non_view_inputs_pass_through_unchanged() -> None:
-    for value in (7, "abc", [1, 2], (1, 2), FracVector.create([1, 2])):
+    for value in (7, "abc", [1, 2], (1, 2), FracVector([1, 2])):
         assert unview(value) is value
 
 
 def test_frac_view_unview_reuses_a_frac_backend() -> None:
-    source = FracVector.create([[1, 2], [3, 4]])
+    source = FracVector([[1, 2], [3, 4]])
     view = VectorFracView(source)
     plain = unview(view)
     assert type(plain) is FracVector
@@ -41,17 +41,17 @@ def test_frac_view_unview_materializes_converted_sources() -> None:
     view = VectorFracView((1, 2, 3))
     plain = unview(view)
     assert type(plain) is FracVector
-    assert plain == FracVector.create((1, 2, 3))
+    assert plain == FracVector((1, 2, 3))
 
 
 def test_backendless_frac_view_unview() -> None:
     # Inherited FracVector algebra builds backend-less view instances.
-    derived = VectorFracView(FracVector.create([2, 4])) / 2
+    derived = VectorFracView(FracVector([2, 4])) / 2
     assert isinstance(derived, VectorFracView)
     assert unwrap(derived) is derived
     plain = unview(derived)
     assert type(plain) is FracVector
-    assert plain == FracVector.create([1, 2])
+    assert plain == FracVector([1, 2])
 
 
 def test_surd_view_unview() -> None:
@@ -62,7 +62,7 @@ def test_surd_view_unview() -> None:
     assert not isinstance(plain, View)
     assert plain is source
 
-    converted = VectorSurdView(FracVector.create([1, 2]))
+    converted = VectorSurdView(FracVector([1, 2]))
     plain2 = unview(converted)
     assert type(plain2) is SurdVector
     assert not isinstance(plain2, View)

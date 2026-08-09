@@ -48,7 +48,7 @@ class VectorNative(VectorBackend):
     The native representation is a (possibly nested) rectangular list or tuple whose leaves are
     ``int``, ``float``, :class:`decimal.Decimal`, :class:`fractions.Fraction`, or ``str``.
     Conversion into the exact ``fractions`` interchange goes through
-    :meth:`~httk.core.vectors.fracvector.FracVector.create`, so string-uncertainty parsing
+    :class:`~httk.core.vectors.fracvector.FracVector`, so string-uncertainty parsing
     (e.g. ``"0.33342(10)"``) works here too. ``unwrap`` returns the original raw object.
 
     :param obj: The rectangular source data to wrap.
@@ -83,7 +83,7 @@ class VectorNative(VectorBackend):
 
     def _as_fracvector(self) -> FracVector:
         if self._fracvector_cache is None:
-            self._fracvector_cache = FracVector.create(self._raw)
+            self._fracvector_cache = FracVector(self._raw)
         return self._fracvector_cache
 
     @property

@@ -1096,7 +1096,7 @@ def _coerce(x: Any) -> tuple[fractions.Fraction, bool]:
         return fractions.Fraction(x), True
     if isinstance(x, (int, float, str, fractions.Fraction)):
         # Fraction(float) intentionally embeds the float's exact binary value. Strings use the
-        # public scalar contract (unlike FracVector.create, no inferred uncertainty).
+        # public scalar contract (unlike FracVector, no inferred uncertainty).
         return fractions.Fraction(x), False
 
     from .vectors.fracvector import FracVector
@@ -1237,7 +1237,7 @@ def _map_vector(value: Any, function: Callable[[Any], Any], *, decimal_mode: boo
         return _tuple_nested(mapped)
     from .vectors.fracvector import FracVector
 
-    return FracVector.create(mapped)
+    return FracVector(mapped)
 
 
 def _map_binary_vector(
@@ -1262,7 +1262,7 @@ def _map_binary_vector(
         return _tuple_nested(mapped)
     from .vectors.fracvector import FracVector
 
-    return FracVector.create(mapped)
+    return FracVector(mapped)
 
 
 def _effective_digits(digits: int | None, decimal_mode: bool, exact: bool) -> int | None:
@@ -1279,7 +1279,7 @@ def _as_surd_scalar(value: Any):
         if value.dim != ():
             raise TypeError(f"expected a scalar, got vector shape {value.dim}")
         return value._as_scalar()
-    return SurdVector.create(_coerce(value)[0])._as_scalar()
+    return SurdVector(_coerce(value)[0])._as_scalar()
 
 
 def _reject_genuine_surd(value: Any) -> None:

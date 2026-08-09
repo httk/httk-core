@@ -117,8 +117,8 @@ def _vector_scalar_coercer(value, target):
     if target is decimal.Decimal:
         return leaf_codec_for_name("decimal").from_fraction(fraction)
     if target is FracScalar:
-        return FracScalar.create(fraction)
-    return SurdVector.create(fraction)._as_scalar()
+        return FracScalar(fraction)
+    return SurdVector(fraction)._as_scalar()
 
 
 _view_classes = [VectorFracView, VectorSurdView]

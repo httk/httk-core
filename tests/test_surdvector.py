@@ -6,9 +6,11 @@ cases are all asserted by EXACT equality (surd equality is coefficient equality)
 cross-checks are only there to pin down which side of a comparison is which.
 """
 
+import copy
 import decimal
 import fractions
 import math
+import pickle
 
 import pytest
 
@@ -45,36 +47,103 @@ def test_sqrt_of_extracts_square_part() -> None:
 
 def test_sqrt_of_perfect_square_is_rational() -> None:
     r = SurdVector.sqrt_of(F(4, 9))
-    assert r == SurdVector.create(F(2, 3))
+    assert r == SurdVector(F(2, 3))
     assert r.is_rational
     assert r.radicands == (1,)
 
 
 def test_sqrt_of_normalizes_rational_radicand() -> None:
     # sqrt(1/2) = sqrt(2)/2, radicand normalized to a squarefree integer.
-    assert SurdVector.sqrt_of(F(1, 2)) == SurdVector.sqrt_of(2) * SurdVector.create(
-        F(1, 2)
-    )
+    assert SurdVector.sqrt_of(F(1, 2)) == SurdVector.sqrt_of(2) * SurdVector(F(1, 2))
     assert SurdVector.sqrt_of(F(1, 2)).radicands == (2,)
+
+
+def test_constructor_consumes_generator_once() -> None:
+    assert SurdVector(x for x in (1, 2, 3)) == SurdVector([1, 2, 3])
+
+
+def test_constructor_iterable_is_consumed_once() -> None:
+    class CountingIterable:
+        values = iter((1, 2, 3))
+        consumed = 0
+
+        def __iter__(self):
+            return self
+
+        def __next__(self):
+            value = next(self.values, None)
+            if value is None:
+                raise StopIteration
+            self.consumed += 1
+            return value
+
+    values = CountingIterable()
+    assert SurdVector(values) == SurdVector([1, 2, 3])
+    assert values.consumed == 3
+
+
+def test_surdscalar_conversion_hook_runs_once() -> None:
+    class CountingValue:
+        conversions = 0
+
+        def to_fractions(self):
+            self.conversions += 1
+            return F(3, 2)
+
+    value = CountingValue()
+    assert SurdScalar(value) == SurdScalar(F(3, 2))
+    assert value.conversions == 1
+
+
+def test_surdscalar_rejects_vector_shape() -> None:
+    with pytest.raises(ValueError, match="SurdScalar"):
+        SurdScalar([[1, 2]])
+
+
+def test_surdvector_detaches_mutable_input() -> None:
+    from httk.core.vectors import MutableFracVector
+
+    source = MutableFracVector([1, 2])
+    result = SurdVector(source)
+    source[0] = 99
+
+    assert isinstance(result.coefficient(1), FracVector)
+    assert result.coefficient(1) == FracVector([1, 2])
+
+
+@pytest.mark.parametrize("cls", [SurdVector, SurdScalar])
+def test_bare_surd_construction_requires_value(cls) -> None:
+    with pytest.raises(TypeError):
+        cls()
+
+
+def test_surdvector_and_surdscalar_copy_round_trip() -> None:
+    for value in (SurdVector([1, 2]), SurdScalar("1/2")):
+        assert pickle.loads(pickle.dumps(value)) == value
+        assert copy.copy(value) == value
+        assert copy.deepcopy(value) == value
+
+
+def test_repr_uses_raw_constructor() -> None:
+    value = SurdVector.from_components({1: FracVector.from_noms_and_denom((1, 2), 3)}, (2,))
+    assert repr(value) == ("SurdVector.from_components({1: FracVector.from_noms_and_denom((1, 2), 3)}, (2,))")
 
 
 def test_product_of_radicals_combines() -> None:
     s2 = SurdVector.sqrt_of(2)
     s3 = SurdVector.sqrt_of(3)
     assert s2 * s3 == SurdVector.sqrt_of(6)  # sqrt(2)*sqrt(3) = sqrt(6)
-    assert SurdVector.sqrt_of(12) * SurdVector.sqrt_of(3) == SurdVector.create(
-        6
-    )  # sqrt(12)*sqrt(3) = 6
-    assert s2 * s2 == SurdVector.create(2)  # sqrt(2)^2 = 2 (rational again)
+    assert SurdVector.sqrt_of(12) * SurdVector.sqrt_of(3) == SurdVector(6)  # sqrt(12)*sqrt(3) = 6
+    assert s2 * s2 == SurdVector(2)  # sqrt(2)^2 = 2 (rational again)
 
 
 def test_zero_handling() -> None:
     z = SurdVector.sqrt_of(0)
     assert z.is_zero()
-    assert z == SurdVector.create(0)
+    assert z == SurdVector(0)
     s2 = SurdVector.sqrt_of(2)
     assert (s2 - s2).is_zero()
-    assert s2 * SurdVector.create(0) == SurdVector.create(0)
+    assert s2 * SurdVector(0) == SurdVector(0)
 
 
 def test_negative_sqrt_raises() -> None:
@@ -84,10 +153,8 @@ def test_negative_sqrt_raises() -> None:
 
 def test_canonical_equality_ignores_denominator_form() -> None:
     # Coefficients on different (unsimplified) denominators still compare equal.
-    a = SurdVector.from_radicand_map(
-        {2: FracVector([[2]], 4)}
-    )  # (2/4)*sqrt(2) = sqrt(2)/2
-    b = SurdVector.from_radicand_map({2: FracVector([[1]], 2)})
+    a = SurdVector.from_radicand_map({2: FracVector.from_noms_and_denom(((2,),), 4)})  # (2/4)*sqrt(2) = sqrt(2)/2
+    b = SurdVector.from_radicand_map({2: FracVector.from_noms_and_denom(((1,),), 2)})
     assert a == b
     assert hash(a) == hash(b)
 
@@ -96,11 +163,11 @@ def test_canonical_equality_ignores_denominator_form() -> None:
 
 
 _SURDS = [
-    SurdVector.create(F(2, 3)),
+    SurdVector(F(2, 3)),
     SurdVector.sqrt_of(2),
     SurdVector.sqrt_of(3),
     SurdVector.one() + SurdVector.sqrt_of(2),
-    SurdVector.sqrt_of(2) - SurdVector.sqrt_of(6) * SurdVector.create(F(1, 2)),
+    SurdVector.sqrt_of(2) - SurdVector.sqrt_of(6) * SurdVector(F(1, 2)),
     SurdVector.sqrt_of(F(3, 2)),
 ]
 
@@ -134,9 +201,7 @@ def test_field_inverse_multiplies_back_to_one() -> None:
 
 def test_division_operator() -> None:
     s2 = SurdVector.sqrt_of(2)
-    assert (
-        SurdVector.one() / (SurdVector.one() + s2) == s2 - SurdVector.one()
-    )  # 1/(1+sqrt2) = sqrt2-1
+    assert SurdVector.one() / (SurdVector.one() + s2) == s2 - SurdVector.one()  # 1/(1+sqrt2) = sqrt2-1
 
 
 # --------------------------------------------------------------- exact comparison
@@ -154,7 +219,7 @@ def test_sqrt2_plus_sqrt3_less_than_sqrt10() -> None:
 
 def test_tight_pell_convergent_comparison_exercises_refinement() -> None:
     # 665857/470832 is a convergent of sqrt(2); it exceeds sqrt(2) by ~1e-12, decided exactly.
-    convergent = SurdVector.create(F(665857, 470832))
+    convergent = SurdVector(F(665857, 470832))
     s2 = SurdVector.sqrt_of(2)
     assert convergent > s2
     assert not (convergent < s2)
@@ -165,8 +230,8 @@ def test_ordering_consistent_with_float_on_a_sample() -> None:
     samples = [
         SurdVector.sqrt_of(2),
         SurdVector.sqrt_of(3),
-        SurdVector.create(F(3, 2)),
-        SurdVector.sqrt_of(2) + SurdVector.create(F(1, 10)),
+        SurdVector(F(3, 2)),
+        SurdVector.sqrt_of(2) + SurdVector(F(1, 10)),
         SurdVector.sqrt_of(F(7, 3)),
         SurdVector.one(),
     ]
@@ -179,11 +244,9 @@ def test_ordering_consistent_with_float_on_a_sample() -> None:
 
 
 def test_sign() -> None:
-    assert (
-        SurdVector.sqrt_of(2) - SurdVector.create(F(3, 2))
-    )._as_scalar().sign() == -1
-    assert (SurdVector.sqrt_of(2) - SurdVector.create(F(7, 5)))._as_scalar().sign() == 1
-    assert SurdVector.create(0)._as_scalar().sign() == 0
+    assert (SurdVector.sqrt_of(2) - SurdVector(F(3, 2)))._as_scalar().sign() == -1
+    assert (SurdVector.sqrt_of(2) - SurdVector(F(7, 5)))._as_scalar().sign() == 1
+    assert SurdVector(0)._as_scalar().sign() == 0
 
 
 # --------------------------------------------------------------- crystallographic
@@ -191,17 +254,17 @@ def test_sign() -> None:
 
 def _hexagonal_basis(a: fractions.Fraction, c: fractions.Fraction) -> SurdVector:
     """The standard hexagonal Cartesian basis B = [[a,0,0],[-a/2, a*sqrt3/2, 0],[0,0,c]]."""
-    z = SurdVector.create(0)
+    z = SurdVector(0)
     sqrt3 = SurdVector.sqrt_of(3)
-    row0 = [SurdVector.create(a), z, z]
-    row1 = [SurdVector.create(-a / 2), sqrt3 * SurdVector.create(a / 2), z]
-    row2 = [z, z, SurdVector.create(c)]
+    row0 = [SurdVector(a), z, z]
+    row1 = [SurdVector(-a / 2), sqrt3 * SurdVector(a / 2), z]
+    row2 = [z, z, SurdVector(c)]
     return SurdVector._from_scalar_grid([row0, row1, row2], (3, 3))
 
 
 def _identity3() -> SurdVector:
-    o = SurdVector.create(1)
-    z = SurdVector.create(0)
+    o = SurdVector(1)
+    z = SurdVector(0)
     return SurdVector._from_scalar_grid([[o, z, z], [z, o, z], [z, z, o]], (3, 3))
 
 
@@ -223,9 +286,9 @@ def test_hexagonal_metric_is_rational_and_distances_agree() -> None:
     # Two rational fractional sites; Cartesian difference = frac_diff * B (row-vector convention).
     frac_diff = SurdVector._from_scalar_grid(
         [
-            SurdVector.create(F(1, 3)),
-            SurdVector.create(F(1, 3)),
-            SurdVector.create(F(1, 4)),
+            SurdVector(F(1, 3)),
+            SurdVector(F(1, 3)),
+            SurdVector(F(1, 4)),
         ],
         (3,),
     )
@@ -243,14 +306,14 @@ def test_length_of_surd_cartesian_difference_is_exact() -> None:
     # The second basis row itself is a Cartesian vector: [-a/2, a*sqrt3/2, 0], length a.
     row1 = SurdVector._from_scalar_grid(
         [
-            SurdVector.create(-a / 2),
-            SurdVector.sqrt_of(3) * SurdVector.create(a / 2),
-            SurdVector.create(0),
+            SurdVector(-a / 2),
+            SurdVector.sqrt_of(3) * SurdVector(a / 2),
+            SurdVector(0),
         ],
         (3,),
     )
-    assert row1.lengthsqr() == SurdVector.create(a * a)
-    assert row1.length() == SurdVector.create(a)  # exact rational length here
+    assert row1.lengthsqr() == SurdVector(a * a)
+    assert row1.length() == SurdVector(a)  # exact rational length here
 
 
 def test_length_raises_on_irrational_lengthsqr() -> None:
@@ -258,8 +321,8 @@ def test_length_raises_on_irrational_lengthsqr() -> None:
     v = SurdVector._from_scalar_grid(
         [
             SurdVector.one() + SurdVector.sqrt_of(2),
-            SurdVector.create(0),
-            SurdVector.create(0),
+            SurdVector(0),
+            SurdVector(0),
         ],
         (3,),
     )
@@ -282,7 +345,7 @@ def test_decimal_rendering_deterministic_and_matches_float() -> None:
 
 def test_decimal_rational_surd_is_exact_finite_expansion() -> None:
     # A rational surd renders its finite decimal expansion exactly (honored, not quantized).
-    val = SurdVector.create(F(1, 8))._as_scalar()
+    val = SurdVector(F(1, 8))._as_scalar()
     assert val.to_decimal(digits=30) == decimal.Decimal("0.125")
 
 
@@ -318,23 +381,23 @@ _C72 = (SurdVector.sqrt_of(5) - SurdVector.one()) / 4
 # The full special-angle table over [0, 180]: exact cos/sin as SurdScalars. A sin entry of None
 # marks the 36-family asymmetry: cos(36k) is an exact surd but sin(36k) = cos(90 - 36k) is not.
 _NIVEN_TABLE = {
-    0: (SurdVector.one(), SurdVector.create(0)),
+    0: (SurdVector.one(), SurdVector(0)),
     15: (_C15, _C75),
-    30: (SurdVector.sqrt_of(3) / 2, SurdVector.create(F(1, 2))),
+    30: (SurdVector.sqrt_of(3) / 2, SurdVector(F(1, 2))),
     36: (_C36, None),
     45: (SurdVector.sqrt_of(2) / 2, SurdVector.sqrt_of(2) / 2),
-    60: (SurdVector.create(F(1, 2)), SurdVector.sqrt_of(3) / 2),
+    60: (SurdVector(F(1, 2)), SurdVector.sqrt_of(3) / 2),
     72: (_C72, None),
     75: (_C75, _C15),
-    90: (SurdVector.create(0), SurdVector.one()),
+    90: (SurdVector(0), SurdVector.one()),
     105: (-_C75, _C15),
     108: (-_C72, None),
-    120: (SurdVector.create(F(-1, 2)), SurdVector.sqrt_of(3) / 2),
+    120: (SurdVector(F(-1, 2)), SurdVector.sqrt_of(3) / 2),
     135: (-SurdVector.sqrt_of(2) / 2, SurdVector.sqrt_of(2) / 2),
     144: (-_C36, None),
-    150: (-SurdVector.sqrt_of(3) / 2, SurdVector.create(F(1, 2))),
+    150: (-SurdVector.sqrt_of(3) / 2, SurdVector(F(1, 2))),
     165: (-_C15, _C75),
-    180: (SurdVector.create(-1), SurdVector.create(0)),
+    180: (SurdVector(-1), SurdVector(0)),
 }
 
 
@@ -350,10 +413,10 @@ def test_niven_cos_sin_forward_full_table() -> None:
 def test_niven_symmetry_and_reduction_cases() -> None:
     # Reduction mod 360 and sign symmetry: cos is even and 360-periodic, sin is odd.
     assert SurdScalar.cos_degrees(210) == -SurdVector.sqrt_of(3) / 2
-    assert SurdScalar.cos_degrees(300) == SurdVector.create(F(1, 2))
+    assert SurdScalar.cos_degrees(300) == SurdVector(F(1, 2))
     assert SurdScalar.cos_degrees(-60) == SurdScalar.cos_degrees(60)
     assert SurdScalar.cos_degrees(390) == SurdScalar.cos_degrees(30)
-    assert SurdScalar.sin_degrees(210) == SurdVector.create(F(-1, 2))
+    assert SurdScalar.sin_degrees(210) == SurdVector(F(-1, 2))
     assert SurdScalar.sin_degrees(-60) == -SurdScalar.sin_degrees(60)
     # Accepts int, Fraction and numeric strings.
     assert SurdScalar.cos_degrees(F(60)) == SurdScalar.cos_degrees("60")
@@ -375,12 +438,12 @@ def test_niven_none_for_non_special_angles() -> None:
     assert SurdScalar.cos_degrees(54) is None
     assert SurdScalar.sin_degrees(36) is None
     # A cosine value not in the table reverses to None.
-    assert SurdVector.create(F(1, 3))._as_scalar().acos_degrees() is None
+    assert SurdVector(F(1, 3))._as_scalar().acos_degrees() is None
 
 
 def test_niven_acos_domain_error() -> None:
     with pytest.raises(ValueError, match="domain"):
-        SurdVector.create(2)._as_scalar().acos_degrees()
+        SurdVector(2)._as_scalar().acos_degrees()
     with pytest.raises(ValueError, match="domain"):
         (SurdVector.sqrt_of(2) + SurdVector.one())._as_scalar().acos_degrees()
 
@@ -396,8 +459,8 @@ def test_niven_pythagorean_identity_exact() -> None:
 
 def test_niven_36_family_golden_identities() -> None:
     # cos 36 - cos 72 == 1/2 and cos 36 * cos 72 == 1/4 (golden-ratio identities), exactly:
-    assert _C36 - _C72 == SurdVector.create(F(1, 2))
-    assert _C36 * _C72 == SurdVector.create(F(1, 4))
+    assert _C36 - _C72 == SurdVector(F(1, 2))
+    assert _C36 * _C72 == SurdVector(F(1, 4))
     # Reverse lookup covers the 15- and 36-families:
     assert _C36._as_scalar().acos_degrees() == F(36)
     assert _C15._as_scalar().acos_degrees() == F(15)
@@ -409,4 +472,4 @@ def test_surdscalar_supports_float() -> None:
     # float(x) on an exact scalar renders like to_float() (the deterministic approximation).
     assert float(SurdVector.sqrt_of(4)) == 2.0
     assert float(SurdVector.sqrt_of(2)) == SurdVector.sqrt_of(2).to_float()
-    assert float(SurdVector.create(F(-3, 2))._as_scalar()) == -1.5
+    assert float(SurdVector(F(-3, 2))._as_scalar()) == -1.5

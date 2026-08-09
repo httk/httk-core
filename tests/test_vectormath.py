@@ -82,30 +82,30 @@ def test_sign_and_copysign() -> None:
     assert vectormath.sign(-3.0) == -1
     assert vectormath.sign(0) == 0
     assert vectormath.sign(0.0) == 0
-    assert vectormath.sign(FracVector.create("-1/3")) == -1
-    assert vectormath.sign(FracVector.create(0)) == 0
+    assert vectormath.sign(FracVector("-1/3")) == -1
+    assert vectormath.sign(FracVector(0)) == 0
     assert vectormath.copysign(2.0, 0) == 2.0
 
 
 def test_floor_dispatches_to_fracvector_method() -> None:
-    assert vectormath.floor(FracVector.create("7/2")) == 3
+    assert vectormath.floor(FracVector("7/2")) == 3
 
 
 def test_cos_dispatches_elementwise_on_fracvector() -> None:
-    v = FracVector.create([0, 0, 0])
+    v = FracVector([0, 0, 0])
     result = vectormath.cos(v)
     assert isinstance(result, FracVector)
-    assert result == FracVector.create([1, 1, 1])
+    assert result == FracVector([1, 1, 1])
 
 
 def test_sqrt_dispatches_on_fracvector() -> None:
-    result = vectormath.sqrt(FracVector.create([4, 9]))
+    result = vectormath.sqrt(FracVector([4, 9]))
     assert isinstance(result, FracVector)
-    assert result.simplify() == FracVector.create([2, 3])
+    assert result.simplify() == FracVector([2, 3])
 
 
 def test_pow_wrapper() -> None:
-    assert vectormath.pow(FracVector.create("2"), 3) == 8
+    assert vectormath.pow(FracVector("2"), 3) == 8
 
 
 # ------------------------------------------------- convention and signature fixes
@@ -127,11 +127,11 @@ def test_ldexp_takes_exponent() -> None:
 def test_frexp_rejects_exact_types_with_clear_error() -> None:
     assert vectormath.frexp(12.0) == math.frexp(12.0)
     with pytest.raises(TypeError, match="to_floats"):
-        vectormath.frexp(FracVector.create("1/3"))
+        vectormath.frexp(FracVector("1/3"))
 
 
 def test_modf_elementwise_on_fracvector() -> None:
-    frac, integer = vectormath.modf(FracVector.create(["5/2", "-5/2", 3]))
-    assert frac == FracVector.create(["1/2", "-1/2", 0])
-    assert integer == FracVector.create([2, -2, 3])
+    frac, integer = vectormath.modf(FracVector(["5/2", "-5/2", 3]))
+    assert frac == FracVector(["1/2", "-1/2", 0])
+    assert integer == FracVector([2, -2, 3])
     assert vectormath.modf(-2.5) == math.modf(-2.5)

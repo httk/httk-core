@@ -55,7 +55,7 @@ class CountingVectorSurd(VectorSurd):
 
 
 def test_frac_view_construction_is_lazy_and_unwrap_does_not_materialize() -> None:
-    raw = FracVector.create([[1, 2], [3, 4]])
+    raw = FracVector([[1, 2], [3, 4]])
     backend = CountingVectorFrac(raw)
     view = VectorFracView(backend)
 
@@ -78,7 +78,7 @@ def test_frac_view_presentation_state_is_filled_once() -> None:
 
 
 def test_frac_view_adopts_frac_backend_without_fractions_roundtrip() -> None:
-    raw = FracVector.create([[1, "2/3"], [3, 4]])
+    raw = FracVector([[1, "2/3"], [3, 4]])
     backend = CountingVectorFrac(raw)
     view = VectorFracView(backend)
 
@@ -92,17 +92,17 @@ def test_frac_view_adopts_frac_backend_without_fractions_roundtrip() -> None:
 
 def test_frac_view_hash_and_equality_materialize_correctly() -> None:
     raw = [[1, "2/3", 3]]
-    expected = FracVector.create(raw)
+    expected = FracVector(raw)
 
     hashed = VectorFracView(CountingVectorFrac(expected))
-    assert hash(hashed) == hash(FracVector.create(raw))
+    assert hash(hashed) == hash(FracVector(raw))
 
     equal = VectorFracView(CountingVectorFrac(expected))
     assert equal == expected
 
 
 def test_surd_view_construction_and_materialization_are_lazy() -> None:
-    backend = CountingVectorFrac(FracVector.create([1, 2, 3]))
+    backend = CountingVectorFrac(FracVector([1, 2, 3]))
     view = VectorSurdView(backend)
 
     assert backend.fractions_calls == 0
@@ -128,17 +128,17 @@ def test_surd_view_adopts_surd_backend_lazily() -> None:
 
 
 def test_frac_view_low_level_results_remain_backendless() -> None:
-    view = VectorFracView((1, 2), 2)
+    view = VectorFracView.from_noms_and_denom((1, 2), 2)
     result = view + view
 
-    assert result == FracVector((1, 2), 1)
+    assert result == FracVector.from_noms_and_denom((1, 2), 1)
     assert unwrap(result) is result
 
 
 def test_fracvector_create_accepts_frac_view() -> None:
     raw = [[1, "2/3"], [3, 4]]
 
-    assert FracVector.create(VectorFracView(raw)) == FracVector.create(raw)
+    assert FracVector(VectorFracView(raw)) == FracVector(raw)
 
 
 def test_coerce_falls_through_deferred_view_data_errors() -> None:

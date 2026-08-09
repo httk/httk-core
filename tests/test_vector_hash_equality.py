@@ -21,13 +21,13 @@ F = fractions.Fraction
 #: Pairs that are numerically equal but stored differently: unreduced denominators, a
 #: negative denominator, and the zero vector at two scales.
 EQUAL_FRACVECTOR_PAIRS = [
-    (FracVector((1, 0, 0), 2), FracVector((2, 0, 0), 4)),
-    (FracVector((1, 0, 0), 2), FracVector((50, 0, 0), 100)),
-    (FracVector((0, 0, 0), 1), FracVector((0, 0, 0), 4)),
-    (FracVector((1, 0, 0), -2), FracVector((-1, 0, 0), 2)),
-    (FracVector((-2, 4), -6), FracVector((1, -2), 3)),
-    (FracVector((5,), 1), FracVector((-5,), -1)),
-    (FracVector(((1, 2), (3, 4)), 2), FracVector(((3, 6), (9, 12)), 6)),
+    (FracVector.from_noms_and_denom((1, 0, 0), 2), FracVector.from_noms_and_denom((2, 0, 0), 4)),
+    (FracVector.from_noms_and_denom((1, 0, 0), 2), FracVector.from_noms_and_denom((50, 0, 0), 100)),
+    (FracVector.from_noms_and_denom((0, 0, 0), 1), FracVector.from_noms_and_denom((0, 0, 0), 4)),
+    (FracVector.from_noms_and_denom((1, 0, 0), -2), FracVector.from_noms_and_denom((-1, 0, 0), 2)),
+    (FracVector.from_noms_and_denom((-2, 4), -6), FracVector.from_noms_and_denom((1, -2), 3)),
+    (FracVector.from_noms_and_denom((5,), 1), FracVector.from_noms_and_denom((-5,), -1)),
+    (FracVector.from_noms_and_denom(((1, 2), (3, 4)), 2), FracVector.from_noms_and_denom(((3, 6), (9, 12)), 6)),
 ]
 
 
@@ -53,10 +53,10 @@ def test_fracvector_created_by_different_arithmetic_paths_deduplicates() -> None
     Arithmetic does not simplify as it goes, so the same value routinely arrives with
     different denominators, and a set of coordinates has to recognize them as one.
     """
-    direct = FracVector.create([F(1, 3), F(1, 3), F(1, 3)])
-    summed = FracVector.create([F(1, 6), F(1, 6), F(1, 6)]) + FracVector.create([F(1, 6), F(1, 6), F(1, 6)])
-    scaled = FracVector.create([F(2, 3), F(2, 3), F(2, 3)]) * FracVector.create(F(1, 2))
-    wrapped = FracVector.create([F(4, 3), F(7, 3), F(-2, 3)]).normalize()
+    direct = FracVector([F(1, 3), F(1, 3), F(1, 3)])
+    summed = FracVector([F(1, 6), F(1, 6), F(1, 6)]) + FracVector([F(1, 6), F(1, 6), F(1, 6)])
+    scaled = FracVector([F(2, 3), F(2, 3), F(2, 3)]) * FracVector(F(1, 2))
+    wrapped = FracVector([F(4, 3), F(7, 3), F(-2, 3)]).normalize()
 
     assert len({direct, summed, scaled, wrapped}) == 1
 
@@ -64,10 +64,10 @@ def test_fracvector_created_by_different_arithmetic_paths_deduplicates() -> None
 def test_fracvector_distinct_values_stay_distinct() -> None:
     """The contract is one-directional; unequal values must not be merged."""
     values = {
-        FracVector.create([0, 0, 0]),
-        FracVector.create([F(1, 2), 0, 0]),
-        FracVector.create([0, F(1, 2), 0]),
-        FracVector.create([F(-1, 2), 0, 0]),
+        FracVector([0, 0, 0]),
+        FracVector([F(1, 2), 0, 0]),
+        FracVector([0, F(1, 2), 0]),
+        FracVector([F(-1, 2), 0, 0]),
     }
     assert len(values) == 4
 
@@ -88,31 +88,31 @@ def test_simplify_preserves_value_and_is_idempotent() -> None:
 
 
 def test_fracvector_hash_is_stable_across_calls() -> None:
-    vector = FracVector((6, 0, 0), 12)
+    vector = FracVector.from_noms_and_denom((6, 0, 0), 12)
     assert hash(vector) == hash(vector)
-    assert vector == FracVector((1, 0, 0), 2)
+    assert vector == FracVector.from_noms_and_denom((1, 0, 0), 2)
 
 
 # --- SurdVector ---
 
 
 def test_equal_surdvectors_hash_alike() -> None:
-    _assert_hash_contract(SurdVector.create(0), SurdVector.create(0) * SurdVector.create(5))
+    _assert_hash_contract(SurdVector(0), SurdVector(0) * SurdVector(5))
 
     root_two = SurdVector.sqrt_of(2)
-    round_tripped = (root_two * FracVector.create(2)) * FracVector.create(F(1, 2))
+    round_tripped = (root_two * FracVector(2)) * FracVector(F(1, 2))
     _assert_hash_contract(root_two, round_tripped)
 
-    identity = SurdVector.create([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-    _assert_hash_contract(identity, identity * SurdVector.create(1))
+    identity = SurdVector([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    _assert_hash_contract(identity, identity * SurdVector(1))
 
 
 def test_surdvector_keeps_radicals_distinct() -> None:
     values = {
         SurdVector.sqrt_of(2),
         SurdVector.sqrt_of(3),
-        SurdVector.create(1),
-        SurdVector.create(0),
+        SurdVector(1),
+        SurdVector(0),
     }
     assert len(values) == 4
 
@@ -124,15 +124,17 @@ def test_surdvector_hash_matches_across_component_representations() -> None:
     decided, so this pins the canonicalization rather than the arithmetic that happens to
     feed it.
     """
-    unreduced = SurdVector({3: FracVector(5, 10)}, ())
-    reduced = SurdVector({3: FracVector(1, 2)}, ())
+    unreduced = SurdVector.from_components({3: FracVector.from_noms_and_denom(5, 10)}, ())
+    reduced = SurdVector.from_components({3: FracVector.from_noms_and_denom(1, 2)}, ())
     _assert_hash_contract(unreduced, reduced)
 
-    negative_denominator = SurdVector({2: FracVector(-1, -3)}, ())
-    _assert_hash_contract(negative_denominator, SurdVector({2: FracVector(1, 3)}, ()))
+    negative_denominator = SurdVector.from_components({2: FracVector.from_noms_and_denom(-1, -3)}, ())
+    _assert_hash_contract(
+        negative_denominator, SurdVector.from_components({2: FracVector.from_noms_and_denom(1, 3)}, ())
+    )
 
     # And through arithmetic, where denominators routinely arrive unreduced.
-    _assert_hash_contract(SurdVector.sqrt_of(3) * FracVector.create(F(1, 2)), reduced)
+    _assert_hash_contract(SurdVector.sqrt_of(3) * FracVector(F(1, 2)), reduced)
 
 
 # --- views ---
@@ -140,10 +142,10 @@ def test_surdvector_hash_matches_across_component_representations() -> None:
 
 def test_vector_views_inherit_the_hash_contract() -> None:
     """Views are genuine FracVector/SurdVector subclasses, so they must behave alike."""
-    frac_view = VectorFracView(FracVector((2, 0, 0), 4))
-    assert frac_view == FracVector((1, 0, 0), 2)
-    assert hash(frac_view) == hash(FracVector((1, 0, 0), 2))
-    assert len({frac_view, FracVector((1, 0, 0), 2)}) == 1
+    frac_view = VectorFracView(FracVector.from_noms_and_denom((2, 0, 0), 4))
+    assert frac_view == FracVector.from_noms_and_denom((1, 0, 0), 2)
+    assert hash(frac_view) == hash(FracVector.from_noms_and_denom((1, 0, 0), 2))
+    assert len({frac_view, FracVector.from_noms_and_denom((1, 0, 0), 2)}) == 1
 
     surd_view = VectorSurdView(SurdVector.sqrt_of(2))
     assert surd_view == SurdVector.sqrt_of(2)
@@ -159,7 +161,7 @@ def test_mutable_fracvector_is_unhashable() -> None:
     Otherwise it could be stored in a set and then mutated out from under its own hash
     bucket.
     """
-    mutable = MutableFracVector.create([[1, 2], [3, 4]])
+    mutable = MutableFracVector([[1, 2], [3, 4]])
     with pytest.raises(TypeError):
         hash(mutable)
     with pytest.raises(TypeError):
@@ -167,10 +169,10 @@ def test_mutable_fracvector_is_unhashable() -> None:
 
 
 def test_mutable_fracvector_snapshot_is_hashable_and_canonical() -> None:
-    mutable = MutableFracVector.create([F(1, 2), 0, 0])
-    snapshot = FracVector.create(mutable)
-    assert hash(snapshot) == hash(FracVector((2, 0, 0), 4))
+    mutable = MutableFracVector([F(1, 2), 0, 0])
+    snapshot = FracVector(mutable)
+    assert hash(snapshot) == hash(FracVector.from_noms_and_denom((2, 0, 0), 4))
 
     mutable[0] = F(3, 4)
     # The snapshot is a value, not a live view: mutating the source must not change it.
-    assert snapshot == FracVector.create([F(1, 2), 0, 0])
+    assert snapshot == FracVector([F(1, 2), 0, 0])

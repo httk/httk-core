@@ -22,13 +22,13 @@ def test_scalar_like_coercions_share_the_same_fraction_hub() -> None:
     expected = exactmath.cos(F(1, 2))
     assert exactmath.cos("1/2") == expected
     assert exactmath.cos(0.5) == float(expected)
-    assert exactmath.cos(FracScalar.create(F(1, 2))) == expected
-    assert exactmath.cos(SurdVector.create(F(1, 2))) == expected
+    assert exactmath.cos(FracScalar(F(1, 2))) == expected
+    assert exactmath.cos(SurdVector(F(1, 2))) == expected
 
 
 def test_vector_inputs_are_mapped_and_constructed_in_the_output_domain() -> None:
     assert exactmath.cos([[0, 60]], degrees=True) == [[1, F(1, 2)]]
-    assert exactmath.sqrt(FracVector.create([1, 4])) == FracVector.create([1, 2])
+    assert exactmath.sqrt(FracVector([1, 4])) == FracVector([1, 2])
     assert exactmath.sqrt(VectorNativeView([1, 4])) == (1, 2)
     assert isinstance(exactmath.log([[1, 2]]), list)
 
@@ -94,7 +94,7 @@ def test_atan2_vectors_broadcast_and_resolve_quadrants() -> None:
 
 
 def test_scalar_vector_backends_and_zero_dimensional_numpy_are_scalar_inputs() -> None:
-    rational_backend = VectorFrac(FracVector.create(4))
+    rational_backend = VectorFrac(FracVector(4))
     assert exactmath.sqrt(rational_backend, exact=True) == F(2)
     genuine = VectorSurd(SurdVector.sqrt_of(2))
     with pytest.raises(ValueError, match="rational value"):
@@ -129,7 +129,7 @@ def test_view_neutral_default_presentation_matrix() -> None:
     assert isinstance(exactmath.sqrt(2.0), float)
     assert isinstance(exactmath.sqrt(F(2)), F)
     assert isinstance(exactmath.sqrt(D(2)), D)
-    assert isinstance(exactmath.sqrt(SurdVector.create(4)), SurdVector)
+    assert isinstance(exactmath.sqrt(SurdVector(4)), SurdVector)
 
     numpy = pytest.importorskip("numpy")
     array_result = exactmath.sqrt(numpy.array([4, 9]))
@@ -139,8 +139,8 @@ def test_view_neutral_default_presentation_matrix() -> None:
 def test_exactmath_explicit_presentation_and_natural_mode() -> None:
     result = exactmath.sqrt([4, 9], coerce=FracVector)
     assert isinstance(result, FracVector)
-    assert result == FracVector.create([2, 3])
-    prototype = FracVector.create([0])
+    assert result == FracVector([2, 3])
+    prototype = FracVector([0])
     assert isinstance(exactmath.cos((0, 1), coerce=prototype), FracVector)
     assert isinstance(exactmath.sqrt(4, coerce=float), float)
     assert isinstance(exactmath.sqrt(2, exact=True), SurdScalar)
@@ -208,7 +208,7 @@ def test_default_presentation_special_input_rows() -> None:
     assert exactmath.sqrt(True) == F(1)
     assert isinstance(exactmath.sqrt(True), F)
 
-    backend = VectorFrac(FracVector.create(4))
+    backend = VectorFrac(FracVector(4))
     assert isinstance(backend, VectorBackend)
     assert exactmath.sqrt(backend) == F(2)
     assert isinstance(exactmath.sqrt(backend), F)
@@ -216,7 +216,7 @@ def test_default_presentation_special_input_rows() -> None:
     view = VectorFracView([4, 9])
     result = exactmath.sqrt(view)
     assert isinstance(result, VectorFracView)
-    assert unwrap(result) == FracVector.create([2, 3])
+    assert unwrap(result) == FracVector([2, 3])
 
 
 def test_default_numpy_presentation_is_float64_and_lossless_backend() -> None:

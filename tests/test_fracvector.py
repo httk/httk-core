@@ -7,8 +7,10 @@ legacy semantics themselves approximate (limit_denominator, string min_accuracy,
 which are pinned to their exact expected rationals.
 """
 
+import copy
 import decimal
 import fractions
+import pickle
 
 import pytest
 
@@ -21,158 +23,158 @@ F = fractions.Fraction
 
 
 def test_create_from_ints_with_denominator() -> None:
-    v = FracVector.create([[804, 0, 0], [0, 372, 0], [0, 0, 738]], 100)
+    v = FracVector([[804, 0, 0], [0, 372, 0], [0, 0, 738]], denom=100)
     # simplify shares the gcd(=2) out of the denominator
     assert v.noms == ((402, 0, 0), (0, 186, 0), (0, 0, 369))
     assert v.denom == 50
 
 
 def test_create_from_decimal_strings_matches_int_form() -> None:
-    strings = FracVector.create([["8.04", "0.0", "0.0"], ["0.0", "3.72", "0.0"], ["0.0", "0.0", "7.38"]])
-    ints = FracVector.create([[804, 0, 0], [0, 372, 0], [0, 0, 738]], 100)
+    strings = FracVector([["8.04", "0.0", "0.0"], ["0.0", "3.72", "0.0"], ["0.0", "0.0", "7.38"]])
+    ints = FracVector([[804, 0, 0], [0, 372, 0], [0, 0, 738]], denom=100)
     assert strings.noms == ints.noms
     assert strings.denom == ints.denom
 
 
 def test_create_from_python_float_is_binary_rational() -> None:
     # A Python float literal is a binary rational; 8.04 is NOT 804/100.
-    v = FracVector.create([8.04])
+    v = FracVector([8.04])
     assert v.to_fractions() == [fractions.Fraction(8.04)]
-    assert v != FracVector.create(["8.04"])
+    assert v != FracVector(["8.04"])
 
 
 def test_create_from_decimal() -> None:
-    v = FracVector.create([decimal.Decimal("0.25"), decimal.Decimal("1.5"), decimal.Decimal("2.125")])
+    v = FracVector([decimal.Decimal("0.25"), decimal.Decimal("1.5"), decimal.Decimal("2.125")])
     assert v.noms == (2, 12, 17)
     assert v.denom == 8
 
 
 def test_create_from_fraction() -> None:
-    v = FracVector.create([[F(185, 23), 0, 0], [0, F(67, 18), 0], [0, 0, F(59, 8)]])
+    v = FracVector([[F(185, 23), 0, 0], [0, F(67, 18), 0], [0, 0, F(59, 8)]])
     assert v.noms == ((13320, 0, 0), (0, 6164, 0), (0, 0, 12213))
     assert v.denom == 1656
 
 
 def test_create_string_min_accuracy_default() -> None:
     # 0.33 assumed to be 0.3300 = 33/100; 0.3333 assumed to mean 1/3.
-    assert FracVector.create("0.33").to_fraction() == F(33, 100)
-    assert FracVector.create("0.3333").to_fraction() == F(1, 3)
+    assert FracVector("0.33").to_fraction() == F(33, 100)
+    assert FracVector("0.3333").to_fraction() == F(1, 3)
 
 
 def test_create_string_infinite_accuracy() -> None:
-    assert FracVector.create("0.33", min_accuracy=None).to_fraction() == F(33, 100)
-    assert FracVector.create("0.3333", min_accuracy=None).to_fraction() == F(3333, 10000)
+    assert FracVector("0.33", min_accuracy=None).to_fraction() == F(33, 100)
+    assert FracVector("0.3333", min_accuracy=None).to_fraction() == F(3333, 10000)
 
 
 def test_create_uncertainty_string() -> None:
-    assert FracVector.create(["0.33342(10)"]).noms == (1,)
-    assert FracVector.create(["0.33342(10)"]).denom == 3
-    assert FracVector.create(["0.33352(10)"]).noms == (388,)
-    assert FracVector.create(["0.33352(10)"]).denom == 1163
-    both = FracVector.create(["0.33342(10)", "0.33352(10)"])
+    assert FracVector(["0.33342(10)"]).noms == (1,)
+    assert FracVector(["0.33342(10)"]).denom == 3
+    assert FracVector(["0.33352(10)"]).noms == (388,)
+    assert FracVector(["0.33352(10)"]).denom == 1163
+    both = FracVector(["0.33342(10)", "0.33352(10)"])
     assert both.noms == (1163, 1164)
     assert both.denom == 3489
 
 
 def test_create_fraction_string() -> None:
-    assert FracVector.create("2/3").to_fraction() == F(2, 3)
+    assert FracVector("2/3").to_fraction() == F(2, 3)
 
 
 # ------------------------------------------------------------------ simplify / resolution
 
 
 def test_third_times_three_simplifies_to_one() -> None:
-    v = (FracVector.create("1/3") * 3).simplify()
+    v = (FracVector("1/3") * 3).simplify()
     assert v == 1
     assert v.noms == 1
     assert v.denom == 1
 
 
 def test_simplify_shares_common_denominator() -> None:
-    v = FracVector(((2, 4), (6, 8)), 4).simplify()
+    v = FracVector.from_noms_and_denom(((2, 4), (6, 8)), 4).simplify()
     assert v.noms == ((1, 2), (3, 4))
     assert v.denom == 2
 
 
 def test_set_denominator() -> None:
-    v = FracVector.create([["1/3", "2/7"]]).set_denominator(1000)
+    v = FracVector([["1/3", "2/7"]]).set_denominator(1000)
     assert v.denom == 1000
     assert v.noms == ((333, 286),)
 
 
 def test_limit_denominator_recovers_small_rational() -> None:
     binary = F(6004799503160661, 18014398509481984)  # float64 of 1/3
-    v = FracVector.create([[binary]]).limit_denominator(1000)
-    assert v == FracVector.create([["1/3"]])
+    v = FracVector([[binary]]).limit_denominator(1000)
+    assert v == FracVector([["1/3"]])
 
 
 def test_floor_and_ceil() -> None:
-    assert FracVector.create("-7/3").floor() == -3
-    assert FracVector.create("-7/3").ceil() == -2
-    assert FracVector.create("7/3").floor() == 2
-    assert FracVector.create("7/3").ceil() == 3
+    assert FracVector("-7/3").floor() == -3
+    assert FracVector("-7/3").ceil() == -2
+    assert FracVector("7/3").floor() == 2
+    assert FracVector("7/3").ceil() == 3
 
 
 def test_sign() -> None:
-    assert FracVector.create("-3/4").sign() == -1
-    assert FracVector.create("0").sign() == 0
-    assert FracVector.create("5").sign() == 1
+    assert FracVector("-3/4").sign() == -1
+    assert FracVector("0").sign() == 0
+    assert FracVector("5").sign() == 1
 
 
 # ------------------------------------------------------------------ operators
 
 
 def test_multiplication_is_matrix_multiply() -> None:
-    a = FracVector.create([[1, 2], [3, 4]])
-    identity = FracVector.create([[1, 0], [0, 1]])
+    a = FracVector([[1, 2], [3, 4]])
+    identity = FracVector([[1, 0], [0, 1]])
     assert (a * identity) == a
 
 
 def test_addition_across_denominators() -> None:
-    v = (FracVector.create([["1/2", "1/3"]]) + FracVector.create([["1/6", "1/6"]])).simplify()
+    v = (FracVector([["1/2", "1/3"]]) + FracVector([["1/6", "1/6"]])).simplify()
     assert v.noms == ((4, 3),)  # [2/3, 1/2] on the shared denominator 6
     assert v.denom == 6
 
 
 def test_subtraction() -> None:
-    v = FracVector.create([[5, 6, 7]]) - FracVector.create([[1, 2, 3]])
-    assert v == FracVector.create([[4, 4, 4]])
+    v = FracVector([[5, 6, 7]]) - FracVector([[1, 2, 3]])
+    assert v == FracVector([[4, 4, 4]])
 
 
 def test_truediv_scalar() -> None:
-    v = (FracVector.create([[1, 2], [3, 4]]) / FracVector.create("2")).simplify()
-    assert v == FracVector.create([["1/2", "1"], ["3/2", "2"]])
+    v = (FracVector([[1, 2], [3, 4]]) / FracVector("2")).simplify()
+    assert v == FracVector([["1/2", "1"], ["3/2", "2"]])
 
 
 def test_pow_minus_one_is_inverse() -> None:
-    a = FracVector.create([[2, 3, 5], [3, 5, 4], [4, 6, 7]])
+    a = FracVector([[2, 3, 5], [3, 5, 4], [4, 6, 7]])
     assert (a**-1).simplify() == a.inv().simplify()
 
 
 def test_pow_positive() -> None:
-    a = FracVector.create([[1, 1], [0, 1]])
-    assert a**3 == FracVector.create([[1, 3], [0, 1]])
+    a = FracVector([[1, 1], [0, 1]])
+    assert a**3 == FracVector([[1, 3], [0, 1]])
 
 
 # ------------------------------------------------------------------ linear algebra
 
 
 def test_transpose() -> None:
-    a = FracVector.create([[1, 2, 3], [4, 5, 6]])
-    assert a.T() == FracVector.create([[1, 4], [2, 5], [3, 6]])
+    a = FracVector([[1, 2, 3], [4, 5, 6]])
+    assert a.T() == FracVector([[1, 4], [2, 5], [3, 6]])
 
 
 def test_det_3x3() -> None:
-    assert FracVector.create([[2, 3, 5], [3, 5, 4], [4, 6, 7]]).det() == -3
+    assert FracVector([[2, 3, 5], [3, 5, 4], [4, 6, 7]]).det() == -3
 
 
 def test_det_4x4() -> None:
-    a = FracVector.create([[1, 2, 3, 4], [2, 1, 4, 3], [3, 4, 1, 2], [4, 3, 2, 7]])
+    a = FracVector([[1, 2, 3, 4], [2, 1, 4, 3], [3, 4, 1, 2], [4, 3, 2, 7]])
     assert a.det() == 120
 
 
 def test_inv_3x3_exact() -> None:
-    a = FracVector.create([[2, 3, 5], [3, 5, 4], [4, 6, 7]])
+    a = FracVector([[2, 3, 5], [3, 5, 4], [4, 6, 7]])
     inv = a.inv().simplify()
     assert inv.noms == ((-11, -9, 13), (5, 6, -7), (2, 0, -1))
     assert inv.denom == 3
@@ -180,26 +182,26 @@ def test_inv_3x3_exact() -> None:
 
 
 def test_dot() -> None:
-    assert FracVector.create([1, 2, 3]).dot(FracVector.create([4, 5, 6])) == 32
+    assert FracVector([1, 2, 3]).dot(FracVector([4, 5, 6])) == 32
 
 
 def test_cross() -> None:
-    v = FracVector.create([1, 2, 3]).cross(FracVector.create([4, 5, 6]))
-    assert v == FracVector.create([-3, 6, -3])
+    v = FracVector([1, 2, 3]).cross(FracVector([4, 5, 6]))
+    assert v == FracVector([-3, 6, -3])
 
 
 def test_lengthsqr() -> None:
-    assert FracVector.create([3, 4, 12]).lengthsqr() == 169
+    assert FracVector([3, 4, 12]).lengthsqr() == 169
 
 
 def test_metric_product() -> None:
-    metric = FracVector.create([[2, 0, 0], [0, 3, 0], [0, 0, 4]])
-    v = FracVector.create([1, 1, 1])
+    metric = FracVector([[2, 0, 0], [0, 3, 0], [0, 0, 4]])
+    v = FracVector([1, 1, 1])
     assert metric.metric_product(v, v) == 9
 
 
 def test_reciprocal_issue_60_reference() -> None:
-    cell = FracVector.create([["8.04", "0.0", "0.0"], ["0.0", "3.72", "0.0"], ["0.0", "0.0", "7.38"]])
+    cell = FracVector([["8.04", "0.0", "0.0"], ["0.0", "3.72", "0.0"], ["0.0", "0.0", "7.38"]])
     recip = cell.reciprocal()
     assert recip.noms == ((3431700, 0, 0), (0, 7416900, 0), (0, 0, 3738600))
     assert recip.denom == 27590868
@@ -209,29 +211,29 @@ def test_reciprocal_issue_60_reference() -> None:
 
 
 def test_normalize_into_unit_range() -> None:
-    v = FracVector.create([["7/3", "-1/6", "5/2"]]).normalize().simplify()
-    assert v == FracVector.create([["1/3", "5/6", "1/2"]])
+    v = FracVector([["7/3", "-1/6", "5/2"]]).normalize().simplify()
+    assert v == FracVector([["1/3", "5/6", "1/2"]])
 
 
 def test_normalize_half_into_symmetric_range() -> None:
-    v = FracVector.create([["7/3", "-1/6", "5/2"]]).normalize_half().simplify()
-    assert v == FracVector.create([["1/3", "-1/6", "-1/2"]])
+    v = FracVector([["7/3", "-1/6", "5/2"]]).normalize_half().simplify()
+    assert v == FracVector([["1/3", "-1/6", "-1/2"]])
 
 
 # ------------------------------------------------------------------ conversions / round-trips
 
 
 def test_to_floats() -> None:
-    assert FracVector.create([[1, 2], [3, 4]], 7).to_floats() == [[1 / 7, 2 / 7], [3 / 7, 4 / 7]]
+    assert FracVector([[1, 2], [3, 4]], denom=7).to_floats() == [[1 / 7, 2 / 7], [3 / 7, 4 / 7]]
 
 
 def test_to_fractions_roundtrip() -> None:
-    a = FracVector.create([["1/3", "2/5"], ["3/7", "4/9"]])
-    assert FracVector.create(a.to_fractions()) == a
+    a = FracVector([["1/3", "2/5"], ["3/7", "4/9"]])
+    assert FracVector(a.to_fractions()) == a
 
 
 def test_to_tuple_exact() -> None:
-    a = FracVector.create([[1, 2, 3], [4, 5, 6]], 7)
+    a = FracVector([[1, 2, 3], [4, 5, 6]], denom=7)
     assert a.to_tuple() == (7, ((1, 2, 3), (4, 5, 6)))
 
 
@@ -239,40 +241,41 @@ def test_to_tuple_exact() -> None:
 
 
 def test_equality_across_denominators() -> None:
-    assert FracVector.create([["2/4"]]) == FracVector.create([["1/2"]])
-    assert FracVector(((1,),), 2) == FracVector(((2,),), 4)
+    assert FracVector([["2/4"]]) == FracVector([["1/2"]])
+    assert FracVector.from_noms_and_denom(((1,),), 2) == FracVector.from_noms_and_denom(((2,),), 4)
 
 
 def test_ordering_scalars() -> None:
-    assert FracVector.create("1/3") < FracVector.create("1/2")
-    assert FracVector.create("5/2") > FracVector.create("2")
-    assert FracVector.create("1/3") <= FracVector.create("1/3")
+    assert FracVector("1/3") < FracVector("1/2")
+    assert FracVector("5/2") > FracVector("2")
+    assert FracVector("1/3") <= FracVector("1/3")
 
 
 def test_hash_matches_for_equal_representation() -> None:
-    assert hash(FracVector(((1, 2), (3, 4)), 2)) == hash(FracVector(((1, 2), (3, 4)), 2))
+    raw = FracVector.from_noms_and_denom(((1, 2), (3, 4)), 2)
+    assert hash(raw) == hash(raw)
 
 
 def test_indexing_single_axis() -> None:
-    a = FracVector.create([[1, 2, 3], [4, 5, 6]])
-    assert a[0] == FracVector.create([1, 2, 3])
-    assert a[1, 2] == FracVector.create(6)
+    a = FracVector([[1, 2, 3], [4, 5, 6]])
+    assert a[0] == FracVector([1, 2, 3])
+    assert a[1, 2] == FracVector(6)
 
 
 def test_indexing_multi_axis_tuple_slice() -> None:
-    a = FracVector.create([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-    assert a[1:, 1:] == FracVector.create([[5, 6], [8, 9]])
-    assert a[:, 0] == FracVector.create([1, 4, 7])
+    a = FracVector([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    assert a[1:, 1:] == FracVector([[5, 6], [8, 9]])
+    assert a[:, 0] == FracVector([1, 4, 7])
 
 
 def test_iteration_yields_rows() -> None:
-    a = FracVector.create([[1, 2], [3, 4]])
+    a = FracVector([[1, 2], [3, 4]])
     rows = list(a)
-    assert rows == [FracVector.create([1, 2]), FracVector.create([3, 4])]
+    assert rows == [FracVector([1, 2]), FracVector([3, 4])]
 
 
 def test_max_min_argmax() -> None:
-    a = FracVector.create([2, 7, 5])
+    a = FracVector([2, 7, 5])
     assert a.max() == 7
     assert a.min() == 2
     assert a.argmax() == 1
@@ -283,7 +286,7 @@ def test_max_min_argmax() -> None:
 
 
 def test_fracscalar_creation_and_conversions() -> None:
-    s = FracScalar.create("3/4")
+    s = FracScalar("3/4")
     assert isinstance(s, FracScalar)
     assert s.nom == 3
     assert s.denom == 4
@@ -292,24 +295,24 @@ def test_fracscalar_creation_and_conversions() -> None:
 
 
 def test_fracscalar_create_ignores_min_accuracy() -> None:
-    # Unlike FracVector.create, FracScalar.create converts strings exactly (legacy behavior).
-    assert FracScalar.create("0.33").to_fraction() == F(33, 100)
+    # Unlike FracVector, FracScalar converts strings exactly (legacy behavior).
+    assert FracScalar("0.33").to_fraction() == F(33, 100)
 
 
 # ------------------------------------------------------------------ stacking / chaining
 
 
 def test_chain_and_stack_vecs() -> None:
-    a = FracVector.create([1, 2, 3])
-    b = FracVector.create([4, 5, 6])
-    assert FracVector.chain_vecs([a, b]) == FracVector.create([1, 2, 3, 4, 5, 6])
-    assert FracVector.stack_vecs([a, b]) == FracVector.create([[1, 2, 3], [4, 5, 6]])
+    a = FracVector([1, 2, 3])
+    b = FracVector([4, 5, 6])
+    assert FracVector.chain_vecs([a, b]) == FracVector([1, 2, 3, 4, 5, 6])
+    assert FracVector.stack_vecs([a, b]) == FracVector([[1, 2, 3], [4, 5, 6]])
 
 
 def test_get_append_extend() -> None:
-    b = FracVector.create([1, 2, 3])
-    assert b.get_append(4) == FracVector.create([1, 2, 3, 4])
-    assert b.get_extend(FracVector.create([4, 5, 6])) == FracVector.create([1, 2, 3, 4, 5, 6])
+    b = FracVector([1, 2, 3])
+    assert b.get_append(4) == FracVector([1, 2, 3, 4])
+    assert b.get_extend(FracVector([4, 5, 6])) == FracVector([1, 2, 3, 4, 5, 6])
 
 
 def test_get_stackedinsert_rename() -> None:
@@ -321,8 +324,8 @@ def test_get_stackedinsert_rename() -> None:
 
 
 def test_immutable_setitem_raises() -> None:
-    with pytest.raises(Exception):
-        FracVector.create([1, 2, 3])[0] = 5
+    with pytest.raises(Exception, match="immutable"):
+        FracVector([1, 2, 3])[0] = 5
 
 
 # ------------------------------------------------------------------ from_tuple / to_tuple round-trip
@@ -331,10 +334,10 @@ def test_immutable_setitem_raises() -> None:
 @pytest.mark.parametrize(
     "v",
     [
-        FracVector.create([[1, 2, 3], [4, 5, 6]], 7),
-        FracVector.create([1, 2, 3]),
-        FracScalar.create("3/4"),
-        FracVector.create([[["1/3", "2/5"]], [["3/7", "4/9"]]]),
+        FracVector([[1, 2, 3], [4, 5, 6]], denom=7),
+        FracVector([1, 2, 3]),
+        FracScalar("3/4"),
+        FracVector([[["1/3", "2/5"]], [["3/7", "4/9"]]]),
     ],
 )
 def test_from_tuple_inverts_to_tuple(v: FracVector) -> None:
@@ -350,13 +353,13 @@ def test_from_tuple_inverts_to_tuple(v: FracVector) -> None:
 
 def test_get_stacked_adds_leading_axis() -> None:
     # Corrected: legacy wrapped `other` in an extra list, giving a ragged result.
-    assert FracVector.create([1, 2, 3]).get_stacked([4, 5, 6]) == FracVector.create([[1, 2, 3], [4, 5, 6]])
-    assert FracVector.create([1, 2, 3]).get_prestacked([4, 5, 6]) == FracVector.create([[4, 5, 6], [1, 2, 3]])
+    assert FracVector([1, 2, 3]).get_stacked([4, 5, 6]) == FracVector([[1, 2, 3], [4, 5, 6]])
+    assert FracVector([1, 2, 3]).get_prestacked([4, 5, 6]) == FracVector([[4, 5, 6], [1, 2, 3]])
 
 
 def test_get_stacked_matrices() -> None:
-    a = FracVector.create([[1, 2], [3, 4]])
-    b = FracVector.create([[5, 6], [7, 8]])
+    a = FracVector([[1, 2], [3, 4]])
+    b = FracVector([[5, 6], [7, 8]])
     stacked = a.get_stacked(b)
     assert stacked.dim == (2, 2, 2)
     assert stacked[0] == a and stacked[1] == b
@@ -366,30 +369,31 @@ def test_dim_treats_string_nominators_as_scalar_leaves() -> None:
     """A string leaf must not be followed through forever by ``dim``."""
     assert FracVector([["1", "0"], ["0", "1"]]).dim == (2, 2)
 
+    
+def test_constructor_copies_plain_fracvector() -> None:
+    v = FracVector([1, 2, 3])
+    assert FracVector(v) == v
+    assert FracVector(v) is not v
 
-def test_use_returns_plain_fracvector_unchanged() -> None:
-    v = FracVector.create([1, 2, 3])
-    assert FracVector.use(v) is v
-
-
-def test_use_converts_mutable_to_immutable() -> None:
+    
+def test_constructor_converts_mutable_to_immutable() -> None:
     from httk.core.vectors import MutableFracVector
 
-    m = MutableFracVector.create(FracVector.create([[1, 2], [3, 4]]))
-    result = FracVector.use(m)
+    m = MutableFracVector(FracVector([[1, 2], [3, 4]]))
+    result = FracVector(m)
     assert type(result) is FracVector
     assert result == m
 
 
-def test_use_falls_back_to_create_for_plain_sequence() -> None:
-    assert FracVector.use([[1, 2], [3, 4]]) == FracVector.create([[1, 2], [3, 4]])
+def test_constructor_converts_plain_sequence() -> None:
+    assert FracVector([[1, 2], [3, 4]]) == FracVector([[1, 2], [3, 4]])
 
 
 # ------------------------------------------------------------------ __pow__ (corrected negatives / scalar 0)
 
 
 def test_pow_negative_matrix_beyond_minus_one() -> None:
-    a = FracVector.create([[2, 3, 5], [3, 5, 4], [4, 6, 7]])
+    a = FracVector([[2, 3, 5], [3, 5, 4], [4, 6, 7]])
     inv = a.inv()
     # Corrected: legacy multiplied by self (not the inverse), collapsing A**-2 to the identity.
     assert (a**-2).simplify() == inv.mul(inv).simplify()
@@ -398,14 +402,25 @@ def test_pow_negative_matrix_beyond_minus_one() -> None:
 
 
 def test_pow_zero_scalar_and_fracscalar() -> None:
-    assert FracVector.create("2/3") ** 0 == 1
-    # Corrected: FracScalar ** 0 used to crash (single-arg constructor needs two arguments).
-    s = FracScalar.create("2/3") ** 0
+    assert FracVector("2/3") ** 0 == 1
+    # Scalar powers use the raw constructor for the identity.
+    s = FracScalar("2/3") ** 0
     assert s == 1
 
 
+def test_fracvector_and_fracscalar_copy_round_trip() -> None:
+    for value in (FracVector([1, 2]), FracScalar("1/2")):
+        assert pickle.loads(pickle.dumps(value)) == value
+        assert copy.copy(value) == value
+        assert copy.deepcopy(value) == value
+
+
+def test_repr_uses_raw_constructor() -> None:
+    assert repr(FracVector.from_noms_and_denom((1, 2), 3)) == "FracVector.from_noms_and_denom((1, 2), 3)"
+
+
 def test_pow_zero_matrix_is_identity() -> None:
-    assert FracVector.create([[1, 2], [3, 4]]) ** 0 == FracVector.eye((2, 2))
+    assert FracVector([[1, 2], [3, 4]]) ** 0 == FracVector.eye((2, 2))
 
 
 # ------------------------------------------------------------------ mutable/immutable equality (corrected)
@@ -414,24 +429,24 @@ def test_pow_zero_matrix_is_identity() -> None:
 def test_equality_across_list_and_tuple_noms() -> None:
     from httk.core.vectors import MutableFracVector
 
-    fv = FracVector.create([[1, 2], [3, 4]])
-    mv = MutableFracVector.create(fv)
+    fv = FracVector([[1, 2], [3, 4]])
+    mv = MutableFracVector(fv)
     # Corrected: nested list vs nested tuple never compared equal before.
     assert mv == fv
     assert fv == mv
-    assert mv == FracVector([[2, 4], [6, 8]], 2)  # equal value, different denom
-    assert mv != FracVector.create([[1, 2], [3, 5]])
+    assert mv == FracVector([[2, 4], [6, 8]], denom=2)  # equal value, different denom
+    assert mv != FracVector([[1, 2], [3, 5]])
 
 
 # ------------------------------------------------------------------ chain / division-by-zero
 
 
 def test_create_chain_flattens_outer_dimension() -> None:
-    assert FracVector.create([[1, 2, 3], [4, 5, 6]], chain=True) == FracVector.create([1, 2, 3, 4, 5, 6])
+    assert FracVector([[1, 2, 3], [4, 5, 6]], chain=True) == FracVector([1, 2, 3, 4, 5, 6])
 
 
 def test_division_by_zero_raises_on_use() -> None:
-    quotient = FracVector.create("1/2") / FracVector.create("0")
+    quotient = FracVector("1/2") / FracVector("0")
     with pytest.raises(ZeroDivisionError):
         quotient.to_fraction()
 
@@ -440,7 +455,7 @@ def test_division_by_zero_raises_on_use() -> None:
 
 
 def test_nargmax_nargmin_collect_all_ties() -> None:
-    a = FracVector.create([[1, 7, 3], [7, 2, 7]])
+    a = FracVector([[1, 7, 3], [7, 2, 7]])
     assert sorted(a.nargmax()) == sorted([(0, 1), (1, 0), (1, 2)])
     assert a.nargmin() == [(0, 0)]
     # argmax returns a single (first) index of the maximum.
@@ -451,9 +466,9 @@ def test_nargmax_nargmin_collect_all_ties() -> None:
 
 
 _MATS = [
-    FracVector.create([[2, 3, 5], [3, 5, 4], [4, 6, 7]]),
-    FracVector.create([[1, 0, 2], [0, 3, 0], [4, 0, 1]]),
-    FracVector.create([["1/2", "1/3", 0], [0, "2/5", 1], [1, 0, "3/7"]]),
+    FracVector([[2, 3, 5], [3, 5, 4], [4, 6, 7]]),
+    FracVector([[1, 0, 2], [0, 3, 0], [4, 0, 1]]),
+    FracVector([["1/2", "1/3", 0], [0, "2/5", 1], [1, 0, "3/7"]]),
 ]
 
 
@@ -481,7 +496,7 @@ def test_simplify_idempotent_and_value_preserving(a: FracVector) -> None:
     assert s.simplify().denom == s.denom
 
 
-def test_create_fast_matches_create() -> None:
+def test_constructor_matches_fraction_conversion() -> None:
     import random
 
     rng = random.Random(20240721)
@@ -493,13 +508,13 @@ def test_create_fast_matches_create() -> None:
             data = [[[rng.randint(-9, 9) for _ in range(2)] for _ in range(2)] for _ in range(2)]
         cd = rng.randint(1, 24)
 
-        def as_fraction(node: object) -> object:
+        def as_fraction(node: object, denominator: int) -> object:
             if isinstance(node, list):
-                return [as_fraction(x) for x in node]
-            return F(node, cd)  # type: ignore[arg-type]
+                return [as_fraction(x, denominator) for x in node]
+            return F(node, denominator)  # type: ignore[arg-type]
 
-        fast = FracVector.create_fast(data, common_denom=cd)
-        slow = FracVector.create(as_fraction(data))
+        fast = FracVector(data, denom=cd)
+        slow = FracVector(as_fraction(data, cd))
         assert fast.simplify() == slow.simplify()
         assert fast.simplify().denom == slow.simplify().denom
 
@@ -508,17 +523,17 @@ def test_simplify_huge_integers_no_float_overflow() -> None:
     # Regression: simplify() used int(x / gcd) (float division), which overflowed for
     # exact integers beyond the float range. Exact floor division must be used instead.
     huge = 10**400
-    vector = FracVector.create_fast([[2 * huge, 4 * huge, 6 * huge]], common_denom=2)
+    vector = FracVector([[2 * huge, 4 * huge, 6 * huge]], denom=2)
     simplified = vector.simplify()  # must not raise OverflowError
-    assert simplified == FracVector.create([[huge, 2 * huge, 3 * huge]])
+    assert simplified == FracVector([[huge, 2 * huge, 3 * huge]])
 
 
 def test_to_floats_huge_integers_no_float_overflow() -> None:
     # Regression: to_floats() called math.isnan(x) on each nominator, which converted
     # very large exact integers to float first and overflowed. The ratio itself is finite.
-    vector = FracVector.create_fast([[3, 0]], common_denom=10**16)
+    vector = FracVector([[3, 0]], denom=10**16)
     floats = vector.to_floats()
     assert floats[0][0] == float(fractions.Fraction(3, 10**16))
     # A genuinely huge numerator/denominator whose ratio is order 1 renders finitely.
-    ratio = FracVector.create_fast([[7 * 10**350]], common_denom=2 * 10**350)
+    ratio = FracVector([[7 * 10**350]], denom=2 * 10**350)
     assert ratio.to_floats()[0][0] == 3.5

@@ -10,9 +10,9 @@ import numpy
 
 from httk.core.vectors import FracVector, VectorNativeView, VectorNumpyView
 
-vector = FracVector.create([1, Fraction(1, 2), "1/3"])
+vector = FracVector([1, Fraction(1, 2), "1/3"])
 doubled = vector * 2
-assert doubled == FracVector.create([2, 1, "2/3"])
+assert doubled == FracVector([2, 1, "2/3"])
 assert VectorNativeView(doubled) == (2, 1, Fraction(2, 3))
 
 numeric = VectorNumpyView(doubled)
