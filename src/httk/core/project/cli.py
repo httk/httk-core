@@ -6,6 +6,7 @@
 
 import argparse
 import json
+import shutil
 import sys
 from collections.abc import Callable, Sequence
 from pathlib import Path
@@ -23,6 +24,7 @@ from .anchor import (
     require_project,
     trusted_project_keys,
 )
+from .templates import available_templates, check_parameters, instantiate_template, resolve_template
 
 #: Everything a handler may raise that is an operator's problem rather than a
 #: defect. Anything here is reported as ``PROGRAM: message`` and exits ``2``.
@@ -105,14 +107,73 @@ def _handle_init(arguments: argparse.Namespace, context: CLIContext) -> int:
     """Create one project anchor at PATH, refusing an existing project."""
 
     path = Path(arguments.path or context.cwd).expanduser().resolve()
+    if arguments.list_templates:
+        if arguments.path or arguments.template or arguments.parameter:
+            raise ValueError("--list-templates cannot be combined with PATH, --template, or --parameter")
+        templates = available_templates()
+        if not templates:
+            print("no templates available")
+        else:
+            for plugin, template in templates:
+                print(f"{plugin}:{template.id}  {template.description or ''}")
+            print("templates can also be given as a directory path")
+        return 0
     if (path / PROJECT_DIRECTORY / PROJECT_FILE).is_file():
         raise ValueError(f"{path} is already an httk project")
-    metadata = initialize_project(
-        path,
-        name=arguments.name or path.name,
-        description=arguments.description,
-    )
-    print(f"Initialized httk project {metadata['name']!r} in {path / PROJECT_DIRECTORY}")
+    if arguments.parameter and not arguments.template:
+        raise ValueError("--parameter requires --template")
+    if not arguments.template:
+        metadata = initialize_project(
+            path,
+            name=arguments.name or path.name,
+            description=arguments.description,
+        )
+        print(f"Initialized httk project {metadata['name']!r} in {path / PROJECT_DIRECTORY}")
+        return 0
+
+    template = resolve_template(arguments.template)
+    supplied: dict[str, object] = {}
+    for value in arguments.parameter or []:
+        if "=" not in value:
+            raise ValueError(f"invalid template parameter {value!r}; expected NAME=VALUE")
+        name, raw = value.split("=", 1)
+        try:
+            supplied[name] = json.loads(raw)
+        except json.JSONDecodeError:
+            supplied[name] = raw
+    parameters = check_parameters(template, supplied)
+    was_fresh = not path.exists() or (path.is_dir() and not any(path.iterdir()))
+
+    try:
+        initialize_project(
+            path,
+            name=arguments.name or path.name,
+            description=arguments.description,
+        )
+        project = describe_project(path)["project"]
+        assert isinstance(project, dict)
+        notes = instantiate_template(
+            template,
+            path,
+            parameters,
+            project_info={
+                "name": project.get("name"),
+                "description": project.get("description"),
+                "project_id": project.get("project_id"),
+            },
+        )
+    except _ERRORS as exc:
+        if was_fresh:
+            if path.is_dir():
+                shutil.rmtree(path)
+        else:
+            raise ValueError(
+                f"{exc}; partial state left in {path} (httk_project/ and any copied template files)"
+            ) from exc
+        raise
+    print(f"Initialized httk project {project['name']!r} in {path / PROJECT_DIRECTORY}")
+    for note in notes:
+        print(f"note: {note}")
     return 0
 
 
@@ -148,6 +209,14 @@ def _build_init(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument("--name", metavar="NAME", help="the project name (default: the directory name)")
     parser.add_argument("--description", metavar="TEXT", default="", help="a one-line description")
+    parser.add_argument("--template", metavar="SELECTOR", help="instantiate a project template")
+    parser.add_argument(
+        "--parameter",
+        action="append",
+        metavar="NAME=VALUE",
+        help="set a template parameter (repeatable)",
+    )
+    parser.add_argument("--list-templates", action="store_true", help="list available project templates")
 
 
 def _build_show(parser: argparse.ArgumentParser) -> None:
