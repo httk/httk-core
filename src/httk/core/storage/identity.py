@@ -1,4 +1,46 @@
-"""Canonical content identity for plain and projected frozen records."""
+"""Canonical content identity for plain and projected frozen records.
+
+Canonical format version 2 represents a standalone record as a type-tagged
+record object containing its logical ``identity_name`` and sorted field pairs.
+Whenever an annotated record is reached through a field, a list or tuple
+element, or a typed mapping value, the parent contains only a Merkle reference::
+
+    {"content_id": "<64 lowercase hex characters>", "type": "record_ref"}
+
+The referenced digest is SHA-256 of that child's own canonical record JSON,
+including its ``"version": 2`` header. It is computed in the same encoder
+context as the parent so active-path cycle detection retains the complete field
+path. Canonical JSON uses ASCII escaping, compact separators, and sorted object
+keys.
+
+The v2 value-node shapes are:
+
+* ``null``; ``bool`` with a JSON boolean; ``int`` with decimal text; ``float``
+  with :meth:`float.hex` text; ``string``; and hexadecimal ``bytes``;
+* ``rational`` for :class:`fractions.Fraction`, :class:`decimal.Decimal`, and
+  :class:`~httk.core.vectors.fracvector.FracScalar`, with reduced ``"p/q"``
+  text and an explicit positive denominator (including ``"0/1"`` and
+  ``"5/1"``);
+* structural ``frac_vector``, ``surd_scalar``, and ``surd_vector`` nodes,
+  unchanged from format v1;
+* ``date`` and ``datetime`` nodes, the latter recording whether the original
+  value was timezone-aware;
+* ``list`` and ``tuple`` nodes containing value nodes, and ``mapping`` nodes
+  containing sorted string-key/value-node pairs;
+* ``custom`` nodes containing the exact Python type name and the tagged value
+  returned by its registered encoder; and
+* standalone ``record`` nodes plus the ``record_ref`` nodes described above.
+
+The format is not injective after record children are replaced by digests. Its
+guarantee is computational binding: producing two distinct well-formed
+canonical value trees, modulo the documented deliberate equivalences
+(shared-vs-duplicated equal children, ``IdentitySkip`` exclusions,
+``identity_name``-based record unification, ``Decimal`` equivalence with
+``Fraction``, builtin-subclass leaf unification, and annotation-normalized
+list/tuple values), with equal digests requires a SHA-256 collision. A
+``record_ref`` is sound domain separation because user data is always enclosed
+in its own tagged value node and can never forge a bare reference node.
+"""
 
 import dataclasses
 import datetime
@@ -12,6 +54,7 @@ from collections.abc import Callable, Mapping
 from typing import Annotated, Any, Union, get_args, get_origin, get_type_hints
 
 from .markers import STORAGE_INFO_ATTRIBUTE, IdentitySkip, Skip, StorageInfo, stored_property
+from .rational_text import fraction_to_text
 
 __all__ = [
     "StorageProjectionCycleError",
@@ -28,6 +71,16 @@ CANONICAL_SOURCE_ATTRIBUTE = "__httk_canonical_source__"
 CANONICAL_PROJECT_ATTRIBUTE = "__httk_project__"
 _MISSING = object()
 _canonical_encoders: dict[type[Any], Callable[[Any], Any]] = {}
+# Process-local identity token for all content-id caches.  It is replaced on
+# encoder registration, and identity comparison also invalidates pickled
+# cache entries after unpickling.
+_canonical_epoch = object()
+_CACHE_ATTRIBUTE = "_httk_cached_content_ids"
+_VIEW_TYPE: type[Any] | None = None
+
+
+def _canonical_json(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=True, separators=(",", ":"), sort_keys=True)
 
 
 class StorageProjectionCycleError(ValueError):
@@ -62,6 +115,8 @@ def register_canonical_encoder(python_type: type[Any], encoder: Callable[[Any], 
     if python_type in _canonical_encoders:
         raise ValueError(f"canonical encoder is already registered for {python_type!r}")
     _canonical_encoders[python_type] = encoder
+    global _canonical_epoch
+    _canonical_epoch = object()
 
 
 def resolve_storage_record(source: Any, *, as_record: type[Any] | None = None) -> type[Any]:
@@ -85,7 +140,10 @@ def project_storage_record(record_type: type[Any], source: Any) -> Mapping[str, 
     """Project and validate one record level, returning field values by name.
 
     Projection classes may declare a source class and classmethod projection;
-    otherwise ``source`` must already be an instance of ``record_type``.
+    otherwise ``source`` must already be an instance of ``record_type``. A
+    projection used by the trusted content-id path must be deterministic for
+    the immutable lifetime of its source: the content-id cache is governed by
+    that immutability contract.
 
     :param record_type: The frozen dataclass record class to project.
     :param source: A record instance or declared projection source.
@@ -185,7 +243,7 @@ def canonical_form(
     encoder = _Encoder(projector)
     target = resolve_storage_record(obj, as_record=as_record)
     value = encoder.record(obj, target, ())
-    return json.dumps(value, ensure_ascii=True, separators=(",", ":"), sort_keys=True)
+    return _canonical_json(value)
 
 
 def content_id(
@@ -206,14 +264,146 @@ def content_id(
     :raises TypeError: If a value or projection cannot be represented.
     :raises ValueError: If a projection is invalid or contains a cycle.
     """
-    return hashlib.sha256(canonical_form(obj, as_record=as_record, projector=projector).encode("utf-8")).hexdigest()
+    if projector is project_storage_record:
+        return _trusted_content_id(obj, as_record=as_record, projector=projector)
+    # Custom projectors deliberately bypass both cache lookup and cache
+    # installation.  Their output is outside the trusted projection contract.
+    return _content_id_uncached(obj, as_record=as_record, projector=projector)
+
+
+def _content_id_uncached(
+    obj: Any,
+    *,
+    as_record: type[Any] | None,
+    projector: Callable[[type[Any], Any], Mapping[str, object]],
+) -> str:
+    encoder = _Encoder(projector)
+    target = resolve_storage_record(obj, as_record=as_record)
+    value = encoder.record(obj, target, ())
+    return hashlib.sha256(_canonical_json(value).encode("utf-8")).hexdigest()
+
+
+def _trusted_content_id(
+    obj: Any,
+    *,
+    as_record: type[Any] | None = None,
+    projector: Callable[[type[Any], Any], Mapping[str, object]] = project_storage_record,
+) -> str:
+    """Return a content id through the deterministic projection cache.
+
+    Storage integrations may call this private entry point when their
+    projector is pure memoization of :func:`project_storage_record`.  Such a
+    projector must preserve deterministic output for the immutable lifetime of
+    each source.  The cache is process-local, object-owned, epoch-invalidated,
+    and never installed on :class:`httk.core.views.View` instances.
+    """
+    epoch = _canonical_epoch
+    target = resolve_storage_record(obj, as_record=as_record)
+    cached = _cache_lookup(obj, target, epoch)
+    if cached is not None:
+        return cached
+
+    encoder = _Encoder(projector, cache_enabled=True, epoch=epoch)
+    value = encoder.record(obj, target, ())
+    digest = hashlib.sha256(_canonical_json(value).encode("utf-8")).hexdigest()
+    encoder.remember(obj, target, digest)
+    # The encoder uses one registry snapshot for the whole operation.  If a
+    # registration changed the epoch during traversal, its result is returned
+    # but no pending root or child entry from that snapshot is installed.
+    if encoder.plans_resolved and _canonical_epoch is epoch:
+        encoder.install_pending()
+    return digest
+
+
+def _is_view(source: Any) -> bool:
+    """Return whether ``source`` is a View without importing views at module load."""
+    global _VIEW_TYPE
+    if _VIEW_TYPE is None:
+        from ..views import View
+
+        _VIEW_TYPE = View
+    return isinstance(source, _VIEW_TYPE)
+
+
+def _cache_shape(value: Any) -> tuple[object, dict[type[Any], str]] | None:
+    if not isinstance(value, tuple) or len(value) != 2 or not isinstance(value[1], dict):
+        return None
+    if not all(isinstance(record_type, type) and isinstance(digest, str) for record_type, digest in value[1].items()):
+        return None
+    return value[0], value[1]
+
+
+def _cache_lookup(
+    source: Any,
+    record_type: type[Any],
+    epoch: object,
+    *,
+    view_checked: bool = False,
+) -> str | None:
+    if not view_checked and _is_view(source):
+        return None
+    try:
+        cached = getattr(source, _CACHE_ATTRIBUTE, _MISSING)
+    except Exception:
+        return None
+    entry = _cache_shape(cached)
+    if entry is None or entry[0] is not epoch:
+        return None
+    return entry[1].get(record_type)
+
+
+def _install_cache(
+    source: Any,
+    epoch: object,
+    entries: Mapping[type[Any], str],
+    *,
+    view_checked: bool = False,
+) -> None:
+    """Atomically install one source's completed epoch-tagged entries."""
+    if not entries or (not view_checked and _is_view(source)):
+        return
+    try:
+        existing = getattr(source, _CACHE_ATTRIBUTE, _MISSING)
+    except Exception:
+        return
+    if existing is not _MISSING:
+        shape = _cache_shape(existing)
+        # A pre-existing non-cache attribute is a collision, not a cache to
+        # overwrite.  This also protects user-defined descriptors and malformed
+        # values from being silently claimed by identity.py.
+        if shape is None:
+            return
+        values = dict(shape[1]) if shape[0] is epoch else {}
+    else:
+        values = {}
+    values.update(entries)
+    try:
+        # Direct object.__setattr__ is required for frozen record instances.
+        # It also fails cleanly for tuples and other unwritable carriers.
+        object.__setattr__(source, _CACHE_ATTRIBUTE, (epoch, values))
+    except Exception:
+        return
 
 
 class _Encoder:
-    def __init__(self, projector: Callable[[type[Any], Any], Mapping[str, object]]) -> None:
+    def __init__(
+        self,
+        projector: Callable[[type[Any], Any], Mapping[str, object]],
+        *,
+        cache_enabled: bool = False,
+        epoch: object | None = None,
+    ) -> None:
         self._projector = projector
         self._active: set[tuple[type[Any], int]] = set()
         self._active_containers: set[int] = set()
+        self._cache_enabled = cache_enabled
+        self._epoch = _canonical_epoch if epoch is None else epoch
+        # Snapshot the encoder table as well as the epoch.  A registration from
+        # inside a custom leaf encoder cannot make this traversal mixed-epoch.
+        self._canonical_encoders = dict(_canonical_encoders)
+        self._pending: dict[int, tuple[Any, dict[type[Any], str]]] = {}
+        self._non_view_sources: set[int] = set()
+        self.plans_resolved = True
 
     def record(self, source: Any, record_type: type[Any], path: tuple[str, ...]) -> dict[str, Any]:
         key = (record_type, id(source))
@@ -224,6 +414,10 @@ class _Encoder:
             values = self._projector(record_type, source)
             excluded = _identity_excluded_names(record_type)
             plans = _field_plans(record_type)
+            if record_type not in _RESOLVED_ANNOTATIONS:
+                # The fallback annotations are intentionally not cache-safe:
+                # a later import may resolve a record reference differently.
+                self.plans_resolved = False
             fields = []
             for name in sorted(values):
                 if name in excluded:
@@ -233,30 +427,47 @@ class _Encoder:
                 "fields": fields,
                 "identity_name": storage_identity_name(record_type),
                 "type": "record",
-                "version": 1,
+                "version": 2,
             }
         finally:
             self._active.remove(key)
 
+    def record_digest(self, source: Any, record_type: type[Any], path: tuple[str, ...]) -> str:
+        """Return a child record digest without leaving this encoder context."""
+        key = (record_type, id(source))
+        if key in self._active:
+            raise StorageProjectionCycleError(_format_path(path), record_type)
+        if self._cache_enabled:
+            cached = self.lookup(source, record_type)
+            if cached is not None:
+                return cached
+        value = self.record(source, record_type, path)
+        digest = hashlib.sha256(_canonical_json(value).encode("utf-8")).hexdigest()
+        self.remember(source, record_type, digest)
+        return digest
+
     def value(self, value: Any, plan: "_AnnotationPlan", path: tuple[str, ...]) -> Any:
         value_type = type(value)
-        encoder = _canonical_encoders.get(value_type)
-        if encoder is not None:
-            return self._custom(value, encoder, path)
-        if _canonical_encoders:
-            for ancestor in value_type.__mro__[1:]:
-                if ancestor in _canonical_encoders:
-                    raise TypeError(
-                        f"no canonical encoder is registered for {value_type.__name__}; "
-                        f"the registered ancestor {ancestor.__name__} cannot be used "
-                        "because canonical encoders are exact-type"
-                    )
         if value is None:
             return {"type": "null"}
         record_annotation = plan.record_annotation
         if record_annotation is not None:
             _validate_record_type(record_annotation)
-            return self.record(value, record_annotation, path)
+            return {
+                "content_id": self.record_digest(value, record_annotation, path),
+                "type": "record_ref",
+            }
+        encoder = self._canonical_encoders.get(value_type)
+        if encoder is not None:
+            return self._custom(value, encoder, path)
+        if self._canonical_encoders:
+            for ancestor in value_type.__mro__[1:]:
+                if ancestor in self._canonical_encoders:
+                    raise TypeError(
+                        f"no canonical encoder is registered for {value_type.__name__}; "
+                        f"the registered ancestor {ancestor.__name__} cannot be used "
+                        "because canonical encoders are exact-type"
+                    )
         if plan.is_list and isinstance(value, list):
             element_plan = plan.list_element_plan or _ANY_PLAN
             return self._container(
@@ -288,6 +499,8 @@ class _Encoder:
             if kind == _LEAF_FRACTION:
                 return _rational(value)
             if kind == _LEAF_FRAC:
+                if isinstance(value, _vector_types()[0]):
+                    return _rational(value.to_fraction())
                 return _frac(value)
             if kind == _LEAF_FLOAT:
                 if not math.isfinite(value):
@@ -302,8 +515,7 @@ class _Encoder:
             if kind == _LEAF_DECIMAL:
                 if not value.is_finite():
                     raise ValueError("nonfinite Decimal values cannot have a content identity")
-                numerator, denominator = value.as_integer_ratio()
-                return _rational(fractions.Fraction(numerator, denominator))
+                return _rational(fractions.Fraction(value))
             if kind == _LEAF_DATETIME:
                 aware = value.utcoffset() is not None
                 instant = value.astimezone(datetime.UTC) if aware else value
@@ -331,6 +543,38 @@ class _Encoder:
         if dataclasses.is_dataclass(value):
             raise TypeError(f"field annotation does not declare a frozen record target for {value_type.__name__}")
         raise TypeError(f"unsupported value type for content identity: {value_type.__name__}")
+
+    def lookup(self, source: Any, record_type: type[Any]) -> str | None:
+        """Look up a current cache entry or a pending entry in this walk."""
+        if _is_view(source):
+            return None
+        self._non_view_sources.add(id(source))
+        pending = self._pending.get(id(source))
+        if pending is not None and pending[0] is source:
+            digest = pending[1].get(record_type)
+            if digest is not None:
+                return digest
+        return _cache_lookup(source, record_type, self._epoch, view_checked=True)
+
+    def remember(self, source: Any, record_type: type[Any], digest: str) -> None:
+        """Queue one digest for the root-transactional cache install."""
+        if not self._cache_enabled:
+            return
+        key = id(source)
+        if key not in self._non_view_sources:
+            if _is_view(source):
+                return
+            self._non_view_sources.add(key)
+        pending = self._pending.get(key)
+        if pending is None:
+            self._pending[key] = (source, {record_type: digest})
+        elif pending[0] is source:
+            pending[1][record_type] = digest
+
+    def install_pending(self) -> None:
+        """Install all completed source entries after the root has succeeded."""
+        for source, entries in self._pending.values():
+            _install_cache(source, self._epoch, entries, view_checked=True)
 
     def _custom(self, value: Any, encoder: Callable[[Any], Any], path: tuple[str, ...]) -> Any:
         encoded = encoder(value)
@@ -675,7 +919,7 @@ def _format_path(path: tuple[str, ...]) -> str:
 
 
 def _rational(value: fractions.Fraction) -> dict[str, Any]:
-    return {"type": "rational", "value": [value.numerator, value.denominator]}
+    return {"type": "rational", "value": fraction_to_text(value)}
 
 
 def _frac(value: Any) -> dict[str, Any]:

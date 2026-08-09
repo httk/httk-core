@@ -246,3 +246,58 @@ requested target. See the four-verb table in {doc}`view_backend_pattern`.
 encoder for an exact custom Python type. The encoder returns the value used by
 canonical storage identity and content IDs. Duplicate type registrations are
 errors; see {func}`httk.core.storage.identity.register_canonical_encoder`.
+
+### Canonical format v2
+
+`canonical_form` emits compact, ASCII-escaped JSON with sorted object keys.
+Every standalone record has this shape, with field pairs sorted by name:
+
+```json
+{"fields":[["field",{"type":"string","value":"value"}]],"identity_name":"logical.name","type":"record","version":2}
+```
+
+An annotated record reached as a record field, list/tuple element, or typed
+mapping value is a Merkle reference rather than an embedded record:
+
+```json
+{"content_id":"<64 lowercase hex characters>","type":"record_ref"}
+```
+
+The reference digest is SHA-256 of the child's own canonical record JSON,
+including its version-2 header, computed in the same traversal context. The v2
+node table is:
+
+| Python value | Canonical node payload |
+| --- | --- |
+| `None` | `{"type":"null"}` |
+| `bool` | `{"type":"bool","value":<JSON boolean>}` |
+| `int` | `{"type":"int","value":"<decimal integer>"}` |
+| `Fraction`, finite `Decimal`, direct `FracScalar` | `{"type":"rational","value":"p/q"}` |
+| finite `float` | `{"type":"float","value":"<float.hex() text>"}` |
+| `str` / `bytes` | `string` with the text / `bytes` with lowercase hexadecimal text |
+| `date` | `date` with ISO text |
+| `datetime` | `datetime` with microsecond ISO text and an `aware` Boolean; aware values are converted to UTC |
+| `FracVector` | `frac_vector` with the v1 structural `denominator` and nested `nominators` payload |
+| `SurdScalar`, `SurdVector` | v1 structural `surd_scalar` / `surd_vector` with dimension and radicand/coefficient pairs |
+| list / tuple | `list` / `tuple` with an ordered array of canonical nodes |
+| string-keyed mapping | `mapping` with sorted `[key, canonical node]` pairs |
+| registered exact custom type | `custom` with `python_type` and a canonically tagged encoder result |
+| standalone record / annotated child record | version-2 `record` / `record_ref` as above |
+
+The rational grammar is exactly
+`f"{fraction.numerator}/{fraction.denominator}"` after conversion to
+`Fraction`: it is reduced, the denominator is positive and always present, so
+examples include `"0/1"`, `"-3/2"`, and `"5/1"`. `Decimal` converts through
+`Fraction(decimal)`, preserving the documented `Decimal` ≡ `Fraction`
+equivalence. `FracVector`, `SurdVector`, and `SurdScalar` deliberately retain
+their structural v1 payloads.
+
+The format is not injective after record children are replaced by digests. Its
+guarantee is **computational binding**: producing two distinct well-formed
+canonical value trees, modulo the documented deliberate equivalences
+(shared-vs-duplicated equal children, `IdentitySkip` exclusions,
+`identity_name`-based record unification, `Decimal` ≡ `Fraction`, unregistered
+builtin-subclass leaf unification, and annotation-normalized list/tuple values),
+with equal digests requires a SHA-256 collision. `record_ref` provides sound
+domain separation: user strings, mappings, and custom values remain enclosed
+in their own tagged nodes and cannot forge a bare reference node.

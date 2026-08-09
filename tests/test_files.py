@@ -31,7 +31,7 @@ def _record(**metadata: object) -> FileRecord:
 def test_file_record_content_id_and_metadata_exclusion() -> None:
     record = _record()
     # A changed value means a storage-identity break.
-    assert content_id(record) == "398227a2b278754f0c0fdd85359b44c318c5de12269ea2bbcf270ef1147135f3"
+    assert content_id(record) == "efbd2362bb6b5578c1f0d11f74a8ad98e664096417b148fc408788acf503d050"
     assert record.id == content_id(record)
     assert record.type == "files"
     metadata = {

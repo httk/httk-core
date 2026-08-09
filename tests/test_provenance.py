@@ -98,11 +98,11 @@ def test_provenance_content_id_pins() -> None:
         "_httk_records", "record-1", "_httk_records", "record-2", "curated", "https://example.org/workflow/1"
     )
     # A changed value means a storage-identity break.
-    assert content_id(edge) == "9273ae3a18ddbe318fe14941bd273b0acf0babb82ef1b34ddad01c9fc9fe10ec"
+    assert content_id(edge) == "a8480cefad700f2ef7c6d8d550763ed3ec2973463f01ee61ca66aac32d1e211e"
     # A changed value means a storage-identity break; metadata is excluded.
-    assert content_id(run) == "0297dee04f773e7f98f9cd1980a9df8d6ff4f5fca0e6249d29d512de1f2d7f25"
+    assert content_id(run) == "95d898a2a5bdf393fb62df7e73a0d2e4fee7079fb21a8961d76d5997bc55ad3c"
     # A changed value means a storage-identity break.
-    assert content_id(link) == "8c99a2b536b325a00c71bcc4b9b22debb827d1d41d9217e807ee59de9d4af723"
+    assert content_id(link) == "320a4bd5ecfdba62e0f6a3523bef3bf7cba58ae12ca3ad14bc29cd773842f3c5"
     assert content_id(run) == content_id(
         Run(
             run.workflow_declaration_uri,
