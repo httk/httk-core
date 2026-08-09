@@ -18,8 +18,10 @@ on the other.
 - **Registries and plugin discovery**: {doc}`registry`
 - **Datastreams**: {doc}`datastreams`
 - **Extensible CLI**: {doc}`cli`
+- **Plugins**: {doc}`plugins`
 - **Cryptography**: {doc}`crypto`
 - **Projects and the anchor**: {doc}`project_anchor`
+- **Project templates**: {doc}`project_templates`
 - **OPTIMADE definitions & entry providers**: {doc}`optimade_definitions`
 - **Vectors**: {doc}`vectors`
 - **Exact math on rationals and decimals**: {doc}`exactmath`
@@ -63,8 +65,10 @@ view_backend_pattern
 registry
 datastreams
 cli
+plugins
 crypto
 project_anchor
+project_templates
 optimade_definitions
 vectors
 exactmath
@@ -79,6 +83,8 @@ examples/index
 details/view_backend_pattern
 details/registry
 details/datastreams
+details/plugins
+details/project_templates
 details/optimade_definitions
 details/vectors
 details/exactmath

@@ -30,7 +30,8 @@ omitted. `--name` defaults to the directory name and `--description` defaults
 to an empty string. It refuses an existing project and creates
 `httk_project/project.json`, the project's Ed25519 key under
 `httk_project/keys/`, and `httk_project/remotes/`. It creates no workflow
-workspace.
+workspace. To populate a new project from a plugin or an explicit template,
+use `httk project init --template`; see {doc}`project_templates`.
 
 `show` describes the nearest project, or the project named by `PATH`.
 `--json` emits one machine-readable document. `import-v1` imports the legacy v1 project in

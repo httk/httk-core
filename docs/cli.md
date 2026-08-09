@@ -48,6 +48,37 @@ that command with `--help`. `help` by itself is equivalent to root help;
 `help` and `version` are reserved names. See {doc}`registry` for the complete
 discovery convention and registration surfaces.
 
+## Plugins
+
+The core-owned `httk plugin` command installs and manages plugins:
+
+```console
+httk plugin install SOURCE [--force]
+httk plugin list
+httk plugin show NAME [--json]
+httk plugin path NAME PROGRAM
+httk plugin run NAME PROGRAM [ARGS...]
+httk plugin build NAME
+httk plugin uninstall NAME
+```
+
+See {doc}`plugins` for source forms, manifests, builds, and program shims.
+
+## Project initialization options
+
+`httk project init` accepts the normal project options plus template options:
+
+```console
+httk project init [PATH] [--name NAME] [--description TEXT]
+httk project init PATH --template SELECTOR
+httk project init PATH --template SELECTOR --parameter NAME=VALUE
+httk project init --list-templates
+```
+
+`--parameter` is repeatable. `--list-templates` lists installed templates;
+`--template` may also name an explicit template directory. See
+{doc}`project_templates` for the selection and manifest rules.
+
 ## Memory-guarded runs
 
 The Linux-only `httk.core.memguard` module runs a command in its own process
