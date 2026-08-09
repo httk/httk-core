@@ -1,7 +1,9 @@
 """Test the local plugin install state machine."""
 
+import importlib
 import io
 import json
+import logging
 import os
 import subprocess
 import tarfile
@@ -311,3 +313,104 @@ def test_unsupported_git_urls(source: str, plugin_dirs: tuple[Path, Path]) -> No
 def test_nonexistent_path_is_not_a_source(plugin_dirs: tuple[Path, Path], tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="is not an installed-plugin source"):
         install_plugin(tmp_path / "missing")
+
+
+def _two_program_plugin(root: Path) -> Path:
+    root.mkdir()
+    (root / "httk_plugin.toml").write_text(
+        "[plugin]\nname = 'demo'\n"
+        "[plugin.programs.first]\nfile = 'bin/first'\n"
+        "[plugin.programs.second]\nfile = 'bin/second'\n"
+        "[plugin.build]\ncommand = 'sh build.sh'\nartifacts = ['bin/*']\n",
+        encoding="utf-8",
+    )
+    (root / "build.sh").write_text(
+        "#!/bin/sh\nmkdir -p bin\nprintf '#!/bin/sh\\nexit 0\\n' > bin/first\n"
+        "printf '#!/bin/sh\\nexit 0\\n' > bin/second\nchmod +x bin/first bin/second\n",
+        encoding="utf-8",
+    )
+    (root / "build.sh").chmod(0o755)
+    return root
+
+
+def test_force_replacement_skips_invalid_old_shim_and_warns(
+    plugin_dirs: tuple[Path, Path], tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    source, data = plugin_dirs
+    _plugin(source)
+    install_plugin(source)
+    sentinel = tmp_path / "sentinel"
+    sentinel.write_text("keep", encoding="utf-8")
+    metadata_path = data / "plugins/demo/plugin.json"
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    metadata["shims"] = [str(sentinel)]
+    metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+    replacement = source.parent / "replacement"
+    _plugin(replacement)
+    (replacement / "httk_plugin.toml").write_text("[plugin]\nname = 'demo'\n", encoding="utf-8")
+    with caplog.at_level(logging.WARNING):
+        install_plugin(replacement, force=True)
+    assert sentinel.read_text(encoding="utf-8") == "keep"
+    assert "Ignoring invalid plugin shim name" in caplog.text
+
+
+def test_shim_write_failure_removes_partial_shims(plugin_dirs: tuple[Path, Path]) -> None:
+    source, data = plugin_dirs
+    _two_program_plugin(source)
+    install_plugin(source)
+    second = data / "bin/second"
+    second.unlink()
+    second.mkdir()
+    with pytest.raises(ValueError, match=r"run: httk plugin build demo$"):
+        build_plugin("demo")
+    metadata = json.loads((data / "plugins/demo/plugin.json").read_text(encoding="utf-8"))
+    assert metadata["built"] is False
+    assert not (data / "bin/first").exists()
+    assert second.is_dir()
+
+
+def test_metadata_write_failure_removes_published_shims(
+    plugin_dirs: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source, data = plugin_dirs
+    _plugin(source)
+    install_module = importlib.import_module("httk.core.plugins.install")
+    original_write_json = install_module._write_json
+    failed = False
+
+    def fail_final_metadata(path: Path, value: object) -> None:
+        nonlocal failed
+        if path == data / "plugins/demo/plugin.json" and not failed:
+            failed = True
+            raise OSError("metadata write failed")
+        original_write_json(path, value)
+
+    monkeypatch.setattr(install_module, "_write_json", fail_final_metadata)
+    with pytest.raises(ValueError, match="metadata write failed"):
+        install_plugin(source)
+    assert not (data / "bin/tool").exists()
+
+
+def test_build_platform_probe_receives_stripped_environment(
+    plugin_dirs: tuple[Path, Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source, _ = plugin_dirs
+    source.mkdir()
+    (source / "httk_plugin.toml").write_text(
+        "[plugin]\nname = 'demo'\n[plugin.programs.tool]\nfile = 'bin/tool'\n"
+        "[plugin.build]\ncommand = 'sh build.sh'\nartifacts = ['bin/tool']\nplatform = 'sh probe.sh'\n",
+        encoding="utf-8",
+    )
+    (source / "build.sh").write_text(
+        "#!/bin/sh\nmkdir -p bin\nprintf '#!/bin/sh\\nexit 0\\n' > bin/tool\nchmod +x bin/tool\n",
+        encoding="utf-8",
+    )
+    (source / "probe.sh").write_text("#!/bin/sh\nprintf '%s' \"${HTTK_SECRET:-absent}\"\n", encoding="utf-8")
+    (source / "build.sh").chmod(0o755)
+    (source / "probe.sh").chmod(0o755)
+    monkeypatch.setenv("HTTK_SECRET", "secret")
+    monkeypatch.chdir(source)
+    installed = install_plugin(source)
+    metadata = json.loads((installed.root / "plugin.json").read_text(encoding="utf-8"))
+    assert metadata["platform_output"] == "absent"
+    assert metadata["platform_tag"].startswith("absent.")

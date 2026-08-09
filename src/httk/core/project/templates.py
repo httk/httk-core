@@ -1,9 +1,8 @@
 """Parse, resolve, and instantiate httk project templates."""
 
-from __future__ import annotations
-
 import json
 import logging
+import math
 import os
 import re
 import shutil
@@ -24,7 +23,7 @@ from .._manifest import (
     require_string,
     require_table,
 )
-from ..plugins import InstalledPlugin, installed_plugins
+from ..plugins.installed import InstalledPlugin, installed_plugins
 
 TEMPLATE_MANIFEST = "httk_project_template.toml"
 _ID_RE = re.compile(r"[a-z0-9._-]+")
@@ -76,6 +75,29 @@ class TemplateInstantiateRequest:
     template: str
     parameters: Mapping[str, object]
     project: Mapping[str, object]
+
+
+def _is_json_value(value: object, active: set[int] | None = None) -> bool:
+    """Return whether *value* is a finite, recursively JSON-compatible value."""
+
+    if value is None or isinstance(value, (str, bool, int)):
+        return True
+    if isinstance(value, float):
+        return math.isfinite(value)
+    if not isinstance(value, (list, dict)):
+        return False
+    if active is None:
+        active = set()
+    identity = id(value)
+    if identity in active:
+        return False
+    active.add(identity)
+    try:
+        if isinstance(value, list):
+            return all(_is_json_value(item, active) for item in value)
+        return all(isinstance(key, str) and _is_json_value(item, active) for key, item in value.items())
+    finally:
+        active.remove(identity)
 
 
 def _overlap(left: str, right: str) -> bool:
@@ -135,8 +157,11 @@ def _template_parameters(
         description = optional_string(table, "description", path, directory)
         has_default = "default" in table
         default = table.get("default")
-        if has_default and not matches_json_type(default, parameter_type):
-            raise manifest_error(directory, f"{path}.default does not match type {parameter_type!r}")
+        if has_default:
+            if not _is_json_value(default):
+                raise manifest_error(directory, f"{path}.default must contain only finite JSON values")
+            if not matches_json_type(default, parameter_type):
+                raise manifest_error(directory, f"{path}.default does not match type {parameter_type!r}")
         result.append(TemplateParameter(name, parameter_type, description, default, has_default))
     if result and not has_hook:
         raise manifest_error(directory, "template declares parameters but no [template.instantiate] hook consumes them")
@@ -244,6 +269,8 @@ def check_parameters(template: ProjectTemplate, supplied: Mapping[str, object]) 
         raise ValueError(f"template declares no parameters named: {', '.join(repr(name) for name in undeclared)}")
     for name, value in supplied.items():
         parameter = declared[name]
+        if not _is_json_value(value):
+            raise ValueError(f"template parameter {name!r} must contain only finite JSON values")
         if not matches_json_type(value, parameter.type):
             raise ValueError(
                 f"template parameter {name!r} does not match type {parameter.type!r}; got {type(value).__name__}. "

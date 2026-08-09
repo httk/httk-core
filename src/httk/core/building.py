@@ -8,6 +8,7 @@ import re
 import shlex
 import shutil
 import subprocess
+import sys
 import tempfile
 import uuid
 from collections.abc import Callable, Mapping, Sequence
@@ -18,7 +19,7 @@ from pathlib import Path, PurePosixPath
 from . import _manifest
 
 DEFAULT_TAG = "any"
-_PLATFORM_CACHE: dict[str, tuple[str, str]] = {}
+_PLATFORM_CACHE: dict[tuple[str, tuple[tuple[str, str], ...] | None], tuple[str, str]] = {}
 _STDERR_TAIL = 1024
 
 __all__ = [
@@ -182,24 +183,26 @@ def _clean_environment(strip_env_prefixes: Sequence[str], keep_env: Sequence[str
     }
 
 
-def platform_tag(platform_command: str | None) -> tuple[str, str]:
+def platform_tag(platform_command: str | None, *, env: Mapping[str, str] | None = None) -> tuple[str, str]:
     """Probe and tag the current platform.
 
     :param platform_command: Supply the platform probe command, when present.
+    :param env: Supply the probe environment, or inherit the current environment.
     :return: The sanitized tag and the probe's raw standard output.
     :raises BuildError: If the platform probe cannot be run successfully.
     """
 
     if platform_command is None:
         return DEFAULT_TAG, ""
-    cached = _PLATFORM_CACHE.get(platform_command)
+    cache_key = (platform_command, None if env is None else tuple(sorted(env.items())))
+    cached = _PLATFORM_CACHE.get(cache_key)
     if cached is not None:
         return cached
     try:
         argv = shlex.split(platform_command)
         if not argv:
             raise ValueError("empty command")
-        completed = subprocess.run(argv, capture_output=True, text=True, check=False)
+        completed = subprocess.run(argv, env=env, capture_output=True, text=True, check=False)
     except (OSError, ValueError) as exc:
         raise BuildError("runner_build_failed", f"platform probe {platform_command!r} failed: {exc}") from exc
     if completed.returncode != 0:
@@ -218,11 +221,11 @@ def platform_tag(platform_command: str | None) -> tuple[str, str]:
     else:
         tag = f"{tag}.{digest[:8]}"
     result = tag, raw
-    _PLATFORM_CACHE[platform_command] = result
+    _PLATFORM_CACHE[cache_key] = result
     return result
 
 
-def _write_build_log(path: Path, *, command: str, cwd: Path, exit_code: int, platform_output: str, output: str) -> None:
+def _write_build_log(path: Path, *, command: str, cwd: Path, exit_code: int, platform_output: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         "\n".join(
@@ -231,8 +234,7 @@ def _write_build_log(path: Path, *, command: str, cwd: Path, exit_code: int, pla
                 f"cwd: {cwd}",
                 f"exit code: {exit_code}",
                 f"platform output: {platform_output!r}",
-                "build output:",
-                output.rstrip("\n"),
+                "build output was inherited by the terminal",
             )
         )
         + "\n",
@@ -247,6 +249,7 @@ def execute_build(
     strip_env_prefixes: Sequence[str],
     keep_env: Sequence[str] = (),
     log_path: Path | None = None,
+    stdout_to_stderr: bool = False,
 ) -> BuildResult:
     """Execute a build and collect its declared artifacts.
 
@@ -254,12 +257,14 @@ def execute_build(
     :param spec: Describe the build command and artifact patterns.
     :param strip_env_prefixes: Remove environment variables with these prefixes.
     :param keep_env: Preserve these variable names despite their prefixes.
-    :param log_path: Optionally capture build output and metadata at this path.
+    :param log_path: Optionally write build metadata at this path.
+    :param stdout_to_stderr: Route inherited build standard output to standard error.
     :return: The platform tag, probe output, and collected artifact paths.
     :raises BuildError: If probing, execution, or artifact collection fails.
     """
 
-    tag, platform_output = platform_tag(spec.platform)
+    environment = _clean_environment(strip_env_prefixes, keep_env)
+    tag, platform_output = platform_tag(spec.platform, env=environment)
     try:
         argv = shlex.split(spec.command)
         if not argv:
@@ -267,19 +272,15 @@ def execute_build(
     except ValueError as exc:
         raise BuildError("runner_build_failed", f"build command {spec.command!r} is invalid: {exc}") from exc
 
-    output = ""
     exit_code = -1
     try:
         completed = subprocess.run(
             argv,
             cwd=source,
-            env=_clean_environment(strip_env_prefixes, keep_env),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
+            env=environment,
+            stdout=sys.stderr.fileno() if stdout_to_stderr else None,
             check=False,
         )
-        output = completed.stdout
         exit_code = completed.returncode
     except OSError as exc:
         if log_path is not None:
@@ -289,7 +290,6 @@ def execute_build(
                 cwd=source,
                 exit_code=exit_code,
                 platform_output=platform_output,
-                output=output,
             )
         raise BuildError("runner_build_failed", f"build command {spec.command!r} failed: {exc}") from exc
     if log_path is not None:
@@ -299,15 +299,9 @@ def execute_build(
             cwd=source,
             exit_code=exit_code,
             platform_output=platform_output,
-            output=output,
         )
     if exit_code != 0:
-        tail = output[-_STDERR_TAIL:].strip()
-        detail = f"; output tail: {tail}" if tail else ""
-        raise BuildError(
-            "runner_build_failed",
-            f"build command {spec.command!r} failed with exit code {exit_code}{detail}",
-        )
+        raise BuildError("runner_build_failed", f"build command {spec.command!r} failed with exit code {exit_code}")
 
     predicate = artifact_excluder(spec)
     matches: list[str] = []

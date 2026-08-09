@@ -1,9 +1,9 @@
 """Install, build, and uninstall httk plugins from local directories."""
 
-from __future__ import annotations
-
 import json
+import logging
 import os
+import re
 import shutil
 import subprocess
 import tarfile
@@ -19,12 +19,15 @@ from typing import cast
 
 from ..building import BuildError, BuildResult, execute_build
 from ..digests import sha256_file, tree_digest
-from . import PLUGIN_METADATA, InstalledPlugin, plugin_root, plugins_home, shims_home
+from ..project import templates as _project_templates
+from .installed import PLUGIN_METADATA, InstalledPlugin, plugin_root, plugins_home, shims_home
 from .manifest import PluginManifest, parse_plugin_manifest
 
 __all__ = ["build_plugin", "install_plugin", "uninstall_plugin"]
 
 _BUILD_COMMAND = "run: httk plugin build {}"
+_PROGRAM_NAME_RE = re.compile(r"[a-z0-9._-]+")
+_LOGGER = logging.getLogger(__name__)
 
 
 def _utc_now() -> str:
@@ -67,7 +70,22 @@ def _remove_path(path: Path) -> None:
 
 def _shim_names(metadata: Mapping[str, object]) -> tuple[str, ...]:
     raw = metadata.get("shims", ())
-    return tuple(value for value in raw if isinstance(value, str)) if isinstance(raw, list) else ()
+    if not isinstance(raw, list):
+        _LOGGER.warning("Ignoring invalid plugin shims field")
+        return ()
+    result: list[str] = []
+    for value in raw:
+        if (
+            not isinstance(value, str)
+            or _PROGRAM_NAME_RE.fullmatch(value) is None
+            or value in {".", ".."}
+            or value.startswith("-")
+            or value != Path(value).name
+        ):
+            _LOGGER.warning("Ignoring invalid plugin shim name %r", value)
+            continue
+        result.append(value)
+    return tuple(result)
 
 
 def _program_files(metadata: Mapping[str, object]) -> Mapping[str, str]:
@@ -91,7 +109,16 @@ def _remove_shims(root: Path, metadata: Mapping[str, object], *, verify_target: 
                 continue
             if _shim_text(target) != text:
                 continue
-        _remove_path(shim)
+        if shim.is_dir() and not shim.is_symlink():
+            _LOGGER.warning("Skipping directory at plugin shim path %s", shim)
+            continue
+        if not shim.is_file() and not shim.is_symlink():
+            _LOGGER.warning("Skipping non-file at plugin shim path %s", shim)
+            continue
+        try:
+            shim.unlink()
+        except OSError as exc:
+            _LOGGER.warning("Cannot remove plugin shim %s: %s", shim, exc)
 
 
 def _shim_owner(name: str, program: str) -> bool:
@@ -175,8 +202,16 @@ def _build_and_verify(root: Path, manifest: PluginManifest, metadata: dict[str, 
             platform_tag=result.tag,
             platform_output=result.platform_output,
         )
-    _write_json(root / PLUGIN_METADATA, metadata)
-    _write_shims(root, manifest)
+    try:
+        _write_shims(root, manifest)
+        _write_json(root / PLUGIN_METADATA, metadata)
+    except Exception as exc:
+        if manifest.build is not None:
+            _mark_failed(root, metadata)
+            raise ValueError(f"cannot write plugin shims: {exc}; {_BUILD_COMMAND.format(manifest.name)}") from exc
+        _remove_shims(root, metadata, verify_target=True)
+        _write_json(root / PLUGIN_METADATA, metadata)
+        raise ValueError(f"cannot write plugin shims: {exc}") from exc
 
 
 def _git_environment() -> dict[str, str]:
@@ -380,11 +415,10 @@ def install_plugin(source: str | Path, *, force: bool = False) -> InstalledPlugi
     try:
         acquisition, original_source = _acquire(source, staging)
         manifest = parse_plugin_manifest(staging)
-        from ..project.templates import parse_template_manifest
 
         for member in manifest.templates:
             try:
-                parse_template_manifest(staging / PurePosixPath(member))
+                _project_templates.parse_template_manifest(staging / PurePosixPath(member))
             except (OSError, ValueError) as exc:
                 raise ValueError(f"plugin {manifest.name!r} template {member!r}: {exc}") from exc
 
@@ -418,14 +452,14 @@ def install_plugin(source: str | Path, *, force: bool = False) -> InstalledPlugi
                     old_metadata = None
             # ponytail: no install lock; single-user directory is the concurrency ceiling.
             os.replace(target, old)
-            if old_metadata is not None:
-                _remove_shims(old, old_metadata, verify_target=False)
         try:
             os.replace(staging, target)
         except BaseException:
             if old is not None and os.path.lexists(old) and not os.path.lexists(target):
                 os.replace(old, target)
             raise
+        if old is not None and old_metadata is not None:
+            _remove_shims(old, old_metadata, verify_target=False)
         if old is not None and os.path.lexists(old):
             _remove_path(old)
 

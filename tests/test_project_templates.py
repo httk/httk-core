@@ -184,6 +184,52 @@ def test_check_parameters() -> None:
     assert check_parameters(template, {"name": "Ada", "count": 4}) == {"name": "Ada", "count": 4}
 
 
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
+def test_check_parameters_rejects_nonfinite_numbers(value: float) -> None:
+    template = ProjectTemplate(
+        "demo",
+        None,
+        (),
+        "hook.py",
+        (TemplateParameter("value", "number", None, None, False),),
+        Path("."),
+    )
+    with pytest.raises(ValueError, match="finite JSON"):
+        check_parameters(template, {"value": value})
+
+
+def test_manifest_defaults_must_be_deep_json_values(tmp_path: Path) -> None:
+    source = _template(
+        tmp_path / "nan",
+        """[template]
+id = "nan"
+[template.instantiate]
+file = "hook.py"
+[template.parameters.value]
+type = "number"
+default = nan
+""",
+    )
+    (source / "hook.py").write_text("", encoding="utf-8")
+    with pytest.raises(ValueError, match="value.*finite JSON"):
+        parse_template_manifest(source)
+
+    source = _template(
+        tmp_path / "date",
+        """[template]
+id = "date"
+[template.instantiate]
+file = "hook.py"
+[template.parameters.value]
+type = "array"
+default = [2026-08-09]
+""",
+    )
+    (source / "hook.py").write_text("", encoding="utf-8")
+    with pytest.raises(ValueError, match="value.*finite JSON"):
+        parse_template_manifest(source)
+
+
 def test_resolve_templates(tmp_path: Path) -> None:
     explicit = _template(tmp_path / "explicit")
     assert resolve_template(str(explicit)).root == explicit
