@@ -1,5 +1,5 @@
 import io
-from typing import Any
+from typing import Any, Self
 
 from .compression import reject_text_native_compression
 from .textstream_backend import TextstreamBackend
@@ -19,13 +19,19 @@ class TextstreamFile(TextstreamCommon, TextstreamBackend):
     _underlying: io.IOBase | None
     _closed: bool
 
-    # mypy does not allow to type annotate __new__ as `Self | None` for some reason
-    def __new__(cls, obj: io.TextIOBase, **hints: Any) -> Any:
+    @classmethod
+    def _backend_adopt(cls, obj: Any, **hints: Any) -> Self | None:
+        r"""Adopt a text stream when it matches this backend.
+
+        :param obj: The object to adopt.
+        :param \**hints: Backend-selection hints.
+        :return: An initialized backend, or ``None`` when ``obj`` is not accepted.
+        """
         if not isinstance(obj, io.TextIOBase):
             return None
         if hints and hints.get("kind", "file") != "file":
             return None
-        return super().__new__(cls)
+        return cls(obj, **hints)
 
     def __init__(self, obj: io.TextIOBase, **hints: Any) -> None:
         reject_text_native_compression(hints.get("compression"))

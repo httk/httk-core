@@ -14,6 +14,10 @@ class Backend[BackendT: Backend](ABC):
 
     A set of backends are meant to be combined with a set of Views.
 
+    Concrete backends implement ``_backend_adopt`` to accept an object and return an initialized
+    backend instance, or ``None`` to decline it. The ``kind`` hint convention is used to
+    disambiguate between multiple valid interpretations.
+
     :param backend: Source value or backend being adopted by the concrete backend.
     :param \**hints: Backend-specific initialization hints.
     """
@@ -22,12 +26,22 @@ class Backend[BackendT: Backend](ABC):
     backend_classes: ClassVar[list[type["Backend[Any]"]]]
 
     @classmethod
+    def _backend_adopt(cls, obj: Any, **hints: Any) -> Self | None:
+        r"""Try to adopt an object as an instance of this backend.
+
+        :param obj: Source object to represent.
+        :param \**hints: Backend-selection and disambiguation hints.
+        :return: An initialized backend, or ``None`` when this backend declines ``obj``.
+        """
+        return None
+
+    @classmethod
     def create(cls: type[Self], obj: Any, **hints: Any) -> Self:
         r"""
         Given a source data (obj) and a set of hints, create a backend from one of the alternatives in the class variable `backend_classes`.
 
         By design this creation depends heavily on order of the classes in `backend_classes`.
-        Each class is tried in the order they appear until one of them is successful, in the sense that their `__new__` does not return None.
+        Each class is tried in the order they appear until one of them is successful, in the sense that their `_backend_adopt` returns an initialized instance.
         Sometimes multiple backend classes can handle the same input type. In that case, dispatch is guided by keyword arguments ``**hints``,
         with the convention that:
 
@@ -40,7 +54,7 @@ class Backend[BackendT: Backend](ABC):
         :raises TypeError: If no registered backend accepts ``obj`` and the hints.
         """
         for t in cls.backend_classes:
-            instance = t(obj, **hints)
+            instance = t._backend_adopt(obj, **hints)
             if instance is not None:
                 return cast(Self, instance)
         raise TypeError(f"Cannot represent {type(obj)} as {cls.__name__}")

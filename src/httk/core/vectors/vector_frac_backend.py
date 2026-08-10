@@ -3,7 +3,7 @@ Backend wrapping a FracVector/FracScalar in the exact-rational representation.
 """
 
 import fractions
-from typing import Any
+from typing import Any, Self
 
 from .fracvector import FracVector
 from .vector_api import Fractions
@@ -35,13 +35,19 @@ class VectorFracBackend(VectorBackend):
 
     _fracvector: FracVector
 
-    # Cannot type annotate __new__ as `Self | None` for some reason
-    def __new__(cls, obj: Any, **hints: Any) -> Any:
+    @classmethod
+    def _backend_adopt(cls, obj: Any, **hints: Any) -> Self | None:
+        r"""Adopt an exact-rational value when it matches this backend.
+
+        :param obj: The object to adopt.
+        :param \**hints: Backend-selection hints.
+        :return: An initialized backend, or ``None`` when ``obj`` is not accepted.
+        """
         if not isinstance(obj, FracVector):
             return None
         if hints and hints.get("kind", "frac") != "frac":
             return None
-        return super().__new__(cls)
+        return cls(obj, **hints)
 
     def __init__(self, obj: FracVector, **hints: Any) -> None:
         self._fracvector = obj

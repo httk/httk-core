@@ -1,6 +1,6 @@
 import io
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 
 from .bytestream_backend import BytestreamBackend
 from .bytestream_common import BytestreamCommon
@@ -23,13 +23,19 @@ class BytestreamFilename(BytestreamCommon, BytestreamBackend):
     _underlying: io.IOBase | None
     _closed: bool
 
-    # mypy does not allow to type annotate __new__ as `Self | None` for some reason
-    def __new__(cls, filename: str | Path, **hints: Any) -> Any:
-        if not isinstance(filename, str | Path):
+    @classmethod
+    def _backend_adopt(cls, obj: Any, **hints: Any) -> Self | None:
+        r"""Adopt a filename when it matches this backend.
+
+        :param obj: The object to adopt.
+        :param \**hints: Backend-selection and compression hints.
+        :return: An initialized backend, or ``None`` when ``obj`` is not accepted.
+        """
+        if not isinstance(obj, str | Path):
             return None
         if hints and hints.get("kind", "filename") != "filename":
             return None
-        return super().__new__(cls)
+        return cls(obj, **hints)
 
     def __init__(self, filename: str | Path, **hints: Any) -> None:
         self._filename = str(filename)

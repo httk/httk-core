@@ -3,7 +3,7 @@ Backend wrapping a numpy ndarray (numpy is an optional dependency, imported lazi
 """
 
 import fractions
-from typing import Any
+from typing import Any, Self
 
 from .vector_api import Fractions
 from .vector_backend import VectorBackend
@@ -14,7 +14,7 @@ class VectorNumpyBackend(VectorBackend):
     Backend for a vector backed by a :class:`numpy.ndarray`.
 
     numpy is an optional dependency (``httk-core[numpy]``) and is imported lazily; if numpy is
-    not installed, this backend's ``__new__`` returns None so it is simply never selected.
+    not installed, this backend's ``_backend_adopt`` returns None so it is simply never selected.
 
     numpy float64 values are themselves binary rationals, so the ``fractions`` interchange is
     produced *exactly* from the array (each float becomes its exact rational value). Only the
@@ -26,8 +26,14 @@ class VectorNumpyBackend(VectorBackend):
 
     _array: Any
 
-    # Cannot type annotate __new__ as `Self | None` for some reason
-    def __new__(cls, obj: Any, **hints: Any) -> Any:
+    @classmethod
+    def _backend_adopt(cls, obj: Any, **hints: Any) -> Self | None:
+        r"""Adopt a numpy array when numpy is available and hints match.
+
+        :param obj: The object to adopt.
+        :param \**hints: Backend-selection hints.
+        :return: An initialized backend, or ``None`` when ``obj`` is not accepted.
+        """
         if hints and hints.get("kind", "numpy") != "numpy":
             return None
         try:
@@ -36,7 +42,7 @@ class VectorNumpyBackend(VectorBackend):
             return None
         if not isinstance(obj, numpy.ndarray):
             return None
-        return super().__new__(cls)
+        return cls(obj, **hints)
 
     def __init__(self, obj: Any, **hints: Any) -> None:
         self._array = obj

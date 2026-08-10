@@ -1,7 +1,7 @@
 import io
 import urllib.parse
 import urllib.request
-from typing import Any, cast
+from typing import Any, Self, cast
 
 from .compression import open_compressed, validate_compression
 from .network_policy import resolve_timeout
@@ -27,13 +27,19 @@ class TextstreamRequest(TextstreamCommon, TextstreamBackend):
     _underlying: io.IOBase | None
     _closed: bool
 
-    # mypy does not allow to type annotate __new__ as `Self | None` for some reason
-    def __new__(cls, request: urllib.request.Request, **hints: Any) -> Any:
-        if not isinstance(request, urllib.request.Request):
+    @classmethod
+    def _backend_adopt(cls, obj: Any, **hints: Any) -> Self | None:
+        r"""Adopt a urllib request when it matches this backend.
+
+        :param obj: The object to adopt.
+        :param \**hints: Backend-selection hints.
+        :return: An initialized backend, or ``None`` when ``obj`` is not accepted.
+        """
+        if not isinstance(obj, urllib.request.Request):
             return None
         if hints and hints.get("kind", "request") != "request":
             return None
-        return super().__new__(cls)
+        return cls(obj, **hints)
 
     def __init__(self, request: urllib.request.Request, **hints: Any) -> None:
         self._request = request

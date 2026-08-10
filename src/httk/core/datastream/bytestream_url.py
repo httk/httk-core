@@ -1,7 +1,7 @@
 import io
 import urllib.parse
 import urllib.request
-from typing import Any, cast
+from typing import Any, Self, cast
 
 from .bytestream_backend import BytestreamBackend
 from .bytestream_common import BytestreamCommon
@@ -33,17 +33,23 @@ class BytestreamURL(BytestreamCommon, BytestreamBackend):
     _underlying: io.IOBase | None
     _closed: bool
 
-    # mypy does not allow to type annotate __new__ as `Self | None` for some reason
-    def __new__(cls, url: str, **hints: Any) -> Any:
-        if not isinstance(url, str):
+    @classmethod
+    def _backend_adopt(cls, obj: Any, **hints: Any) -> Self | None:
+        r"""Adopt a URL string when its scheme and hints match this backend.
+
+        :param obj: The object to adopt.
+        :param \**hints: Backend-selection and consent hints.
+        :return: An initialized backend, or ``None`` when ``obj`` is not accepted.
+        """
+        if not isinstance(obj, str):
             return None
         kind = hints.get("kind")
         if kind == "url":
-            if not urllib.parse.urlsplit(url).scheme:
+            if not urllib.parse.urlsplit(obj).scheme:
                 return None
-            return super().__new__(cls)
-        if kind is None and urllib.parse.urlsplit(url).scheme in _URL_SCHEMES:
-            return super().__new__(cls)
+            return cls(obj, **hints)
+        if kind is None and urllib.parse.urlsplit(obj).scheme in _URL_SCHEMES:
+            return cls(obj, **hints)
         return None
 
     def __init__(self, url: str, **hints: Any) -> None:

@@ -18,7 +18,7 @@ class VectorBackend(Backend["VectorBackend"], VectorAPI):
     interchange declared by :class:`~httk.core.vectors.vector_api.VectorAPI` from it.
 
     Concrete subclasses select the accepted input and optional dispatch hints in their
-    constructors.
+    ``_backend_adopt`` hooks.
     """
 
     backend_classes: ClassVar[list[type[Backend[Any]]]]
