@@ -24,14 +24,23 @@ F = fractions.Fraction
         ("0.1", F(1, 10)),
         (".25", F(1, 100)),
         ("5.", F(1)),
-        ("10", F(1)),
-        ("0", F(1)),
-        ("123456", F(1)),
+        ("10", None),
+        ("0", None),
+        ("-3", None),
         ("0.000001", F(1, 1000000)),
     ],
-    ids=["three-decimals", "one-decimal", "leading-point", "trailing-point", "integer", "zero", "big-int", "six"],
+    ids=[
+        "three-decimals",
+        "one-decimal",
+        "leading-point",
+        "trailing-point",
+        "integer",
+        "zero",
+        "negative-integer",
+        "six",
+    ],
 )
-def test_precision_follows_the_digits_written(literal: str, expected: F) -> None:
+def test_precision_follows_the_digits_written(literal: str, expected: F | None) -> None:
     assert decimal_precision(literal) == expected
 
 
@@ -41,7 +50,14 @@ def test_the_sign_is_not_part_of_the_claim() -> None:
 
 @pytest.mark.parametrize(
     ("literal", "expected"),
-    [("1.2e-3", F(1, 10000)), ("1.2E-3", F(1, 10000)), ("2E2", F(100)), ("1e0", F(1)), ("0.5e1", F(1))],
+    [
+        ("1.2e-3", F(1, 10000)),
+        ("1.2E-3", F(1, 10000)),
+        ("1e3", F(1000)),
+        ("2E2", F(100)),
+        ("1e0", F(1)),
+        ("0.5e1", F(1)),
+    ],
 )
 def test_an_exponent_scales_the_precision(literal: str, expected: F) -> None:
     """The mantissa's digits set the precision; the exponent then moves it."""
@@ -98,6 +114,11 @@ def test_the_coarsest_value_wins() -> None:
 def test_values_with_no_claim_are_skipped_not_treated_as_precise() -> None:
     """``1/3`` alongside four-decimal values must not change the answer."""
     assert combined_precision(["0.1234", "1/3", "?", None]) == F(1, 10000)
+
+
+def test_integer_literals_make_no_precision_claim() -> None:
+    assert combined_precision(["0", "10", "-3"]) is None
+    assert combined_precision(["0", "0.5"]) == F(1, 10)
 
 
 def test_no_claim_at_all_gives_none() -> None:

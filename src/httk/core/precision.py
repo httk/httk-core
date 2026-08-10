@@ -23,7 +23,8 @@ __all__ = ["combined_precision", "decimal_precision"]
 
 #: A decimal literal: optional sign, then digits with an optional point in any of the
 #: usual arrangements, then an optional exponent. Anything else is not a decimal and gets
-#: no precision claim rather than a guessed one.
+#: no precision claim rather than a guessed one. Bare integer literals are exact statements,
+#: so they also make no precision claim; an exponent keeps its deliberate notation claim.
 _DECIMAL = re.compile(
     r"""
     ^
@@ -58,7 +59,7 @@ def decimal_precision(text: object) -> fractions.Fraction | None:
     * ``"-0.5"`` -> ``1/10`` — the sign is not part of the claim
     * ``".25"`` -> ``1/100`` — a leading point is still two digits
     * ``"5."`` -> ``1`` — a trailing point states no fraction
-    * ``"10"`` -> ``1`` — an integer literal is precise to the unit
+    * ``"10"`` -> ``None`` — an integer literal states a value exactly, like a rational
     * ``"1.2e-3"`` -> ``1/10000`` — one digit, then scaled by the exponent
     * ``"1/3"`` -> ``None`` — exact, not measured
     * ``"?"`` -> ``None`` — no value at all
@@ -80,6 +81,9 @@ def decimal_precision(text: object) -> fractions.Fraction | None:
         return None
 
     if match.group("int_only") is not None:
+        if match.group("exponent") is None:
+            # A bare integer literal is an exact statement, not a measurement.
+            return None
         digits_after_point = 0
     else:
         # A point with nothing on either side ("." alone) is not a number; the regex
