@@ -11,7 +11,7 @@ from .fracvector import FracVector
 from .surdvector import SurdVector
 from .vector_backend import VectorBackend
 from .vector_like import VectorLike
-from .vector_surd import VectorSurdBackend
+from .vector_surd_backend import VectorSurdBackend
 from .vector_view import VectorView
 
 

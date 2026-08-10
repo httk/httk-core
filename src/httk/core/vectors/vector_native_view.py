@@ -9,7 +9,7 @@ from httk.core.views import unwrap
 from .leaf_codecs import apply_leaf_codec, leaf_codec_for_name, validate_leaf_codec
 from .vector_backend import VectorBackend
 from .vector_like import VectorLike
-from .vector_native import VectorNativeBackend
+from .vector_native_backend import VectorNativeBackend
 from .vector_view import VectorView
 
 

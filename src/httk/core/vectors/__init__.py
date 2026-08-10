@@ -38,12 +38,12 @@ from .scalar_like import ScalarLike
 from .surdvector import SurdScalar, SurdVector
 from .vector_api import VectorAPI
 from .vector_backend import VectorBackend
-from .vector_frac import VectorFracBackend
+from .vector_frac_backend import VectorFracBackend
 from .vector_frac_view import VectorFracView
 from .vector_like import VectorLike
-from .vector_native import VectorNativeBackend
+from .vector_native_backend import VectorNativeBackend
 from .vector_native_view import VectorNativeView
-from .vector_surd import VectorSurdBackend
+from .vector_surd_backend import VectorSurdBackend
 from .vector_surd_view import VectorSurdView
 from .vector_view import VectorView
 
@@ -53,7 +53,7 @@ from .vector_view import VectorView
 # when numpy is available. Dispatch is otherwise disambiguated by an optional kind= hint.
 _numpy_view_class: type[Any] | None = None
 try:
-    from .vector_numpy import VectorNumpyBackend
+    from .vector_numpy_backend import VectorNumpyBackend
     from .vector_numpy_view import VectorNumpyView
 
     _numpy_available = True

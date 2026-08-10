@@ -9,7 +9,7 @@ from httk.core.views import unwrap
 
 from .fracvector import FracVector, Noms
 from .vector_backend import VectorBackend
-from .vector_frac import VectorFracBackend
+from .vector_frac_backend import VectorFracBackend
 from .vector_like import VectorLike
 from .vector_view import VectorView
 

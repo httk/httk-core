@@ -9,7 +9,7 @@ from typing import Any
 from .fracvector import FracVector
 from .vector_api import Fractions
 from .vector_backend import VectorBackend
-from .vector_frac import _fracvector_to_fractions
+from .vector_frac_backend import _fracvector_to_fractions
 
 _LEAF_TYPES = (int, float, decimal.Decimal, fractions.Fraction, str)
 

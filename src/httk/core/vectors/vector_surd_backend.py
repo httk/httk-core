@@ -9,7 +9,7 @@ from typing import Any
 from .surdvector import SurdVector
 from .vector_api import Fractions
 from .vector_backend import VectorBackend
-from .vector_frac import _fracvector_to_fractions
+from .vector_frac_backend import _fracvector_to_fractions
 
 # Guard digits added to the active decimal context precision when a lossy (irrational) surd must be
 # reduced to the rational ``fractions`` hub, mirroring exactmath's Ziv guard convention.
