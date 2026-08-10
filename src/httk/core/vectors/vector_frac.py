@@ -21,7 +21,7 @@ def _fracvector_to_fractions(fv: FracVector) -> Fractions:
     return rec(fv.noms)
 
 
-class VectorFrac(VectorBackend):
+class VectorFracBackend(VectorBackend):
     r"""
     Backend for a vector backed by an actual :class:`~httk.core.vectors.fracvector.FracVector`
     (or :class:`~httk.core.vectors.fracvector.FracScalar`).

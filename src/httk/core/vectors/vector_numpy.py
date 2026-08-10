@@ -9,7 +9,7 @@ from .vector_api import Fractions
 from .vector_backend import VectorBackend
 
 
-class VectorNumpy(VectorBackend):
+class VectorNumpyBackend(VectorBackend):
     r"""
     Backend for a vector backed by a :class:`numpy.ndarray`.
 

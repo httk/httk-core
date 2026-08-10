@@ -8,16 +8,16 @@ from httk.core import coerce, coerce_view
 from httk.core.vectors import (
     FracVector,
     SurdVector,
-    VectorFrac,
+    VectorFracBackend,
     VectorFracView,
-    VectorNative,
-    VectorSurd,
+    VectorNativeBackend,
+    VectorSurdBackend,
     VectorSurdView,
 )
 from httk.core.views import unwrap
 
 
-class CountingVectorFrac(VectorFrac):
+class CountingVectorFrac(VectorFracBackend):
     def __init__(self, obj: FracVector, **hints: Any) -> None:
         super().__init__(obj, **hints)
         self.fractions_calls = 0
@@ -33,7 +33,7 @@ class CountingVectorFrac(VectorFrac):
         return super().unwrap()
 
 
-class CountingVectorNative(VectorNative):
+class CountingVectorNative(VectorNativeBackend):
     def __init__(self, obj: Any, **hints: Any) -> None:
         super().__init__(obj, **hints)
         self.fractions_calls = 0
@@ -44,7 +44,7 @@ class CountingVectorNative(VectorNative):
         return super().fractions
 
 
-class CountingVectorSurd(VectorSurd):
+class CountingVectorSurd(VectorSurdBackend):
     def __init__(self, obj: SurdVector, **hints: Any) -> None:
         super().__init__(obj, **hints)
         self.unwrap_calls = 0

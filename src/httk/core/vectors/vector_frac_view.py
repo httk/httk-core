@@ -9,7 +9,7 @@ from httk.core.views import unwrap
 
 from .fracvector import FracVector, Noms
 from .vector_backend import VectorBackend
-from .vector_frac import VectorFrac
+from .vector_frac import VectorFracBackend
 from .vector_like import VectorLike
 from .vector_view import VectorView
 
@@ -51,7 +51,7 @@ class VectorFracView(VectorView, FracVector):
     def _fill_fractions(self) -> None:
         # Validate then assign: failed fills leave no partial presentation state, and fills must
         # not read shadowed attributes or they recurse.
-        if isinstance(self._backend, VectorFrac):
+        if isinstance(self._backend, VectorFracBackend):
             built = self._backend.unwrap()
         else:
             built = FracVector(self._backend.fractions)
@@ -90,7 +90,7 @@ class VectorFracView(VectorView, FracVector):
         # A frac backend already holds exactly the presented FracVector: reuse it. Otherwise
         # (converted or backend-less) build a plain FracVector reusing the materialized tuples.
         backend = getattr(self, "_backend", None)
-        if isinstance(backend, VectorFrac):
+        if isinstance(backend, VectorFracBackend):
             raw = backend.unwrap()
             if not isinstance(raw, VectorView):
                 return raw

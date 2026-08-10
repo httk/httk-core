@@ -17,11 +17,11 @@ from httk.core.vectors import (
     FracVector,
     SurdVector,
     VectorBackend,
-    VectorFrac,
+    VectorFracBackend,
     VectorFracView,
-    VectorNative,
+    VectorNativeBackend,
     VectorNativeView,
-    VectorSurd,
+    VectorSurdBackend,
     VectorSurdView,
 )
 from httk.core.views import unwrap
@@ -43,25 +43,25 @@ requires_numpy = pytest.mark.skipif(not HAS_NUMPY, reason="numpy is not installe
 
 def test_dispatch_list_to_native() -> None:
     backend = VectorBackend.create([[1, 2], [3, 4]])
-    assert isinstance(backend, VectorNative)
+    assert isinstance(backend, VectorNativeBackend)
 
 
 def test_dispatch_fracvector_to_frac() -> None:
     backend = VectorBackend.create(FracVector([[1, 2], [3, 4]]))
-    assert isinstance(backend, VectorFrac)
+    assert isinstance(backend, VectorFracBackend)
 
 
 @requires_numpy
 def test_dispatch_ndarray_to_numpy() -> None:
-    from httk.core.vectors import VectorNumpy
+    from httk.core.vectors import VectorNumpyBackend
 
     backend = VectorBackend.create(numpy.array([[1.0, 2.0], [3.0, 4.0]]))
-    assert isinstance(backend, VectorNumpy)
+    assert isinstance(backend, VectorNumpyBackend)
 
 
 def test_kind_override_forces_native() -> None:
     backend = VectorBackend.create([[1, 2], [3, 4]], kind="native")
-    assert isinstance(backend, VectorNative)
+    assert isinstance(backend, VectorNativeBackend)
 
 
 def test_kind_mismatch_is_rejected() -> None:
@@ -138,9 +138,9 @@ def test_rewrap_identity() -> None:
 
 def test_unwrap_returns_raw_objects() -> None:
     raw = [[1, 2], [3, 4]]
-    assert unwrap(VectorNative(raw)) is raw
+    assert unwrap(VectorNativeBackend(raw)) is raw
     fv = FracVector([[1, 2], [3, 4]])
-    assert unwrap(VectorFrac(fv)) is fv
+    assert unwrap(VectorFracBackend(fv)) is fv
 
 
 # ------------------------------------------------------------------ leaf codecs on the native view
@@ -207,7 +207,7 @@ def test_lossy_view_leaves_backend_untouched() -> None:
     import decimal
 
     raw = [["1/3", decimal.Decimal("2.5"), 4]]
-    backend = VectorNative(raw)
+    backend = VectorNativeBackend(raw)
     lossy = VectorNativeView(backend, leaf="int")  # deliberately lossy
     assert lossy == ((0, 2, 4),)  # 1/3 -> 0, 2.5 -> 2 (half-even)
     # The backend's original object is untouched (same identity).
@@ -228,12 +228,12 @@ def test_native_view_leaf_applies_across_backends() -> None:
 
 def test_dispatch_surdvector_to_surd() -> None:
     backend = VectorBackend.create(SurdVector.sqrt_of(2))
-    assert isinstance(backend, VectorSurd)
+    assert isinstance(backend, VectorSurdBackend)
 
 
 def test_surd_unwrap_is_exact() -> None:
     s = SurdVector.sqrt_of(2)
-    assert unwrap(VectorSurd(s)) is s
+    assert unwrap(VectorSurdBackend(s)) is s
 
 
 def test_native_to_surd_view_exact_round_trip() -> None:
@@ -246,7 +246,7 @@ def test_native_to_surd_view_exact_round_trip() -> None:
 
 def test_surd_view_of_surd_backend_keeps_exact_value() -> None:
     s = SurdVector.sqrt_of(2)
-    backend = VectorSurd(s)
+    backend = VectorSurdBackend(s)
     view = VectorSurdView(backend)
     assert view == s
     assert unwrap(view) is s  # the exact original SurdVector
@@ -529,13 +529,13 @@ def test_dispatch_and_import_work_without_numpy() -> None:
         "sys.modules['numpy'] = None\n"
         f"sys.path.insert(0, {src_dir!r})\n"
         "import httk.core as c\n"
-        "from httk.core.vectors import VectorBackend, VectorNative, _numpy_available\n"
+        "from httk.core.vectors import VectorBackend, VectorNativeBackend, _numpy_available\n"
         "assert _numpy_available is False\n"
-        "assert not hasattr(c, 'VectorNumpy')\n"
+        "assert not hasattr(c, 'VectorNumpyBackend')\n"
         "names = [b.__name__ for b in VectorBackend.backend_classes]\n"
-        "assert names == ['VectorFrac', 'VectorSurd', 'VectorNative'], names\n"
+        "assert names == ['VectorFracBackend', 'VectorSurdBackend', 'VectorNativeBackend'], names\n"
         "b = VectorBackend.create([[1, 2], [3, 4]])\n"
-        "assert isinstance(b, VectorNative)\n"
+        "assert isinstance(b, VectorNativeBackend)\n"
         "import fractions as fr\n"
         "assert b.fractions == ((fr.Fraction(1), fr.Fraction(2)), (fr.Fraction(3), fr.Fraction(4)))\n"
         "print('OK')\n"

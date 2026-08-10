@@ -1111,7 +1111,7 @@ def _coerce(x: Any) -> tuple[fractions.Fraction, bool]:
             raise TypeError(f"expected a scalar, got vector shape {x.dim}")
         if x.is_rational:
             return x._rational_fraction(), False
-        # Match VectorSurd's deterministic Fraction hub: active context precision plus guard
+        # Match VectorSurdBackend's deterministic Fraction hub: active context precision plus guard
         # digits. The exact surd remains available to exact=True operations.
         prec = fractions.Fraction(1, 10 ** (decimal.getcontext().prec + 3))
         return fractions.Fraction(x.to_fractions_approx(prec=prec)), False

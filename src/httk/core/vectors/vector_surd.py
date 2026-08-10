@@ -16,7 +16,7 @@ from .vector_frac import _fracvector_to_fractions
 _HUB_GUARD_DIGITS = 3
 
 
-class VectorSurd(VectorBackend):
+class VectorSurdBackend(VectorBackend):
     r"""
     Backend for a vector backed by an exact :class:`~httk.core.vectors.surdvector.SurdVector`
     (or :class:`~httk.core.vectors.surdvector.SurdScalar`), kind ``"surd"``.

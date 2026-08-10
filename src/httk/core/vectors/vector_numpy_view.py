@@ -17,11 +17,11 @@ from httk.core.views import unwrap
 from .leaf_codecs import apply_leaf_codec, leaf_codec_for_name
 from .vector_api import Fractions
 from .vector_backend import VectorBackend
-from .vector_frac import VectorFrac
+from .vector_frac import VectorFracBackend
 from .vector_like import VectorLike
-from .vector_native import VectorNative
-from .vector_numpy import VectorNumpy
-from .vector_surd import VectorSurd
+from .vector_native import VectorNativeBackend
+from .vector_numpy import VectorNumpyBackend
+from .vector_surd import VectorSurdBackend
 from .vector_view import VectorView
 
 _BACKEND_STATE_TAG = "httk-vector-backend"
@@ -54,7 +54,7 @@ def _reduce_backend(backend: VectorBackend) -> Any:
     return _rebuild_backend, (type(backend), unwrap(backend))
 
 
-for _backend_cls in (VectorFrac, VectorSurd, VectorNumpy, VectorNative):
+for _backend_cls in (VectorFracBackend, VectorSurdBackend, VectorNumpyBackend, VectorNativeBackend):
     copyreg.pickle(_backend_cls, _reduce_backend)
 
 
@@ -114,7 +114,7 @@ class VectorNumpyView(VectorView, numpy.ndarray):
         ):
             # Zero-copy adoption: share the array's memory and preserve its dtype.
             instance = obj.view(cls)
-            instance._backend = VectorNumpy(obj)
+            instance._backend = VectorNumpyBackend(obj)
             return instance
         backend = cls._prepare_backend(obj, hints)
         np_dtype = numpy.dtype(numpy.float64 if dtype is None else dtype)

@@ -9,7 +9,7 @@ from httk.core.views import unwrap
 from .leaf_codecs import apply_leaf_codec, leaf_codec_for_name, validate_leaf_codec
 from .vector_backend import VectorBackend
 from .vector_like import VectorLike
-from .vector_native import VectorNative
+from .vector_native import VectorNativeBackend
 from .vector_view import VectorView
 
 
@@ -56,7 +56,7 @@ class VectorNativeView(VectorView, tuple):
         leaf = hints.pop("leaf", None)
         backend = cls._prepare_backend(obj, hints)
         if leaf is None:
-            if isinstance(backend, VectorNative):
+            if isinstance(backend, VectorNativeBackend):
                 native = _tupleize(backend.native)
             else:
                 native = apply_leaf_codec(leaf_codec_for_name("exact"), backend.fractions)

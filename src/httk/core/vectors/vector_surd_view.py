@@ -11,7 +11,7 @@ from .fracvector import FracVector
 from .surdvector import SurdVector
 from .vector_backend import VectorBackend
 from .vector_like import VectorLike
-from .vector_surd import VectorSurd
+from .vector_surd import VectorSurdBackend
 from .vector_view import VectorView
 
 
@@ -51,7 +51,7 @@ class VectorSurdView(VectorView, SurdVector):
     def _fill_fractions(self) -> None:
         # Validate then assign: failed fills leave no partial presentation state, and fills must
         # not read shadowed attributes or they recurse.
-        if isinstance(self._backend, VectorSurd):
+        if isinstance(self._backend, VectorSurdBackend):
             surd = self._backend.unwrap()
         else:
             surd = SurdVector(self._backend.fractions)
@@ -83,7 +83,7 @@ class VectorSurdView(VectorView, SurdVector):
         # A surd backend already holds exactly the presented SurdVector: reuse it. Otherwise
         # build a plain SurdVector reusing the materialized components mapping.
         backend = getattr(self, "_backend", None)
-        if isinstance(backend, VectorSurd):
+        if isinstance(backend, VectorSurdBackend):
             raw = backend.unwrap()
             if not isinstance(raw, VectorView):
                 return raw

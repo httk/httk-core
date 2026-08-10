@@ -7,7 +7,7 @@ This page explains a core *httk₂* design pattern used across *httk-core*: in D
 
 The pattern has three pieces:
 
-- `X` or sometimes `XBackend`: internal carrier for one representation of data (`VectorFrac`, `VectorSurd`, `VectorNative`, `VectorNumpy`, `TextstreamFilename`, ...).
+- `X` or sometimes `XBackend`: internal carrier for one representation of data (`VectorFracBackend`, `VectorSurdBackend`, `VectorNativeBackend`, `VectorNumpyBackend`, `TextstreamFilename`, ...).
 - `XView`: user-facing interface for *how you want to work with that data right now* (`VectorFracView`, `VectorSurdView`, `VectorNativeView`, `VectorNumpyView`, ...).
 - `XLike`: union type accepted by API functions so callers can pass many natural inputs (`VectorLike`, `TextstreamLike`, ...).
 

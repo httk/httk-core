@@ -41,7 +41,7 @@ def _valid(node: Any) -> bool:
     return isinstance(node, _LEAF_TYPES)
 
 
-class VectorNative(VectorBackend):
+class VectorNativeBackend(VectorBackend):
     r"""
     Backend for a vector backed by plain nested sequences.
 

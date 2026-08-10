@@ -38,12 +38,12 @@ from .scalar_like import ScalarLike
 from .surdvector import SurdScalar, SurdVector
 from .vector_api import VectorAPI
 from .vector_backend import VectorBackend
-from .vector_frac import VectorFrac
+from .vector_frac import VectorFracBackend
 from .vector_frac_view import VectorFracView
 from .vector_like import VectorLike
-from .vector_native import VectorNative
+from .vector_native import VectorNativeBackend
 from .vector_native_view import VectorNativeView
-from .vector_surd import VectorSurd
+from .vector_surd import VectorSurdBackend
 from .vector_surd_view import VectorSurdView
 from .vector_view import VectorView
 
@@ -53,15 +53,15 @@ from .vector_view import VectorView
 # when numpy is available. Dispatch is otherwise disambiguated by an optional kind= hint.
 _numpy_view_class: type[Any] | None = None
 try:
-    from .vector_numpy import VectorNumpy
+    from .vector_numpy import VectorNumpyBackend
     from .vector_numpy_view import VectorNumpyView
 
     _numpy_available = True
     _numpy_view_class = VectorNumpyView
-    VectorBackend.backend_classes = [VectorFrac, VectorSurd, VectorNumpy, VectorNative]
+    VectorBackend.backend_classes = [VectorFracBackend, VectorSurdBackend, VectorNumpyBackend, VectorNativeBackend]
 except ImportError:
     _numpy_available = False
-    VectorBackend.backend_classes = [VectorFrac, VectorSurd, VectorNative]
+    VectorBackend.backend_classes = [VectorFracBackend, VectorSurdBackend, VectorNativeBackend]
 
 
 def _vector_scalar_coercer(value, target):
@@ -144,12 +144,12 @@ __all__ = [
     "SurdVector",
     "VectorAPI",
     "VectorBackend",
-    "VectorFrac",
+    "VectorFracBackend",
     "VectorFracView",
     "VectorLike",
-    "VectorNative",
+    "VectorNativeBackend",
     "VectorNativeView",
-    "VectorSurd",
+    "VectorSurdBackend",
     "VectorSurdView",
     "VectorView",
     "known_leaf_codecs",
@@ -160,4 +160,4 @@ __all__ = [
 ]
 
 if _numpy_available:
-    __all__ += ["VectorNumpy", "VectorNumpyView"]
+    __all__ += ["VectorNumpyBackend", "VectorNumpyView"]

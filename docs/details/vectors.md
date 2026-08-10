@@ -493,10 +493,10 @@ accept the `VectorLike` union and normalize immediately to the view they want.
 
 | kind       | backend         | view                | the view *is a* ...            |
 | ---------- | --------------- | ------------------- | ------------------------------ |
-| `"frac"`   | `VectorFrac`    | `VectorFracView`    | `FracVector` (exact algebra)   |
-| `"surd"`   | `VectorSurd`    | `VectorSurdView`    | `SurdVector` (exact radicals)  |
-| `"native"` | `VectorNative`  | `VectorNativeView`  | nested `tuple` (exact leaves)  |
-| `"numpy"`  | `VectorNumpy`   | `VectorNumpyView`   | `numpy.ndarray` (float64)      |
+| `"frac"`   | `VectorFracBackend`    | `VectorFracView`    | `FracVector` (exact algebra)   |
+| `"surd"`   | `VectorSurdBackend`    | `VectorSurdView`    | `SurdVector` (exact radicals)  |
+| `"native"` | `VectorNativeBackend`  | `VectorNativeView`  | nested `tuple` (exact leaves)  |
+| `"numpy"`  | `VectorNumpyBackend`   | `VectorNumpyView`   | `numpy.ndarray` (float64)      |
 
 `VectorFracView` and `VectorSurdView` are lazy: construction stores the backend, and their exact
 presentation state is converted and kept on first access. The other views remain eager where their
@@ -504,11 +504,11 @@ representation or documented construction-time validation requires it.
 
 ```python
 from httk.core.vectors import FracVector, VectorFracView, VectorNativeView
-from httk.core.vectors import VectorBackend, VectorFrac, VectorNative
+from httk.core.vectors import VectorBackend, VectorFracBackend, VectorNativeBackend
 
 # Dispatch by input type:
-assert isinstance(VectorBackend.create([[1, 2], [3, 4]]), VectorNative)
-assert isinstance(VectorBackend.create(FracVector([[1, 2], [3, 4]])), VectorFrac)
+assert isinstance(VectorBackend.create([[1, 2], [3, 4]]), VectorNativeBackend)
+assert isinstance(VectorBackend.create(FracVector([[1, 2], [3, 4]])), VectorFracBackend)
 
 # A frac view is a genuine FracVector, so the full exact algebra is available:
 assert VectorFracView([[2, 3, 5], [3, 5, 4], [4, 6, 7]]).det() == -3
@@ -553,11 +553,11 @@ therefore round-trips exactly:
 ```python
 import fractions
 from httk.core.vectors import SurdVector, VectorSurdView
-from httk.core.vectors import VectorBackend, VectorSurd
+from httk.core.vectors import VectorBackend, VectorSurdBackend
 from httk.core.views import unwrap
 
-# Dispatch by input type; VectorSurd wraps a SurdVector exactly:
-assert isinstance(VectorBackend.create(SurdVector.sqrt_of(2)), VectorSurd)
+# Dispatch by input type; VectorSurdBackend wraps a SurdVector exactly:
+assert isinstance(VectorBackend.create(SurdVector.sqrt_of(2)), VectorSurdBackend)
 
 # rational -> surd view is exact:
 view = VectorSurdView([["1/3", "2/5"]])
@@ -565,7 +565,7 @@ assert view == SurdVector([["1/3", "2/5"]]) and view.is_rational
 
 # unwrap returns the exact original SurdVector, radicals intact:
 surd = SurdVector.sqrt_of(2)
-assert unwrap(VectorSurd(surd)) is surd
+assert unwrap(VectorSurdBackend(surd)) is surd
 ```
 
 Going the other way, a genuinely **irrational surd → rational** representation (its `.fractions`
@@ -691,11 +691,11 @@ object, and a fresh exact view reproduces the exact values.
 
 ```python
 import decimal
-from httk.core.vectors import VectorNative, VectorNativeView
+from httk.core.vectors import VectorNativeBackend, VectorNativeView
 from httk.core.views import unwrap
 
 raw = [["1/3", decimal.Decimal("2.5"), 4]]
-backend = VectorNative(raw)
+backend = VectorNativeBackend(raw)
 
 lossy = VectorNativeView(backend, leaf="int")     # 1/3 -> 0, 5/2 -> 2 (half-even)
 assert lossy == ((0, 2, 4),)
