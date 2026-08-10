@@ -18,7 +18,7 @@
 """Stdlib-only marker vocabulary for declaring storable record classes.
 
 A *storable* class is a plain frozen dataclass whose fields a storage layer
-(such as the database layer in *httk-data*) can resolve into a relational
+(such as the database layer in *httk-store*) can resolve into a relational
 schema. Storability is non-intrusive: there is no base class to inherit.
 This module holds only the declaration vocabulary — the markers attached to
 fields via :class:`typing.Annotated`, the optional class-level

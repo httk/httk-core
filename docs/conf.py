@@ -109,7 +109,7 @@ autoapi_template_dir = "_templates/autoapi"
 nitpicky = True
 nitpick_ignore = [
     # PEP 695 type parameters have no documentation target; typehints-in-description
-    # mode injects them as parameter types (precedent: httk-data's `T` entry).
+    # mode injects them as parameter types (precedent: httk-store's `T` entry).
     ("py:class", "BackendT"),
     ("py:class", "typing.Any"),
     ("py:class", "typing.Optional"),

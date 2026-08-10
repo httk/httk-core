@@ -5,7 +5,7 @@ definitions** as first-class, immutable Python objects in
 `httk.core.property_definitions`, and pairs the standard entry types it
 vendors with ready-to-use, stdlib-only data models in `httk.core.entry_types`.
 The `httk.core.EntryProvider` implementations that serve those models live in
-the *httk-data* module.
+the *httk-store* module.
 
 A *property definition* is a self-describing document: it carries a property's
 canonical `$id`, its OPTIMADE type and unit, its requirements, and a
@@ -68,7 +68,7 @@ Machine-generated and on-the-fly names use a reserved `custom_` sub-namespace
 inside that prefix: `_<prefix>_custom_<name>`, where `<prefix>` is the token in
 the registered prefix. Thus httk's names are `_httk_custom_<name>`; they cannot
 collide with curated `_httk_*` definitions outside that sub-namespace.
-*httk-data*'s `auto_definition` follows the same convention by default.
+*httk-store*'s `auto_definition` follows the same convention by default.
 
 ```python
 from httk.core import PropertyDefinition
@@ -200,8 +200,8 @@ assert Reference.create(ref) is ref
 
 These models use only the standard library. The `httk.core.EntryProvider`
 implementations that map `{id: record}` mappings of them onto the neutral
-provider contract — and self-register as `data-references`, `data-files`, and
-`data-calculations` — live in the *httk-data* module, together with
+provider contract — and self-register as `store-references`, `store-files`, and
+`store-calculations` — live in the *httk-store* module, together with
 property-definition validation built on the definitions above. That keeps
 httk-core a dependency-free layer of *contracts and models*, with the concrete
 *capabilities* provided by the modules built on top of it.

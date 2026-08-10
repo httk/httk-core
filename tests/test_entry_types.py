@@ -1,7 +1,7 @@
 """Tests for the standard-entry-type record dataclasses.
 
 The entry *providers* that serve these dataclasses through the
-:class:`~httk.core.EntryProvider` contract now live in the *httk-data* module;
+:class:`~httk.core.EntryProvider` contract now live in the *httk-store* module;
 their tests live there. httk-core keeps only the stdlib-only record models.
 """
 
@@ -79,7 +79,7 @@ def test_aware_timestamp_round_trips_with_non_utc_offset() -> None:
 
 def test_core_registers_no_entry_providers() -> None:
     # httk-core defines the registry but ships no concrete providers of its own
-    # (the standard-entry-type providers register from httk-data). Assert on
+    # (the standard-entry-type providers register from httk-store). Assert on
     # core's own contribution only, so this holds regardless of which other
     # httk modules happen to be importable in the test environment.
     from httk.core.register import entry_providers
