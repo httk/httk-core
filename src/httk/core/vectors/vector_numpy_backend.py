@@ -72,8 +72,9 @@ class VectorNumpyBackend(VectorBackend):
     def to_floats(self) -> Any:
         """Return floats through a numpy fast path for real numeric dtypes.
 
-        Other dtypes fall back to :meth:`VectorAPI.to_floats` so the exact hub conversion and
-        its error semantics are preserved.
+        Other dtypes fall back to
+        :meth:`~httk.core.vectors.vector_api.VectorAPI.to_floats` so the exact hub conversion
+        and its error semantics are preserved.
 
         :return: The rendered value.
         """
@@ -85,8 +86,8 @@ class VectorNumpyBackend(VectorBackend):
         """Return a scalar float through numpy for real numeric 0-D arrays.
 
         Non-scalar arrays raise the same :class:`TypeError` as the hub implementation. Other
-        scalar dtypes fall back to :meth:`VectorAPI.to_float` for its exact conversion and error
-        semantics.
+        scalar dtypes fall back to :meth:`~httk.core.vectors.vector_api.VectorAPI.to_float` for
+        its exact conversion and error semantics.
 
         :return: The rendered scalar value.
         :raises TypeError: If the value is not scalar.

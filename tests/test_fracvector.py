@@ -31,6 +31,10 @@ def test_create_from_ints_with_denominator() -> None:
 
 
 def test_create_from_vector_api_members() -> None:
+    scalar = FracScalar("1/2")
+    assert scalar.fractions_exact is True
+    assert FracVector([scalar]) == FracVector([F(1, 2)])
+
     native_backend = VectorNativeBackend([1, 2])
     assert FracVector([1]).fractions_exact is True
     assert native_backend.fractions_exact is True

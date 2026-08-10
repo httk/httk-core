@@ -72,12 +72,16 @@ def nested_map_fractions_tuple(op: Callable[..., Any], *ls: Any) -> Any:
                 "cannot build an exact FracVector from an inexact member; "
                 "use to_fractions_approx(prec) or to_floats explicitly"
             )
-        items[0] = items[0].fractions
+        hub_value = items[0].fractions
+        if not isinstance(hub_value, tuple):
+            return op(hub_value, *items[1:])
+        items[0] = hub_value
     elif hasattr(items[0], 'to_fractions'):
         items[0] = items[0].to_fractions()
     if not isinstance(items[0], str):
+        iterable: Any = items[0]
         try:
-            dummy: Any = iter(items[0])
+            dummy: Any = iter(iterable)
         except TypeError:
             dummy = None
         if dummy is not None:
@@ -97,12 +101,16 @@ def nested_map_fractions_list(op: Callable[..., Any], *ls: Any) -> Any:
                 "cannot build an exact FracVector from an inexact member; "
                 "use to_fractions_approx(prec) or to_floats explicitly"
             )
-        items[0] = items[0].fractions
+        hub_value = items[0].fractions
+        if not isinstance(hub_value, tuple):
+            return op(hub_value, *items[1:])
+        items[0] = hub_value
     elif hasattr(items[0], 'to_fractions'):
         items[0] = items[0].to_fractions()
     if not isinstance(items[0], str):
+        iterable: Any = items[0]
         try:
-            iter(items[0])
+            iter(iterable)
             return list(map(lambda *xs: nested_map_fractions_list(op, *xs), *items))
         except TypeError:
             pass
