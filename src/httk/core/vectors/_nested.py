@@ -31,6 +31,8 @@ from collections.abc import Callable
 from functools import reduce
 from typing import Any
 
+from .vector_api import VectorAPI
+
 
 def nested_map_tuple(op: Callable[..., Any], *ls: Any) -> Any:
     """
@@ -64,7 +66,14 @@ def nested_map_fractions_tuple(op: Callable[..., Any], *ls: Any) -> Any:
     method and use it to further convert objects into tuples of Fraction.
     """
     items = list(ls)
-    if hasattr(items[0], 'to_fractions'):
+    if isinstance(items[0], VectorAPI):
+        if not items[0].fractions_exact:
+            raise TypeError(
+                "cannot build an exact FracVector from an inexact member; "
+                "use to_fractions_approx(prec) or to_floats explicitly"
+            )
+        items[0] = items[0].fractions
+    elif hasattr(items[0], 'to_fractions'):
         items[0] = items[0].to_fractions()
     if not isinstance(items[0], str):
         try:
@@ -82,7 +91,14 @@ def nested_map_fractions_list(op: Callable[..., Any], *ls: Any) -> Any:
     method and use it to further convert objects into lists of Fraction.
     """
     items = list(ls)
-    if hasattr(items[0], 'to_fractions'):
+    if isinstance(items[0], VectorAPI):
+        if not items[0].fractions_exact:
+            raise TypeError(
+                "cannot build an exact FracVector from an inexact member; "
+                "use to_fractions_approx(prec) or to_floats explicitly"
+            )
+        items[0] = items[0].fractions
+    elif hasattr(items[0], 'to_fractions'):
         items[0] = items[0].to_fractions()
     if not isinstance(items[0], str):
         try:

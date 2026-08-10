@@ -27,8 +27,9 @@ class VectorAPI(ABC):
     object the family hands you, ``.to_floats()`` works. (The exact value types
     :class:`~httk.core.vectors.fracvector.FracVector` and
     :class:`~httk.core.vectors.surdvector.SurdVector` honor the same contract with their own
-    implementations. Surd values render floats at fixed high precision independent of the decimal
-    context, unlike the hub's context-precision reduction.
+    implementations, while the numpy backend adds a dtype-guarded fast path with the hub as
+    fallback. Surd values render floats at fixed high precision independent of the decimal context,
+    unlike the hub's context-precision reduction.
     """
 
     @property
@@ -36,6 +37,15 @@ class VectorAPI(ABC):
     def fractions(self) -> Fractions:
         """Return the exact Fraction interchange representation."""
         raise NotImplementedError
+
+    @property
+    def fractions_exact(self) -> bool:
+        """Return whether ``fractions`` reproduces this value exactly.
+
+        Members whose Fraction interchange may be a deterministic approximation override this
+        property with ``False``; exact construction paths must refuse those members.
+        """
+        return True
 
     @property
     @abstractmethod

@@ -29,6 +29,7 @@ from httk.core.vectors import (
     VectorSurdView,
     to_numeric,
 )
+from httk.core.vectors.vector_api import VectorAPI
 from httk.core.views import unwrap
 
 F = fractions.Fraction
@@ -672,6 +673,41 @@ def test_numpy_backend_renders_to_floats() -> None:
 
     backend = VectorBackend.create(numpy.array([[0.5, 0.25]]))
     assert backend.to_floats() == [[0.5, 0.25]]
+
+
+@requires_numpy
+def test_numpy_backend_real_dtype_fast_path_matches_hub() -> None:
+    import numpy
+
+    float_backend = VectorBackend.create(numpy.array([[0.1, 1.5]], dtype=numpy.float64))
+    assert float_backend.to_floats() == VectorAPI.to_floats(float_backend)
+
+    int_backend = VectorBackend.create(numpy.array([-2, 3], dtype=numpy.int64))
+    assert int_backend.to_floats() == [-2.0, 3.0]
+
+    bool_backend = VectorBackend.create(numpy.array([True, False], dtype=numpy.bool_))
+    assert bool_backend.to_floats() == [1.0, 0.0]
+
+
+@requires_numpy
+def test_numpy_backend_non_real_dtype_falls_back_to_hub() -> None:
+    import numpy
+
+    complex_backend = VectorBackend.create(numpy.array(1 + 2j, dtype=numpy.complex128))
+    with pytest.raises(TypeError):
+        complex_backend.to_floats()
+    with pytest.raises(TypeError):
+        complex_backend.to_float()
+
+
+@requires_numpy
+def test_numpy_backend_to_float_shape_and_scalar_contract() -> None:
+    import numpy
+
+    backend = VectorBackend.create(numpy.array(0.1, dtype=numpy.float64))
+    assert backend.to_float() == 0.1
+    with pytest.raises(TypeError, match=r"to_float: expected a scalar, got shape \(2, 2\)"):
+        VectorBackend.create(numpy.ones((2, 2))).to_float()
 
 
 def test_backend_to_float_scalar_contract() -> None:

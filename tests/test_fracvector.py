@@ -15,7 +15,7 @@ from typing import cast
 
 import pytest
 
-from httk.core.vectors import FracScalar, FracVector
+from httk.core.vectors import FracScalar, FracVector, SurdVector, VectorBackend, VectorNativeBackend
 
 F = fractions.Fraction
 
@@ -28,6 +28,32 @@ def test_create_from_ints_with_denominator() -> None:
     # simplify shares the gcd(=2) out of the denominator
     assert v.noms == ((402, 0, 0), (0, 186, 0), (0, 0, 369))
     assert v.denom == 50
+
+
+def test_create_from_vector_api_members() -> None:
+    native_backend = VectorNativeBackend([1, 2])
+    assert FracVector([1]).fractions_exact is True
+    assert native_backend.fractions_exact is True
+    assert FracVector([native_backend]) == FracVector([[1, 2]])
+
+    rational_surd = SurdVector([F(1, 2), F(3, 2)])
+    assert rational_surd.fractions_exact is True
+    assert FracVector([rational_surd]) == FracVector([[F(1, 2), F(3, 2)]])
+
+
+def test_create_from_numpy_vector_api_member() -> None:
+    numpy = pytest.importorskip("numpy")
+    backend = VectorBackend.create(numpy.array([1.5, 2.5]))
+    assert backend.fractions_exact is True
+    assert FracVector([backend]) == FracVector([[1.5, 2.5]])
+
+
+def test_create_from_irrational_surd_rejects_inexact_hub() -> None:
+    surd = SurdVector.sqrt_of(2)
+    assert surd.fractions_exact is False
+    # Exact construction must not silently consume SurdVector's deterministic hub approximation.
+    with pytest.raises(TypeError, match="inexact member.*to_fractions_approx"):
+        FracVector([surd])
 
 
 def test_create_from_decimal_strings_matches_int_form() -> None:

@@ -9,6 +9,12 @@ from .vector_api import Fractions
 from .vector_backend import VectorBackend
 
 
+def _is_real_numeric(dtype: Any) -> bool:
+    import numpy
+
+    return any(numpy.issubdtype(dtype, kind) for kind in (numpy.bool_, numpy.integer, numpy.floating))
+
+
 class VectorNumpyBackend(VectorBackend):
     r"""
     Backend for a vector backed by a :class:`numpy.ndarray`.
@@ -62,6 +68,34 @@ class VectorNumpyBackend(VectorBackend):
     def dim(self) -> tuple[int, ...]:
         """Return the array shape."""
         return tuple(self._array.shape)
+
+    def to_floats(self) -> Any:
+        """Return floats through a numpy fast path for real numeric dtypes.
+
+        Other dtypes fall back to :meth:`VectorAPI.to_floats` so the exact hub conversion and
+        its error semantics are preserved.
+
+        :return: The rendered value.
+        """
+        if _is_real_numeric(self._array.dtype):
+            return self._array.astype(float).tolist()
+        return super().to_floats()
+
+    def to_float(self) -> float:
+        """Return a scalar float through numpy for real numeric 0-D arrays.
+
+        Non-scalar arrays raise the same :class:`TypeError` as the hub implementation. Other
+        scalar dtypes fall back to :meth:`VectorAPI.to_float` for its exact conversion and error
+        semantics.
+
+        :return: The rendered scalar value.
+        :raises TypeError: If the value is not scalar.
+        """
+        if self.dim != ():
+            raise TypeError(f"to_float: expected a scalar, got shape {self.dim}")
+        if _is_real_numeric(self._array.dtype):
+            return float(self._array)
+        return super().to_float()
 
     def unwrap(self) -> Any:
         """Return the wrapped numpy array."""

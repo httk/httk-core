@@ -655,6 +655,11 @@ class SurdVector(VectorBackend):
         prec = fractions.Fraction(1, 10 ** (decimal.getcontext().prec + _HUB_GUARD_DIGITS))
         return self._approx_fracvector(prec).fractions
 
+    @property
+    def fractions_exact(self) -> bool:
+        """Return whether the Fraction interchange is exact for this surd."""
+        return self.is_rational
+
     @classmethod
     def _backend_adopt(cls, obj: Any, **hints: Any) -> "SurdVector | None":
         r"""Adopt an exact surd vector by identity.
