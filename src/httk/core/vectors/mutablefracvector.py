@@ -32,10 +32,10 @@ from httk.core.vectors._nested import (
     nested_map_fractions_list,
     nested_map_list,
 )
-from httk.core.vectors.fracvector import FracVector
+from httk.core.vectors.fracvector import FracVector, FracVectorBase
 
 
-class MutableFracVector(FracVector):
+class MutableFracVector(FracVectorBase):
     """
     Same as :class:`~httk.core.vectors.fracvector.FracVector`, only this version allows
     assignment of elements, e.g.::

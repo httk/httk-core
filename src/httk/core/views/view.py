@@ -56,7 +56,16 @@ class View[BackendT: Backend]:
                 return backend
         if not isinstance(obj, cls._backend_base_cls):
             return cls._backend_base_cls.create(obj, **hints)
-        return obj
+        if not hints:
+            return obj
+        adopted = type(obj)._backend_adopt(obj, **hints)
+        if adopted is not None:
+            return adopted
+        # Classes that never self-adopt cannot judge hints, so hints are ignored; self-adopting
+        # classes—folded values and identity-adopting wrappers—enforce them.
+        if type(obj)._backend_adopt(obj) is None:
+            return obj
+        return cls._backend_base_cls.create(obj, **hints)
 
     def unwrap(self) -> Any:
         """

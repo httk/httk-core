@@ -8,10 +8,8 @@ import pytest
 from httk.core import FracScalar, FracVector, ScalarLike, SurdScalar, SurdVector, exactmath, unwrap
 from httk.core.vectors import (
     VectorBackend,
-    VectorFracBackend,
     VectorFracView,
     VectorNativeView,
-    VectorSurdBackend,
     VectorSurdView,
 )
 
@@ -101,9 +99,9 @@ def test_atan2_vectors_broadcast_and_resolve_quadrants() -> None:
 
 
 def test_scalar_vector_backends_and_zero_dimensional_numpy_are_scalar_inputs() -> None:
-    rational_backend = VectorFracBackend(FracVector(4))
-    assert exactmath.sqrt(rational_backend, exact=True) == F(2)
-    genuine = VectorSurdBackend(SurdVector.sqrt_of(2))
+    rational_backend = FracVector(4)
+    assert isinstance(exactmath.sqrt(rational_backend, exact=True), SurdVector)
+    genuine = SurdVector.sqrt_of(2)
     with pytest.raises(ValueError, match="rational value"):
         exactmath.sqrt(genuine, exact=True)
     genuine_view = VectorSurdView(SurdVector.sqrt_of(2))
@@ -215,10 +213,10 @@ def test_default_presentation_special_input_rows() -> None:
     assert exactmath.sqrt(True) == F(1)
     assert isinstance(exactmath.sqrt(True), F)
 
-    backend = VectorFracBackend(FracVector(4))
+    backend = FracVector(4)
     assert isinstance(backend, VectorBackend)
-    assert exactmath.sqrt(backend) == F(2)
-    assert isinstance(exactmath.sqrt(backend), F)
+    assert exactmath.sqrt(backend) == FracVector(2)
+    assert isinstance(exactmath.sqrt(backend), FracVector)
 
     view = VectorFracView([4, 9])
     result = exactmath.sqrt(view)

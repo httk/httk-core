@@ -8,29 +8,22 @@ from httk.core import coerce, coerce_view
 from httk.core.vectors import (
     FracVector,
     SurdVector,
-    VectorFracBackend,
     VectorFracView,
     VectorNativeBackend,
-    VectorSurdBackend,
     VectorSurdView,
 )
 from httk.core.views import unwrap
 
 
-class CountingVectorFrac(VectorFracBackend):
+class CountingVectorFrac(FracVector):
     def __init__(self, obj: FracVector, **hints: Any) -> None:
-        super().__init__(obj, **hints)
+        super().__init__(obj)
         self.fractions_calls = 0
-        self.unwrap_calls = 0
 
     @property
     def fractions(self):
         self.fractions_calls += 1
         return super().fractions
-
-    def unwrap(self) -> Any:
-        self.unwrap_calls += 1
-        return super().unwrap()
 
 
 class CountingVectorNative(VectorNativeBackend):
@@ -44,16 +37,6 @@ class CountingVectorNative(VectorNativeBackend):
         return super().fractions
 
 
-class CountingVectorSurd(VectorSurdBackend):
-    def __init__(self, obj: SurdVector, **hints: Any) -> None:
-        super().__init__(obj, **hints)
-        self.unwrap_calls = 0
-
-    def unwrap(self) -> Any:
-        self.unwrap_calls += 1
-        return super().unwrap()
-
-
 def test_frac_view_construction_is_lazy_and_unwrap_does_not_materialize() -> None:
     raw = FracVector([[1, 2], [3, 4]])
     backend = CountingVectorFrac(raw)
@@ -61,7 +44,7 @@ def test_frac_view_construction_is_lazy_and_unwrap_does_not_materialize() -> Non
 
     assert backend.fractions_calls == 0
     assert "noms" not in view.__dict__
-    assert unwrap(view) is raw
+    assert unwrap(view) is backend
     assert backend.fractions_calls == 0
 
 
@@ -82,11 +65,9 @@ def test_frac_view_adopts_frac_backend_without_fractions_roundtrip() -> None:
     backend = CountingVectorFrac(raw)
     view = VectorFracView(backend)
 
-    assert backend.unwrap_calls == 0
     _ = view.noms
     _ = view.denom
     assert backend.fractions_calls == 0
-    assert backend.unwrap_calls == 1
     assert view == raw
 
 
@@ -107,7 +88,7 @@ def test_surd_view_construction_and_materialization_are_lazy() -> None:
 
     assert backend.fractions_calls == 0
     assert "_components" not in view.__dict__
-    assert unwrap(view) is backend.unwrap()
+    assert unwrap(view) is backend
     assert backend.fractions_calls == 0
 
     _ = view._components
@@ -118,13 +99,10 @@ def test_surd_view_construction_and_materialization_are_lazy() -> None:
 
 def test_surd_view_adopts_surd_backend_lazily() -> None:
     raw = SurdVector.sqrt_of(2)
-    backend = CountingVectorSurd(raw)
-    view = VectorSurdView(backend)
+    view = VectorSurdView(raw)
 
-    assert backend.unwrap_calls == 0
     assert "_components" not in view.__dict__
     assert unwrap(view) is raw
-    assert backend.unwrap_calls == 1
 
 
 def test_frac_view_low_level_results_remain_backendless() -> None:

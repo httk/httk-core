@@ -42,6 +42,8 @@ from httk.core.vectors._nested import (
     tuple_slice,
     tuple_zeros,
 )
+from httk.core.vectors.vector_api import Fractions
+from httk.core.vectors.vector_backend import VectorBackend
 
 # The nested nominator structure is recursive: either a bare integer (a scalar) or a
 # (possibly nested) tuple of such structures. A single shared integer denominator is
@@ -69,10 +71,23 @@ def _noms_equal(a: Any, b: Any) -> bool:
     return False
 
 
-class FracVector:
+def _fracvector_to_fractions(fv: "FracVectorBase") -> Fractions:
+    """Return a rational vector's exact nested Fraction interchange representation."""
+    denom = fv.denom
+
+    def rec(noms: Any) -> Fractions:
+        if isinstance(noms, (tuple, list)):
+            return tuple(rec(n) for n in noms)
+        return fractions.Fraction(noms, denom)
+
+    return rec(fv.noms)
+
+
+class FracVectorBase:
     """
-    FracVector is a general *immutable* N-dimensional vector (tensor) class for performing
-    linear algebra with fractional numbers.
+    Shared implementation for immutable :class:`FracVector` and mutable
+    :class:`~httk.core.vectors.mutablefracvector.MutableFracVector` N-dimensional exact-rational
+    tensors.
 
     A FracVector consists of a multidimensional tuple of integer nominators, and a single
     shared integer denominator.
@@ -597,10 +612,10 @@ class FracVector:
         :return: The converted first vector, second vector, and shared denominator.
         """
 
-        if not isinstance(A, FracVector):
+        if not isinstance(A, FracVectorBase):
             A = cls.from_noms_and_denom(A, 1)
 
-        if not isinstance(B, FracVector):
+        if not isinstance(B, FracVectorBase):
             B = cls.from_noms_and_denom(B, 1)
 
         denom = A.denom * B.denom
@@ -946,7 +961,7 @@ class FracVector:
         :return: The exact matrix product.
         """
         # Handle other being another object
-        if not isinstance(other, FracVector):
+        if not isinstance(other, FracVectorBase):
             other = FracVector(other)
 
         Adim = self.dim
@@ -1372,7 +1387,7 @@ class FracVector:
             raise Exception("FracVector.__pow__: I do not know how to exponate a FracVector with " + str(exp))
 
     def __truediv__(self, other: Any) -> Self:
-        if not isinstance(other, FracVector):
+        if not isinstance(other, FracVectorBase):
             other = FracVector(other)
         frac = self.__class__.from_noms_and_denom(other.denom, other.nom)
         return self.mul(frac)
@@ -1438,7 +1453,7 @@ class FracVector:
             if other is None:
                 return False
 
-            if not isinstance(other, FracVector):
+            if not isinstance(other, FracVectorBase):
                 other = FracVector(other)
 
             if other.dim != self.dim:
@@ -1549,7 +1564,7 @@ class FracVector:
 
     #### Private methods
 
-    def _map_over_noms(self, op: Callable[..., Any], *others: "FracVector") -> Any:
+    def _map_over_noms(self, op: Callable[..., Any], *others: "FracVectorBase") -> Any:
         """
         Map an operation over all nominators.
         """
@@ -1592,6 +1607,29 @@ class FracVector:
         Run a nested reduce operation over all nominators.
         """
         return nested_reduce(op, self.noms, initializer=initializer)
+
+
+class FracVector(FracVectorBase, VectorBackend):
+    """Immutable exact-rational vector that is also its own vector backend."""
+
+    @property
+    def fractions(self) -> Fractions:
+        """Return this vector in the exact nested Fraction interchange format."""
+        return _fracvector_to_fractions(self)
+
+    @classmethod
+    def _backend_adopt(cls, obj: Any, **hints: Any) -> "FracVector | None":
+        r"""Adopt an immutable exact-rational vector by identity.
+
+        :param obj: The object to adopt.
+        :param \**hints: Backend-selection and disambiguation hints.
+        :return: ``obj`` when it is an exact-rational backend of kind ``"frac"``.
+        """
+        if not isinstance(obj, FracVector):
+            return None
+        if hints and hints.get("kind", "frac") != "frac":
+            return None
+        return obj
 
 
 class FracScalar(FracVector):

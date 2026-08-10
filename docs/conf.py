@@ -117,6 +117,10 @@ nitpick_ignore = [
     ("py:class", "Ellipsis"),
     # AutoAPI does not currently index PEP 695 aliases as Python objects.
     ("py:obj", "FrozenJson"),
+    # AutoAPI renders FracVector's same-module base bare in "Bases:" lines on the
+    # re-export pages (httk.core, httk.core.vectors), where the short name has no
+    # anchor; the class is documented at httk.core.vectors.fracvector.FracVectorBase.
+    ("py:obj", "FracVectorBase"),
     # AutoAPI renders the imported leaf of FrozenJson without its module.
     ("py:class", "Decimal"),
     # Public OPTIMADE resources necessarily expose the protocol member

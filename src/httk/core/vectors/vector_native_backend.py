@@ -6,10 +6,9 @@ import decimal
 import fractions
 from typing import Any, Self
 
-from .fracvector import FracVector
+from .fracvector import FracVector, FracVectorBase, _fracvector_to_fractions
 from .vector_api import Fractions
 from .vector_backend import VectorBackend
-from .vector_frac_backend import _fracvector_to_fractions
 
 _LEAF_TYPES = (int, float, decimal.Decimal, fractions.Fraction, str)
 
@@ -67,6 +66,8 @@ class VectorNativeBackend(VectorBackend):
         :return: An initialized backend, or ``None`` when ``obj`` is not accepted.
         """
         if hints and hints.get("kind", "native") != "native":
+            return None
+        if isinstance(obj, FracVectorBase):
             return None
         if not _is_native(obj):
             return None

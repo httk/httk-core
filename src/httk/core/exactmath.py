@@ -1099,10 +1099,10 @@ def _coerce(x: Any) -> tuple[fractions.Fraction, bool]:
         # public scalar contract (unlike FracVector, no inferred uncertainty).
         return fractions.Fraction(x), False
 
-    from .vectors.fracvector import FracVector
+    from .vectors.fracvector import FracVectorBase
     from .vectors.surdvector import SurdVector
 
-    if isinstance(x, FracVector):
+    if isinstance(x, FracVectorBase):
         if x.dim != ():
             raise TypeError(f"expected a scalar, got vector shape {x.dim}")
         return x.to_fraction(), False
@@ -1111,7 +1111,7 @@ def _coerce(x: Any) -> tuple[fractions.Fraction, bool]:
             raise TypeError(f"expected a scalar, got vector shape {x.dim}")
         if x.is_rational:
             return x._rational_fraction(), False
-        # Match VectorSurdBackend's deterministic Fraction hub: active context precision plus guard
+        # Match SurdVector's deterministic Fraction hub: active context precision plus guard
         # digits. The exact surd remains available to exact=True operations.
         prec = fractions.Fraction(1, 10 ** (decimal.getcontext().prec + 3))
         return fractions.Fraction(x.to_fractions_approx(prec=prec)), False
@@ -1156,10 +1156,10 @@ def _as_lists(value: Any) -> Any:
 
 def _vector_data(value: Any) -> tuple[Any, tuple[int, ...]]:
     """Return vector leaves and shape, retaining exact surd leaves where available."""
-    from .vectors.fracvector import FracVector
+    from .vectors.fracvector import FracVectorBase
     from .vectors.surdvector import SurdVector
 
-    if isinstance(value, FracVector):
+    if isinstance(value, FracVectorBase):
         data = _as_lists(value.to_fractions())
         return data, value.dim
     if isinstance(value, SurdVector):
@@ -1371,6 +1371,9 @@ def _is_decimal(*args: Any) -> bool:
 
 def _present(result: Any, x: Any, coerce: Any, exact: bool) -> Any:
     """Apply the public presentation policy to a naturally computed result."""
+    from .vectors.fracvector import FracVectorBase
+    from .vectors.surdvector import SurdVector
+
     if isinstance(coerce, str) and coerce == "natural":
         return result
     if coerce is not None:
@@ -1379,8 +1382,10 @@ def _present(result: Any, x: Any, coerce: Any, exact: bool) -> Any:
         return result
     if isinstance(result, decimal.Decimal):
         return result
-    if isinstance(x, (str, bool, Backend)):
+    if isinstance(x, (str, bool, Backend)) and not isinstance(x, (FracVectorBase, SurdVector)):
         return result
+    if isinstance(x, FracVectorBase) and x.dim == () and "_backend" not in x.__dict__:
+        return type(x)(result)
     try:
         return _view_coerce(result, type(x))
     except TypeError:

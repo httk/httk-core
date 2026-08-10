@@ -83,17 +83,21 @@ linearly independent over :math:`\\mathbb{Q}`. Consequences used throughout:
   crystallographic case); otherwise it raises.
 """
 
+import decimal
 import fractions
 from typing import Any, Self, cast
 
 from httk.core import exactmath
 from httk.core.vectors._squarefree import square_part
-from httk.core.vectors.fracvector import FracVector
+from httk.core.vectors.fracvector import FracVector, FracVectorBase
+from httk.core.vectors.vector_api import Fractions
+from httk.core.vectors.vector_backend import VectorBackend
 
 _MISSING_VALUE = object()
+_HUB_GUARD_DIGITS = 3
 
 
-def _fracvector_is_zero(fv: FracVector) -> bool:
+def _fracvector_is_zero(fv: FracVectorBase) -> bool:
     """Return True iff every element of ``fv`` is zero."""
 
     def rec(node: Any) -> bool:
@@ -111,7 +115,7 @@ def _zero_fracvector(dim: tuple[int, ...]) -> FracVector:
     return FracVector.zeros(dim)
 
 
-def _max_abs_leaf(fv: FracVector) -> fractions.Fraction:
+def _max_abs_leaf(fv: FracVectorBase) -> fractions.Fraction:
     """Return the largest absolute leaf value of ``fv`` as a Fraction (0 for an all-zero tensor)."""
     biggest = fv._reduce_over_noms(lambda acc, x: max(acc, abs(x)), initializer=0)
     return fractions.Fraction(biggest, fv.denom)
@@ -139,20 +143,20 @@ def _scalar_to_fraction(value: Any) -> fractions.Fraction:
         if value._dim != () or not value.is_rational:
             raise ValueError("SurdVector: expected a rational scalar")
         return value._rational_fraction()
-    if isinstance(value, FracVector):
+    if isinstance(value, FracVectorBase):
         return value.to_fraction()
     return fractions.Fraction(value)
 
 
-def _add_component(components: dict[int, FracVector], radicand: int, fv: FracVector) -> None:
+def _add_component(components: dict[int, FracVector], radicand: int, fv: FracVectorBase) -> None:
     """Accumulate ``fv`` into ``components[radicand]`` (FracVector addition)."""
     if radicand in components:
         components[radicand] = components[radicand] + fv
     else:
-        components[radicand] = fv
+        components[radicand] = FracVector(fv)
 
 
-class SurdVector:
+class SurdVector(VectorBackend):
     """
     An *immutable* exact tensor over the squarefree-radical field
     :math:`\\mathbb{Q}[\\sqrt n : n\\ \\text{squarefree}]`.
@@ -238,7 +242,7 @@ class SurdVector:
         for radicand, coeff in mapping.items():
             if radicand < 1:
                 raise ValueError(f"SurdVector.from_radicand_map: radicands must be >= 1, got {radicand!r}")
-            fv = coeff if isinstance(coeff, FracVector) else FracVector(coeff)
+            fv = coeff if isinstance(coeff, FracVectorBase) else FracVector(coeff)
             if dim is None:
                 dim = fv.dim
             elif fv.dim != dim:
@@ -291,7 +295,7 @@ class SurdVector:
 
     @property
     def dim(self) -> tuple[int, ...]:
-        """The shape tuple, as for :attr:`~httk.core.vectors.fracvector.FracVector.dim`."""
+        """The shape tuple, as for :attr:`~httk.core.vectors.fracvector.FracVectorBase.dim`."""
         return self._dim
 
     @property
@@ -331,7 +335,7 @@ class SurdVector:
             return other
         if isinstance(other, bool):
             return None
-        if isinstance(other, (int, fractions.Fraction, FracVector)):
+        if isinstance(other, (int, fractions.Fraction, FracVectorBase)):
             return SurdVector(FracVector(other))
         return None
 
@@ -642,6 +646,28 @@ class SurdVector:
     def __repr__(self) -> str:
         items = ", ".join(f"{radicand}: {comp!r}" for radicand, comp in sorted(self._components.items()))
         return f"{type(self).__name__}.from_components({{{items}}}, {self._dim!r})"
+
+    @property
+    def fractions(self) -> Fractions:
+        """Return the exact or deterministic rational hub representation."""
+        if self.is_rational:
+            return self.coefficient(1).fractions
+        prec = fractions.Fraction(1, 10 ** (decimal.getcontext().prec + _HUB_GUARD_DIGITS))
+        return self._approx_fracvector(prec).fractions
+
+    @classmethod
+    def _backend_adopt(cls, obj: Any, **hints: Any) -> "SurdVector | None":
+        r"""Adopt an exact surd vector by identity.
+
+        :param obj: The object to adopt.
+        :param \**hints: Backend-selection and disambiguation hints.
+        :return: ``obj`` when it is an exact surd backend of kind ``"surd"``.
+        """
+        if not isinstance(obj, SurdVector):
+            return None
+        if hints and hints.get("kind", "surd") != "surd":
+            return None
+        return obj
 
 
 class SurdScalar(SurdVector):

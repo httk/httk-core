@@ -30,7 +30,7 @@ from typing import TYPE_CHECKING, Any
 from httk.core import exactmath
 from httk.core.views import unwrap
 
-from .fracvector import FracVector
+from .fracvector import FracVectorBase
 from .surdvector import SurdScalar, SurdVector
 from .vector_backend import VectorBackend
 from .vector_like import VectorLike
@@ -91,7 +91,7 @@ def to_numeric_scalar(obj: Any) -> float:
         if obj.dim != ():
             raise TypeError(f"to_numeric_scalar: expected a scalar, got a SurdVector of shape {obj.dim}")
         return obj._as_scalar().to_float()
-    if isinstance(obj, FracVector):
+    if isinstance(obj, FracVectorBase):
         if obj.dim != ():
             raise TypeError(f"to_numeric_scalar: expected a scalar, got a FracVector of shape {obj.dim}")
         return obj.to_float()

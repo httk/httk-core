@@ -17,11 +17,9 @@ from httk.core.views import unwrap
 from .leaf_codecs import apply_leaf_codec, leaf_codec_for_name
 from .vector_api import Fractions
 from .vector_backend import VectorBackend
-from .vector_frac_backend import VectorFracBackend
 from .vector_like import VectorLike
 from .vector_native_backend import VectorNativeBackend
 from .vector_numpy_backend import VectorNumpyBackend
-from .vector_surd_backend import VectorSurdBackend
 from .vector_view import VectorView
 
 _BACKEND_STATE_TAG = "httk-vector-backend"
@@ -54,7 +52,7 @@ def _reduce_backend(backend: VectorBackend) -> Any:
     return _rebuild_backend, (type(backend), unwrap(backend))
 
 
-for _backend_cls in (VectorFracBackend, VectorSurdBackend, VectorNumpyBackend, VectorNativeBackend):
+for _backend_cls in (VectorNumpyBackend, VectorNativeBackend):
     copyreg.pickle(_backend_cls, _reduce_backend)
 
 

@@ -16,7 +16,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Exact-rational vectors (:class:`FracVector`/:class:`FracScalar`/:class:`MutableFracVector`) and
+Exact-rational vectors (:class:`FracVector`/:class:`FracScalar`/:class:`~httk.core.vectors.mutablefracvector.MutableFracVector`) and
 the Vector backend/view family that lets the same tensor data be viewed as the exact
 representation, plain nested sequences, or (optionally) numpy arrays.
 
@@ -30,7 +30,7 @@ from typing import Any
 
 from httk.core.views import register_coercer, view_class_coercer
 
-from .fracvector import FracScalar, FracVector
+from .fracvector import FracScalar, FracVector, FracVectorBase
 from .leaf_codecs import LeafCodec, known_leaf_codecs, register_leaf_codec
 from .mutablefracvector import MutableFracVector
 from .numeric import NumericVector, numpy_available, to_numeric, to_numeric_scalar
@@ -38,12 +38,10 @@ from .scalar_like import ScalarLike
 from .surdvector import SurdScalar, SurdVector
 from .vector_api import VectorAPI
 from .vector_backend import VectorBackend
-from .vector_frac_backend import VectorFracBackend
 from .vector_frac_view import VectorFracView
 from .vector_like import VectorLike
 from .vector_native_backend import VectorNativeBackend
 from .vector_native_view import VectorNativeView
-from .vector_surd_backend import VectorSurdBackend
 from .vector_surd_view import VectorSurdView
 from .vector_view import VectorView
 
@@ -58,10 +56,10 @@ try:
 
     _numpy_available = True
     _numpy_view_class = VectorNumpyView
-    VectorBackend.backend_classes = [VectorFracBackend, VectorSurdBackend, VectorNumpyBackend, VectorNativeBackend]
+    VectorBackend.backend_classes = [FracVector, SurdVector, VectorNumpyBackend, VectorNativeBackend]
 except ImportError:
     _numpy_available = False
-    VectorBackend.backend_classes = [VectorFracBackend, VectorSurdBackend, VectorNativeBackend]
+    VectorBackend.backend_classes = [FracVector, SurdVector, VectorNativeBackend]
 
 
 def _vector_scalar_coercer(value, target):
@@ -92,7 +90,7 @@ def _vector_scalar_coercer(value, target):
     if target not in scalar_targets or isinstance(value, bool):
         return None
     if (
-        not isinstance(value, (int, float, fractions.Fraction, decimal.Decimal, FracVector, SurdVector))
+        not isinstance(value, (int, float, fractions.Fraction, decimal.Decimal, FracVectorBase, SurdVector))
         and getattr(value, "dim", None) != ()
     ):
         return None
@@ -121,7 +119,7 @@ def _vector_scalar_coercer(value, target):
     return SurdVector(fraction)._as_scalar()
 
 
-_view_classes = [VectorFracView, VectorSurdView]
+_view_classes: list[type[Any]] = [VectorFracView, VectorSurdView]
 if _numpy_view_class is not None:
     _view_classes.append(_numpy_view_class)
 _view_classes.append(VectorNativeView)
@@ -144,12 +142,10 @@ __all__ = [
     "SurdVector",
     "VectorAPI",
     "VectorBackend",
-    "VectorFracBackend",
     "VectorFracView",
     "VectorLike",
     "VectorNativeBackend",
     "VectorNativeView",
-    "VectorSurdBackend",
     "VectorSurdView",
     "VectorView",
     "known_leaf_codecs",

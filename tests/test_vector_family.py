@@ -4,7 +4,9 @@ and behavior when numpy is absent.
 """
 
 import copy
+import decimal
 import fractions
+import math
 import pathlib
 import pickle
 import subprocess
@@ -13,16 +15,19 @@ from typing import Any, cast
 
 import pytest
 
+from httk.core import coerce, coerce_view
 from httk.core.vectors import (
+    FracScalar,
     FracVector,
+    MutableFracVector,
+    SurdScalar,
     SurdVector,
     VectorBackend,
-    VectorFracBackend,
     VectorFracView,
     VectorNativeBackend,
     VectorNativeView,
-    VectorSurdBackend,
     VectorSurdView,
+    to_numeric,
 )
 from httk.core.views import unwrap
 
@@ -47,8 +52,8 @@ def test_dispatch_list_to_native() -> None:
 
 
 def test_dispatch_fracvector_to_frac() -> None:
-    backend = VectorBackend.create(FracVector([[1, 2], [3, 4]]))
-    assert isinstance(backend, VectorFracBackend)
+    value = FracVector([[1, 2], [3, 4]])
+    assert VectorBackend.create(value) is value
 
 
 @requires_numpy
@@ -68,6 +73,103 @@ def test_kind_mismatch_is_rejected() -> None:
     # A FracVector cannot be interpreted as kind="native".
     with pytest.raises(TypeError):
         VectorBackend.create(FracVector([1, 2, 3]), kind="native")
+
+
+def test_mutable_fracvector_is_not_a_backend() -> None:
+    value = MutableFracVector([[1, 2]])
+    with pytest.raises(TypeError):
+        VectorBackend.create(value)
+    assert not isinstance(value, FracVector)
+
+
+def test_folded_value_views_enforce_kind_hints() -> None:
+    fv = FracVector([1, 2])
+    sv = SurdVector.sqrt_of(2)
+    with pytest.raises(TypeError):
+        VectorFracView(fv, kind="surd")
+    with pytest.raises(TypeError):
+        VectorSurdView(sv, kind="frac")
+    assert VectorFracView(fv, kind="frac").unwrap() is fv
+
+
+def test_wrapper_backend_ignores_redundant_or_extra_kind_hints() -> None:
+    backend = VectorNativeBackend([1, 2])
+    assert VectorNativeView(backend, kind="native")._backend is backend
+    # Wrapper backends retain their pre-fold behavior: extra hints cannot reinterpret them.
+    assert VectorNativeView(backend, kind="frac")._backend is backend
+
+
+@pytest.mark.parametrize("value_type", [FracScalar, SurdScalar])
+def test_scalar_value_backends_adopt_by_identity(value_type) -> None:
+    value = value_type(1)
+    assert VectorBackend.create(value) is value
+
+
+@pytest.mark.parametrize(
+    ("value", "kind"),
+    [(FracScalar(1), "surd"), (SurdScalar(1), "frac")],
+)
+def test_scalar_value_backend_kind_mismatch_is_rejected(value, kind) -> None:
+    with pytest.raises(TypeError):
+        VectorBackend.create(value, kind=kind)
+
+
+def test_mutable_fracvector_is_rejected_by_all_backend_entry_points() -> None:
+    value = MutableFracVector([[1, 2]])
+    with pytest.raises(TypeError):
+        VectorBackend.create(value)
+    with pytest.raises(TypeError):
+        VectorFracView(value)
+    with pytest.raises(TypeError):
+        VectorSurdView(value)
+    with pytest.raises(TypeError):
+        VectorNativeView(value)
+
+    with pytest.raises(TypeError):
+        coerce_view(value, FracVector)
+    with pytest.raises(TypeError):
+        coerce(value, FracVector)
+
+
+@requires_numpy
+def test_mutable_fracvector_is_rejected_by_numpy_entry_points() -> None:
+    value = MutableFracVector([[1, 2]])
+    from httk.core.vectors import VectorNumpyView
+
+    with pytest.raises(TypeError):
+        VectorNumpyView(value)
+    with pytest.raises(TypeError):
+        to_numeric(value)
+
+
+def test_vector_backend_create_identity_adopts_frac_view() -> None:
+    view = VectorFracView(FracVector([1, 2]))
+    # Chosen semantics: a FracVector view is itself a FracVector backend.
+    assert VectorBackend.create(view) is view
+
+
+def test_vector_backend_create_identity_adopts_surd_view() -> None:
+    view = VectorSurdView(SurdVector.sqrt_of(2))
+    # Chosen semantics: a SurdVector view is itself a SurdVector backend.
+    assert VectorBackend.create(view) is view
+
+
+def test_backendless_exact_view_is_adopted_as_a_backend() -> None:
+    backendless = VectorFracView([[1, 2], [3, 4]]) * 2
+    assert "_backend" not in backendless.__dict__
+    converted = VectorSurdView(backendless)
+    # Backend-less exact views remain their own folded value backend when passed onward.
+    assert converted._backend is backendless
+
+
+def test_surd_float_rendering_ignores_decimal_context() -> None:
+    value = SurdVector.sqrt_of(2)
+    with decimal.localcontext() as context:
+        context.prec = 5
+        rendered = value.to_floats()
+        hub_value = value.fractions
+    assert rendered == math.sqrt(2)
+    assert float(hub_value) != math.sqrt(2)
 
 
 def test_unrepresentable_raises() -> None:
@@ -140,7 +242,8 @@ def test_unwrap_returns_raw_objects() -> None:
     raw = [[1, 2], [3, 4]]
     assert unwrap(VectorNativeBackend(raw)) is raw
     fv = FracVector([[1, 2], [3, 4]])
-    assert unwrap(VectorFracBackend(fv)) is fv
+    assert unwrap(fv) is fv
+    assert VectorFracView(fv).unwrap() is fv
 
 
 # ------------------------------------------------------------------ leaf codecs on the native view
@@ -227,13 +330,13 @@ def test_native_view_leaf_applies_across_backends() -> None:
 
 
 def test_dispatch_surdvector_to_surd() -> None:
-    backend = VectorBackend.create(SurdVector.sqrt_of(2))
-    assert isinstance(backend, VectorSurdBackend)
+    value = SurdVector.sqrt_of(2)
+    assert VectorBackend.create(value) is value
 
 
 def test_surd_unwrap_is_exact() -> None:
     s = SurdVector.sqrt_of(2)
-    assert unwrap(VectorSurdBackend(s)) is s
+    assert unwrap(s) is s
 
 
 def test_native_to_surd_view_exact_round_trip() -> None:
@@ -246,8 +349,7 @@ def test_native_to_surd_view_exact_round_trip() -> None:
 
 def test_surd_view_of_surd_backend_keeps_exact_value() -> None:
     s = SurdVector.sqrt_of(2)
-    backend = VectorSurdBackend(s)
-    view = VectorSurdView(backend)
+    view = VectorSurdView(s)
     assert view == s
     assert unwrap(view) is s  # the exact original SurdVector
 
@@ -533,7 +635,7 @@ def test_dispatch_and_import_work_without_numpy() -> None:
         "assert _numpy_available is False\n"
         "assert not hasattr(c, 'VectorNumpyBackend')\n"
         "names = [b.__name__ for b in VectorBackend.backend_classes]\n"
-        "assert names == ['VectorFracBackend', 'VectorSurdBackend', 'VectorNativeBackend'], names\n"
+        "assert names == ['FracVector', 'SurdVector', 'VectorNativeBackend'], names\n"
         "b = VectorBackend.create([[1, 2], [3, 4]])\n"
         "assert isinstance(b, VectorNativeBackend)\n"
         "import fractions as fr\n"

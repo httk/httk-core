@@ -155,6 +155,13 @@ def test_vector_views_inherit_the_hash_contract() -> None:
 # --- MutableFracVector ---
 
 
+def test_mutable_and_frozen_fracvectors_compare_equal() -> None:
+    mutable = MutableFracVector([[1, 2], [3, 4]])
+    frozen = FracVector([[1, 2], [3, 4]])
+    assert mutable == frozen
+    assert frozen == mutable
+
+
 def test_mutable_fracvector_is_unhashable() -> None:
     """A mutable value must not be hashable, and must say so as a TypeError.
 

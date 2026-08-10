@@ -27,7 +27,8 @@ class VectorAPI(ABC):
     object the family hands you, ``.to_floats()`` works. (The exact value types
     :class:`~httk.core.vectors.fracvector.FracVector` and
     :class:`~httk.core.vectors.surdvector.SurdVector` honor the same contract with their own
-    implementations.)
+    implementations. Surd values render floats at fixed high precision independent of the decimal
+    context, unlike the hub's context-precision reduction.
     """
 
     @property
