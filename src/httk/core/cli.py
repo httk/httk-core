@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
-from .register import cli_command, known_cli_commands
+from .register.cli import cli_command, known_cli_commands
 
 
 @dataclass(frozen=True)

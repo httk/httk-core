@@ -28,36 +28,15 @@ from pathlib import PurePath
 from typing import Any
 from urllib.parse import urlsplit
 
-from ._plugins import PluginRegistry
 from .datastream.compression import split_compression_suffix
-from .register import (
+from .register.io import (
+    _reader_key,
     format_adapters,
+    has_reader_for,  # noqa: F401
     known_extensions,
     known_filenames,
-    reader_filenames,
     readers,
 )
-
-
-def _reader_key(name: str) -> tuple[PluginRegistry, str] | None:
-    basename = PurePath(name).name
-    inner, _codec = split_compression_suffix(basename)
-    ext = PurePath(inner).suffix.lower()
-    if ext and readers.get(ext) is not None:
-        return readers, ext
-    basename_key = inner.lower()
-    if reader_filenames.get(basename_key) is not None:
-        return reader_filenames, basename_key
-    return None
-
-
-def has_reader_for(name: str) -> bool:
-    """Return whether ``name`` matches a registered reader key.
-
-    :param name: Filename or URL path whose reader registration is checked.
-    :return: Whether the name matches a registered extension or exact basename.
-    """
-    return _reader_key(name) is not None
 
 
 def reader_uses_extension(name: str) -> bool:

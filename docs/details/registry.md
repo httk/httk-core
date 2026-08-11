@@ -34,7 +34,7 @@ without loading a file.
 
 ```python
 from httk.core import load, register_reader
-from httk.core.register import known_extensions, known_filenames
+from httk.core.register.io import known_extensions, known_filenames
 
 register_reader(
     name="demo",
@@ -124,7 +124,7 @@ To discover the available dispatch options, use
 has the corresponding `known_format_adapters()` accessor.
 
 ```python
-from httk.core.register import known_writer_formats
+from httk.core.register.io import known_writer_formats
 
 assert known_writer_formats() == sorted(known_writer_formats())
 ```

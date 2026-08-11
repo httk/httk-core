@@ -10,7 +10,7 @@ from typing import Any
 
 from .cli import CLIContext
 from .property_definitions import EntryTypeDefinition, PropertyDefinition
-from .register import load_entry_type_definition
+from .register.schemas import load_entry_type_definition
 
 _LICENSE = """#
 #    The high-throughput toolkit (httk)

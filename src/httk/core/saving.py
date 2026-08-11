@@ -13,7 +13,7 @@ from urllib.parse import urlsplit
 
 from ._plugins import PluginRegistry
 from .datastream.compression import split_compression_suffix
-from .register import (
+from .register.io import (
     _writer_for_format,
     _writer_format,
     format_serializers,

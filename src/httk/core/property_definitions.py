@@ -690,6 +690,6 @@ def standard_entry_type(name: str) -> EntryTypeDefinition:
         "files": "https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files",
         "calculations": "https://schemas.optimade.org/defs/v1.3/entrytypes/optimade/calculations",
     }
-    from .register import load_entry_type_definition
+    from .register.schemas import load_entry_type_definition
 
     return load_entry_type_definition(definition_ids[name])

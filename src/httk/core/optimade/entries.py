@@ -18,7 +18,7 @@ from urllib.parse import urlsplit
 
 from ..entry_types import Calculation, File, Reference
 from ..property_definitions import EntryTypeDefinition, PropertyDefinition, standard_entry_type
-from ..register import optimade_entry_binding
+from ..register.entries import optimade_entry_binding
 from ..storage.markers import stored_property
 from .resources import FrozenJson, OptimadeResource, optimade_document_root
 

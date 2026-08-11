@@ -54,21 +54,25 @@ from .property_definitions import (
     standard_entry_type,
 )
 from .provenance import ProductLink, Run, RunEdge, RunEntry
-from .register import (
+from .register.cli import register_cli_command
+from .register.entries import (
     known_entry_providers,
-    load_entry_type_definition,
-    load_property_definition,
-    register_cli_command,
     register_entry_family,
     register_entry_provider,
     register_entry_record,
-    register_entry_type_definition,
+    register_optimade_entry_binding,
+)
+from .register.io import (
     register_format_adapter,
     register_format_serializer,
-    register_optimade_entry_binding,
-    register_property_definition,
     register_reader,
     register_writer,
+)
+from .register.schemas import (
+    load_entry_type_definition,
+    load_property_definition,
+    register_entry_type_definition,
+    register_property_definition,
 )
 from .saving import has_writer_for, save
 from .storage.identity import content_id
