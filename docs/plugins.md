@@ -26,7 +26,7 @@ httk plugin uninstall NAME
 Programs are exposed through shims in `data_home()/bin`. Add that directory to
 `PATH` when `httk plugin install` prints its PATH hint. Project templates are
 selected with `httk project init --template`; see
-{doc}`project_templates`.
+{doc}`projects`.
 
 The complete manifest, installation, build, shim, and trust details are in
 {doc}`/details/plugins`.

@@ -12,7 +12,7 @@ httk help COMMAND
 
 `-C DIR` changes directory before dispatch, with git-style semantics. The
 core-owned `httk project` command provides the project workflow; see
-{doc}`project_anchor`. There is no project-subcommand extension mechanism.
+{doc}`projects`. There is no project-subcommand extension mechanism.
 
 Capability modules register additional top-level commands under the
 `httk.registry.cli.<module>` discovery tier. Registration is lazy, so root help
@@ -77,7 +77,7 @@ httk project init --list-templates
 
 `--parameter` is repeatable. `--list-templates` lists installed templates;
 `--template` may also name an explicit template directory. See
-{doc}`project_templates` for the selection and manifest rules.
+{doc}`projects` for the selection and manifest rules.
 
 ## Memory-guarded runs
 
@@ -85,9 +85,9 @@ The Linux-only `httk.core.memguard` module runs a command in its own process
 group and kills the group when its summed RSS exceeds the selected budget:
 
 ```console
-python -m httk.core.memguard --max-rss-gb 8 -- python -m pytest
+httk memguard --max-rss-gb 8 -- python -m pytest
 ```
 
 It reports the peak RSS on standard error. The module requires a visible
-`/proc` filesystem and is intended for the repository Makefile test and
-benchmark targets.
+`/proc` filesystem and is used for the repository Makefile test and benchmark
+targets.

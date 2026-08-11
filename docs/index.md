@@ -15,14 +15,13 @@ on the other.
 
 - **API reference**: {doc}`reference/index`
 - **Views and backends**: {doc}`view_backend_pattern`
-- **Registries and plugin discovery**: {doc}`registry`
+- **Module registry**: {doc}`registry`
 - **Datastreams**: {doc}`datastreams`
 - **Extensible CLI**: {doc}`cli`
 - **Plugins**: {doc}`plugins`
 - **Cryptography**: {doc}`crypto`
-- **Projects and the anchor**: {doc}`project_anchor`
-- **Project templates**: {doc}`project_templates`
-- **OPTIMADE definitions & entry providers**: {doc}`optimade_definitions`
+- **Projects and templates**: {doc}`projects`
+- **Property definitions & entry providers**: {doc}`property_definitions`
 - **Vectors**: {doc}`vectors`
 - **Exact math on rationals and decimals**: {doc}`exactmath`
 - **Citation credits**: {doc}`credits`
@@ -67,9 +66,8 @@ datastreams
 cli
 plugins
 crypto
-project_anchor
-project_templates
-optimade_definitions
+projects
+property_definitions
 vectors
 exactmath
 credits
@@ -84,8 +82,7 @@ details/view_backend_pattern
 details/registry
 details/datastreams
 details/plugins
-details/project_templates
-details/optimade_definitions
+details/property_definitions
 details/vectors
 details/exactmath
 ```

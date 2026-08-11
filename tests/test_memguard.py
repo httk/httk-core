@@ -8,12 +8,33 @@ from pathlib import Path
 
 import pytest
 
+from httk.core.cli import main as cli_main
+
 pytestmark = pytest.mark.skipif(
     sys.platform != "linux" or not Path("/proc").is_dir(),
     reason="memguard requires Linux with a visible /proc filesystem",
 )
 
 _MODULE = "httk.core.memguard"
+
+
+def test_cli_path_passes_through_child_exit_code() -> None:
+    assert (
+        cli_main(
+            [
+                "memguard",
+                "--max-rss-gb",
+                "0.01",
+                "--interval",
+                "0.01",
+                "--",
+                sys.executable,
+                "-c",
+                "raise SystemExit(7)",
+            ]
+        )
+        == 7
+    )
 
 
 def test_budget_pass_reports_peak() -> None:

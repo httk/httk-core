@@ -1,4 +1,4 @@
-# Registries and plugin discovery in detail
+# Module registry in detail
 
 `httk-core` keeps capability registration separate from capability imports. A
 capability module ships a package below one of the reserved namespaces:
@@ -209,7 +209,7 @@ surface and user-facing workflow are documented in {doc}`/cli`; see also
 OPTIMADE property-name prefix. `known_definition_prefixes` lists the current
 prefixes. Prefixes are lower-case alphanumeric tokens wrapped in underscores;
 the built-in `_httk_` prefix is already registered. See
-{doc}`optimade_definitions`.
+{doc}`property_definitions`.
 
 ## Compression codecs
 

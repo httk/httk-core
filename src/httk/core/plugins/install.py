@@ -19,7 +19,7 @@ from typing import cast
 
 from ..building import BuildError, BuildResult, execute_build
 from ..digests import sha256_file, tree_digest
-from ..project import templates as _project_templates
+from ..project import templates as _templates
 from .installed import PLUGIN_METADATA, InstalledPlugin, plugin_root, plugins_home, shims_home
 from .manifest import PluginManifest, parse_plugin_manifest
 
@@ -418,7 +418,7 @@ def install_plugin(source: str | Path, *, force: bool = False) -> InstalledPlugi
 
         for member in manifest.templates:
             try:
-                _project_templates.parse_template_manifest(staging / PurePosixPath(member))
+                _templates.parse_template_manifest(staging / PurePosixPath(member))
             except (OSError, ValueError) as exc:
                 raise ValueError(f"plugin {manifest.name!r} template {member!r}: {exc}") from exc
 

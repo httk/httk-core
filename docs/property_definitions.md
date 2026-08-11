@@ -1,10 +1,10 @@
-# OPTIMADE property & entry-type definitions
+# Property definitions
 
-OPTIMADE definitions are *httk₂*'s semantic vocabulary: first-class, immutable
-objects describing field identity, type, shape, units, and meaning — shared by
-storage, serving, and domain modules alike. *httk-core* vendors the standard
-entry types (`references`, `files`, `calculations`) and pairs them with
-ready-to-use record models:
+The semantic vocabulary of *httk₂* is based on OPTIMADE property and entry-type
+definitions: they are first-class, immutable Python objects in
+`httk.core.property_definitions`, shared by storage, serving, and domain
+modules. *httk-core* vendors the standard entry types (`references`, `files`,
+`calculations`) and pairs them with ready-to-use record models:
 
 ```python
 from httk.core import Reference, standard_entry_type
@@ -28,7 +28,7 @@ energy = PropertyDefinition.from_simple(
 extended = standard_entry_type("calculations").extended({"_httk_custom_energy": energy})
 ```
 
-The full guide, {doc}`details/optimade_definitions`, covers the vendoring
+The full guide, {doc}`details/property_definitions`, covers the vendoring
 policy and provenance, canonical `$id`s and the definition-format stamp,
 registering your own definition prefix, entry-type extension rules, and the
 generated record models.

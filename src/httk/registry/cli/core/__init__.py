@@ -43,3 +43,4 @@ register_cli_command(
     "httk.core._registry_tool:command",
     "generate and verify entry record classes from schemas",
 )
+register_cli_command("memguard", "httk.core.memguard:command", "run a command under a memory guard")

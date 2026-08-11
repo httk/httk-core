@@ -1,11 +1,13 @@
-# OPTIMADE property & entry-type definitions in detail
+# Property definitions
 
-*httk-core* models OPTIMADE **property definitions** and **entry-type
-definitions** as first-class, immutable Python objects in
-`httk.core.property_definitions`, and pairs the standard entry types it
+The semantic vocabulary of *httk₂* is based on OPTIMADE property and entry-type
+definitions: they are first-class, immutable Python objects in
+`httk.core.property_definitions`, and pair the standard entry types *httk-core*
 vendors with ready-to-use, stdlib-only data models in `httk.core.entry_types`.
 The `httk.core.EntryProvider` implementations that serve those models live in
 the *httk-store* module.
+
+For the short practical overview, see {doc}`/property_definitions`.
 
 A *property definition* is a self-describing document: it carries a property's
 canonical `$id`, its OPTIMADE type and unit, its requirements, and a

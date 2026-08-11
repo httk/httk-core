@@ -48,6 +48,8 @@ import subprocess
 import sys
 from collections.abc import Sequence
 
+from .cli import CLIContext
+
 try:
     _PAGE_SIZE = os.sysconf("SC_PAGE_SIZE")
 except (AttributeError, OSError, ValueError):
@@ -182,6 +184,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     peak = max(peak, _child_peak_bytes())
     sys.stderr.write(f"memguard: peak group RSS {peak / (1 << 30):.2f} GiB (budget {arguments.max_rss_gb:.1f} GiB)\n")
     return return_code
+
+
+def command(argv: Sequence[str], _context: CLIContext) -> int:
+    """Adapt the memory guard to the top-level ``httk`` command contract."""
+    return main(argv)
 
 
 if __name__ == "__main__":

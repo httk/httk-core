@@ -1,4 +1,4 @@
-# Registries and plugin discovery
+# Module registry
 
 Capability modules extend *httk₂* by shipping small registration packages
 under the reserved `httk.registry.<tier>.<module>` namespaces (`cli`,
