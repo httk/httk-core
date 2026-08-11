@@ -1,7 +1,8 @@
 """The core-owned ``httk project`` command.
 
-``httk project`` owns the anchor: ``init`` creates one (like ``git init``) and
-``show`` describes it, and ``import-v1`` migrates a legacy project.
+``httk project`` owns the anchor: ``init`` creates one (like ``git init``),
+``show`` describes it, ``seal`` creates a signed redistribution,
+``verify-seal`` checks one, and ``import-v1`` migrates a legacy project.
 """
 
 import argparse
@@ -24,6 +25,7 @@ from .anchor import (
     require_project,
     trusted_project_keys,
 )
+from .seal import seal_project, verify_seal
 from .templates import available_templates, check_parameters, instantiate_template, resolve_template
 
 #: Everything a handler may raise that is an operator's problem rather than a
@@ -200,6 +202,28 @@ def _handle_show(arguments: argparse.Namespace, context: CLIContext) -> int:
     return 0
 
 
+def _handle_seal(arguments: argparse.Namespace, context: CLIContext) -> int:
+    """Seal the nearest project tree into a signed redistribution ZIP."""
+
+    output = seal_project(Path(arguments.out_zip).expanduser().resolve(), context.cwd)
+    print(f"sealed project to {output}")
+    return 0
+
+
+def _handle_verify_seal(arguments: argparse.Namespace, context: CLIContext) -> int:
+    """Verify a signed redistribution ZIP and print its signer."""
+
+    report = verify_seal(
+        arguments.zip_path,
+        expect_key=arguments.expect_key,
+        trusted_keys=arguments.trusted_keys,
+    )
+    print(report["status"])
+    print(f"public_key: {report['public_key']}")
+    print(f"fingerprint: {report['fingerprint']}")
+    return 0
+
+
 def _build_init(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "path",
@@ -238,6 +262,23 @@ def _build_import_v1(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument("--source", metavar="DIR", help="the v1 project directory (default: PATH/ht.project)")
     parser.add_argument("--name", metavar="NAME", help="the imported project name")
+
+
+def _build_seal(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("out_zip", metavar="OUT.ZIP", help="destination signed redistribution ZIP")
+
+
+def _build_verify_seal(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("zip_path", metavar="ZIP", help="signed redistribution ZIP to verify")
+    parser.add_argument("--expect-key", metavar="FINGERPRINT", help="require this signer fingerprint")
+    parser.add_argument(
+        "--trusted-key",
+        dest="trusted_keys",
+        metavar="FINGERPRINT",
+        action="append",
+        default=[],
+        help="trust this signer fingerprint",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -282,6 +323,16 @@ def build_parser(program: str) -> argparse.ArgumentParser:
         summary="import a legacy v1 project",
         handler=_handle_import_v1,
         build=_build_import_v1,
+    )
+    _add_leaf(
+        subparsers, "seal", summary="create a signed project redistribution", handler=_handle_seal, build=_build_seal
+    )
+    _add_leaf(
+        subparsers,
+        "verify-seal",
+        summary="verify a signed project redistribution",
+        handler=_handle_verify_seal,
+        build=_build_verify_seal,
     )
     return parser
 

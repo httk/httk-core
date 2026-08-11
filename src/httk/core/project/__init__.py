@@ -34,10 +34,12 @@ from .anchor import (
     trusted_project_keys,
     write_project_section,
 )
+from .seal import PROJECT_PRIVATE_KEY_RELATIVE_PATH, seal_project, verify_seal
 
 __all__ = [
     "PROJECT_DIRECTORY",
     "PROJECT_FILE",
+    "PROJECT_PRIVATE_KEY_RELATIVE_PATH",
     "PUBLIC_KEY_PREFIX",
     "LegacyProjectError",
     "canonical_public_key",
@@ -54,7 +56,9 @@ __all__ = [
     "read_project_section",
     "read_public_key_file",
     "require_project",
+    "seal_project",
     "trust_project_key",
     "trusted_project_keys",
+    "verify_seal",
     "write_project_section",
 ]
