@@ -47,6 +47,12 @@ class VectorFracView(VectorView, FracVector):
     def __init__(self, obj: VectorLike, **hints: Any) -> None:
         pass
 
+    @property
+    def fractions_exact(self) -> bool:
+        """Return whether this view's Fraction interchange is exact."""
+        backend = getattr(self, "_backend", None)
+        return True if backend is None else backend.fractions_exact
+
     def _fill_fractions(self) -> None:
         # Validate then assign: failed fills leave no partial presentation state, and fills must
         # not read shadowed attributes or they recurse.

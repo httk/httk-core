@@ -6,9 +6,9 @@ import fractions
 from abc import ABC, abstractmethod
 from typing import Any
 
-# The canonical interchange is exactness-preserving: a (possibly nested) tuple of
-# fractions.Fraction, or a bare Fraction for a scalar. Every representation can produce this
-# exactly (numpy float64 values ARE binary rationals); only the numpy *view* direction is lossy.
+# The canonical interchange is a (possibly nested) tuple of fractions.Fraction, or a bare
+# Fraction for a scalar. It is exact when ``fractions_exact`` is True; members whose hub is a
+# deterministic approximation report False, and exact-construction paths refuse them.
 type Fractions = fractions.Fraction | tuple[Fractions, ...]
 
 
@@ -16,11 +16,13 @@ class VectorAPI(ABC):
     """
     Abstract base class for the canonical vector interface.
 
-    It declares the exactness-preserving ``fractions`` accessor (a nested tuple of
-    :class:`fractions.Fraction`, or a bare Fraction for a scalar) that every vector backend
-    produces from its own native representation and every vector view builds its presentation
-    from, together with the ``dim`` shape tuple. This is the single interchange format; there is
-    no pairwise conversion between backends.
+    It declares the ``fractions`` accessor (a nested tuple of :class:`fractions.Fraction`, or a
+    bare Fraction for a scalar) that every vector backend produces from its own native
+    representation and every vector view builds its presentation from, together with the ``dim``
+    shape tuple. The interchange is exact when :attr:`fractions_exact` is True; members such as
+    irrational surds whose hub is a deterministic approximation report False, and exact
+    construction paths refuse them. This is the single interchange format; there is no pairwise
+    conversion between backends.
 
     On top of the two abstract accessors it provides the guaranteed float renderings
     :meth:`to_floats` and :meth:`to_float`, derived from the ``fractions`` hub — so *whatever*
@@ -35,7 +37,7 @@ class VectorAPI(ABC):
     @property
     @abstractmethod
     def fractions(self) -> Fractions:
-        """Return the exact Fraction interchange representation."""
+        """Return the Fraction interchange representation."""
         raise NotImplementedError
 
     @property
@@ -59,8 +61,9 @@ class VectorAPI(ABC):
 
         The value as (possibly nested) plain lists of ``float`` — a bare ``float`` for a scalar.
 
-        Derived from the exact ``fractions`` hub; nested lists match the
-        ``numpy.ndarray.tolist()`` convention and are directly JSON-serializable.
+        Derived from the ``fractions`` hub; when :attr:`fractions_exact` is False, the result is
+        the member's deterministic approximation. Nested lists match the ``numpy.ndarray.tolist()``
+        convention and are directly JSON-serializable.
 
         :return: The rendered value.
         """

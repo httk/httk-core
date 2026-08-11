@@ -163,6 +163,19 @@ def test_backendless_exact_view_is_adopted_as_a_backend() -> None:
     assert converted._backend is backendless
 
 
+def test_inexact_surd_views_and_mutable_construction_are_rejected() -> None:
+    irrational = SurdVector.sqrt_of(2)
+    frac_view = VectorFracView(irrational)
+    surd_view = VectorSurdView(irrational)
+
+    assert frac_view.fractions_exact is False
+    assert surd_view.fractions_exact is False
+    with pytest.raises(TypeError, match="inexact member"):
+        FracVector([frac_view])
+    with pytest.raises(TypeError, match="inexact member"):
+        MutableFracVector([irrational])
+
+
 def test_surd_float_rendering_ignores_decimal_context() -> None:
     value = SurdVector.sqrt_of(2)
     with decimal.localcontext() as context:

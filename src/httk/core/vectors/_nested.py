@@ -111,9 +111,10 @@ def nested_map_fractions_list(op: Callable[..., Any], *ls: Any) -> Any:
         iterable: Any = items[0]
         try:
             iter(iterable)
-            return list(map(lambda *xs: nested_map_fractions_list(op, *xs), *items))
         except TypeError:
             pass
+        else:
+            return list(map(lambda *xs: nested_map_fractions_list(op, *xs), *items))
     return op(*items)
 
 
