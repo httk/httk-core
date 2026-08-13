@@ -3,7 +3,7 @@
 Importing this package discovers installed capability modules and exposes
 their registered readers, writers, adapters, and related public APIs.
 
-The deliberate public surface contains 85 names.
+The deliberate public surface contains 86 names.
 """
 
 #
@@ -29,6 +29,7 @@ from .citations import credits, register_citation
 from .cli import CLIContext
 from .data_records import DataRecord, DataRecordEntry
 from .dataset_loader import DatasetLoader, DatasetMeta, DatasetRecord
+from .datasets import Dataset
 from .datastream import (
     BytestreamFileView,
     BytestreamLike,
@@ -116,6 +117,7 @@ __all__ = [
     "CompressionCodec",
     "DataRecord",
     "DataRecordEntry",
+    "Dataset",
     "DatasetLoader",
     "DatasetMeta",
     "DatasetRecord",
