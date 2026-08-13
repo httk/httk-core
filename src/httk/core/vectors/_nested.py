@@ -28,10 +28,16 @@ construction, these helpers are honestly typed with :data:`~typing.Any`.
 
 import random
 from collections.abc import Callable
+from fractions import Fraction
 from functools import reduce
 from typing import Any
 
 from .vector_api import VectorAPI
+
+
+def _is_exact_leaf(value: Any) -> bool:
+    value_type = type(value)
+    return value_type is int or value_type is Fraction or value_type is str
 
 
 def nested_map_tuple(op: Callable[..., Any], *ls: Any) -> Any:
@@ -40,8 +46,18 @@ def nested_map_tuple(op: Callable[..., Any], *ls: Any) -> Any:
 
     Returns nested tuples.
     """
-    if isinstance(ls[0], (tuple, list)):
-        if len(ls[0]) == 0 or not isinstance(ls[0][0], (tuple, list)):
+    first = ls[0]
+    first_type = type(first)
+    if first_type is tuple or first_type is list:
+        if len(first) == 0:
+            return tuple(map(op, *ls))
+        first_item_type = type(first[0])
+        if first_item_type is tuple or first_item_type is list:
+            return tuple(map(lambda *items: nested_map_tuple(op, *items), *ls))
+        if not isinstance(first[0], (tuple, list)):
+            return tuple(map(op, *ls))
+    if isinstance(first, (tuple, list)):
+        if len(first) == 0 or not isinstance(first[0], (tuple, list)):
             return tuple(map(op, *ls))
         return tuple(map(lambda *items: nested_map_tuple(op, *items), *ls))
     return op(*ls)
@@ -53,14 +69,40 @@ def nested_map_list(op: Callable[..., Any], *ls: Any) -> Any:
 
     Returns nested lists.
     """
-    if isinstance(ls[0], (tuple, list)):
-        if len(ls[0]) == 0 or not isinstance(ls[0][0], (tuple, list)):
+    first = ls[0]
+    first_type = type(first)
+    if first_type is tuple or first_type is list:
+        if len(first) == 0:
+            return list(map(op, *ls))
+        first_item_type = type(first[0])
+        if first_item_type is tuple or first_item_type is list:
+            return list(map(lambda *items: nested_map_list(op, *items), *ls))
+        if not isinstance(first[0], (tuple, list)):
+            return list(map(op, *ls))
+    if isinstance(first, (tuple, list)):
+        if len(first) == 0 or not isinstance(first[0], (tuple, list)):
             return list(map(op, *ls))
         return list(map(lambda *items: nested_map_list(op, *items), *ls))
     return op(*ls)
 
 
 def nested_map_fractions_tuple(op: Callable[..., Any], *ls: Any) -> Any:
+    first = ls[0]
+    first_type = type(first)
+    if first_type is int or first_type is Fraction or first_type is str:
+        return op(*ls)
+    if first_type is tuple or first_type is list:
+        if len(first) == 0:
+            return tuple(map(op, *ls))
+        if all(_is_exact_leaf(item) for item in first):
+            return tuple(map(op, *ls))
+        if type(first[0]) is tuple or type(first[0]) is list:
+            return tuple(map(lambda *xs: nested_map_fractions_tuple(op, *xs), *ls))
+        return _nested_map_fractions_tuple_generic(op, *ls)
+    return _nested_map_fractions_tuple_generic(op, *ls)
+
+
+def _nested_map_fractions_tuple_generic(op: Callable[..., Any], *ls: Any) -> Any:
     """
     Map an operator over a nested tuple, but check every element for a ``to_fractions()``
     method and use it to further convert objects into tuples of Fraction.
@@ -90,6 +132,22 @@ def nested_map_fractions_tuple(op: Callable[..., Any], *ls: Any) -> Any:
 
 
 def nested_map_fractions_list(op: Callable[..., Any], *ls: Any) -> Any:
+    first = ls[0]
+    first_type = type(first)
+    if first_type is int or first_type is Fraction or first_type is str:
+        return op(*ls)
+    if first_type is tuple or first_type is list:
+        if len(first) == 0:
+            return list(map(op, *ls))
+        if all(_is_exact_leaf(item) for item in first):
+            return list(map(op, *ls))
+        if type(first[0]) is tuple or type(first[0]) is list:
+            return list(map(lambda *xs: nested_map_fractions_list(op, *xs), *ls))
+        return _nested_map_fractions_list_generic(op, *ls)
+    return _nested_map_fractions_list_generic(op, *ls)
+
+
+def _nested_map_fractions_list_generic(op: Callable[..., Any], *ls: Any) -> Any:
     """
     Map an operator over a nested list, but check every element for a ``to_fractions()``
     method and use it to further convert objects into lists of Fraction.
@@ -165,6 +223,11 @@ def nested_reduce_fractions(op: Callable[[Any, Any], Any], seq: Any, initializer
     Also checks every element for a ``to_fractions()`` method and uses it to further convert
     such elements to lists of fractions.
     """
+    seq_type = type(seq)
+    if seq_type is tuple or seq_type is list:
+        return reduce(lambda x, y: nested_reduce_fractions(op, y, initializer=x), seq, initializer)
+    if seq_type is int or seq_type is Fraction or seq_type is str:
+        return op(initializer, seq)
     if hasattr(seq, 'to_fractions'):
         seq = seq.to_fractions()
     if not isinstance(seq, str):

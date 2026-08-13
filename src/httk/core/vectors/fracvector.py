@@ -83,6 +83,56 @@ def _fracvector_to_fractions(fv: "FracVectorBase") -> Fractions:
     return rec(fv.noms)
 
 
+def _copy_noms(noms: Any, container: type[tuple] | type[list]) -> Any:
+    if type(noms) is tuple or type(noms) is list:
+        return container(_copy_noms(item, container) for item in noms)
+    return noms
+
+
+def _has_int_noms(noms: Any) -> bool:
+    if type(noms) is int:
+        return True
+    if type(noms) is tuple or type(noms) is list:
+        return all(_has_int_noms(item) for item in noms)
+    return False
+
+
+def _int_fraction_noms_and_lcd(values: Any, container: type[tuple] | type[list]) -> tuple[Any, int] | None:
+    """Convert an exact int/Fraction tree without constructing per-leaf Fractions."""
+
+    def find_lcd(node: Any) -> int | None:
+        node_type = type(node)
+        if node_type is int:
+            return 1
+        if node_type is fractions.Fraction:
+            return node.denominator
+        if node_type is tuple or node_type is list:
+            lcd = 1
+            for item in node:
+                item_lcd = find_lcd(item)
+                if item_lcd is None:
+                    return None
+                lcd = lcd * item_lcd // calc_gcd(lcd, item_lcd)
+            return lcd
+        return None
+
+    lcd = find_lcd(values)
+    if lcd is None:
+        return None
+
+    def scale(node: Any) -> Any:
+        node_type = type(node)
+        if node_type is int:
+            return node * lcd
+        if node_type is fractions.Fraction:
+            return node.numerator * (lcd // node.denominator)
+        if node_type is tuple or node_type is list:
+            return container(scale(item) for item in node)
+        raise TypeError("unreachable")
+
+    return scale(values), lcd
+
+
 class FracVectorBase:
     """
     Shared implementation for immutable :class:`FracVector` and mutable
@@ -172,6 +222,28 @@ class FracVectorBase:
         min_accuracy: fractions.Fraction | None,
     ) -> tuple[Any, int]:
         """Return normalized raw data for the converting constructor."""
+
+        if type(denom) is int or denom is None:
+            container = tuple if cls._dup_noms is tuple else list if cls._dup_noms is list else None
+            if (
+                container is not None
+                and isinstance(values, FracVectorBase)
+                and type(values.denom) is int
+                and values.denom != 0
+                and _has_int_noms(values.noms)
+            ):
+                normalized = values.simplify()
+                v_noms = _copy_noms(normalized.noms, container)
+                if chain:
+                    v_noms = cls._dup_noms(itertools.chain(*v_noms))
+                return v_noms, normalized.denom if denom is None else normalized.denom * denom
+            if container is not None:
+                fast = _int_fraction_noms_and_lcd(values, container)
+                if fast is not None:
+                    v_noms, lcd = fast
+                    if chain:
+                        v_noms = cls._dup_noms(itertools.chain(*v_noms))
+                    return v_noms, lcd if denom is None else lcd * denom
 
         def getlcd(a: Any, y: Any) -> Any:
             b = abs(y).denominator

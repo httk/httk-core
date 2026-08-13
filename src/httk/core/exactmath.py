@@ -203,6 +203,8 @@ def any_to_fraction(
     :param min_accuracy: Minimum assumed accuracy for string input, or ``None`` for exact conversion.
     :return: The converted rational value.
     """
+    if type(arg) is fractions.Fraction:
+        return arg
     if isinstance(arg, str):
         val, delta = string_to_val_and_delta(arg, min_accuracy=min_accuracy)
         if delta == 0:

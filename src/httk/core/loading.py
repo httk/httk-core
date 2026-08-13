@@ -23,9 +23,12 @@ one-call domain-loading experience. Callers that need the neutral payload can
 use ``raw=True``.
 """
 
-from collections.abc import Mapping
+import os
+from collections.abc import Generator, Iterable, Mapping
+from concurrent.futures import Future, ProcessPoolExecutor
+from concurrent.futures.process import BrokenProcessPool
 from pathlib import PurePath
-from typing import Any
+from typing import Any, Literal
 from urllib.parse import urlsplit
 
 from .datastream.compression import split_compression_suffix
@@ -117,3 +120,137 @@ def load(filename: str, *, raw: bool = False, **kwargs: Any) -> Any:
     if isinstance(filename, str) and urlsplit(filename).scheme in {"http", "https", "ftp", "file"}:
         raise ValueError("load reads local files; httk.core.fetch(url) is the URL entry point")
     return load_source(filename, filename, raw=raw, **kwargs)
+
+
+def _load_many_worker(source: Any, kwargs: dict[str, Any]) -> Any:
+    """Load one source in a process-pool worker."""
+    return load(source, **kwargs)
+
+
+def _load_many_chunksize(sources: Iterable[Any], processes: int | None) -> int:
+    workers = processes or os.cpu_count() or 1
+    try:
+        count = len(sources)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return 1
+    return max(1, min(32, count // (workers * 4)))
+
+
+def _note_load_many_error(error: Exception, source: Any) -> None:
+    if any(isinstance(note, str) and note.startswith("load_many source:") for note in getattr(error, "__notes__", ())):
+        return
+    error.add_note(f"load_many source: {source!r}")
+
+
+def _load_many_serial(source: Any, kwargs: dict[str, Any], errors: Literal["raise", "return"]) -> Any:
+    try:
+        return load(source, **kwargs)
+    except Exception as error:
+        _note_load_many_error(error, source)
+        if errors == "return":
+            return error
+        raise
+
+
+def load_many(
+    sources: Iterable[Any],
+    *,
+    processes: int | None = None,
+    errors: Literal["raise", "return"] = "raise",
+    **kwargs: Any,
+) -> Generator[tuple[Any, Any], None, None]:
+    r"""Load multiple sources lazily, preserving input order.
+
+    ``processes=None`` uses the process-pool default. ``processes=0`` or
+    ``processes=1`` loads in the current process, which is also the guaranteed
+    path for readers registered at runtime. Parallel workers rediscover
+    installed registration packages, but runtime registrations are not
+    guaranteed to be present in a fresh worker. Parallel work uses bounded
+    ordered futures rather than :meth:`~concurrent.futures.Executor.map` so
+    worker failures and result-pickling failures can be returned per source.
+
+    :param sources: Sources accepted by :func:`load`.
+    :param processes: Number of worker processes, or ``None`` for the default.
+    :param errors: Whether to raise failures or yield them as exception values.
+    :param \**kwargs: Options forwarded to every :func:`load` call.
+    :return: A lazy iterator of ``(source, result)`` pairs in input order.
+    :raises ValueError: If ``errors`` is not ``"raise"`` or ``"return"``, or if
+        ``processes`` is negative.
+    :raises TypeError: If ``processes`` is not an integer or ``None``.
+    """
+    if errors not in {"raise", "return"}:
+        raise ValueError("errors must be 'raise' or 'return'")
+    if processes is not None and (isinstance(processes, bool) or not isinstance(processes, int)):
+        raise TypeError("processes must be an integer or None")
+    if processes is not None and processes < 0:
+        raise ValueError("processes must be non-negative")
+
+    if processes in (0, 1):
+        for source in sources:
+            try:
+                result = load(source, **kwargs)
+            except Exception as error:
+                _note_load_many_error(error, source)
+                if errors == "return":
+                    yield source, error
+                    continue
+                raise
+            yield source, result
+        return
+
+    chunksize = _load_many_chunksize(sources, processes)
+    workers = processes or os.cpu_count() or 1
+    pending_limit = max(1, min(32, workers * chunksize))
+    with ProcessPoolExecutor(max_workers=processes) as executor:
+        pending: dict[int, tuple[Any, Future[Any] | None]] = {}
+        source_iterator = iter(sources)
+        next_index = 0
+        next_result = 0
+        exhausted = False
+        pool_broken = False
+        while pending or not exhausted:
+            while not pool_broken and not exhausted and len(pending) < pending_limit:
+                try:
+                    source = next(source_iterator)
+                except StopIteration:
+                    exhausted = True
+                    break
+                try:
+                    future = executor.submit(_load_many_worker, source, kwargs)
+                except Exception as error:
+                    _note_load_many_error(error, source)
+                    if errors == "raise":
+                        raise
+                    pool_broken = True
+                    pending[next_index] = (source, None)
+                    next_index += 1
+                    break
+                pending[next_index] = (source, future)
+                next_index += 1
+
+            if not pending:
+                if pool_broken:
+                    for source in source_iterator:
+                        yield source, _load_many_serial(source, kwargs, errors)
+                break
+            source, future = pending.pop(next_result)
+            next_result += 1
+            if future is None:
+                yield source, _load_many_serial(source, kwargs, errors)
+                continue
+            try:
+                result = future.result()
+            except BrokenProcessPool as error:
+                pool_broken = True
+                _note_load_many_error(error, source)
+                if errors == "return":
+                    yield source, error
+                    continue
+                raise
+            except Exception as error:
+                _note_load_many_error(error, source)
+                if errors == "return":
+                    yield source, error
+                    continue
+                raise
+            yield source, result

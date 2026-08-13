@@ -2,6 +2,8 @@
 
 Importing this package discovers installed capability modules and exposes
 their registered readers, writers, adapters, and related public APIs.
+
+The deliberate public surface contains 85 names.
 """
 
 #
@@ -44,7 +46,7 @@ from .entry_provider import EntryProvider, RelatedEntry
 from .entry_types import Calculation, File, Reference
 from .fetching import fetch
 from .files import FileEntry, FileRecord
-from .loading import has_reader_for, load, load_source
+from .loading import has_reader_for, load, load_many, load_source
 from .precision import combined_precision, decimal_precision
 from .property_definitions import (
     EntryTypeDefinition,
@@ -165,6 +167,7 @@ __all__ = [
     "known_entry_providers",
     "load",
     "load_entry_type_definition",
+    "load_many",
     "load_property_definition",
     "load_source",
     "numpy_available",

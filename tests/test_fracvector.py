@@ -15,9 +15,30 @@ from typing import cast
 
 import pytest
 
-from httk.core.vectors import FracScalar, FracVector, SurdVector, VectorBackend, VectorNativeBackend
+from httk.core.vectors import MutableFracVector, FracScalar, FracVector, SurdVector, VectorBackend, VectorNativeBackend
 
 F = fractions.Fraction
+
+
+class IntLike(int):
+    pass
+
+
+class Convertible:
+    def to_fractions(self) -> tuple[int, int]:
+        return (2, 3)
+
+
+def _force_generic_constructor(node: object) -> object:
+    if type(node) is int:
+        return IntLike(node)
+    if type(node) is F:
+        return str(node)
+    if type(node) is tuple:
+        return tuple(_force_generic_constructor(item) for item in node)
+    if type(node) is list:
+        return [_force_generic_constructor(item) for item in node]
+    return node
 
 
 # ------------------------------------------------------------------ creation
@@ -548,6 +569,38 @@ def test_constructor_matches_fraction_conversion() -> None:
         slow = FracVector(as_fraction(data, cd))
         assert fast.simplify() == slow.simplify()
         assert fast.simplify().denom == slow.simplify().denom
+
+
+@pytest.mark.parametrize(
+    ("values", "denom", "simplify"),
+    [
+        (7, None, True),
+        (F(-5, 12), 5, False),
+        ([1, F(1, 2), 3], 7, True),
+        (((1, F(2, 3)), (F(-5, 6), 4)), 5, False),
+    ],
+)
+def test_fast_exact_constructor_matches_generic_representation(
+    values: object, denom: int | None, simplify: bool
+) -> None:
+    fast = FracVector(values, denom=denom, simplify=simplify, min_accuracy=None)
+    slow = FracVector(_force_generic_constructor(values), denom=denom, simplify=simplify, min_accuracy=None)
+    assert (fast.noms, fast.denom) == (slow.noms, slow.denom)
+
+
+def test_fast_vector_copy_matches_generic_representation() -> None:
+    source = FracVector.from_noms_and_denom(((2, 4), (6, 8)), -4)
+    fast = FracVector(source, simplify=False)
+    slow = FracVector(_force_generic_constructor(source.to_fractions()), simplify=False, min_accuracy=None)
+    assert (fast.noms, fast.denom) == (slow.noms, slow.denom)
+
+
+@pytest.mark.parametrize("values", [[1, (2, 3)], [1, Convertible()]])
+@pytest.mark.parametrize("vector_type", [FracVector, MutableFracVector])
+def test_mixed_leaf_and_nested_values_match_generic_representation(values: object, vector_type: type) -> None:
+    fast = vector_type(values, simplify=False, min_accuracy=None)
+    slow = vector_type(_force_generic_constructor(values), simplify=False, min_accuracy=None)
+    assert (fast.noms, fast.denom) == (slow.noms, slow.denom)
 
 
 def test_simplify_huge_integers_no_float_overflow() -> None:
