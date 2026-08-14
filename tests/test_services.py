@@ -4,7 +4,8 @@ from dataclasses import FrozenInstanceError
 
 import pytest
 
-from httk.core import Service
+from httk.core import Service, ServiceRecord, content_id
+from httk.core.storage import project_storage_record, resolve_storage_record
 
 
 def _service_fields() -> dict[str, object]:
@@ -88,10 +89,16 @@ def test_service_rejects_relative_or_malformed_iris(field_name: str, value: str)
         ("title", " ", "title"),
         ("conforms_to", (), "conforms_to"),
         ("conforms_to", "https://example.org/profile", "conforms_to"),
+        ("conforms_to", {"https://example.org/profile"}, "conforms_to"),
+        ("conforms_to", frozenset({"https://example.org/profile"}), "conforms_to"),
+        ("conforms_to", {"https://example.org/profile": None}, "conforms_to"),
         ("conforms_to", ("https://example.org/profile", "https://example.org/profile"), "conforms_to"),
         ("conforms_to", ("relative-profile",), "conforms_to"),
         ("serves_dataset_ids", (), "serves_dataset_ids"),
         ("serves_dataset_ids", "https://example.org/datasets/alpha", "serves_dataset_ids"),
+        ("serves_dataset_ids", {"https://example.org/datasets/alpha"}, "serves_dataset_ids"),
+        ("serves_dataset_ids", frozenset({"https://example.org/datasets/alpha"}), "serves_dataset_ids"),
+        ("serves_dataset_ids", {"https://example.org/datasets/alpha": None}, "serves_dataset_ids"),
         (
             "serves_dataset_ids",
             ("urn:example:dataset:alpha", "urn:example:dataset:alpha"),
@@ -104,3 +111,21 @@ def test_service_rejects_invalid_text_or_iri_sequences(field_name: str, value: o
     fields[field_name] = value
     with pytest.raises(ValueError, match=message):
         Service.create(fields)
+
+
+def test_service_record_projects_neutral_service_and_pins_content_id() -> None:
+    service = Service.create(_service_fields())
+    record = ServiceRecord.create(service)
+
+    assert resolve_storage_record(service) is ServiceRecord
+    assert project_storage_record(ServiceRecord, service) == {
+        "id": service.id,
+        "title": service.title,
+        "endpoint_url": service.endpoint_url,
+        "conforms_to": service.conforms_to,
+        "serves_dataset_ids": None,
+        "endpoint_description": None,
+    }
+    assert record == ServiceRecord.create(_service_fields())
+    assert content_id(service) == "29f21392c2a44edb5a19a7db4d6ac6c5a439a912342de8a75de4858e781cce2f"
+    assert content_id(record) == content_id(service)

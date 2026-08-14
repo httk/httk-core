@@ -39,7 +39,7 @@ type DecodeObjectCallback = Callable[[dict[str, Any], str], Any]
 ``dict_obj`` (return the input unchanged to decline)."""
 
 
-class DatasetRecord(Mapping[str, Any]):
+class DatasetLoaderRecord(Mapping[str, Any]):
     """Read-only attribute and mapping view over a ``Mapping[str, Any]``.
 
     Top-level keys are reachable both as attributes (``record.name``) and as items
@@ -74,8 +74,8 @@ class DatasetRecord(Mapping[str, Any]):
     def __contains__(self, key: object) -> bool:
         return key in self._data
 
-    def __reduce__(self) -> tuple[type["DatasetRecord"], tuple[dict[str, Any]]]:
-        return DatasetRecord, (dict(self._data),)
+    def __reduce__(self) -> tuple[type["DatasetLoaderRecord"], tuple[dict[str, Any]]]:
+        return DatasetLoaderRecord, (dict(self._data),)
 
     def keys(self) -> KeysView[str]:
         """Return a dynamic view of the record's top-level keys.
@@ -85,7 +85,7 @@ class DatasetRecord(Mapping[str, Any]):
         return self._data.keys()
 
     def __repr__(self) -> str:
-        return f"DatasetRecord({self._data!r})"
+        return f"DatasetLoaderRecord({self._data!r})"
 
 
 @dataclass(frozen=True)
@@ -123,7 +123,7 @@ class DatasetMeta:
 class _LoadedData:
     data: Any
     meta: DatasetMeta | None
-    index: DatasetRecord | None
+    index: DatasetLoaderRecord | None
 
 
 class _SqlarStore:
@@ -266,7 +266,7 @@ class _SqlarSequence(Sequence[Any]):
             if not self._loaded[index]:
                 record = self._records[index]
                 if record["fields"]:
-                    self._cache[index] = DatasetRecord(_SqlarRecordMapping(self._store, record["fields"]))
+                    self._cache[index] = DatasetLoaderRecord(_SqlarRecordMapping(self._store, record["fields"]))
                 else:
                     self._cache[index] = self._store._read_locked(record["value"])
                 self._loaded[index] = True
@@ -461,7 +461,7 @@ class DatasetLoader:
     lifetime of the cached load; they cannot be compressed, streamed, or loaded from content.
     Empty list datasets and empty dictionary records cannot be represented and are rejected by
     the writer; individual members are limited to 256 MiB. Sqlar-backed record/sequence/data
-    views (and ``DatasetRecord``) pickle by
+    views (and ``DatasetLoaderRecord``) pickle by
     materializing to plain containers; live iterators over them are not picklable.
     A ``str``/``Path`` source is interpreted as a filename unless its scheme marks it
     as a URL (``http``, ``https``, ``ftp``, ``file``); bare network URLs are refused at read time,
@@ -544,8 +544,8 @@ class DatasetLoader:
             if "indicies.json" in store.names:
                 index_value = store.read("indicies.json")
                 if isinstance(index_value, dict):
-                    index = DatasetRecord(index_value)
-            data = DatasetRecord(_SqlarDataMapping(store))
+                    index = DatasetLoaderRecord(index_value)
+            data = DatasetLoaderRecord(_SqlarDataMapping(store))
         except BaseException:
             connection.close()
             raise
@@ -581,9 +581,9 @@ class DatasetLoader:
             data_section = doc.get("data")
             if self._decode_object is not None and isinstance(data_section, dict):
                 _apply_decode(data_section, meta, self._decode_object)
-            data: Any = DatasetRecord(data_section) if isinstance(data_section, dict) else data_section
+            data: Any = DatasetLoaderRecord(data_section) if isinstance(data_section, dict) else data_section
             index_section = doc.get("indicies")
-            index = DatasetRecord(index_section) if isinstance(index_section, dict) else None
+            index = DatasetLoaderRecord(index_section) if isinstance(index_section, dict) else None
             loaded = _LoadedData(data=data, meta=meta, index=index)
         else:
             loaded = _LoadedData(data=doc, meta=None, index=None)
@@ -602,6 +602,6 @@ class DatasetLoader:
         return self._load().meta
 
     @cached_property
-    def index(self) -> DatasetRecord | None:
+    def index(self) -> DatasetLoaderRecord | None:
         """Return structured-document lookup indices, or ``None`` when absent."""
         return self._load().index

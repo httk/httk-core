@@ -48,7 +48,7 @@ The file itself may be either shape:
   fields, a `data` object and an optional `indicies` object. Then `.meta` is a
   `DatasetMeta` carrying the header, the per-dataset `@id`s and the per-field
   property URLs harvested from the context; `.data` and `.index` are
-  `DatasetRecord` views whose top-level keys are reachable both as attributes
+  `DatasetLoaderRecord` views whose top-level keys are reachable both as attributes
   (`data.spacegroups`) and as items (`data["spacegroups"]`).
 
 Compression is invisible to all of this: `symmetry.json.gz` loads exactly like
@@ -62,7 +62,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from httk.core import DatasetLoader, DatasetMeta, DatasetRecord, load
+from httk.core import DatasetLoader, DatasetLoaderRecord, DatasetMeta, load
 from httk.core.register import known_extensions, known_filenames
 
 # A small JSON-LD dataset document: a context naming the dataset and its fields,
@@ -146,14 +146,14 @@ def show_structured_json(directory: Path) -> None:
     print("meta.fields:     ", meta.fields)
 
     data = loader.data
-    assert isinstance(data, DatasetRecord)
+    assert isinstance(data, DatasetLoaderRecord)
     print("data keys:       ", list(data.keys()))
     for entry in data.spacegroups:  # attribute access ...
         print(f"  spacegroup {entry['number']}: {entry['symbol']} (Hall {entry['hall']['symbol']})")
     print("data['spacegroups'] is data.spacegroups:", data["spacegroups"] is data.spacegroups)
 
     index = loader.index
-    assert isinstance(index, DatasetRecord)
+    assert isinstance(index, DatasetLoaderRecord)
     row = index.by_number["2"]
     print("index.by_number['2'] ->", row, "->", data.spacegroups[row]["symbol"])
     print()

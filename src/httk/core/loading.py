@@ -233,13 +233,13 @@ def load_many(
                     for source in source_iterator:
                         yield source, _load_many_serial(source, kwargs, errors)
                 break
-            source, future = pending.pop(next_result)
+            source, pending_future = pending.pop(next_result)
             next_result += 1
-            if future is None:
+            if pending_future is None:
                 yield source, _load_many_serial(source, kwargs, errors)
                 continue
             try:
-                result = future.result()
+                result = pending_future.result()
             except BrokenProcessPool as error:
                 pool_broken = True
                 _note_load_many_error(error, source)

@@ -10,7 +10,7 @@ from typing import Any
 
 import pytest
 
-from httk.core import DatasetLoader, DatasetMeta, DatasetRecord
+from httk.core import DatasetLoader, DatasetLoaderRecord, DatasetMeta
 from httk.core.dataset_loader import _MAX_MEMBER_BYTES, _SqlarStore, write_dataset_sqlar
 
 
@@ -56,7 +56,7 @@ def test_plain_json_dict_is_raw_value(tmp_path: Path) -> None:
     p = _write_json(tmp_path, "plain.json", {"a": 1, "b": [2, 3]})
     loader = DatasetLoader("plain_dict", p)
     assert loader.data == {"a": 1, "b": [2, 3]}
-    assert not isinstance(loader.data, DatasetRecord)
+    assert not isinstance(loader.data, DatasetLoaderRecord)
     assert loader.meta is None
     assert loader.index is None
 
@@ -96,12 +96,12 @@ def test_structured_meta_and_records(tmp_path: Path) -> None:
     }
 
     data = loader.data
-    assert isinstance(data, DatasetRecord)
+    assert isinstance(data, DatasetLoaderRecord)
     assert data.spacegroups == data["spacegroups"]
     assert data.spacegroups[0]["symbol"] == "P1"
 
     index = loader.index
-    assert isinstance(index, DatasetRecord)
+    assert isinstance(index, DatasetLoaderRecord)
     assert index.by_number == index["by_number"]
     assert index["by_number"]["2"] == 1
 
@@ -183,8 +183,8 @@ def test_unsupported_suffix_raises(tmp_path: Path) -> None:
         _ = loader.data
 
 
-def test_dataset_record_underscore_attributes_raise_and_pickle_roundtrips() -> None:
-    record = DatasetRecord({"a": 1})
+def test_dataset_loader_record_underscore_attributes_raise_and_pickle_roundtrips() -> None:
+    record = DatasetLoaderRecord({"a": 1})
     with pytest.raises(AttributeError):
         _ = record._missing
     restored = pickle.loads(pickle.dumps(record))
@@ -353,7 +353,7 @@ def test_sqlar_views_pickle_as_materialized_containers(tmp_path: Path) -> None:
     plain_record = plain.data.records[0]
     restored_record = pickle.loads(pickle.dumps(record))
     assert dict(restored_record) == plain_record
-    assert isinstance(restored_record, DatasetRecord)
+    assert isinstance(restored_record, DatasetLoaderRecord)
     assert isinstance(pickle.loads(pickle.dumps(record._data)), dict)
 
     restored_data = pickle.loads(pickle.dumps(sqlar.data))

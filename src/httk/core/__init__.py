@@ -3,7 +3,7 @@
 Importing this package discovers installed capability modules and exposes
 their registered readers, writers, adapters, and related public APIs.
 
-The deliberate public surface contains 87 names.
+The deliberate public surface contains 90 names.
 """
 
 #
@@ -28,8 +28,8 @@ from ._discover import discover_and_register as _discover_and_register
 from .citations import credits, register_citation
 from .cli import CLIContext
 from .data_records import DataRecord, DataRecordEntry
-from .dataset_loader import DatasetLoader, DatasetMeta, DatasetRecord
-from .datasets import Dataset
+from .dataset_loader import DatasetLoader, DatasetLoaderRecord, DatasetMeta
+from .datasets import Dataset, DatasetDistribution, DatasetRecord
 from .datastream import (
     BytestreamFileView,
     BytestreamLike,
@@ -78,7 +78,7 @@ from .register.schemas import (
     register_property_definition,
 )
 from .saving import has_writer_for, save
-from .services import Service
+from .services import Service, ServiceRecord
 from .storage.identity import content_id
 from .storage.markers import (
     IdentitySkip,
@@ -119,7 +119,9 @@ __all__ = [
     "DataRecord",
     "DataRecordEntry",
     "Dataset",
+    "DatasetDistribution",
     "DatasetLoader",
+    "DatasetLoaderRecord",
     "DatasetMeta",
     "DatasetRecord",
     "DatastreamLike",
@@ -146,6 +148,7 @@ __all__ = [
     "RunEntry",
     "ScalarLike",
     "Service",
+    "ServiceRecord",
     "Shape",
     "Skip",
     "StorageInfo",

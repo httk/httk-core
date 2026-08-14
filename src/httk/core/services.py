@@ -1,19 +1,24 @@
 """Neutral service identity and endpoint metadata contract."""
 
 from collections.abc import Iterable, Mapping
+from collections.abc import Set as AbstractSet
 from dataclasses import dataclass
-from typing import Any, Self
+from typing import Any, ClassVar, Self, cast
 
 from ._iris import is_absolute_iri
+from .storage import StorageInfo
 
 _FIELD_NAMES = frozenset({"id", "title", "endpoint_url", "conforms_to", "serves_dataset_ids", "endpoint_description"})
 _REQUIRED_FIELD_NAMES = frozenset({"id", "title", "endpoint_url", "conforms_to"})
+_FIELD_ORDER = ("id", "title", "endpoint_url", "conforms_to", "serves_dataset_ids", "endpoint_description")
 
 
 def _normalize_iri_sequence(field_name: str, value: object) -> tuple[str, ...]:
     """Normalize and validate one non-empty sequence of unique absolute IRIs."""
 
-    if isinstance(value, str) or not isinstance(value, Iterable):
+    if not isinstance(value, Iterable):
+        raise ValueError(f"Field '{field_name}' must be a non-empty iterable of unique well-formed absolute IRIs.")
+    if isinstance(value, str | Mapping | AbstractSet):
         raise ValueError(f"Field '{field_name}' must be a non-empty iterable of unique well-formed absolute IRIs.")
     values = tuple(value)
     if not values:
@@ -32,7 +37,7 @@ class Service:
     The service and endpoint identifiers are absolute IRIs; this neutral core
     contract does not impose a particular scheme.  ``conforms_to`` names one
     or more standards the service implements, and may be supplied as any
-    non-string iterable.
+    ordered non-string iterable.
 
     :param id: The service's absolute IRI.
     :param title: The service's human-readable title.
@@ -85,10 +90,62 @@ class Service:
         missing = _REQUIRED_FIELD_NAMES.difference(obj)
         if missing:
             raise ValueError(f"Missing required field(s) for {cls.__name__}: {', '.join(sorted(missing))}.")
-        unknown = [key for key in obj if key not in _FIELD_NAMES]
+        unknown = [key for key in obj if not isinstance(key, str) or key not in _FIELD_NAMES]
         if unknown:
             raise ValueError(f"Unknown field(s) for {cls.__name__}: {', '.join(sorted(repr(key) for key in unknown))}.")
         return cls(**dict(obj))
 
 
-__all__ = ["Service"]
+@dataclass(frozen=True)
+class ServiceRecord(Service):
+    """Store one :class:`Service` using the core service storage contract.
+
+    :param id: The service's absolute IRI.
+    :param title: The service's human-readable title.
+    :param endpoint_url: The service endpoint's absolute IRI.
+    :param conforms_to: Non-empty unique absolute IRIs for implemented standards.
+    :param serves_dataset_ids: Optional non-empty unique absolute IRIs for served datasets.
+    :param endpoint_description: An optional absolute IRI describing the endpoint.
+    """
+
+    __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
+        storage_name="core_service_v1",
+        identity_name="core_service_v1",
+        indexes=(("id",), ("endpoint_url",)),
+    )
+    __httk_canonical_source__ = Service
+
+    @classmethod
+    def __httk_project__(cls, source: Service) -> dict[str, object]:
+        """Project a neutral service into record fields."""
+
+        return {field_name: getattr(source, field_name) for field_name in _FIELD_ORDER}
+
+    @classmethod
+    def create(cls, obj: "ServiceRecord | Service | Mapping[str, Any]") -> Self:
+        """Coerce a service record, neutral service, or field mapping.
+
+        :param obj: A service record, neutral service, or service field mapping.
+        :return: The existing or newly constructed service record.
+        :raises TypeError: If ``obj`` is not a service or mapping.
+        :raises ValueError: If the mapping has unknown, missing, or invalid fields.
+        """
+
+        if isinstance(obj, cls):
+            return obj
+        if isinstance(obj, Service):
+            return cls(
+                obj.id,
+                obj.title,
+                obj.endpoint_url,
+                obj.conforms_to,
+                obj.serves_dataset_ids,
+                obj.endpoint_description,
+            )
+        return super().create(obj)
+
+
+cast(Any, Service).__httk_storage_record__ = ServiceRecord
+
+
+__all__ = ["Service", "ServiceRecord"]
