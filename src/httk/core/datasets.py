@@ -4,6 +4,7 @@ from collections.abc import Iterable, Mapping
 from collections.abc import Set as AbstractSet
 from dataclasses import dataclass
 from typing import Any, ClassVar, Self, cast
+from urllib.parse import urlsplit
 
 from ._iris import is_absolute_iri as _is_absolute_iri
 from .storage import StorageInfo
@@ -27,12 +28,31 @@ def _format_unknown_fields(cls_name: str, unknown: list[object]) -> ValueError:
     return ValueError(f"Unknown field(s) for {cls_name}: {names}.")
 
 
+def _is_root_relative_url(value: str) -> bool:
+    """Return whether *value* is a minimally well-formed root-relative URL."""
+
+    if not value.startswith("/") or value.startswith("//"):
+        return False
+    try:
+        parsed = urlsplit(value)
+    except ValueError:
+        return False
+    return (
+        not parsed.scheme
+        and not parsed.netloc
+        and not parsed.fragment
+        and _is_absolute_iri(f"https://example.invalid{value}")
+    )
+
+
 @dataclass(frozen=True)
 class DatasetDistribution:
     """Describe one retrievable representation of a dataset.
 
-    Optional IRI fields must be well-formed absolute IRIs. ``byte_size`` is a
-    non-negative integer, and ``sha256`` is a lowercase hexadecimal digest.
+    Identifier and vocabulary fields must be well-formed absolute IRIs.
+    ``access_url`` may instead be a root-relative URL for later resolution by
+    a serving application. ``byte_size`` is a non-negative integer, and
+    ``sha256`` is a lowercase hexadecimal digest.
 
     :param id: An optional identifier for this representation.
     :param access_url: An optional URL from which the representation can be retrieved.
@@ -55,10 +75,15 @@ class DatasetDistribution:
     sha256: str | None = None
 
     def __post_init__(self) -> None:
-        for field_name in ("id", "access_url", "media_type_iri", "format_iri"):
+        for field_name in ("id", "media_type_iri", "format_iri"):
             value = getattr(self, field_name)
             if value is not None and (not isinstance(value, str) or not _is_absolute_iri(value)):
                 raise ValueError(f"Field '{field_name}' must be a well-formed absolute IRI or None.")
+        if self.access_url is not None and (
+            not isinstance(self.access_url, str)
+            or not (_is_absolute_iri(self.access_url) or _is_root_relative_url(self.access_url))
+        ):
+            raise ValueError("Field 'access_url' must be an absolute IRI, a root-relative URL, or None.")
         if self.byte_size is not None and (
             isinstance(self.byte_size, bool) or not isinstance(self.byte_size, int) or self.byte_size < 0
         ):

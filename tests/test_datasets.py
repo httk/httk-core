@@ -109,11 +109,20 @@ def test_dataset_distribution_create_accepts_optional_exact_fields() -> None:
     assert DatasetDistribution.create({}) == DatasetDistribution()
 
 
+def test_dataset_distribution_accepts_root_relative_access_urls() -> None:
+    distribution = DatasetDistribution(access_url="/files/dataset.csv?download=1")
+    assert distribution.access_url == "/files/dataset.csv?download=1"
+
+
 @pytest.mark.parametrize(
     ("field_name", "value"),
     [
         ("id", "relative/distribution"),
         ("access_url", 1),
+        ("access_url", "files/dataset.csv"),
+        ("access_url", "//example.org/dataset.csv"),
+        ("access_url", "/files/dataset.csv#fragment"),
+        ("access_url", "/files/%ZZ"),
         ("media_type_iri", "https://example.org/%ZZ"),
         ("format_iri", "#format"),
         ("byte_size", -1),
