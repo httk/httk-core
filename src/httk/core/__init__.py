@@ -3,7 +3,7 @@
 Importing this package discovers installed capability modules and exposes
 their registered readers, writers, adapters, and related public APIs.
 
-The deliberate public surface contains 86 names.
+The deliberate public surface contains 87 names.
 """
 
 #
@@ -78,6 +78,7 @@ from .register.schemas import (
     register_property_definition,
 )
 from .saving import has_writer_for, save
+from .services import Service
 from .storage.identity import content_id
 from .storage.markers import (
     IdentitySkip,
@@ -144,6 +145,7 @@ __all__ = [
     "RunEdge",
     "RunEntry",
     "ScalarLike",
+    "Service",
     "Shape",
     "Skip",
     "StorageInfo",
