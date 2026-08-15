@@ -69,12 +69,9 @@ def parse_optimade_filter(filter_string: str, verbosity: int | Any = 0) -> Filte
 
     # To get diagnostic output, pass, e.g., verbosity=LogVerbosity(0, parser_verbosity=5)
 
-    try:
-        parse_tree = parse_optimade_filter_raw(filter_string, verbosity)
+    parse_tree = parse_optimade_filter_raw(filter_string, verbosity)
 
-        return optimade_parse_tree_to_ojf(parse_tree)
-    except RecursionError:
-        raise _too_deep_error() from None
+    return optimade_parse_tree_to_ojf(parse_tree)
 
 
 def parse_optimade_filter_raw(filter_string: str, verbosity: int | Any = 0) -> tuple[Any, ...]:
