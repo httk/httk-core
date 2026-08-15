@@ -26,6 +26,7 @@ Parses an OPTIMADE filter string into a nested tuple abstract syntax tree
                    ('=', ('Identifier', 'nelements'), ('Number', '2'))))
 """
 
+import re
 from functools import lru_cache
 from importlib.resources import files
 from typing import Any
@@ -37,6 +38,23 @@ __all__ = ["FilterAst", "ParserError", "ParserSyntaxError", "parse_optimade_filt
 
 type FilterAst = tuple[Any, ...]
 
+_TOO_DEEP_MSG = "Parser syntax error: filter is too long or too deeply nested"
+_UNSUPPORTED_MSG = "Parser syntax error: filter uses an unsupported or invalid construct"
+
+
+def _too_deep_error() -> ParserSyntaxError:
+    # Same 5-argument shape the lexer/parser uses (message, info, line, pos, linestr)
+    # so consumers that map ParserSyntaxError to HTTP 400 get a real instance.
+    return ParserSyntaxError(_TOO_DEEP_MSG, "filter too long or too deeply nested", 0, 0, "")
+
+
+def _unsupported_filter_error() -> ParserSyntaxError:
+    # Bare `assert`s in the ojf-conversion recurse function fire on grammatical
+    # OPTIMADE constructs httk does not implement (e.g. zipped correlated lists)
+    # or otherwise malformed trees derived from user input. Map them to a real
+    # ParserSyntaxError (5-arg shape) so serving layers return HTTP 400, not 500.
+    return ParserSyntaxError(_UNSUPPORTED_MSG, "unsupported or invalid filter construct", 0, 0, "")
+
 
 def parse_optimade_filter(filter_string: str, verbosity: int | Any = 0) -> FilterAst:
     """Parse an OPTIMADE filter into the public abstract syntax tree format.
@@ -44,14 +62,19 @@ def parse_optimade_filter(filter_string: str, verbosity: int | Any = 0) -> Filte
     :param filter_string: OPTIMADE filter expression to parse.
     :param verbosity: Diagnostic verbosity setting passed to the parser.
     :return: Nested tuple abstract syntax tree in ``ojf`` format.
+    :raises ParserSyntaxError: If the filter cannot be parsed, or is too long or
+        too deeply nested to parse within the interpreter's recursion limit.
     :raises ParserError: If the filter cannot be parsed.
     """
 
     # To get diagnostic output, pass, e.g., verbosity=LogVerbosity(0, parser_verbosity=5)
 
-    parse_tree = parse_optimade_filter_raw(filter_string, verbosity)
+    try:
+        parse_tree = parse_optimade_filter_raw(filter_string, verbosity)
 
-    return optimade_parse_tree_to_ojf(parse_tree)
+        return optimade_parse_tree_to_ojf(parse_tree)
+    except RecursionError:
+        raise _too_deep_error() from None
 
 
 def parse_optimade_filter_raw(filter_string: str, verbosity: int | Any = 0) -> tuple[Any, ...]:
@@ -60,10 +83,15 @@ def parse_optimade_filter_raw(filter_string: str, verbosity: int | Any = 0) -> t
     :param filter_string: OPTIMADE filter expression to parse.
     :param verbosity: Diagnostic verbosity setting passed to the parser.
     :return: Raw nested tuple parse tree before ``ojf`` conversion.
+    :raises ParserSyntaxError: If the filter cannot be parsed, or is too long or
+        too deeply nested to parse within the interpreter's recursion limit.
     :raises ParserError: If the filter cannot be parsed.
     """
 
-    return _miniparser.parser(_optimade_parser_ls(), filter_string, verbosity=verbosity)
+    try:
+        return _miniparser.parser(_optimade_parser_ls(), filter_string, verbosity=verbosity)
+    except RecursionError:
+        raise _too_deep_error() from None
 
 
 @lru_cache(maxsize=1)
@@ -151,12 +179,19 @@ def optimade_parse_tree_to_ojf(ast: tuple[Any, ...]) -> FilterAst:
 
     :param ast: Raw parse tree rooted at ``Filter``.
     :return: Nested tuple abstract syntax tree in ``ojf`` format.
+    :raises ParserSyntaxError: If the tree uses an unsupported or invalid
+        construct, or is too deeply nested to convert within the recursion limit.
     :raises ParserInternalError: If the tree has an invalid internal shape.
     """
 
-    if ast[0] != 'Filter':
-        raise ParserInternalError("Parse tree does not start with a Filter node: " + str(ast[0]))
-    return optimade_parse_tree_to_ojf_recurse(ast[1])
+    try:
+        if ast[0] != 'Filter':
+            raise ParserInternalError("Parse tree does not start with a Filter node: " + str(ast[0]))
+        return optimade_parse_tree_to_ojf_recurse(ast[1])
+    except RecursionError:
+        raise _too_deep_error() from None
+    except AssertionError:
+        raise _unsupported_filter_error() from None
 
 
 def _fix_const(node: tuple[Any, ...]) -> tuple[Any, ...]:
@@ -166,7 +201,10 @@ def _fix_const(node: tuple[Any, ...]) -> tuple[Any, ...]:
     elif node[0] == 'String':
         assert node[1][-1] == '"'
         assert node[1][0] == '"'
-        return ('String', node[1][1:-1])
+        # Strip the surrounding quotes, then reverse the grammar's escapes: each
+        # backslash is followed by exactly one character (lexer token regex), so
+        # a single left-to-right pass turns \" -> " and \\ -> \ (and \\" -> \").
+        return ('String', re.sub(r'\\(.)', r'\1', node[1][1:-1]))
     elif node[0] == 'Boolean':
         assert node[1][0] in ('TRUE', 'FALSE')
         return ('Boolean', node[1][0])

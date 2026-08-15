@@ -175,6 +175,68 @@ def test_boolean_constant_first() -> None:
     )
 
 
+@pytest.mark.parametrize(
+    "filter_string,expected",
+    [
+        (r'label="ab\"c"', 'ab"c'),
+        (r'label="a\\b"', 'a\\b'),
+        (r'label="\\\""', '\\"'),
+        (r'label="\x"', 'x'),
+        ('label="plain"', 'plain'),
+    ],
+)
+def test_string_escapes_are_unescaped(filter_string: str, expected: str) -> None:
+    # OPTIMADE requires the \" and \\ escapes inside string literals to be
+    # reversed after quote stripping (values with " or \ must be filterable).
+    ast = parse_optimade_filter(filter_string)
+    assert ast == ('=', ('Identifier', 'label'), ('String', expected))
+
+
+def test_deep_nesting_raises_syntax_error_not_recursionerror() -> None:
+    # Pathological nesting must surface as a ParserSyntaxError (mapped to HTTP
+    # 400 by consumers), not a raw RecursionError (a 500).
+    n = 500
+    with pytest.raises(ParserSyntaxError):
+        parse_optimade_filter("(" * n + "a=1" + ")" * n)
+
+
+def test_long_and_chain_raises_syntax_error_not_recursionerror() -> None:
+    # A long flat AND chain recurses per term during ojf conversion and would
+    # otherwise raise RecursionError; it must be a ParserSyntaxError too.
+    with pytest.raises(ParserSyntaxError):
+        parse_optimade_filter(" AND ".join(["a=1"] * 1000))
+
+
+def test_unsupported_zip_construct_raises_syntax_error_not_assertionerror() -> None:
+    # A grammatical-but-unsupported zipped correlated list ("Ag":1) fires a bare
+    # assert during ojf conversion; it must surface as a ParserSyntaxError (HTTP
+    # 400), not a raw AssertionError (a 500).
+    with pytest.raises(ParserSyntaxError) as excinfo:
+        parse_optimade_filter('elements:elements_ratios HAS "Ag":1')
+    assert "unsupported or invalid construct" in str(excinfo.value)
+
+
+def test_unsupported_construct_via_public_two_step_api() -> None:
+    # The documented two-step path must also convert the bare assert.
+    from httk.core.optimade.filter import optimade_parse_tree_to_ojf, parse_optimade_filter_raw
+
+    tree = parse_optimade_filter_raw('elements:elements_ratios HAS "Ag":1')
+    with pytest.raises(ParserSyntaxError) as excinfo:
+        optimade_parse_tree_to_ojf(tree)
+    assert "unsupported or invalid construct" in str(excinfo.value)
+
+
+def test_too_deep_and_unsupported_messages_stay_distinct() -> None:
+    # Step 3 must not collapse the two error kinds into one message.
+    with pytest.raises(ParserSyntaxError) as deep:
+        parse_optimade_filter("(" * 500 + "a=1" + ")" * 500)
+    with pytest.raises(ParserSyntaxError) as unsupported:
+        parse_optimade_filter('elements:elements_ratios HAS "Ag":1')
+    assert "too deeply nested" in str(deep.value)
+    assert "unsupported or invalid construct" in str(unsupported.value)
+    assert str(deep.value) != str(unsupported.value)
+
+
 def test_miniparser_toy_grammar() -> None:
     # Direct test of the vendored LR(1) miniparser: build_ls + parser over the
     # small toy grammar from the module docstring's usage example.
