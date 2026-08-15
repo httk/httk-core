@@ -4,10 +4,10 @@ from collections.abc import Iterable, Mapping
 from collections.abc import Set as AbstractSet
 from dataclasses import dataclass
 from typing import Any, ClassVar, Self, cast
-from urllib.parse import urlsplit
 
-from ._iris import is_absolute_iri as _is_absolute_iri
 from .storage import StorageInfo
+from .validation.iris import is_absolute_iri as _is_absolute_iri
+from .validation.iris import is_root_relative_url as _is_root_relative_url
 
 _DISTRIBUTION_FIELD_NAMES = frozenset({"id", "access_url", "media_type_iri", "format_iri", "byte_size", "sha256"})
 _DATASET_REQUIRED_FIELD_NAMES = frozenset({"id", "title", "description", "publisher_id", "publisher_name"})
@@ -26,23 +26,6 @@ def _format_unknown_fields(cls_name: str, unknown: list[object]) -> ValueError:
 
     names = ", ".join(sorted(repr(key) for key in unknown))
     return ValueError(f"Unknown field(s) for {cls_name}: {names}.")
-
-
-def _is_root_relative_url(value: str) -> bool:
-    """Return whether *value* is a minimally well-formed root-relative URL."""
-
-    if not value.startswith("/") or value.startswith("//"):
-        return False
-    try:
-        parsed = urlsplit(value)
-    except ValueError:
-        return False
-    return (
-        not parsed.scheme
-        and not parsed.netloc
-        and not parsed.fragment
-        and _is_absolute_iri(f"https://example.invalid{value}")
-    )
 
 
 @dataclass(frozen=True)

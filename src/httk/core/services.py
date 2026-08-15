@@ -5,8 +5,8 @@ from collections.abc import Set as AbstractSet
 from dataclasses import dataclass
 from typing import Any, ClassVar, Self, cast
 
-from ._iris import is_absolute_iri
 from .storage import StorageInfo
+from .validation.iris import is_absolute_iri
 
 _FIELD_NAMES = frozenset({"id", "title", "endpoint_url", "conforms_to", "serves_dataset_ids", "endpoint_description"})
 _REQUIRED_FIELD_NAMES = frozenset({"id", "title", "endpoint_url", "conforms_to"})
