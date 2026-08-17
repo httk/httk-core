@@ -119,9 +119,9 @@ other objects go through the registered format serializer for that tag.
 
 To discover the available dispatch options, use
 `httk.core.register.known_writer_formats()` for the tags accepted by
-`format=`, `known_writers()` for writer destination keys, and
-`has_writer_for(name)` to probe destination-name dispatch. The load direction
-has the corresponding `known_format_adapters()` accessor.
+`format=` and `known_writers()` for writer destination keys. The load direction
+has the corresponding `known_format_adapters()` accessor and, for probing
+reader dispatch by name, `has_reader_for(name)`.
 
 ```python
 from httk.core.register.io import known_writer_formats

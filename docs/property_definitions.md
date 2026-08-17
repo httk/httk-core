@@ -13,7 +13,7 @@ references = standard_entry_type("references")
 print(references.description)
 assert "title" in references.properties      # each one a PropertyDefinition
 
-entry = Reference.create({"id": "ref-1", "type": "references", "title": "A title"})
+entry = Reference.create({"title": "A title", "doi": "10.1234/demo.2021.1"})
 ```
 
 Custom properties are generated from a simple declaration and live under a
@@ -23,7 +23,7 @@ registered definition prefix, so they never collide with curated definitions:
 from httk.core import PropertyDefinition
 
 energy = PropertyDefinition.from_simple(
-    "_httk_custom_energy", "float", unit="eV", description="Total energy."
+    "_httk_custom_energy", fulltype="float", unit="eV", description="Total energy."
 )
 extended = standard_entry_type("calculations").extended({"_httk_custom_energy": energy})
 ```

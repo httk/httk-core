@@ -286,6 +286,24 @@ see the {ref}`readers` section for dispatch details.
 Datastreams supply the reader with local or remote streaming input, including
 transparent decompression.
 
+## Embedded datasets and `DatasetLoader`
+
+For a module's own bundled reference data, `httk.core.DatasetLoader` is a
+lazy, declare-time placeholder: constructing it performs no I/O, and the source
+is read on first access to `.data`, `.meta`, or `.index`. It accepts three file
+shapes, resolved from the name after any compression suffix is stripped:
+
+- **plain JSON** — any JSON value, returned through `.data`;
+- **structured JSON-LD** — `@context`/header/`data`/`indicies`, exposed as a
+  `DatasetMeta` plus `DatasetLoaderRecord` views;
+- **SQLite Archive (`.sqlar`)** — the same structured content packed into a
+  SQLite Archive, whose datasets and records materialize lazily straight from
+  the archive. A `.sqlar` source must be a real, uncompressed filename because
+  its SQLite connection is retained for the cached load's lifetime; write one
+  with `httk.core.dataset_loader.write_dataset_sqlar`.
+
+The end-to-end walk-through is in {doc}`/examples/load_and_dataset_loader`.
+
 ## Shared Behavior and `unwrap`
 
 Views and backends for one datastream share the same stream state:

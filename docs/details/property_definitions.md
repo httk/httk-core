@@ -207,3 +207,48 @@ provider contract — and self-register as `store-references`, `store-files`, an
 property-definition validation built on the definitions above. That keeps
 httk-core a dependency-free layer of *contracts and models*, with the concrete
 *capabilities* provided by the modules built on top of it.
+
+## Dataset and service metadata records
+
+Alongside the per-entry record models, *httk-core* carries neutral, DCAT-shaped
+contracts for describing whole *datasets* and the *services* that serve them,
+independently of any transport or provider. `Dataset` describes one published
+dataset and carries an ordered tuple of `DatasetDistribution` values (one per
+retrievable representation); `Service` describes an endpoint and the standards
+it conforms to. `DatasetRecord` and `ServiceRecord` are the storable subclasses
+that carry the core storage contract.
+
+```python
+from httk.core import Dataset, DatasetDistribution, Service
+
+dataset = Dataset(
+    id="https://example.org/datasets/demo",
+    title="Demo dataset",
+    description="A small demonstration dataset.",
+    publisher_id="https://example.org",
+    publisher_name="Example Org",
+    distributions=(
+        DatasetDistribution(
+            id="https://example.org/datasets/demo/sqlar",
+            access_url="/datasets/demo/data.sqlar",  # root-relative: resolved by the serving app
+        ),
+    ),
+)
+
+service = Service(
+    id="https://example.org/optimade",
+    title="Demo OPTIMADE endpoint",
+    endpoint_url="https://example.org/optimade/v1",
+    conforms_to=("https://schemas.optimade.org/defs/v1.2/standard",),
+    serves_dataset_ids=("https://example.org/datasets/demo",),
+)
+```
+
+Identifier and vocabulary fields must be well-formed absolute IRIs; a
+distribution's `access_url` may instead be a **root-relative** URL (a leading
+`/…` path with no scheme or host) so that the serving application can resolve it
+against its own deployment base. The validation behind these fields is exposed
+as reusable predicates in `httk.core.validation.iris` —
+`is_absolute_iri`, `is_https_url`, `is_root_relative_url`,
+`has_valid_percent_escapes`, and `urlsplit` — for callers that need the same
+URL/IRI checks elsewhere.

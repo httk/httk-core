@@ -13,8 +13,8 @@ top of the anchor without making the anchor depend on them.
 
 ## The command line
 
-The core-owned `httk project` command has exactly three subcommands:
-`init`, `show`, and `import-v1`.
+The core-owned `httk project` command has five subcommands:
+`init`, `show`, `import-v1`, `seal`, and `verify-seal`.
 
 ```console
 httk project init
@@ -23,6 +23,8 @@ httk project show
 httk project show PATH --json
 httk project import-v1 PATH
 httk project import-v1 PATH --source DIR --name NAME
+httk project seal OUT.ZIP
+httk project verify-seal ZIP [--expect-key FINGERPRINT] [--trusted-key FINGERPRINT ...]
 ```
 
 `init` makes `PATH` a project, or uses the current directory when `PATH` is
@@ -36,6 +38,13 @@ use `httk project init --template`; see the Project templates section below.
 `show` describes the nearest project, or the project named by `PATH`.
 `--json` emits one machine-readable document. `import-v1` imports the legacy v1 project in
 `PATH/ht.project` by default; `--source DIR` selects another v1 directory.
+
+`seal` packages the nearest project tree into a signed redistribution ZIP,
+excluding the private key, and signs it with the project's Ed25519 key.
+`verify-seal` checks such a ZIP and prints the signer's public key and
+fingerprint; `--expect-key` requires a specific signer fingerprint and
+`--trusted-key` (repeatable) supplies fingerprints to trust. The programmatic
+equivalents are `seal_project` and `verify_seal` in `httk.core.project`.
 
 Root options are processed before command dispatch. `-C DIR` changes directory
 first, so any *httk* command can target a project from elsewhere:
