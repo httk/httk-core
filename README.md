@@ -32,5 +32,5 @@ Install only the core package with:
 pip install httk-core
 ```
 
-Other distributions, such as `httk-io`, install their own packages under the
-same `httk` namespace and can then be imported as `httk.io`.
+Other distributions, such as `httk-atomistic`, install their own packages under the
+same `httk` namespace and can then be imported as `httk.atomistic`.

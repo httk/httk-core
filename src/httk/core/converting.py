@@ -2,8 +2,8 @@
 
 ``httk convert`` loads a file with :func:`httk.core.load` and writes the result
 with :func:`httk.core.save`, so any loadable file becomes any saveable format
-when the matching capability modules (for example *httk-io* and
-*httk-atomistic*) are installed.
+when the matching capability modules (for example *httk-atomistic*)
+are installed.
 """
 
 import argparse

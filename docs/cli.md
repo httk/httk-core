@@ -92,8 +92,8 @@ httk convert INPUT OUTPUT [--format FORMAT]
 `INPUT` and `OUTPUT` are resolved against the working directory (the post-`-C`
 `cwd`). `--format` selects the writer for an ambiguous `OUTPUT` and is forwarded
 to `save`. The available formats come from the installed capability modules; for
-crystal structures *httk-io* registers the readers and writers and
-*httk-atomistic* provides the structure model, so CIF and POSCAR convert both
+crystal structures *httk-atomistic* registers the readers and writers and
+provides the structure model, so CIF and POSCAR convert both
 ways:
 
 ```console

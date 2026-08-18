@@ -26,7 +26,7 @@ importing `httk.core` walks the `httk.registry` namespace package and imports
 every handler package it finds there, and each of those calls
 `httk.core.register.register_reader` to claim its extensions and basenames. So
 what `known_extensions()` reports is a *statement about the installation*: with
-only *httk-core* installed both registries are empty, and with *httk-io*
+only *httk-core* installed both registries are empty, and with *httk-atomistic*
 alongside it they list that module's formats. This example prints whichever is
 the case here, then shows the explicit error `load` raises when
 nothing matches — it names the file and lists everything that *is* registered,

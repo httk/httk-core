@@ -1,7 +1,7 @@
 """How precisely a number was written down.
 
 None of this behaviour was ever covered before — the equivalent private helper in
-*httk-io* had no test at all — so the cases its docstring claimed are pinned here, along
+the reader stack (now in httk-atomistic) had no test at all — so the cases its docstring claimed are pinned here, along
 with the ones it got subtly wrong.
 """
 

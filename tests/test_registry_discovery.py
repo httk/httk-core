@@ -156,7 +156,7 @@ def test_discovery_does_not_import_domain_modules() -> None:
 import sys
 import httk.core
 heavy = [name for name in sys.modules
-         if name.startswith(('httk.atomistic', 'httk.store', 'httk.io', 'httk.serve', 'httk.workflow'))]
+         if name.startswith(('httk.atomistic', 'httk.store', 'httk.serve', 'httk.workflow'))]
 assert not heavy, f'discovery imported domain modules: {heavy}'
 """
     subprocess.run([sys.executable, "-c", code], check=True)

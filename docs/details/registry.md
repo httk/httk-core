@@ -16,9 +16,8 @@ fast. Registration packages must only record lazy references: `"module:callable"
 for code and `"package:filename.json"` for schema resources. They must not
 resolve handlers or load resource data while being imported.
 
-For example, *httk-io* ships `httk.registry.io.io` for its readers and writer;
-*httk-atomistic* ships format adapters and serializers under
-`httk.registry.io.atomistic`, entry registrations under
+For example, *httk-atomistic* ships its readers, writers, format adapters, and
+serializers under `httk.registry.io.atomistic`, entry registrations under
 `httk.registry.entries.atomistic`, and schemas under
 `httk.registry.schemas.atomistic`; *httk-workflow* ships
 `httk.registry.cli.workflow`.
