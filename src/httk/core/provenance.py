@@ -75,9 +75,7 @@ class RunEdge:
     :param entry_id: The related entry identifier.
     """
 
-    __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
-        storage_name="core_run_edge_v1", identity_name="core_run_edge_v1"
-    )
+    __httk_storage__: ClassVar[StorageInfo] = StorageInfo(storage_name="core_run_edge", identity_name="core_run_edge")
 
     label: str
     entry_type: str
@@ -124,8 +122,8 @@ class Run:
     """
 
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
-        storage_name="core_run_v1",
-        identity_name="core_run_v1",
+        storage_name="core_run",
+        identity_name="core_run",
         indexes=(("workflow_declaration_uri",), ("immutable_id",), ("last_modified",)),
     )
 
@@ -186,8 +184,8 @@ class ProductLink:
     """
 
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
-        storage_name="core_product_link_v1",
-        identity_name="core_product_link_v1",
+        storage_name="core_product_link",
+        identity_name="core_product_link",
         dedup="by_value",
         indexes=(("source_type", "source_id"), ("target_type", "target_id")),
     )

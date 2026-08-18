@@ -109,8 +109,8 @@ class ServiceRecord(Service):
     """
 
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
-        storage_name="core_service_v1",
-        identity_name="core_service_v1",
+        storage_name="core_service",
+        identity_name="core_service",
         indexes=(("id",), ("endpoint_url",)),
     )
     __httk_canonical_source__ = Service

@@ -127,5 +127,5 @@ def test_service_record_projects_neutral_service_and_pins_content_id() -> None:
         "endpoint_description": None,
     }
     assert record == ServiceRecord.create(_service_fields())
-    assert content_id(service) == "29f21392c2a44edb5a19a7db4d6ac6c5a439a912342de8a75de4858e781cce2f"
+    assert content_id(service) == "8fa13a4196d0f58f5100fac3b2aac2882a9d0976c5ac19e6a2cd03855ef3de48"
     assert content_id(record) == content_id(service)

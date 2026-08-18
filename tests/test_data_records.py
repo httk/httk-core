@@ -63,4 +63,4 @@ def test_data_record_content_id_pin() -> None:
         last_modified=datetime.datetime(2026, 1, 2, 3, 4, 5, tzinfo=datetime.UTC),
     )
     # A changed value means a storage-identity break; metadata is excluded.
-    assert content_id(record) == "3503e9c706b681aad471c69c03a9c9b755a72972f65cc5e88831bad29538a5c6"
+    assert content_id(record) == "04e3a194913be8367d0df153a98cc07a6eb34640268c26580ad253ae740be140"

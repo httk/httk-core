@@ -46,8 +46,8 @@ class DatasetDistribution:
     """
 
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
-        storage_name="core_dataset_distribution_v1",
-        identity_name="core_dataset_distribution_v1",
+        storage_name="core_dataset_distribution",
+        identity_name="core_dataset_distribution",
     )
 
     id: str | None = None
@@ -180,8 +180,8 @@ class DatasetRecord(Dataset):
     """
 
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
-        storage_name="core_dataset_v1",
-        identity_name="core_dataset_v1",
+        storage_name="core_dataset",
+        identity_name="core_dataset",
         indexes=(("id",), ("publisher_id",)),
     )
     __httk_canonical_source__ = Dataset

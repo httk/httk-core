@@ -45,8 +45,8 @@ class FileRecord(File):
     """
 
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
-        storage_name="core_file_v1",
-        identity_name="core_file_v1",
+        storage_name="core_file",
+        identity_name="core_file",
         indexes=(("url",), ("name",), ("sha256",)),
     )
 

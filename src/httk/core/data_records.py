@@ -68,8 +68,8 @@ class DataRecord:
     """
 
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
-        storage_name="core_data_record_v1",
-        identity_name="core_data_record_v1",
+        storage_name="core_data_record",
+        identity_name="core_data_record",
         indexes=(("definition_id",), ("name",)),
     )
 

@@ -189,7 +189,7 @@ def test_dataset_record_projects_neutral_dataset_and_pins_content_id() -> None:
         "distributions": (),
     }
     assert record == DatasetRecord.create({**_dataset_fields(), "distributions": ()})
-    assert content_id(dataset) == "b0d76bc7917beca966b90796a68dbf27d9ead99c8594333c1afc24f21848c3dd"
+    assert content_id(dataset) == "fd31188af742a5ada767f7d943adf3025bbffb020fc69b5951977cd6f1ff178c"
     assert content_id(record) == content_id(dataset)
 
 
@@ -205,6 +205,6 @@ def test_dataset_distribution_and_nested_dataset_pin_content_ids() -> None:
     dataset = Dataset(**_dataset_fields(), distributions=(distribution,))
     record = DatasetRecord.create(dataset)
 
-    assert content_id(distribution) == "7bb8d5933d5e4acf631e05bfdd0feb80477ce9cd3971425874efe70d32baeb02"
-    assert content_id(dataset) == "467caf3ae7f1a86b8919a8678ee7a0d283a6d9d535a5538ffba5b12ddc59bea5"
+    assert content_id(distribution) == "177726600ff23923940e2388328fa1014a1774070b5b13d6072288c0d9c5ce1e"
+    assert content_id(dataset) == "bd9fcfc2db859c0debc5a6cfc6c3a5cc2d82a72fcc41c90eb7ff2a3b6a701173"
     assert content_id(record) == content_id(dataset)
