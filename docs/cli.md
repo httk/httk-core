@@ -79,6 +79,32 @@ httk project init --list-templates
 `--template` may also name an explicit template directory. See
 {doc}`projects` for the selection and manifest rules.
 
+## File conversion
+
+The core-owned `httk convert` command loads a file with `httk.core.load` and
+writes the result with `httk.core.save`, so anything loadable becomes anything
+saveable:
+
+```console
+httk convert INPUT OUTPUT [--format FORMAT]
+```
+
+`INPUT` and `OUTPUT` are resolved against the working directory (the post-`-C`
+`cwd`). `--format` selects the writer for an ambiguous `OUTPUT` and is forwarded
+to `save`. The available formats come from the installed capability modules; for
+crystal structures *httk-io* registers the readers and writers and
+*httk-atomistic* provides the structure model, so CIF and POSCAR convert both
+ways:
+
+```console
+httk convert structure.cif POSCAR
+httk convert POSCAR structure.cif
+```
+
+`httk.core.load` and `httk.core.save` report an unrecognized input or output by
+listing the extensions and filenames currently registered, so an unknown format
+fails with a clear message and a nonzero exit code.
+
 ## Memory-guarded runs
 
 The Linux-only `httk.core.memguard` module runs a command in its own process
