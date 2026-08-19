@@ -18,6 +18,8 @@ from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Any, Final, Protocol
 
+from httk.core._sentinel import MISSING as _MISSING
+
 __all__ = [
     "STORED_PROPERTY_PROJECTIONS_ATTRIBUTE",
     "QueryContext",
@@ -37,7 +39,6 @@ __all__ = [
 STORED_PROPERTY_PROJECTIONS_ATTRIBUTE: Final = "__httk_stored_properties__"
 """Exact-class attribute holding a backing's property-projection mapping."""
 
-_MISSING = object()
 _EMPTY_PROJECTIONS: Mapping[str, "StoredPropertyProjection"] = MappingProxyType({})
 
 

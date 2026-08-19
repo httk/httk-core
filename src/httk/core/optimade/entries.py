@@ -16,6 +16,8 @@ from types import MappingProxyType
 from typing import ClassVar, Self, cast
 from urllib.parse import urlsplit
 
+from httk.core._sentinel import MISSING as _MISSING
+
 from ..entry_types import Calculation, File, Reference
 from ..property_definitions import EntryTypeDefinition, PropertyDefinition, standard_entry_type
 from ..register.entries import optimade_entry_binding
@@ -24,7 +26,6 @@ from .resources import FrozenJson, OptimadeResource, optimade_document_root
 
 type OptimadeValueDecoder = Callable[[object, PropertyDefinition], object]
 
-_MISSING = object()
 _CORE_ID = "https://schemas.optimade.org/defs/v1.2/properties/core/id"
 _CORE_TYPE = "https://schemas.optimade.org/defs/v1.2/properties/core/type"
 

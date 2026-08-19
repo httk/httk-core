@@ -88,12 +88,12 @@ import fractions
 from typing import Any, Self, cast
 
 from httk.core import exactmath
+from httk.core._sentinel import MISSING
 from httk.core.vectors._squarefree import square_part
 from httk.core.vectors.fracvector import FracVector, FracVectorBase
 from httk.core.vectors.vector_api import Fractions
 from httk.core.vectors.vector_backend import VectorBackend
 
-_MISSING_VALUE = object()
 _HUB_GUARD_DIGITS = 3
 
 
@@ -186,8 +186,8 @@ class SurdVector(VectorBackend):
 
     #### Construction
 
-    def __new__(cls, value: Any = _MISSING_VALUE, dim: tuple[int, ...] | None = None) -> Self:
-        if value is _MISSING_VALUE:
+    def __new__(cls, value: Any = MISSING, dim: tuple[int, ...] | None = None) -> Self:
+        if value is MISSING:
             return cast(Self, object.__new__(cls))
         if isinstance(value, SurdVector):
             if cls is SurdScalar and value._dim != ():

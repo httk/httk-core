@@ -77,6 +77,7 @@ from .register.schemas import (
     register_entry_type_definition,
     register_property_definition,
 )
+from ._sentinel import MISSING, MissingType
 from .saving import has_writer_for, save
 from .services import Service, ServiceRecord
 from .storage.identity import content_id
@@ -135,6 +136,8 @@ __all__ = [
     "FracVector",
     "IdentitySkip",
     "Indexed",
+    "MISSING",
+    "MissingType",
     "MutableFracVector",
     "NumericVector",
     "ProductLink",

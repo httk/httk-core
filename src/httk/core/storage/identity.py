@@ -53,6 +53,8 @@ import types
 from collections.abc import Callable, Mapping
 from typing import Annotated, Any, Union, get_args, get_origin, get_type_hints
 
+from httk.core._sentinel import MISSING as _MISSING
+
 from .markers import STORAGE_INFO_ATTRIBUTE, IdentitySkip, Skip, StorageInfo, stored_property
 from .rational_text import fraction_to_text
 
@@ -69,7 +71,6 @@ __all__ = [
 STORAGE_RECORD_ATTRIBUTE = "__httk_storage_record__"
 CANONICAL_SOURCE_ATTRIBUTE = "__httk_canonical_source__"
 CANONICAL_PROJECT_ATTRIBUTE = "__httk_project__"
-_MISSING = object()
 _canonical_encoders: dict[type[Any], Callable[[Any], Any]] = {}
 # Process-local identity token for all content-id caches.  It is replaced on
 # encoder registration, and identity comparison also invalidates pickled
