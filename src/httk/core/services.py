@@ -74,7 +74,7 @@ class Service:
             raise ValueError("Field 'endpoint_description' must be a well-formed absolute IRI.")
 
     @classmethod
-    def create(cls, obj: "Service | Mapping[str, Any]") -> Self:
+    def from_obj(cls, obj: "Service | Mapping[str, Any]") -> Self:
         """Coerce a mapping or existing service into a :class:`Service`.
 
         :param obj: A service instance or a mapping with service fields.
@@ -122,7 +122,7 @@ class ServiceRecord(Service):
         return {field_name: getattr(source, field_name) for field_name in _FIELD_ORDER}
 
     @classmethod
-    def create(cls, obj: "ServiceRecord | Service | Mapping[str, Any]") -> Self:
+    def from_obj(cls, obj: "ServiceRecord | Service | Mapping[str, Any]") -> Self:
         """Coerce a service record, neutral service, or field mapping.
 
         :param obj: A service record, neutral service, or service field mapping.
@@ -142,7 +142,7 @@ class ServiceRecord(Service):
                 obj.serves_dataset_ids,
                 obj.endpoint_description,
             )
-        return super().create(obj)
+        return super().from_obj(obj)
 
 
 cast(Any, Service).__httk_storage_record__ = ServiceRecord

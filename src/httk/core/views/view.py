@@ -46,7 +46,7 @@ class View[BackendT: Backend]:
           (a backend-less view instance, e.g. built by inherited value-class algebra, falls through
           to backend creation like a raw value);
         - if `obj` is a backend inheriting from the right superclass, return it unchanged.
-        - if `obj` otherwise try to create a backend from that superclass via ``backend_cls.create(obj, **hints)``;
+        - if `obj` otherwise try to create a backend from that superclass via ``backend_cls._select_backend(obj, **hints)``;
 
         `hints` are forwarded for backend selection/disambiguation.
         """
@@ -55,7 +55,7 @@ class View[BackendT: Backend]:
             if backend is not None:
                 return backend
         if not isinstance(obj, cls._backend_base_cls):
-            return cls._backend_base_cls.create(obj, **hints)
+            return cls._backend_base_cls._select_backend(obj, **hints)
         if not hints:
             return obj
         adopted = type(obj)._backend_adopt(obj, **hints)
@@ -65,7 +65,7 @@ class View[BackendT: Backend]:
         # classes—folded values and identity-adopting wrappers—enforce them.
         if type(obj)._backend_adopt(obj) is None:
             return obj
-        return cls._backend_base_cls.create(obj, **hints)
+        return cls._backend_base_cls._select_backend(obj, **hints)
 
     def unwrap(self) -> Any:
         """

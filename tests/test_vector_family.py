@@ -48,38 +48,38 @@ requires_numpy = pytest.mark.skipif(not HAS_NUMPY, reason="numpy is not installe
 
 
 def test_dispatch_list_to_native() -> None:
-    backend = VectorBackend.create([[1, 2], [3, 4]])
+    backend = VectorBackend._select_backend([[1, 2], [3, 4]])
     assert isinstance(backend, VectorNativeBackend)
 
 
 def test_dispatch_fracvector_to_frac() -> None:
     value = FracVector([[1, 2], [3, 4]])
-    assert VectorBackend.create(value) is value
+    assert VectorBackend._select_backend(value) is value
 
 
 @requires_numpy
 def test_dispatch_ndarray_to_numpy() -> None:
     from httk.core.vectors import VectorNumpyBackend
 
-    backend = VectorBackend.create(numpy.array([[1.0, 2.0], [3.0, 4.0]]))
+    backend = VectorBackend._select_backend(numpy.array([[1.0, 2.0], [3.0, 4.0]]))
     assert isinstance(backend, VectorNumpyBackend)
 
 
 def test_kind_override_forces_native() -> None:
-    backend = VectorBackend.create([[1, 2], [3, 4]], kind="native")
+    backend = VectorBackend._select_backend([[1, 2], [3, 4]], kind="native")
     assert isinstance(backend, VectorNativeBackend)
 
 
 def test_kind_mismatch_is_rejected() -> None:
     # A FracVector cannot be interpreted as kind="native".
     with pytest.raises(TypeError):
-        VectorBackend.create(FracVector([1, 2, 3]), kind="native")
+        VectorBackend._select_backend(FracVector([1, 2, 3]), kind="native")
 
 
 def test_mutable_fracvector_is_not_a_backend() -> None:
     value = MutableFracVector([[1, 2]])
     with pytest.raises(TypeError):
-        VectorBackend.create(value)
+        VectorBackend._select_backend(value)
     assert not isinstance(value, FracVector)
 
 
@@ -103,7 +103,7 @@ def test_wrapper_backend_ignores_redundant_or_extra_kind_hints() -> None:
 @pytest.mark.parametrize("value_type", [FracScalar, SurdScalar])
 def test_scalar_value_backends_adopt_by_identity(value_type) -> None:
     value = value_type(1)
-    assert VectorBackend.create(value) is value
+    assert VectorBackend._select_backend(value) is value
 
 
 @pytest.mark.parametrize(
@@ -112,13 +112,13 @@ def test_scalar_value_backends_adopt_by_identity(value_type) -> None:
 )
 def test_scalar_value_backend_kind_mismatch_is_rejected(value, kind) -> None:
     with pytest.raises(TypeError):
-        VectorBackend.create(value, kind=kind)
+        VectorBackend._select_backend(value, kind=kind)
 
 
 def test_mutable_fracvector_is_rejected_by_all_backend_entry_points() -> None:
     value = MutableFracVector([[1, 2]])
     with pytest.raises(TypeError):
-        VectorBackend.create(value)
+        VectorBackend._select_backend(value)
     with pytest.raises(TypeError):
         VectorFracView(value)
     with pytest.raises(TypeError):
@@ -146,13 +146,13 @@ def test_mutable_fracvector_is_rejected_by_numpy_entry_points() -> None:
 def test_vector_backend_create_identity_adopts_frac_view() -> None:
     view = VectorFracView(FracVector([1, 2]))
     # Chosen semantics: a FracVector view is itself a FracVector backend.
-    assert VectorBackend.create(view) is view
+    assert VectorBackend._select_backend(view) is view
 
 
 def test_vector_backend_create_identity_adopts_surd_view() -> None:
     view = VectorSurdView(SurdVector.sqrt_of(2))
     # Chosen semantics: a SurdVector view is itself a SurdVector backend.
-    assert VectorBackend.create(view) is view
+    assert VectorBackend._select_backend(view) is view
 
 
 def test_backendless_exact_view_is_adopted_as_a_backend() -> None:
@@ -188,21 +188,21 @@ def test_surd_float_rendering_ignores_decimal_context() -> None:
 
 def test_unrepresentable_raises() -> None:
     with pytest.raises(TypeError):
-        VectorBackend.create(object())
+        VectorBackend._select_backend(object())
 
 
 # ------------------------------------------------------------------ fractions interchange
 
 
 def test_backend_fractions_are_exact() -> None:
-    backend = VectorBackend.create([["1/3", "2/5"]])
+    backend = VectorBackend._select_backend([["1/3", "2/5"]])
     assert backend.fractions == ((F(1, 3), F(2, 5)),)
     assert backend.dim == (1, 2)
 
 
 def test_native_string_uncertainty_parsing() -> None:
     # Conversion goes through FracVector, so uncertainty strings parse here too.
-    backend = VectorBackend.create(["0.33342(10)"])
+    backend = VectorBackend._select_backend(["0.33342(10)"])
     assert backend.fractions == (F(1, 3),)
 
 
@@ -345,7 +345,7 @@ def test_native_view_leaf_applies_across_backends() -> None:
 
 def test_dispatch_surdvector_to_surd() -> None:
     value = SurdVector.sqrt_of(2)
-    assert VectorBackend.create(value) is value
+    assert VectorBackend._select_backend(value) is value
 
 
 def test_surd_unwrap_is_exact() -> None:
@@ -369,13 +369,13 @@ def test_surd_view_of_surd_backend_keeps_exact_value() -> None:
 
 
 def test_surd_backend_fractions_hub_rational_is_exact() -> None:
-    backend = VectorBackend.create(SurdVector([["1/3", "2/3"]]))
+    backend = VectorBackend._select_backend(SurdVector([["1/3", "2/3"]]))
     assert backend.fractions == ((F(1, 3), F(2, 3)),)
 
 
 def test_surd_backend_fractions_hub_irrational_is_deterministic() -> None:
     # An irrational surd is reduced to a deterministic (lossy) rational approximation.
-    backend = VectorBackend.create(SurdVector.from_radicand_map({2: [[1, 2]]}))
+    backend = VectorBackend._select_backend(SurdVector.from_radicand_map({2: [[1, 2]]}))
     assert backend.fractions == backend.fractions  # same every call
     assert backend.dim == (1, 2)
 
@@ -650,7 +650,7 @@ def test_dispatch_and_import_work_without_numpy() -> None:
         "assert not hasattr(c, 'VectorNumpyBackend')\n"
         "names = [b.__name__ for b in VectorBackend.backend_classes]\n"
         "assert names == ['FracVector', 'SurdVector', 'VectorNativeBackend'], names\n"
-        "b = VectorBackend.create([[1, 2], [3, 4]])\n"
+        "b = VectorBackend._select_backend([[1, 2], [3, 4]])\n"
         "assert isinstance(b, VectorNativeBackend)\n"
         "import fractions as fr\n"
         "assert b.fractions == ((fr.Fraction(1), fr.Fraction(2)), (fr.Fraction(3), fr.Fraction(4)))\n"
@@ -672,11 +672,11 @@ def test_dispatch_and_import_work_without_numpy() -> None:
 def test_every_backend_renders_to_floats() -> None:
     # to_floats()/to_float() are part of the VectorAPI contract, derived from the fractions hub,
     # so whatever backend the family dispatches to, the float rendering works (nested lists).
-    frac_backend = VectorBackend.create(FracVector([["1/2", "1/4"]]))
-    native_backend = VectorBackend.create([[1, 2], [3, 4]])
+    frac_backend = VectorBackend._select_backend(FracVector([["1/2", "1/4"]]))
+    native_backend = VectorBackend._select_backend([[1, 2], [3, 4]])
     assert frac_backend.to_floats() == [[0.5, 0.25]]
     assert native_backend.to_floats() == [[1.0, 2.0], [3.0, 4.0]]
-    surd_backend = VectorBackend.create(SurdVector([[1, 0], [0, 2]]))
+    surd_backend = VectorBackend._select_backend(SurdVector([[1, 0], [0, 2]]))
     assert surd_backend.to_floats() == [[1.0, 0.0], [0.0, 2.0]]
 
 
@@ -684,7 +684,7 @@ def test_every_backend_renders_to_floats() -> None:
 def test_numpy_backend_renders_to_floats() -> None:
     import numpy
 
-    backend = VectorBackend.create(numpy.array([[0.5, 0.25]]))
+    backend = VectorBackend._select_backend(numpy.array([[0.5, 0.25]]))
     assert backend.to_floats() == [[0.5, 0.25]]
 
 
@@ -692,13 +692,13 @@ def test_numpy_backend_renders_to_floats() -> None:
 def test_numpy_backend_real_dtype_fast_path_matches_hub() -> None:
     import numpy
 
-    float_backend = VectorBackend.create(numpy.array([[0.1, 1.5]], dtype=numpy.float64))
+    float_backend = VectorBackend._select_backend(numpy.array([[0.1, 1.5]], dtype=numpy.float64))
     assert float_backend.to_floats() == VectorAPI.to_floats(float_backend)
 
-    int_backend = VectorBackend.create(numpy.array([-2, 3], dtype=numpy.int64))
+    int_backend = VectorBackend._select_backend(numpy.array([-2, 3], dtype=numpy.int64))
     assert int_backend.to_floats() == [-2.0, 3.0]
 
-    bool_backend = VectorBackend.create(numpy.array([True, False], dtype=numpy.bool_))
+    bool_backend = VectorBackend._select_backend(numpy.array([True, False], dtype=numpy.bool_))
     assert bool_backend.to_floats() == [1.0, 0.0]
 
 
@@ -706,7 +706,7 @@ def test_numpy_backend_real_dtype_fast_path_matches_hub() -> None:
 def test_numpy_backend_non_real_dtype_falls_back_to_hub() -> None:
     import numpy
 
-    complex_backend = VectorBackend.create(numpy.array(1 + 2j, dtype=numpy.complex128))
+    complex_backend = VectorBackend._select_backend(numpy.array(1 + 2j, dtype=numpy.complex128))
     with pytest.raises(TypeError):
         complex_backend.to_floats()
     with pytest.raises(TypeError):
@@ -717,14 +717,14 @@ def test_numpy_backend_non_real_dtype_falls_back_to_hub() -> None:
 def test_numpy_backend_to_float_shape_and_scalar_contract() -> None:
     import numpy
 
-    backend = VectorBackend.create(numpy.array(0.1, dtype=numpy.float64))
+    backend = VectorBackend._select_backend(numpy.array(0.1, dtype=numpy.float64))
     assert backend.to_float() == 0.1
     with pytest.raises(TypeError, match=r"to_float: expected a scalar, got shape \(2, 2\)"):
-        VectorBackend.create(numpy.ones((2, 2))).to_float()
+        VectorBackend._select_backend(numpy.ones((2, 2))).to_float()
 
 
 def test_backend_to_float_scalar_contract() -> None:
-    scalar_backend = VectorBackend.create(FracVector("1/2"))
+    scalar_backend = VectorBackend._select_backend(FracVector("1/2"))
     assert scalar_backend.to_float() == 0.5
     with pytest.raises(TypeError, match="scalar"):
-        VectorBackend.create([[1, 2]]).to_float()
+        VectorBackend._select_backend([[1, 2]]).to_float()

@@ -36,9 +36,9 @@ class Backend[BackendT: Backend](ABC):
         return None
 
     @classmethod
-    def create(cls: type[Self], obj: Any, **hints: Any) -> Self:
+    def _select_backend(cls: type[Self], obj: Any, **hints: Any) -> Self:
         r"""
-        Given a source data (obj) and a set of hints, create a backend from one of the alternatives in the class variable `backend_classes`.
+        Given a source data (obj) and a set of hints, select and build a backend from one of the alternatives in the class variable `backend_classes`.
 
         By design this creation depends heavily on order of the classes in `backend_classes`.
         Each class is tried in the order they appear until one of them is successful, in the sense that their `_backend_adopt` returns an initialized instance.

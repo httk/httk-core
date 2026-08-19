@@ -150,7 +150,7 @@ class DataRecord:
         )
 
     @classmethod
-    def create(cls, obj: "DataRecord | Mapping[str, Any]") -> Self:
+    def from_obj(cls, obj: "DataRecord | Mapping[str, Any]") -> Self:
         """Coerce a mapping or existing record into a :class:`DataRecord`.
 
         :param obj: A data record instance or field mapping.

@@ -11,8 +11,8 @@ from httk.core.storage import content_id
 
 def test_run_edge_create_and_validation() -> None:
     edge = RunEdge("input", "calculations", "calc-1")
-    assert RunEdge.create(edge) is edge
-    assert RunEdge.create({"label": "input", "entry_type": "calculations", "entry_id": "calc-1"}) == edge
+    assert RunEdge.from_obj(edge) is edge
+    assert RunEdge.from_obj({"label": "input", "entry_type": "calculations", "entry_id": "calc-1"}) == edge
     for field_name in ("label", "entry_type", "entry_id"):
         with pytest.raises(ValueError, match=field_name):
             RunEdge(
@@ -34,7 +34,7 @@ def test_run_constructor_and_create_coerce_edges_and_timestamp() -> None:
     )
     assert run.inputs == (RunEdge("input", "calculations", "calc-1"),)
     assert run.last_modified == timestamp
-    created = Run.create(
+    created = Run.from_obj(
         {
             "workflow_declaration_uri": "https://example.org/workflow/1",
             "inputs": [{"label": "input", "entry_type": "calculations", "entry_id": "calc-1"}],
@@ -45,7 +45,7 @@ def test_run_constructor_and_create_coerce_edges_and_timestamp() -> None:
     assert created.type == "_httk_runs"
     assert created.id == content_id(created)
     with pytest.raises(ValueError, match="Unknown field"):
-        Run.create({"unknown": 1})
+        Run.from_obj({"unknown": 1})
 
 
 def test_run_edges_are_unique_per_side_but_not_across_sides() -> None:
@@ -64,9 +64,9 @@ def test_run_rejects_bad_uri_and_naive_timestamp() -> None:
 
 def test_product_link_and_logical_family() -> None:
     link = ProductLink("_httk_records", "record-1", "_httk_records", "record-2", "curated")
-    assert ProductLink.create(link) is link
+    assert ProductLink.from_obj(link) is link
     assert (
-        ProductLink.create(
+        ProductLink.from_obj(
             {
                 "source_type": "_httk_records",
                 "source_id": "record-1",

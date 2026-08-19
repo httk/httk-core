@@ -65,7 +65,7 @@ def register_citation(
 
     normalized: list[Reference] = []
     for item in items:
-        reference = Reference.create(item)
+        reference = Reference.from_obj(item)
         if reference.authors is not None or reference.editors is not None:
             reference = replace(
                 reference,
@@ -156,7 +156,7 @@ class Credits:
 
 credits = Credits()
 
-HTTK_REFERENCE: Reference = Reference.create(
+HTTK_REFERENCE: Reference = Reference.from_obj(
     {
         "authors": ({"name": "Rickard Armiento", "firstname": "Rickard", "lastname": "Armiento"},),
         "title": "Database-driven High-Throughput Calculations and Machine Learning Models for Materials Design",

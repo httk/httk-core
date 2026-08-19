@@ -136,7 +136,7 @@ def to_numeric(obj: VectorLike | float | str | fractions.Fraction) -> NumericVec
     elif isinstance(obj, VectorBackend):
         backend = obj
     else:
-        backend = VectorBackend.create(obj)
+        backend = VectorBackend._select_backend(obj)
 
     if backend.dim == ():
         return to_numeric_scalar(unwrap(backend))

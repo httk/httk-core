@@ -263,7 +263,7 @@ class OptimadeDocument:
     source_url: str
 
     @classmethod
-    def create(cls, text: str, source_url: str) -> "OptimadeDocument":
+    def from_response(cls, text: str, source_url: str) -> "OptimadeDocument":
         """Construct a source-exact document with safe pagination provenance.
 
         :param text: Response text to sanitize and retain.
@@ -343,7 +343,7 @@ def optimade_resource_from_url(url: str, *, timeout: float | None = None) -> "Op
     if shape is None:
         raise ValueError(f"Not an OPTIMADE single-entry URL: {redact_optimade_url(url)!r}")
     entry_type, info_url = shape
-    document = OptimadeDocument.create(_read_optimade_url(url, timeout=timeout, label="entry"), url)
+    document = OptimadeDocument.from_response(_read_optimade_url(url, timeout=timeout, label="entry"), url)
     try:
         entry_root = optimade_document_root(document)
     except ValueError as exc:
@@ -353,7 +353,7 @@ def optimade_resource_from_url(url: str, *, timeout: float | None = None) -> "Op
             f"OPTIMADE entry response at {redact_optimade_url(url)!r} must contain one object in 'data', not a list"
         )
 
-    info_document = OptimadeDocument.create(_read_optimade_url(info_url, timeout=timeout, label="info"), info_url)
+    info_document = OptimadeDocument.from_response(_read_optimade_url(info_url, timeout=timeout, label="info"), info_url)
     try:
         info_root = optimade_document_root(info_document)
     except ValueError as exc:

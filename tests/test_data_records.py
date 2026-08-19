@@ -40,14 +40,14 @@ def test_value_number(value: object, expected: float | None) -> None:
 
 def test_create_validation_and_family() -> None:
     timestamp = datetime.datetime(2026, 1, 2, tzinfo=datetime.UTC)
-    record = DataRecord.create(
+    record = DataRecord.from_obj(
         {"definition_id": "def", "name": "name", "value_json": "1", "last_modified": "2026-01-02T00:00:00+00:00"}
     )
     assert record.last_modified == timestamp
     with pytest.raises(ValueError, match="value_json"):
         DataRecord("def", "name", "not json")
     with pytest.raises(ValueError, match="Unknown field"):
-        DataRecord.create({"definition_id": "def", "name": "name", "value_json": "1", "extra": 1})
+        DataRecord.from_obj({"definition_id": "def", "name": "name", "value_json": "1", "extra": 1})
     assert DataRecordEntry.type == "_httk_records"
     assert DataRecordEntry.definition_id == "https://schemas.httk.org/defs/v0.1/entrytypes/records"
     with pytest.raises(TypeError, match="store a DataRecord directly"):

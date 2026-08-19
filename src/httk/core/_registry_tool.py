@@ -176,7 +176,7 @@ def _record_lines(class_name: str, definition: EntryTypeDefinition) -> tuple[lis
             f"        _validate_timestamps(self, _{class_name.upper()}_TIMESTAMP_FIELDS)",
             "",
             "    @classmethod",
-            f'    def create(cls, obj: "{class_name} | Mapping[str, Any]") -> Self:',
+            f'    def from_obj(cls, obj: "{class_name} | Mapping[str, Any]") -> Self:',
             "        return _create(cls, obj)",
             "",
         ]

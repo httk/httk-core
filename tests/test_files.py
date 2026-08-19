@@ -51,7 +51,7 @@ def test_file_record_content_id_and_metadata_exclusion() -> None:
 def test_file_entry_and_record_create() -> None:
     record = _record()
     assert isinstance(record, File)
-    created = FileRecord.create(
+    created = FileRecord.from_obj(
         {
             "url": record.url,
             "name": record.name,
@@ -63,9 +63,9 @@ def test_file_entry_and_record_create() -> None:
         }
     )
     assert created == record
-    assert FileRecord.create(record) is record
+    assert FileRecord.from_obj(record) is record
     with pytest.raises(ValueError, match="Unknown field"):
-        FileRecord.create({"url": record.url, "name": record.name, "unknown": 1})
+        FileRecord.from_obj({"url": record.url, "name": record.name, "unknown": 1})
     assert FileEntry.type == "files"
     assert FileEntry.definition_id == FILES_DEFINITION_ID
     with pytest.raises(TypeError, match="store a FileRecord directly"):

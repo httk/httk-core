@@ -79,7 +79,7 @@ class DatasetDistribution:
             raise ValueError("Field 'sha256' must be exactly 64 lowercase hexadecimal characters or None.")
 
     @classmethod
-    def create(cls, obj: "DatasetDistribution | Mapping[str, Any]") -> Self:
+    def from_obj(cls, obj: "DatasetDistribution | Mapping[str, Any]") -> Self:
         """Coerce a distribution instance or exact-field mapping.
 
         :param obj: A distribution instance or a mapping of distribution fields.
@@ -105,7 +105,7 @@ def _normalize_distributions(value: object) -> tuple[DatasetDistribution, ...]:
         raise ValueError("Field 'distributions' must be an ordered non-string iterable of DatasetDistribution values.")
     if isinstance(value, str | Mapping | AbstractSet):
         raise ValueError("Field 'distributions' must be an ordered non-string iterable of DatasetDistribution values.")
-    distributions = tuple(DatasetDistribution.create(item) for item in value)
+    distributions = tuple(DatasetDistribution.from_obj(item) for item in value)
     ids = [distribution.id for distribution in distributions if distribution.id is not None]
     if len(ids) != len(set(ids)):
         raise ValueError("Field 'distributions' must not contain duplicate non-None distribution IDs.")
@@ -145,7 +145,7 @@ class Dataset:
         object.__setattr__(self, "distributions", _normalize_distributions(self.distributions))
 
     @classmethod
-    def create(cls, obj: "Dataset | Mapping[str, Any]") -> Self:
+    def from_obj(cls, obj: "Dataset | Mapping[str, Any]") -> Self:
         """Coerce a mapping or existing dataset into a :class:`Dataset`.
 
         :param obj: A dataset instance or a mapping with exactly the dataset fields.
@@ -193,7 +193,7 @@ class DatasetRecord(Dataset):
         return {field_name: getattr(source, field_name) for field_name in _DATASET_FIELD_ORDER}
 
     @classmethod
-    def create(cls, obj: "DatasetRecord | Dataset | Mapping[str, Any]") -> Self:
+    def from_obj(cls, obj: "DatasetRecord | Dataset | Mapping[str, Any]") -> Self:
         """Coerce a dataset record, neutral dataset, or field mapping.
 
         :param obj: A dataset record, neutral dataset, or exact-field mapping.
@@ -213,7 +213,7 @@ class DatasetRecord(Dataset):
                 obj.publisher_name,
                 obj.distributions,
             )
-        return super().create(obj)
+        return super().from_obj(obj)
 
 
 cast(Any, Dataset).__httk_storage_record__ = DatasetRecord

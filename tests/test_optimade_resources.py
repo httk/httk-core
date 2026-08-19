@@ -266,7 +266,7 @@ def test_safe_document_creation_redacts_only_top_level_pagination() -> None:
         '"extensions" : { "href" : "?token=semantic-extension" }, '
         '"links" : { "next" : "https://user:cursor@example.test/next?keep=ok&TOKEN=cursor-secret" } }'
     )
-    document = OptimadeDocument.create(text, "https://user:secret@example.test/v1?api_key=hide&keep=ok#frag")
+    document = OptimadeDocument.from_response(text, "https://user:secret@example.test/v1?api_key=hide&keep=ok#frag")
     assert document.text == (
         '{ "data" : [ { "number" : 1.2300e+4, "attributes" : {'
         '"url" : "https://user:semantic@example.test/file?token=semantic-secret", '

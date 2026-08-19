@@ -59,7 +59,7 @@ def _create(cls: type[Any], obj: Any) -> Any:
 
 
 def _edges(values: Iterable[Any]) -> "tuple[RunEdge, ...]":
-    return tuple(RunEdge.create(value) for value in values)
+    return tuple(RunEdge.from_obj(value) for value in values)
 
 
 @dataclass(frozen=True)
@@ -86,7 +86,7 @@ class RunEdge:
             _validate_string(getattr(self, field_name), field_name)
 
     @classmethod
-    def create(cls, obj: "RunEdge | Mapping[str, Any]") -> Self:
+    def from_obj(cls, obj: "RunEdge | Mapping[str, Any]") -> Self:
         """Coerce a mapping or existing edge into a :class:`RunEdge`.
 
         :param obj: A run edge instance or field mapping.
@@ -157,7 +157,7 @@ class Run:
         _validate_timestamp(self.last_modified, "last_modified")
 
     @classmethod
-    def create(cls, obj: "Run | Mapping[str, Any]") -> Self:
+    def from_obj(cls, obj: "Run | Mapping[str, Any]") -> Self:
         """Coerce a mapping or existing run into a :class:`Run`.
 
         :param obj: A run instance or field mapping.
@@ -205,7 +205,7 @@ class ProductLink:
         _validate_uri(self.workflow_declaration_uri, "workflow_declaration_uri")
 
     @classmethod
-    def create(cls, obj: "ProductLink | Mapping[str, Any]") -> Self:
+    def from_obj(cls, obj: "ProductLink | Mapping[str, Any]") -> Self:
         """Coerce a mapping or existing link into a :class:`ProductLink`.
 
         :param obj: A product-link instance or field mapping.

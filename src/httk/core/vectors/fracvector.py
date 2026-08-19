@@ -542,7 +542,7 @@ class FracVectorBase:
         return cls._create_func(data, exactmath.sin, degrees=degrees, limit=limit, prec=prec)
 
     @classmethod
-    def create_exp(
+    def from_exp(
         cls,
         data: Any,
         prec: fractions.Fraction = fractions.Fraction(1, 1000000),

@@ -145,7 +145,7 @@ class Reference:
         _validate_timestamps(self, _REFERENCE_TIMESTAMP_FIELDS)
 
     @classmethod
-    def create(cls, obj: "Reference | Mapping[str, Any]") -> Self:
+    def from_obj(cls, obj: "Reference | Mapping[str, Any]") -> Self:
         return _create(cls, obj)
 
 
@@ -250,7 +250,7 @@ class File:
         _validate_timestamps(self, _FILE_TIMESTAMP_FIELDS)
 
     @classmethod
-    def create(cls, obj: "File | Mapping[str, Any]") -> Self:
+    def from_obj(cls, obj: "File | Mapping[str, Any]") -> Self:
         return _create(cls, obj)
 
 
@@ -279,7 +279,7 @@ class Calculation:
         _validate_timestamps(self, _CALCULATION_TIMESTAMP_FIELDS)
 
     @classmethod
-    def create(cls, obj: "Calculation | Mapping[str, Any]") -> Self:
+    def from_obj(cls, obj: "Calculation | Mapping[str, Any]") -> Self:
         return _create(cls, obj)
 
 

@@ -16,20 +16,20 @@ from httk.core import Calculation, File, Reference, known_entry_providers
 
 
 def test_reference_create_from_dict_and_instance() -> None:
-    ref = Reference.create({"title": "T", "doi": "10.1/x", "authors": ({"name": "Ada"},)})
+    ref = Reference.from_obj({"title": "T", "doi": "10.1/x", "authors": ({"name": "Ada"},)})
     assert ref.title == "T"
     assert ref.authors == ({"name": "Ada"},)
-    assert Reference.create(ref) is ref
+    assert Reference.from_obj(ref) is ref
 
 
 def test_create_unknown_key_error_names_it() -> None:
     with pytest.raises(ValueError) as excinfo:
-        File.create({"url": "http://x", "bogus": 1})
+        File.from_obj({"url": "http://x", "bogus": 1})
     assert "bogus" in str(excinfo.value)
 
 
 def test_calculation_minimal_fields() -> None:
-    calc = Calculation.create({"last_modified": "2024-01-01T00:00:00Z"})
+    calc = Calculation.from_obj({"last_modified": "2024-01-01T00:00:00Z"})
     assert calc.immutable_id is None
     assert calc.last_modified == datetime.datetime(2024, 1, 1, tzinfo=datetime.UTC)
 
@@ -45,7 +45,7 @@ def test_calculation_minimal_fields() -> None:
 )
 def test_create_rejects_invalid_timestamps(value: object, field: str) -> None:
     with pytest.raises(ValueError, match=field):
-        Calculation.create({field: value})
+        Calculation.from_obj({field: value})
 
 
 def test_direct_construction_rejects_naive_timestamps() -> None:
@@ -70,7 +70,7 @@ def test_direct_construction_rejects_tzinfo_without_offset() -> None:
 
 def test_aware_timestamp_round_trips_with_non_utc_offset() -> None:
     timestamp = datetime.datetime(2024, 1, 1, 12, 30, tzinfo=datetime.timezone(datetime.timedelta(hours=5, minutes=30)))
-    calc = Calculation.create({"last_modified": timestamp.isoformat()})
+    calc = Calculation.from_obj({"last_modified": timestamp.isoformat()})
     assert calc.last_modified == timestamp
 
 

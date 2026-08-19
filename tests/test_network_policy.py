@@ -107,9 +107,9 @@ def test_view_adoption_preserves_gated_backend(monkeypatch: pytest.MonkeyPatch) 
     monkeypatch.setattr(urllib.request, "urlopen", _urlopen_fake(calls))
     url = "https://example.test/adopt"
 
-    text_backend = TextstreamBackend.create(url)
+    text_backend = TextstreamBackend._select_backend(url)
     text_view = TextstreamFileView(TextstreamFileView(text_backend))
-    bytes_backend = BytestreamBackend.create(url)
+    bytes_backend = BytestreamBackend._select_backend(url)
     bytes_view = BytestreamFileView(BytestreamFileView(bytes_backend))
 
     with pytest.raises(PermissionError):

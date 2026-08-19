@@ -390,7 +390,7 @@ class OptimadeEntryView:
                     f"invalid semantic property {record_field.name!r}: {exc}"
                 ) from exc
         try:
-            return self.record_class.create(values)
+            return self.record_class.from_obj(values)
         except (TypeError, ValueError) as exc:
             raise IncompleteOptimadeResourceError(f"could not construct OPTIMADE record: {exc}") from exc
 

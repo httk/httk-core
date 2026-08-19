@@ -18,7 +18,7 @@ def _service_fields() -> dict[str, object]:
 
 
 def test_service_create_accepts_valid_fields_and_normalizes_sequences() -> None:
-    service = Service.create(
+    service = Service.from_obj(
         {
             **_service_fields(),
             "serves_dataset_ids": ("urn:example:dataset:alpha",),
@@ -32,8 +32,8 @@ def test_service_create_accepts_valid_fields_and_normalizes_sequences() -> None:
 
 
 def test_service_create_adopts_existing_instance_and_is_immutable_non_slots() -> None:
-    service = Service.create(_service_fields())
-    assert Service.create(service) is service
+    service = Service.from_obj(_service_fields())
+    assert Service.from_obj(service) is service
     assert hasattr(service, "__dict__")
     with pytest.raises(FrozenInstanceError):
         service.title = "Changed"
@@ -53,7 +53,7 @@ def test_service_accepts_non_http_absolute_iris() -> None:
 
 def test_service_create_rejects_non_mapping_input() -> None:
     with pytest.raises(TypeError, match="Service or a mapping"):
-        Service.create("not a service")
+        Service.from_obj("not a service")
 
 
 @pytest.mark.parametrize(
@@ -65,7 +65,7 @@ def test_service_create_rejects_non_mapping_input() -> None:
 )
 def test_service_create_requires_allowed_field_set(fields: dict[str, object], message: str) -> None:
     with pytest.raises(ValueError, match=message):
-        Service.create(fields)
+        Service.from_obj(fields)
 
 
 @pytest.mark.parametrize(
@@ -80,7 +80,7 @@ def test_service_rejects_relative_or_malformed_iris(field_name: str, value: str)
     fields = _service_fields()
     fields[field_name] = value
     with pytest.raises(ValueError, match=field_name):
-        Service.create(fields)
+        Service.from_obj(fields)
 
 
 @pytest.mark.parametrize(
@@ -110,12 +110,12 @@ def test_service_rejects_invalid_text_or_iri_sequences(field_name: str, value: o
     fields = _service_fields()
     fields[field_name] = value
     with pytest.raises(ValueError, match=message):
-        Service.create(fields)
+        Service.from_obj(fields)
 
 
 def test_service_record_projects_neutral_service_and_pins_content_id() -> None:
-    service = Service.create(_service_fields())
-    record = ServiceRecord.create(service)
+    service = Service.from_obj(_service_fields())
+    record = ServiceRecord.from_obj(service)
 
     assert resolve_storage_record(service) is ServiceRecord
     assert project_storage_record(ServiceRecord, service) == {
@@ -126,6 +126,6 @@ def test_service_record_projects_neutral_service_and_pins_content_id() -> None:
         "serves_dataset_ids": None,
         "endpoint_description": None,
     }
-    assert record == ServiceRecord.create(_service_fields())
+    assert record == ServiceRecord.from_obj(_service_fields())
     assert content_id(service) == "8fa13a4196d0f58f5100fac3b2aac2882a9d0976c5ac19e6a2cd03855ef3de48"
     assert content_id(record) == content_id(service)

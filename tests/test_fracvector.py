@@ -71,7 +71,7 @@ def test_create_from_vector_api_members() -> None:
 
 def test_create_from_numpy_vector_api_member() -> None:
     numpy = pytest.importorskip("numpy")
-    backend = VectorBackend.create(numpy.array([1.5, 2.5]))
+    backend = VectorBackend._select_backend(numpy.array([1.5, 2.5]))
     assert backend.fractions_exact is True
     assert FracVector([backend]) == FracVector([[1.5, 2.5]])
 
