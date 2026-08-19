@@ -329,6 +329,10 @@ class OptimadeEntryView:
         object.__setattr__(self, "_backend", backend)
         object.__setattr__(self, "_record", None)
 
+    def __repr__(self) -> str:
+        backend = getattr(self, "_backend", None)
+        return f"{type(self).__name__}(backend={type(backend).__name__})"
+
     @property
     def backend(self) -> OptimadeEntryBackend:
         """Return the typed backend behind this view."""

@@ -106,10 +106,10 @@ def test_surd_view_adopts_surd_backend_lazily() -> None:
 
 
 def test_frac_view_low_level_results_remain_backendless() -> None:
-    view = VectorFracView.from_noms_and_denom((1, 2), 2)
+    view = VectorFracView._of((1, 2), 2)
     result = view + view
 
-    assert result == FracVector.from_noms_and_denom((1, 2), 1)
+    assert result == FracVector._of((1, 2), 1)
     assert unwrap(result) is result
 
 

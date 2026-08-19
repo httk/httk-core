@@ -46,9 +46,12 @@ def _force_generic_constructor(node: object) -> object:
 
 def test_create_from_ints_with_denominator() -> None:
     v = FracVector([[804, 0, 0], [0, 372, 0], [0, 0, 738]], denom=100)
-    # simplify shares the gcd(=2) out of the denominator
-    assert v.noms == ((402, 0, 0), (0, 186, 0), (0, 0, 369))
-    assert v.denom == 50
+    # construction stores the value as asked; it no longer shares the gcd out of the denominator
+    assert v.noms == ((804, 0, 0), (0, 372, 0), (0, 0, 738))
+    assert v.denom == 100
+    # an explicit simplify still shares the gcd(=2) out of the denominator
+    assert v.simplify().noms == ((402, 0, 0), (0, 186, 0), (0, 0, 369))
+    assert v.simplify().denom == 50
 
 
 def test_create_from_vector_api_members() -> None:
@@ -84,8 +87,10 @@ def test_create_from_irrational_surd_rejects_inexact_hub() -> None:
 def test_create_from_decimal_strings_matches_int_form() -> None:
     strings = FracVector([["8.04", "0.0", "0.0"], ["0.0", "3.72", "0.0"], ["0.0", "0.0", "7.38"]])
     ints = FracVector([[804, 0, 0], [0, 372, 0], [0, 0, 738]], denom=100)
-    assert strings.noms == ints.noms
-    assert strings.denom == ints.denom
+    assert strings == ints
+    # construction no longer canonicalizes, so compare stored form after an explicit simplify
+    assert strings.simplify().noms == ints.simplify().noms
+    assert strings.simplify().denom == ints.simplify().denom
 
 
 def test_create_from_python_float_is_binary_rational() -> None:
@@ -143,7 +148,7 @@ def test_third_times_three_simplifies_to_one() -> None:
 
 
 def test_simplify_shares_common_denominator() -> None:
-    v = FracVector.from_noms_and_denom(((2, 4), (6, 8)), 4).simplify()
+    v = FracVector._of(((2, 4), (6, 8)), 4).simplify()
     assert v.noms == ((1, 2), (3, 4))
     assert v.denom == 2
 
@@ -294,7 +299,7 @@ def test_to_tuple_exact() -> None:
 
 def test_equality_across_denominators() -> None:
     assert FracVector([["2/4"]]) == FracVector([["1/2"]])
-    assert FracVector.from_noms_and_denom(((1,),), 2) == FracVector.from_noms_and_denom(((2,),), 4)
+    assert FracVector._of(((1,),), 2) == FracVector._of(((2,),), 4)
 
 
 def test_ordering_scalars() -> None:
@@ -304,7 +309,7 @@ def test_ordering_scalars() -> None:
 
 
 def test_hash_matches_for_equal_representation() -> None:
-    raw = FracVector.from_noms_and_denom(((1, 2), (3, 4)), 2)
+    raw = FracVector._of(((1, 2), (3, 4)), 2)
     assert hash(raw) == hash(raw)
 
 
@@ -467,8 +472,13 @@ def test_fracvector_and_fracscalar_copy_round_trip() -> None:
         assert copy.deepcopy(value) == value
 
 
-def test_repr_uses_raw_constructor() -> None:
-    assert repr(FracVector.from_noms_and_denom((1, 2), 3)) == "FracVector.from_noms_and_denom((1, 2), 3)"
+def test_repr_roundtrips_via_public_constructor() -> None:
+    value = FracVector._of((2, 4), 8)  # deliberately unsimplified stored state
+    assert repr(value) == "FracVector((2, 4), denom=8)"
+    roundtrip = eval(repr(value))  # noqa: S307 - trusted repr, verifies eval(repr(x)) fidelity
+    assert roundtrip == value
+    assert roundtrip.noms == value.noms  # exact stored state preserved, not just numeric value
+    assert roundtrip.denom == value.denom
 
 
 def test_pow_zero_matrix_is_identity() -> None:
@@ -589,7 +599,7 @@ def test_fast_exact_constructor_matches_generic_representation(
 
 
 def test_fast_vector_copy_matches_generic_representation() -> None:
-    source = FracVector.from_noms_and_denom(((2, 4), (6, 8)), -4)
+    source = FracVector._of(((2, 4), (6, 8)), -4)
     fast = FracVector(source, simplify=False)
     slow = FracVector(_force_generic_constructor(source.to_fractions()), simplify=False, min_accuracy=None)
     assert (fast.noms, fast.denom) == (slow.noms, slow.denom)

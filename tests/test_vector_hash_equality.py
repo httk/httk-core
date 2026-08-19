@@ -21,13 +21,13 @@ F = fractions.Fraction
 #: Pairs that are numerically equal but stored differently: unreduced denominators, a
 #: negative denominator, and the zero vector at two scales.
 EQUAL_FRACVECTOR_PAIRS = [
-    (FracVector.from_noms_and_denom((1, 0, 0), 2), FracVector.from_noms_and_denom((2, 0, 0), 4)),
-    (FracVector.from_noms_and_denom((1, 0, 0), 2), FracVector.from_noms_and_denom((50, 0, 0), 100)),
-    (FracVector.from_noms_and_denom((0, 0, 0), 1), FracVector.from_noms_and_denom((0, 0, 0), 4)),
-    (FracVector.from_noms_and_denom((1, 0, 0), -2), FracVector.from_noms_and_denom((-1, 0, 0), 2)),
-    (FracVector.from_noms_and_denom((-2, 4), -6), FracVector.from_noms_and_denom((1, -2), 3)),
-    (FracVector.from_noms_and_denom((5,), 1), FracVector.from_noms_and_denom((-5,), -1)),
-    (FracVector.from_noms_and_denom(((1, 2), (3, 4)), 2), FracVector.from_noms_and_denom(((3, 6), (9, 12)), 6)),
+    (FracVector._of((1, 0, 0), 2), FracVector._of((2, 0, 0), 4)),
+    (FracVector._of((1, 0, 0), 2), FracVector._of((50, 0, 0), 100)),
+    (FracVector._of((0, 0, 0), 1), FracVector._of((0, 0, 0), 4)),
+    (FracVector._of((1, 0, 0), -2), FracVector._of((-1, 0, 0), 2)),
+    (FracVector._of((-2, 4), -6), FracVector._of((1, -2), 3)),
+    (FracVector._of((5,), 1), FracVector._of((-5,), -1)),
+    (FracVector._of(((1, 2), (3, 4)), 2), FracVector._of(((3, 6), (9, 12)), 6)),
 ]
 
 
@@ -88,9 +88,9 @@ def test_simplify_preserves_value_and_is_idempotent() -> None:
 
 
 def test_fracvector_hash_is_stable_across_calls() -> None:
-    vector = FracVector.from_noms_and_denom((6, 0, 0), 12)
+    vector = FracVector._of((6, 0, 0), 12)
     assert hash(vector) == hash(vector)
-    assert vector == FracVector.from_noms_and_denom((1, 0, 0), 2)
+    assert vector == FracVector._of((1, 0, 0), 2)
 
 
 # --- SurdVector ---
@@ -124,13 +124,13 @@ def test_surdvector_hash_matches_across_component_representations() -> None:
     decided, so this pins the canonicalization rather than the arithmetic that happens to
     feed it.
     """
-    unreduced = SurdVector.from_components({3: FracVector.from_noms_and_denom(5, 10)}, ())
-    reduced = SurdVector.from_components({3: FracVector.from_noms_and_denom(1, 2)}, ())
+    unreduced = SurdVector._of({3: FracVector._of(5, 10)}, ())
+    reduced = SurdVector._of({3: FracVector._of(1, 2)}, ())
     _assert_hash_contract(unreduced, reduced)
 
-    negative_denominator = SurdVector.from_components({2: FracVector.from_noms_and_denom(-1, -3)}, ())
+    negative_denominator = SurdVector._of({2: FracVector._of(-1, -3)}, ())
     _assert_hash_contract(
-        negative_denominator, SurdVector.from_components({2: FracVector.from_noms_and_denom(1, 3)}, ())
+        negative_denominator, SurdVector._of({2: FracVector._of(1, 3)}, ())
     )
 
     # And through arithmetic, where denominators routinely arrive unreduced.
@@ -142,10 +142,10 @@ def test_surdvector_hash_matches_across_component_representations() -> None:
 
 def test_vector_views_inherit_the_hash_contract() -> None:
     """Views are genuine FracVector/SurdVector subclasses, so they must behave alike."""
-    frac_view = VectorFracView(FracVector.from_noms_and_denom((2, 0, 0), 4))
-    assert frac_view == FracVector.from_noms_and_denom((1, 0, 0), 2)
-    assert hash(frac_view) == hash(FracVector.from_noms_and_denom((1, 0, 0), 2))
-    assert len({frac_view, FracVector.from_noms_and_denom((1, 0, 0), 2)}) == 1
+    frac_view = VectorFracView(FracVector._of((2, 0, 0), 4))
+    assert frac_view == FracVector._of((1, 0, 0), 2)
+    assert hash(frac_view) == hash(FracVector._of((1, 0, 0), 2))
+    assert len({frac_view, FracVector._of((1, 0, 0), 2)}) == 1
 
     surd_view = VectorSurdView(SurdVector.sqrt_of(2))
     assert surd_view == SurdVector.sqrt_of(2)
@@ -178,7 +178,7 @@ def test_mutable_fracvector_is_unhashable() -> None:
 def test_mutable_fracvector_snapshot_is_hashable_and_canonical() -> None:
     mutable = MutableFracVector([F(1, 2), 0, 0])
     snapshot = FracVector(mutable)
-    assert hash(snapshot) == hash(FracVector.from_noms_and_denom((2, 0, 0), 4))
+    assert hash(snapshot) == hash(FracVector._of((2, 0, 0), 4))
 
     mutable[0] = F(3, 4)
     # The snapshot is a value, not a live view: mutating the source must not change it.

@@ -73,6 +73,24 @@ def test_entry_type_definition_id_round_trip_and_extension_provenance() -> None:
     assert chained.extends_id == standard.definition_id
 
 
+def test_definition_reprs_are_constructor_shaped_and_abbreviated() -> None:
+    entry = standard_entry_type("references")
+    entry_repr = repr(entry)
+    assert entry_repr.startswith("EntryTypeDefinition(")
+    assert " object at 0x" not in entry_repr
+    assert "..." in entry_repr
+    assert "properties=" in entry_repr
+
+    prop = entry.properties["id"]
+    prop_repr = repr(prop)
+    assert prop_repr.startswith("PropertyDefinition(")
+    assert " object at 0x" not in prop_repr
+    assert "..." in prop_repr
+    assert "definition_id=" in prop_repr
+    # The field names shown are real constructor/known attributes, not the old id=.
+    assert "id=" not in prop_repr.replace("definition_id=", "")
+
+
 def test_from_optimade_validation_error() -> None:
     with pytest.raises(ValueError) as excinfo:
         PropertyDefinition.from_optimade("broken", {"description": "no id/type/xtype"})

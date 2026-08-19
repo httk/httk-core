@@ -520,6 +520,8 @@ def test_typed_backend_uses_property_iris_not_transport_names_and_stores_portabl
     assert view.record is view.record
     assert hash(view) == view_hash
     assert view == ReferenceView(backend)
+    view_repr = repr(view)
+    assert view_repr.startswith("ReferenceView(") and " object at 0x" not in view_repr
 
 
 def test_typed_backend_never_recognizes_same_spelled_wrong_or_missing_iri() -> None:

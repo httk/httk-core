@@ -202,7 +202,7 @@ class FracVectorBase:
         values: Any,
         *,
         denom: int | None = None,
-        simplify: bool = True,
+        simplify: bool = False,
         chain: bool = False,
         min_accuracy: fractions.Fraction | None = fractions.Fraction(1, 10000),
     ) -> None:
@@ -269,7 +269,7 @@ class FracVectorBase:
         self._hash_cache = None
 
     @classmethod
-    def from_noms_and_denom(cls, noms: Noms, denom: int = 1) -> Self:
+    def _of(cls, noms: Noms, denom: int = 1) -> Self:
         """
         Build from trusted, already-normalized nested integer tuples.
 
@@ -375,7 +375,7 @@ class FracVectorBase:
             if vec.denom != denom:
                 raise Exception("FracVector.merge: can only work with vectors sharing the same denom.")
             noms += vec.noms
-        return cls.from_noms_and_denom(cls._dup_noms(noms), denom)
+        return cls._of(cls._dup_noms(noms), denom)
 
     @classmethod
     def stack_vecs(cls, vecs: Any) -> Self:
@@ -393,7 +393,7 @@ class FracVectorBase:
             if vec.denom != denom:
                 raise Exception("FracVector.stack: can only work with vectors sharing the same denom.")
             noms += [vec.noms]
-        return cls.from_noms_and_denom(cls._dup_noms(noms), denom)
+        return cls._of(cls._dup_noms(noms), denom)
 
     @classmethod
     def eye(cls, dims: tuple[int, ...]) -> Self:
@@ -443,7 +443,7 @@ class FracVectorBase:
         :param t: The ``(denom, noms)`` representation to reconstruct.
         :return: The reconstructed FracVector.
         """
-        return cls.from_noms_and_denom(t[1], t[0])
+        return cls._of(t[1], t[0])
 
     @classmethod
     def _create_func(
@@ -668,7 +668,7 @@ class FracVectorBase:
         :return: The flattened vector.
         """
         noms = nested_reduce(lambda x, y: x + [y], self.noms, initializer=[])
-        return self.__class__.from_noms_and_denom(self._dup_noms(noms), self.denom)
+        return self.__class__._of(self._dup_noms(noms), self.denom)
 
     @classmethod
     def set_common_denom(cls, A: Any, B: Any) -> tuple[Self, Self, int]:
@@ -685,10 +685,10 @@ class FracVectorBase:
         """
 
         if not isinstance(A, FracVectorBase):
-            A = cls.from_noms_and_denom(A, 1)
+            A = cls._of(A, 1)
 
         if not isinstance(B, FracVectorBase):
-            B = cls.from_noms_and_denom(B, 1)
+            B = cls._of(B, 1)
 
         denom = A.denom * B.denom
         mA = B.denom
@@ -697,7 +697,7 @@ class FracVectorBase:
         Anoms = A._map_over_noms(lambda x: x * mA)
         Bnoms = B._map_over_noms(lambda x: x * mB)
 
-        return cls.from_noms_and_denom(Anoms, denom), cls.from_noms_and_denom(Bnoms, denom), denom
+        return cls._of(Anoms, denom), cls._of(Bnoms, denom), denom
 
     def sign(self) -> int:
         """
@@ -723,13 +723,13 @@ class FracVectorBase:
         dim = self.dim
         A = cast(Any, self.noms)
         if len(dim) == 0:
-            return self.__class__.from_noms_and_denom(self.noms, self.denom)
+            return self.__class__._of(self.noms, self.denom)
         elif len(dim) == 1:
             noms = self._dup_noms((A[col],) for col in range(dim[0]))
-            return self.__class__.from_noms_and_denom(noms, self.denom)
+            return self.__class__._of(noms, self.denom)
         elif len(dim) == 2:
             noms = self._dup_noms(self._dup_noms(A[col][row] for col in range(dim[0])) for row in range(dim[1]))
-            return self.__class__.from_noms_and_denom(noms, self.denom)
+            return self.__class__._of(noms, self.denom)
         raise Exception("FracVector.T(): on non 1 or 2 dimensional object not implemented")
 
     def det(self) -> Self:
@@ -749,7 +749,7 @@ class FracVectorBase:
                 - A[0][1] * A[1][0] * A[2][2]
                 - A[0][0] * A[1][2] * A[2][1]
             )
-            return self.__class__.from_noms_and_denom(noms, self.denom**3)
+            return self.__class__._of(noms, self.denom**3)
         elif dim == (4, 4):
             A = cast(Any, self.noms)
             noms = (
@@ -778,7 +778,7 @@ class FracVectorBase:
                 - A[3][0] * A[1][1] * A[2][2] * A[0][3]
                 - A[3][0] * A[2][1] * A[0][2] * A[1][3]
             )
-            return self.__class__.from_noms_and_denom(noms, self.denom**4)
+            return self.__class__._of(noms, self.denom**4)
 
         raise Exception("FracVector.det: on non 3x3 or 4x4 matrix not implemented. Matrix was:" + str(dim))
 
@@ -791,7 +791,7 @@ class FracVectorBase:
         dim = self.dim
         if dim == ():
             # For a FracScalar, just swap denominator and nominator
-            return self.__class__.from_noms_and_denom(self.denom, self.nom)
+            return self.__class__._of(self.denom, self.nom)
 
         if dim != (3, 3):
             raise Exception("FracVector.inv: only scalar and 3x3 matrix implemented")
@@ -839,7 +839,7 @@ class FracVectorBase:
             )
         )
 
-        return self.__class__.from_noms_and_denom(noms, denom)
+        return self.__class__._of(noms, denom)
 
     def simplify(self) -> Self:
         """
@@ -867,7 +867,7 @@ class FracVectorBase:
                 denom = denom // divisor
                 noms = self._map_over_noms(lambda x: x // divisor)
 
-        return self.__class__.from_noms_and_denom(noms, denom)
+        return self.__class__._of(noms, denom)
 
     # TODO: Integrate improvements in simplify_fast with simplify
     def simplify_fast(self, depth: int) -> Self:
@@ -915,7 +915,7 @@ class FracVectorBase:
                 denom = denom // gcd
                 noms = self._map_over_noms(lambda x: x // gcd)
 
-        return self.__class__.from_noms_and_denom(noms, denom)
+        return self.__class__._of(noms, denom)
 
     def set_denominator(self, set_denom: int = 1000000000) -> Self:
         """
@@ -935,7 +935,7 @@ class FracVectorBase:
                 return low
 
         noms = self._map_over_noms(limit_resolution_one)
-        return self.__class__.from_noms_and_denom(noms, set_denom)
+        return self.__class__._of(noms, set_denom)
 
     def limit_denominator(self, max_denom: int = 1000000000) -> Self:
         """
@@ -982,8 +982,8 @@ class FracVectorBase:
         integer_noms = self._map_over_noms(trunc_scaled)
         fractional_noms = self._map_over_noms(lambda nom: nom - trunc_scaled(nom))
         return (
-            FracVector.from_noms_and_denom(fractional_noms, denom),
-            FracVector.from_noms_and_denom(integer_noms, denom),
+            FracVector._of(fractional_noms, denom),
+            FracVector._of(integer_noms, denom),
         )
 
     def ceil(self) -> int:
@@ -1006,7 +1006,7 @@ class FracVectorBase:
         :return: The normalized vector.
         """
         noms = self._map_over_noms(lambda x: x - self.denom * (x // self.denom))
-        return self.__class__.from_noms_and_denom(noms, self.denom)
+        return self.__class__._of(noms, self.denom)
 
     def normalize_half(self) -> Self:
         """
@@ -1020,7 +1020,7 @@ class FracVectorBase:
         :return: The vector normalized into the half-open interval.
         """
         noms = self._map_over_noms(lambda x: 2 * x - (2 * self.denom) * ((((2 * x) // self.denom) + 1) // 2))
-        return self.__class__.from_noms_and_denom(noms, 2 * self.denom)
+        return self.__class__._of(noms, 2 * self.denom)
 
     def mul(self, other: Any) -> Self:
         """
@@ -1092,7 +1092,7 @@ class FracVectorBase:
                 "FracVector.dot: cannot handle tensors of order > 2, dimensions:" + str(Adim) + " and " + str(Bdim)
             )
 
-        return self.__class__.from_noms_and_denom(noms, denom)
+        return self.__class__._of(noms, denom)
 
     def dot(self, other: "FracVector") -> Self:
         """
@@ -1116,7 +1116,7 @@ class FracVectorBase:
             noms = sum(A[i] * B[i] for i in range(Adim[0]))
         else:
             raise Exception("FracVector.dot: dot multiplication dimensions not = 1," + str(Adim) + " and " + str(Bdim))
-        return self.__class__.from_noms_and_denom(noms, denom)
+        return self.__class__._of(noms, denom)
 
     def lengthsqr(self) -> Self:
         """
@@ -1134,7 +1134,7 @@ class FracVectorBase:
             noms = sum(noms_src[i] ** 2 for i in range(self.dim[0]))
         else:
             raise Exception("FracVector.lengthsqr: vector must be scalar or dimension must be = 1, is " + str(self.dim))
-        return self.__class__.from_noms_and_denom(noms, self.denom**2)
+        return self.__class__._of(noms, self.denom**2)
 
     def cross(self, other: "FracVector") -> Self:
         """
@@ -1165,7 +1165,7 @@ class FracVectorBase:
             (A[0] * B[1] - A[1] * B[0]),
         )
 
-        return self.__class__.from_noms_and_denom(noms, denom)
+        return self.__class__._of(noms, denom)
 
     def reciprocal(self) -> Self:
         """
@@ -1205,7 +1205,7 @@ class FracVectorBase:
         v1, v2, v3 = noms[0], noms[1], noms[2]
         noms = (cross_noms(v2, v3), cross_noms(v3, v1), cross_noms(v1, v2))
         noms = self.nested_map(lambda x: x * denom, noms)
-        return self.__class__.from_noms_and_denom(noms, detnom)
+        return self.__class__._of(noms, detnom)
 
     def metric_product(self, vecA: "FracVector", vecB: "FracVector") -> Self:
         """
@@ -1242,7 +1242,7 @@ class FracVectorBase:
                 for i in range(dimA[0])
             ]
 
-        return self.__class__.from_noms_and_denom(noms, denom)
+        return self.__class__._of(noms, denom)
 
     def cos(
         self,
@@ -1398,7 +1398,7 @@ class FracVectorBase:
         if not isinstance(key, tuple):
             key = (key,)
         noms = tuple_slice(self.noms, key)
-        return self.__class__.from_noms_and_denom(noms, self.denom)
+        return self.__class__._of(noms, self.denom)
 
     def __setitem__(self, key: Any, values: Any) -> None:
         raise Exception("FracVector is immutable, use MutableFracVector instead.")
@@ -1414,7 +1414,7 @@ class FracVectorBase:
             if self.dim != ():
                 noms = cast(Any, self.noms)
                 for i in range(len(noms)):
-                    yield self.__class__.from_noms_and_denom(noms[i], self.denom)
+                    yield self.__class__._of(noms[i], self.denom)
             else:
                 yield self
         except GeneratorExit:
@@ -1433,11 +1433,11 @@ class FracVectorBase:
         if self.dim == ():
             if exp == 0:
                 # Use the raw constructor so the scalar result keeps its exact representation.
-                return self.__class__.from_noms_and_denom(1, 1)
+                return self.__class__._of(1, 1)
             if exp > 0:
-                return self.__class__.from_noms_and_denom(self.nom**exp, self.denom**exp)
+                return self.__class__._of(self.nom**exp, self.denom**exp)
             if exp < 0:
-                return self.__class__.from_noms_and_denom(self.denom ** (-exp), self.nom ** (-exp))
+                return self.__class__._of(self.denom ** (-exp), self.nom ** (-exp))
         if isinstance(exp, int):
             if exp == 0:
                 return self.eye(self.dim)
@@ -1461,28 +1461,28 @@ class FracVectorBase:
     def __truediv__(self, other: Any) -> Self:
         if not isinstance(other, FracVectorBase):
             other = FracVector(other)
-        frac = self.__class__.from_noms_and_denom(other.denom, other.nom)
+        frac = self.__class__._of(other.denom, other.nom)
         return self.mul(frac)
 
     def __add__(self, other: Any) -> Self:
         noms, denom = self._map_binary_op_over_noms(operator.add, other)
-        return self.__class__.from_noms_and_denom(noms, denom)
+        return self.__class__._of(noms, denom)
 
     def __radd__(self, other: Any) -> Self:
         noms, denom = self._map_binary_op_over_noms(operator.add, other)
-        return self.__class__.from_noms_and_denom(noms, denom)
+        return self.__class__._of(noms, denom)
 
     def __sub__(self, other: Any) -> Self:
         noms, denom = self._map_binary_op_over_noms(operator.sub, other)
-        return self.__class__.from_noms_and_denom(noms, denom)
+        return self.__class__._of(noms, denom)
 
     def __rsub__(self, other: Any) -> Self:
         minusself = -self
         noms, denom = minusself._map_binary_op_over_noms(operator.sub, -other)
-        return self.__class__.from_noms_and_denom(noms, denom)
+        return self.__class__._of(noms, denom)
 
     def __repr__(self) -> str:
-        return self.__class__.__name__ + ".from_noms_and_denom(" + repr(self.noms) + ", " + repr(self.denom) + ")"
+        return f"{self.__class__.__name__}({self.noms!r}, denom={self.denom!r})"
 
     def __str__(self) -> str:
         return "(1/" + str(self.denom) + ")*" + str(self.noms)
@@ -1503,10 +1503,10 @@ class FracVectorBase:
         return self._hash_cache
 
     def __neg__(self) -> Self:
-        return self.__class__.from_noms_and_denom(self._map_over_noms(operator.neg), self.denom)
+        return self.__class__._of(self._map_over_noms(operator.neg), self.denom)
 
     def __abs__(self) -> Self:
-        return self.__class__.from_noms_and_denom(self._map_over_noms(operator.abs), self.denom)
+        return self.__class__._of(self._map_over_noms(operator.abs), self.denom)
 
     def __eq__(self, other: object) -> bool:
         """
@@ -1729,7 +1729,7 @@ class FracScalar(FracVector):
         value: Any,
         *,
         denom: int | None = None,
-        simplify: bool = True,
+        simplify: bool = False,
         chain: bool = False,
         min_accuracy: fractions.Fraction | None = fractions.Fraction(1, 10000),
     ) -> None:
@@ -1759,7 +1759,7 @@ class FracScalar(FracVector):
             self._dim = ()
 
     @classmethod
-    def from_noms_and_denom(cls, noms: Noms, denom: int = 1) -> Self:
+    def _of(cls, noms: Noms, denom: int = 1) -> Self:
         """Build from a trusted raw integer nominator and denominator, without validation."""
         instance = object.__new__(cls)
         instance._assign_raw(noms, denom)

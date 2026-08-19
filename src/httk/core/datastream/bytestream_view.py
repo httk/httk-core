@@ -14,5 +14,9 @@ class BytestreamView(View[BytestreamBackend]):
     _backend_base_cls: ClassVar[type[BytestreamBackend]] = BytestreamBackend  # type: ignore[type-abstract]
     _view_base_cls: ClassVar[type[Self]]
 
+    def __repr__(self) -> str:
+        backend = getattr(self, "_backend", None)
+        return f"{type(self).__name__}(backend={type(backend).__name__})"
+
 
 BytestreamView._view_base_cls = BytestreamView

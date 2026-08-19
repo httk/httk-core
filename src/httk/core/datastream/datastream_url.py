@@ -41,6 +41,8 @@ class DatastreamURL:
 
         :return: A representation with sensitive URL query data redacted.
         """
+        # Intentional non-roundtrip exception: the URL is redacted by design, so
+        # eval(repr(x)) does not reconstruct the original DatastreamURL.
         from ..optimade.resources import redact_optimade_url
 
         return f"DatastreamURL(url={redact_optimade_url(self._url)!r}, timeout={self._timeout!r})"

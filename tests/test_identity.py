@@ -699,7 +699,7 @@ def test_exact_numeric_and_datetime_values_are_stable() -> None:
 
     value = Values(
         Fraction(2, 3),
-        FracScalar.from_noms_and_denom(2, 3),
+        FracScalar._of(2, 3),
         FracVector([[Fraction(1, 2), 2]]),
         SurdVector.sqrt_of(2),
         SurdVector([1, 2]),
@@ -707,7 +707,7 @@ def test_exact_numeric_and_datetime_values_are_stable() -> None:
     )
     equivalent = Values(
         Fraction(2, 3),
-        FracScalar.from_noms_and_denom(4, 6),
+        FracScalar._of(4, 6),
         FracVector([[Fraction(1, 2), Fraction(4, 2)]]),
         SurdVector.sqrt_of(2),
         SurdVector([1, 2]),
@@ -724,7 +724,7 @@ def test_rational_leaf_text_and_structural_vector_nodes() -> None:
     assert node(Fraction(-3, 2)) == {"type": "rational", "value": "-3/2"}
     assert node(Fraction(5)) == {"type": "rational", "value": "5/1"}
     assert node(decimal.Decimal("1.50")) == {"type": "rational", "value": "3/2"}
-    assert node(FracScalar.from_noms_and_denom(10, 2)) == {"type": "rational", "value": "5/1"}
+    assert node(FracScalar._of(10, 2)) == {"type": "rational", "value": "5/1"}
     assert node(FracVector([[Fraction(1, 2), 2]])) == {
         "type": "frac_vector",
         "value": {"denominator": 2, "nominators": [[1, 4]]},

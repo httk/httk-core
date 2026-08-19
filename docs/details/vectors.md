@@ -71,7 +71,7 @@ integer denominator (`.denom`); the tensor is `(1/denom) * noms`. Equality (`==`
 ```python
 from httk.core.vectors import FracVector
 
-assert FracVector.from_noms_and_denom(((1,),), 2) == FracVector.from_noms_and_denom(((2,),), 4)   # both are 1/2
+assert FracVector(((1,),), denom=2) == FracVector(((2,),), denom=4)   # both are 1/2
 ```
 
 ### Creation from every numeric type
@@ -144,7 +144,7 @@ product = third * 3            # value is 1, but stored un-simplified
 assert product.simplify() == 1
 assert product.simplify().denom == 1
 
-messy = FracVector.from_noms_and_denom(((2, 4), (6, 8)), 4)
+messy = FracVector(((2, 4), (6, 8)), denom=4)
 assert messy.simplify().to_tuple() == (2, ((1, 2), (3, 4)))
 ```
 

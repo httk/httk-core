@@ -527,6 +527,17 @@ def test_textstream_filename_defaults_to_utf8(tmp_path: Path) -> None:
     assert TextstreamStringView(str(p)) == "héllo\n"
 
 
+def test_stream_view_repr_is_clean_diagnostic() -> None:
+    from httk.core.datastream import TextstreamString
+
+    text_repr = repr(TextstreamStringView(TextstreamString("hello")))
+    assert text_repr.startswith("TextstreamStringView(backend=")
+    assert " object at 0x" not in text_repr
+    bytes_repr = repr(BytestreamBytesView(b"hello"))
+    assert bytes_repr.startswith("BytestreamBytesView(backend=")
+    assert " object at 0x" not in bytes_repr
+
+
 def test_bytestream_file_object_sniffs_when_auto(tmp_path: Path) -> None:
     p = tmp_path / "opened.bin"
     with gzip.open(p, "wb") as f:

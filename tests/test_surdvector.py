@@ -125,9 +125,12 @@ def test_surdvector_and_surdscalar_copy_round_trip() -> None:
         assert copy.deepcopy(value) == value
 
 
-def test_repr_uses_raw_constructor() -> None:
-    value = SurdVector.from_components({1: FracVector.from_noms_and_denom((1, 2), 3)}, (2,))
-    assert repr(value) == ("SurdVector.from_components({1: FracVector.from_noms_and_denom((1, 2), 3)}, (2,))")
+def test_repr_roundtrips_via_public_constructor() -> None:
+    value = SurdVector({1: FracVector._of((1, 2), 3)}, (2,))
+    assert repr(value) == "SurdVector({1: FracVector((1, 2), denom=3)}, (2,))"
+    roundtrip = eval(repr(value))  # noqa: S307 - trusted repr, verifies eval(repr(x)) fidelity
+    assert roundtrip == value
+    assert roundtrip.radicands == value.radicands
 
 
 def test_product_of_radicals_combines() -> None:
@@ -154,8 +157,8 @@ def test_negative_sqrt_raises() -> None:
 
 def test_canonical_equality_ignores_denominator_form() -> None:
     # Coefficients on different (unsimplified) denominators still compare equal.
-    a = SurdVector.from_radicand_map({2: FracVector.from_noms_and_denom(((2,),), 4)})  # (2/4)*sqrt(2) = sqrt(2)/2
-    b = SurdVector.from_radicand_map({2: FracVector.from_noms_and_denom(((1,),), 2)})
+    a = SurdVector.from_radicand_map({2: FracVector._of(((2,),), 4)})  # (2/4)*sqrt(2) = sqrt(2)/2
+    b = SurdVector.from_radicand_map({2: FracVector._of(((1,),), 2)})
     assert a == b
     assert hash(a) == hash(b)
 

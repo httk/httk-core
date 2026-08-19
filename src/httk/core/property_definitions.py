@@ -495,7 +495,9 @@ class PropertyDefinition:
         return self._name == other._name and self._payload == other._payload
 
     def __repr__(self) -> str:
-        return f"PropertyDefinition(name={self._name!r}, id={self.definition_id!r})"
+        # Intentional non-roundtrip abbreviation: the large OPTIMADE payload is
+        # omitted (trailing '...'). Reconstruct via from_optimade()/from_simple().
+        return f"PropertyDefinition(name={self._name!r}, definition_id={self.definition_id!r}, ...)"
 
 
 class EntryTypeDefinition:
@@ -657,9 +659,11 @@ class EntryTypeDefinition:
         )
 
     def __repr__(self) -> str:
+        # Intentional non-roundtrip abbreviation: the property payloads are
+        # omitted (trailing '...'). Reconstruct via from_optimade().
         return (
             f"EntryTypeDefinition(name={self._name!r}, definition_id={self._definition_id!r}, "
-            f"properties={list(self._properties)!r})"
+            f"properties=(... {len(self._properties)} entries ...), ...)"
         )
 
 

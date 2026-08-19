@@ -111,7 +111,7 @@ def _fracvector_is_zero(fv: FracVectorBase) -> bool:
 def _zero_fracvector(dim: tuple[int, ...]) -> FracVector:
     """A zero FracVector of the given shape (``dim == ()`` yields a scalar zero)."""
     if dim == ():
-        return FracVector.from_noms_and_denom(0, 1)
+        return FracVector._of(0, 1)
     return FracVector.zeros(dim)
 
 
@@ -170,24 +170,38 @@ class SurdVector(VectorBackend):
     See the module docstring for the field facts, the fractional-vs-Cartesian motivation, and the
     magnitude-vs-linear-structure purpose boundary.
 
-    :param value: An existing SurdVector or SurdScalar, returned unchanged, or a rational
-        scalar/nested sequence accepted by :class:`~httk.core.vectors.fracvector.FracVector`; rational values become the
-        radicand-1 component.
+    :param value: An existing SurdVector or SurdScalar, returned unchanged; a rational
+        scalar/nested sequence accepted by :class:`~httk.core.vectors.fracvector.FracVector` (which becomes the
+        radicand-1 component); or a ``{squarefree radicand -> FracVector coefficient}`` mapping in
+        canonical component form (as emitted by :meth:`__repr__`). Non-squarefree radicands are not
+        folded here — use :meth:`from_radicand_map` for that.
+    :param dim: The shared coefficient shape, used only with the mapping form; inferred from the
+        coefficients when omitted, and required to pin the shape of an all-zero (empty) mapping.
     """
 
     _components: dict[int, FracVector]
     _dim: tuple[int, ...]
     _pending_fracvector: FracVector
+    _pending_components: tuple[dict[int, FracVector], tuple[int, ...]]
 
     #### Construction
 
-    def __new__(cls, value: Any = _MISSING_VALUE) -> Self:
+    def __new__(cls, value: Any = _MISSING_VALUE, dim: tuple[int, ...] | None = None) -> Self:
         if value is _MISSING_VALUE:
             return cast(Self, object.__new__(cls))
         if isinstance(value, SurdVector):
             if cls is SurdScalar and value._dim != ():
                 raise ValueError(f"SurdScalar: expected scalar input, got shape {value._dim}")
             return cast(Self, value)
+        if isinstance(value, dict):
+            components: dict[int, FracVector] = {int(r): FracVector(c) for r, c in value.items()}
+            resolved_dim = dim if dim is not None else (next(iter(components.values())).dim if components else ())
+            if cls is SurdScalar and resolved_dim != ():
+                raise ValueError(f"SurdScalar: expected scalar input, got shape {resolved_dim}")
+            target = SurdScalar if resolved_dim == () else SurdVector
+            instance = cast(Self, object.__new__(target))
+            instance._pending_components = (components, resolved_dim)
+            return instance
         fv = FracVector(value)
         if cls is SurdScalar and fv.dim != ():
             raise ValueError(f"SurdScalar: expected scalar input, got shape {fv.dim}")
@@ -196,8 +210,13 @@ class SurdVector(VectorBackend):
         instance._pending_fracvector = fv
         return instance
 
-    def __init__(self, value: Any) -> None:
+    def __init__(self, value: Any, dim: tuple[int, ...] | None = None) -> None:
         if isinstance(value, SurdVector):
+            return
+        if isinstance(value, dict):
+            components, resolved_dim = self._pending_components
+            del self._pending_components
+            self._set_components(components, resolved_dim)
             return
         fv = self._pending_fracvector
         del self._pending_fracvector
@@ -213,7 +232,7 @@ class SurdVector(VectorBackend):
         self._dim = dim
 
     @classmethod
-    def from_components(cls, components: dict[int, FracVector], dim: tuple[int, ...]) -> Self:
+    def _of(cls, components: dict[int, FracVector], dim: tuple[int, ...]) -> Self:
         """Build from trusted component vectors and a shared shape."""
         instance = cast(Self, object.__new__(cls))
         instance._set_components(components, dim)
@@ -223,7 +242,7 @@ class SurdVector(VectorBackend):
     def _make(components: dict[int, FracVector], dim: tuple[int, ...]) -> "SurdVector":
         """Build a canonical SurdVector, returning a :class:`SurdScalar` when ``dim == ()``."""
         target = SurdScalar if dim == () else SurdVector
-        return target.from_components(components, dim)
+        return target._of(components, dim)
 
     @classmethod
     def from_radicand_map(cls, mapping: dict[int, Any]) -> "SurdVector":
@@ -271,11 +290,11 @@ class SurdVector(VectorBackend):
         if qf < 0:
             raise ValueError(f"SurdVector.sqrt_of: cannot take the square root of the negative rational {qf}")
         if qf == 0:
-            return SurdScalar.from_components({}, ())
+            return SurdScalar._of({}, ())
         n = qf.numerator * qf.denominator
         s, r = square_part(n)
         coeff = fractions.Fraction(s, qf.denominator)
-        return SurdScalar.from_components({r: FracVector.from_noms_and_denom(coeff.numerator, coeff.denominator)}, ())
+        return SurdScalar._of({r: FracVector._of(coeff.numerator, coeff.denominator)}, ())
 
     @classmethod
     def zero(cls, dim: tuple[int, ...] = ()) -> "SurdVector":
@@ -289,7 +308,7 @@ class SurdVector(VectorBackend):
     @classmethod
     def one(cls) -> "SurdScalar":
         """The scalar ``1``."""
-        return SurdScalar.from_components({1: FracVector.from_noms_and_denom(1, 1)}, ())
+        return SurdScalar._of({1: FracVector._of(1, 1)}, ())
 
     #### Properties / predicates
 
@@ -405,9 +424,9 @@ class SurdVector(VectorBackend):
     def _element(self, index: tuple[int, ...]) -> "SurdScalar":
         """Return element ``index`` as a :class:`SurdScalar` (per-radicand FracVector indexing)."""
         if self._dim == ():
-            return SurdScalar.from_components(dict(self._components), ())
+            return SurdScalar._of(dict(self._components), ())
         comps: dict[int, FracVector] = {radicand: comp[index] for radicand, comp in self._components.items()}
-        return SurdScalar.from_components(comps, ())
+        return SurdScalar._of(comps, ())
 
     @staticmethod
     def _from_scalar_grid(grid: Any, dim: tuple[int, ...]) -> "SurdVector":
@@ -454,7 +473,7 @@ class SurdVector(VectorBackend):
             raise TypeError("SurdVector.dot: unsupported operand")
         if len(self._dim) != 1 or self._dim != coerced._dim:
             raise ValueError(f"SurdVector.dot: needs two 1-D vectors of equal length, got {self._dim}, {coerced._dim}")
-        total: SurdVector = SurdScalar.from_components({}, ())
+        total: SurdVector = SurdScalar._of({}, ())
         for i in range(self._dim[0]):
             total = total + self._element((i,)) * coerced._element((i,))
         return total._as_scalar()
@@ -467,7 +486,7 @@ class SurdVector(VectorBackend):
         if self._dim == ():
             return (self._as_scalar() * self._as_scalar())._as_scalar()
         if len(self._dim) == 1:
-            total: SurdVector = SurdScalar.from_components({}, ())
+            total: SurdVector = SurdScalar._of({}, ())
             for i in range(self._dim[0]):
                 e = self._element((i,))
                 total = total + e * e
@@ -552,7 +571,7 @@ class SurdVector(VectorBackend):
         """Return this value as a :class:`SurdScalar` (assumes ``dim == ()``)."""
         if isinstance(self, SurdScalar):
             return self
-        return SurdScalar.from_components(dict(self._components), self._dim)
+        return SurdScalar._of(dict(self._components), self._dim)
 
     #### Rendering
 
@@ -645,7 +664,7 @@ class SurdVector(VectorBackend):
 
     def __repr__(self) -> str:
         items = ", ".join(f"{radicand}: {comp!r}" for radicand, comp in sorted(self._components.items()))
-        return f"{type(self).__name__}.from_components({{{items}}}, {self._dim!r})"
+        return f"{type(self).__name__}({{{items}}}, {self._dim!r})"
 
     @property
     def fractions(self) -> Fractions:
@@ -694,7 +713,7 @@ class SurdScalar(SurdVector):
         comps: dict[int, FracVector] = {}
         for radicand, comp in self._components.items():
             comps[radicand] = -comp if radicand % p == 0 else comp
-        return SurdScalar.from_components(comps, ())
+        return SurdScalar._of(comps, ())
 
     def _some_prime(self) -> int:
         """The smallest prime dividing some radicand ``> 1`` present (assumes one exists)."""
@@ -723,9 +742,7 @@ class SurdScalar(SurdVector):
             den = den._mul_surd(conj)._as_scalar()
         den_frac = den._rational_fraction()
         return num._mul_surd(
-            SurdScalar.from_components(
-                {1: FracVector.from_noms_and_denom(den_frac.denominator, den_frac.numerator)}, ()
-            )
+            SurdScalar._of({1: FracVector._of(den_frac.denominator, den_frac.numerator)}, ())
         )._as_scalar()
 
     def inverse(self) -> "SurdScalar":

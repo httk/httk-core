@@ -95,4 +95,4 @@ class VectorSurdView(VectorView, SurdVector):
             raw = backend
             if not isinstance(raw, VectorView):
                 return raw
-        return SurdVector.from_components(self._components, self._dim)
+        return SurdVector._of(self._components, self._dim)

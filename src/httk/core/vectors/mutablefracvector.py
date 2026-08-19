@@ -84,7 +84,7 @@ class MutableFracVector(FracVectorBase):
         values: Any,
         *,
         denom: int | None = None,
-        simplify: bool = True,
+        simplify: bool = False,
         chain: bool = False,
         min_accuracy: fractions.Fraction | None = fractions.Fraction(1, 10000),
     ) -> None:
@@ -149,7 +149,7 @@ class MutableFracVector(FracVectorBase):
         if not isinstance(key, tuple):
             key = (key,)
         noms = list_slice(self.noms, key)
-        return MutableFracVector.from_noms_and_denom(noms, self.denom)
+        return MutableFracVector._of(noms, self.denom)
 
     def set_negative(self) -> None:
         """
@@ -187,7 +187,7 @@ class MutableFracVector(FracVectorBase):
         """
         dim = self.dim
         if dim == ():
-            return self.__class__.from_noms_and_denom(self.denom, self.nom)
+            return self.__class__._of(self.denom, self.nom)
 
         if dim != (3, 3):
             raise Exception("FracVector.inv: only scalar and 3x3 matrix implemented")

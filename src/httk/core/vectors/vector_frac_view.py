@@ -27,7 +27,7 @@ class VectorFracView(VectorView, FracVector):
     necessarily the original decimal fraction.)
 
     Because inherited FracVector algebra builds its results with the low-level
-    ``self.__class__.from_noms_and_denom(noms, denom)`` constructor, results built that way are
+    ``self.__class__._of(noms, denom)`` constructor, results built that way are
     plain (backend-less) FracVector values presented through this class.
 
     :param obj: The source value to present.
@@ -102,4 +102,4 @@ class VectorFracView(VectorView, FracVector):
             raw = backend
             if not isinstance(raw, VectorView):
                 return raw
-        return FracVector.from_noms_and_denom(self.noms, self.denom)
+        return FracVector._of(self.noms, self.denom)
