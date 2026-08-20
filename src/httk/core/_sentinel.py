@@ -19,7 +19,7 @@ class MissingType:
 
     _instance: "MissingType | None" = None
 
-    def __new__(cls) -> "MissingType":
+    def __new__(cls) -> "MissingType":  # noqa: PYI034 -- final singleton; Self would misdescribe the stored instance
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance

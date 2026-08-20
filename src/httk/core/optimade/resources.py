@@ -1,7 +1,7 @@
 """Exact, immutable source documents received from an OPTIMADE service.
 
 ``OptimadeDocument`` deliberately stores the original response text. Use
-``OptimadeDocument.create`` when a document may be persisted: it removes
+``OptimadeDocument.from_response`` when a document may be persisted: it removes
 credentials specifically from the top-level pagination ``links.next`` value
 without parsing and reserializing the whole response, so semantic URL values,
 JSON number spelling, and unrelated whitespace remain authoritative. Direct
@@ -252,10 +252,10 @@ def redact_optimade_document_text(text: str) -> str:
 class OptimadeDocument:
     """Original OPTIMADE response text and the URL from which it was obtained.
 
-    Direct construction performs no sanitization. Use :meth:`create` before
+    Direct construction performs no sanitization. Use :meth:`from_response` before
     storing an externally sourced document or URL.
 
-    :param text: Original response text, optionally sanitized by :meth:`create`.
+    :param text: Original response text, optionally sanitized by :meth:`from_response`.
     :param source_url: URL from which the response was obtained.
     """
 
@@ -353,7 +353,9 @@ def optimade_resource_from_url(url: str, *, timeout: float | None = None) -> "Op
             f"OPTIMADE entry response at {redact_optimade_url(url)!r} must contain one object in 'data', not a list"
         )
 
-    info_document = OptimadeDocument.from_response(_read_optimade_url(info_url, timeout=timeout, label="info"), info_url)
+    info_document = OptimadeDocument.from_response(
+        _read_optimade_url(info_url, timeout=timeout, label="info"), info_url
+    )
     try:
         info_root = optimade_document_root(info_document)
     except ValueError as exc:

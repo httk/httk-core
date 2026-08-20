@@ -173,7 +173,7 @@ class SurdVector(VectorBackend):
     :param value: An existing SurdVector or SurdScalar, returned unchanged; a rational
         scalar/nested sequence accepted by :class:`~httk.core.vectors.fracvector.FracVector` (which becomes the
         radicand-1 component); or a ``{squarefree radicand -> FracVector coefficient}`` mapping in
-        canonical component form (as emitted by :meth:`__repr__`). Non-squarefree radicands are not
+        canonical component form (as emitted by ``repr()``). Non-squarefree radicands are not
         folded here — use :meth:`from_radicand_map` for that.
     :param dim: The shared coefficient shape, used only with the mapping form; inferred from the
         coefficients when omitted, and required to pin the shape of an all-zero (empty) mapping.

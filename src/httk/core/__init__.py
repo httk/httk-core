@@ -25,6 +25,7 @@ The deliberate public surface contains 90 names.
 
 from . import exactmath  # noqa: F401 - intentional module-level import for ``from httk.core import exactmath``
 from ._discover import discover_and_register as _discover_and_register
+from ._sentinel import MISSING, MissingType
 from .citations import credits, register_citation
 from .cli import CLIContext
 from .data_records import DataRecord, DataRecordEntry
@@ -77,7 +78,6 @@ from .register.schemas import (
     register_entry_type_definition,
     register_property_definition,
 )
-from ._sentinel import MISSING, MissingType
 from .saving import has_writer_for, save
 from .services import Service, ServiceRecord
 from .storage.identity import content_id
@@ -110,6 +110,7 @@ from .views import Backend, View, coerce, coerce_view, unview, unwrap
 _discover_and_register()
 
 __all__ = [
+    "MISSING",
     "Backend",
     "BytestreamFileView",
     "BytestreamLike",
@@ -136,7 +137,6 @@ __all__ = [
     "FracVector",
     "IdentitySkip",
     "Indexed",
-    "MISSING",
     "MissingType",
     "MutableFracVector",
     "NumericVector",

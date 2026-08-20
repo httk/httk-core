@@ -1,14 +1,14 @@
 # httk-core
 
-![Status: Pre-release](https://img.shields.io/badge/status-pre--release-red)
+![Status: Early beta](https://img.shields.io/badge/status-early--beta-orange)
 
-> **⚠️ PRE-RELEASE**
+> **⚠️ EARLY BETA**
 >
-> The version assigned to *httk-core* designates the overall version of *httk₂*,
-> and thus starts at v2.0.0. However, versions v2.0.* are to be considered
-> prereleases, and semantic versioning will not be used until v2.1.0.
+> This is an early beta release of *httk₂*. The organization of the packages
+> and their APIs should not yet be regarded as stable, and may change between
+> releases.
 
-`httk-core` is the central lightweight dependency shared by httk₂ modules.
+`httk-core` is the central lightweight dependency shared by *httk₂* modules.
 
 It provides:
 
