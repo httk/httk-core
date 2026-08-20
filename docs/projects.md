@@ -284,19 +284,6 @@ Run the shown `httk project import-v1 /path/to/project`. It reads
 `/path/to/project/ht.project/config`, copies the public keys, pins the readable
 legacy keys as trusted, and creates `/path/to/project/httk_project/`.
 
-A pre-release v2 project containing `.httk-project/project.json` produces:
-
-```console
-$ httk project show
-httk project: found a project anchor from a pre-release httk v2 ('.httk-project') at /path/to/project; rename it: mv /path/to/project/.httk-project /path/to/project/httk_project
-```
-
-Apply the shown remedy from the project root:
-
-```console
-mv .httk-project httk_project
-```
-
 ## Identity keys, pinning, and trust
 
 A project owns one Ed25519 signing key. Its public half is recorded in

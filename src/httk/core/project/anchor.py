@@ -44,41 +44,29 @@ PUBLIC_KEY_PREFIX = "ed25519:"
 
 
 class LegacyProjectError(ValueError):
-    """Raised when discovery finds a legacy project directory.
+    """Raised when discovery finds an httk v1 ``ht.project`` directory.
 
-    Carries the offending directory as :attr:`root` and the legacy flavor as
-    :attr:`kind` — ``"v1"`` for an httk v1 ``ht.project`` directory,
-    ``"prerelease"`` for a pre-release httk v2 ``.httk-project`` anchor — so a
-    caller that deliberately handles one flavor (for example read-only
-    verification of a v1 manifest) does not have to parse the message.
+    Carries the offending directory as :attr:`root` so a caller that
+    deliberately handles it (for example read-only verification of a v1
+    manifest) does not have to parse the message.
 
     :param message: Diagnostic explaining the legacy project and its remedy.
     :param root: Directory containing the legacy project marker.
-    :param kind: Legacy flavor, either v1 or prerelease.
     """
 
-    def __init__(self, message: str, *, root: Path, kind: str) -> None:
+    def __init__(self, message: str, *, root: Path) -> None:
         super().__init__(message)
         self.root = root
-        self.kind = kind
 
 
-def _legacy_project_error(candidate: Path, *, allow_v1: bool = False) -> LegacyProjectError | None:
+def _legacy_project_error(candidate: Path) -> LegacyProjectError | None:
     if (candidate / PROJECT_DIRECTORY / PROJECT_FILE).is_file():
         return None
-    if not allow_v1 and (candidate / "ht.project").is_dir():
+    if (candidate / "ht.project").is_dir():
         return LegacyProjectError(
             f"found an httk v1 project ('ht.project') at {candidate}; "
             f"create the httk v2 anchor with: httk project import-v1 {candidate}",
             root=candidate,
-            kind="v1",
-        )
-    if (candidate / ".httk-project" / PROJECT_FILE).is_file():
-        return LegacyProjectError(
-            f"found a project anchor from a pre-release httk v2 ('.httk-project') at {candidate}; "
-            f"rename it: mv {candidate}/.httk-project {candidate}/{PROJECT_DIRECTORY}",
-            root=candidate,
-            kind="prerelease",
         )
     return None
 
@@ -87,13 +75,12 @@ def discover_project(start: str | os.PathLike[str] | None = None) -> Path | None
     """Find the nearest project root, or refuse a legacy one, at or above *start*.
 
     Discovery walks from start and its parents, treating a file start as its
-    containing directory. If it finds a legacy marker, the exception identifies
-    the required remedy: run httk project import-v1 PATH for ht.project, or
-    rename .httk-project to httk_project for the pre-release anchor.
+    containing directory. If it finds a legacy ht.project marker, the exception
+    identifies the required remedy: run httk project import-v1 PATH.
 
     :param start: Directory or file from which to begin the upward search, or None for the current directory.
     :return: Nearest project root, or None when no marker is found.
-    :raises httk.core.project.LegacyProjectError: If discovery finds a v1 or pre-release project marker.
+    :raises httk.core.project.LegacyProjectError: If discovery finds a v1 project marker.
     """
 
     path = Path.cwd() if start is None else Path(start)
@@ -114,7 +101,7 @@ def require_project(start: str | os.PathLike[str] | None = None) -> Path:
 
     :param start: Directory or file from which to begin the upward search, or None for the current directory.
     :return: Nearest project root.
-    :raises httk.core.project.LegacyProjectError: If discovery finds a v1 or pre-release project marker.
+    :raises httk.core.project.LegacyProjectError: If discovery finds a v1 project marker.
     :raises ValueError: If no project marker is found.
     """
 
@@ -393,7 +380,7 @@ def initialize_project(
     :param description: Optional project description.
     :param manifest_exclusions: Relative paths excluded from project manifests.
     :return: Newly written project metadata.
-    :raises httk.core.project.LegacyProjectError: If root contains a v1 or pre-release project marker.
+    :raises httk.core.project.LegacyProjectError: If root contains a v1 project marker.
     """
 
     project = Path(root).expanduser().resolve()
@@ -454,7 +441,6 @@ def import_v1_project(
     :param name: Optional replacement project name.
     :return: Imported project metadata.
     :raises FileNotFoundError: If the legacy project directory does not exist.
-    :raises httk.core.project.LegacyProjectError: If root contains an incompatible project anchor.
     """
 
     project = Path(root).expanduser().resolve()
@@ -465,12 +451,8 @@ def import_v1_project(
     parser.read(legacy / "config", encoding="utf-8")
     project_name = name if name is not None else str(parser.get("main", "project_name", fallback=project.name))
     # Importing v1 intentionally creates the v2 anchor beside its ht.project
-    # directory, so the v1 flavor of the legacy check is waived here — and only
-    # here, through the private unchecked initializer. A pre-release
-    # .httk-project anchor is still refused with its rename remedy.
-    error = _legacy_project_error(project, allow_v1=True)
-    if error is not None:
-        raise error
+    # directory through the private unchecked initializer, so no legacy refusal
+    # applies here.
     metadata = _initialize_project_unchecked(project, name=project_name)
     metadata["imported_from"] = str(legacy)
     public_keys: list[str] = []

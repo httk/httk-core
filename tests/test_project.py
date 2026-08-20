@@ -81,13 +81,6 @@ def test_initialize_refuses_legacy_project_directories(tmp_path: Path) -> None:
         initialize_project(v1, name="v1")
     assert not (v1 / PROJECT_DIRECTORY).exists()
 
-    prerelease = tmp_path / "prerelease"
-    (prerelease / ".httk-project").mkdir(parents=True)
-    (prerelease / ".httk-project" / PROJECT_FILE).write_text("{}", encoding="utf-8")
-    with pytest.raises(LegacyProjectError, match="rename it: mv"):
-        initialize_project(prerelease, name="prerelease")
-    assert not (prerelease / PROJECT_DIRECTORY).exists()
-
 
 def test_discover_walks_upward_and_require_refuses_when_absent(tmp_path: Path) -> None:
     project = tmp_path / "root"
@@ -183,16 +176,6 @@ def test_import_v1_creates_the_anchor_and_adopts_legacy_keys(tmp_path: Path) -> 
     assert (project / PROJECT_DIRECTORY / "keys" / "legacy-public" / "old.pub").is_file()
 
 
-def test_discover_refuses_a_pre_release_v2_anchor(tmp_path: Path) -> None:
-    anchor = tmp_path / ".httk-project"
-    anchor.mkdir()
-    (anchor / PROJECT_FILE).write_text("{}", encoding="utf-8")
-
-    with pytest.raises(LegacyProjectError, match="rename it: mv") as error:
-        discover_project(tmp_path)
-    assert f"mv {tmp_path}/.httk-project {tmp_path}/httk_project" in str(error.value)
-
-
 # ---------------------------------------------------------------------------
 # The umbrella command line
 # ---------------------------------------------------------------------------
@@ -254,20 +237,11 @@ def test_bare_project_command_prints_help(tmp_path) -> None:
     assert command([], context) == 0
 
 
-def test_legacy_error_carries_root_and_kind(tmp_path: Path) -> None:
+def test_legacy_error_carries_root(tmp_path: Path) -> None:
     (tmp_path / "ht.project").mkdir()
     with pytest.raises(LegacyProjectError) as error:
         discover_project(tmp_path)
     assert error.value.root == tmp_path
-    assert error.value.kind == "v1"
-
-    prerelease = tmp_path / "elsewhere"
-    (prerelease / ".httk-project").mkdir(parents=True)
-    (prerelease / ".httk-project" / PROJECT_FILE).write_text("{}", encoding="utf-8")
-    with pytest.raises(LegacyProjectError) as error:
-        discover_project(prerelease)
-    assert error.value.root == prerelease
-    assert error.value.kind == "prerelease"
 
 
 def test_initialize_project_has_no_legacy_bypass_parameter() -> None:
