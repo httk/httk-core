@@ -116,7 +116,7 @@ data_home()/plugins/<name>/
 ```
 
 `plugin.json` contains the installation format fields `format` (which is
-`httk-plugin-install`), `format_version` (`1`), `name`, `source`,
+`httk-plugin-install`), `format_version` (`2`), `name`, `source`,
 `source_kind` (`directory`, `archive`, `url`, or `git`), `source_sha256`,
 `installed_at`, `built`, `programs`, and
 `shims`. Archive and URL sources also contain `archive_sha256`. Git sources

@@ -431,7 +431,7 @@ def registered_generation(
         return None
     if not isinstance(value, dict):
         return None
-    if value.get("format") != format_name or value.get("format_version") != 1:
+    if value.get("format") != format_name or value.get("format_version") != 2:
         return None
     if expected_source_sha256 is not None and value.get("source_sha256") != expected_source_sha256:
         return None

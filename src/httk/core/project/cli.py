@@ -62,7 +62,7 @@ def describe_project(root: str | Path | None = None) -> dict[str, object]:
     seed = project / PROJECT_DIRECTORY / "keys" / "project.seed"
     description: dict[str, object] = {
         "format": "httk-project-description",
-        "format_version": 1,
+        "format_version": 2,
         "root": str(project),
         "project": {
             "project_id": metadata.get("project_id"),

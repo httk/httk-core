@@ -137,7 +137,7 @@ def read_project(root: str | os.PathLike[str]) -> dict[str, object]:
         value = json.load(stream)
     if not isinstance(value, dict):
         raise ValueError(f"project metadata is not a JSON object: {path}")
-    if value.get("format") != "httk-project" or value.get("format_version") != 1:
+    if value.get("format") != "httk-project" or value.get("format_version") != 2:
         raise ValueError("unsupported httk project format")
     return value
 
@@ -420,7 +420,7 @@ def _initialize_project_unchecked(
     control.mkdir(exist_ok=False)
     metadata: dict[str, object] = {
         "format": "httk-project",
-        "format_version": 1,
+        "format_version": 2,
         "project_id": str(uuid.uuid4()),
         "name": name,
         "description": description,

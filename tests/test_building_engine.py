@@ -152,7 +152,7 @@ def test_write_and_read_generation(tmp_path: Path) -> None:
     source = _source(tmp_path, "mkdir -p nested; cp src.txt nested/bin-out")
     result = execute_build(source, BuildSpec("sh build.sh", ("nested",)), strip_env_prefixes=())
     builds_root = tmp_path / "builds"
-    stamp = {"format": "httk-test-build", "format_version": 1, "source_sha256": "abc"}
+    stamp = {"format": "httk-test-build", "format_version": 2, "source_sha256": "abc"}
 
     generation = write_generation(builds_root, "group/item", result.tag, source, result.artifact_files, stamp)
     tag_root = builds_root / "group" / "item" / result.tag
@@ -205,10 +205,10 @@ def test_registered_generation_rejects_wrong_format(tmp_path: Path) -> None:
         DEFAULT_TAG,
         source,
         ("src.txt",),
-        {"format": "httk-test-build", "format_version": 1, "source_sha256": "abc"},
+        {"format": "httk-test-build", "format_version": 2, "source_sha256": "abc"},
     )
     (generation / "build.json").write_text(
-        json.dumps({"format": "other", "format_version": 1, "source_sha256": "abc"}), encoding="utf-8"
+        json.dumps({"format": "other", "format_version": 2, "source_sha256": "abc"}), encoding="utf-8"
     )
 
     assert (
@@ -228,7 +228,7 @@ def test_registered_generation_allows_unspecified_source_digest(tmp_path: Path) 
         DEFAULT_TAG,
         source,
         ("src.txt",),
-        {"format": "httk-test-build", "format_version": 1, "source_sha256": "abc"},
+        {"format": "httk-test-build", "format_version": 2, "source_sha256": "abc"},
     )
 
     assert (

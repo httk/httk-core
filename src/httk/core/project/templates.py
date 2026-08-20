@@ -369,7 +369,7 @@ def _run_hook(
     hook_path = (template.root / Path(*PurePosixPath(template.instantiate_file).parts)).resolve()
     request = {
         "format": "httk-project-template-instantiate",
-        "format_version": 1,
+        "format_version": 2,
         "template": template.id,
         "parameters": dict(parameters),
         "project": {**project_info, "root": str(project_root)},
@@ -458,7 +458,7 @@ def template_instantiate_main(
         request = json.loads(sys.stdin.read())
         if not isinstance(request, Mapping):
             raise ValueError("template instantiate request must be a JSON object")
-        if request.get("format") != "httk-project-template-instantiate" or request.get("format_version") != 1:
+        if request.get("format") != "httk-project-template-instantiate" or request.get("format_version") != 2:
             raise ValueError("invalid template instantiate request envelope")
         template = request.get("template")
         parameters = request.get("parameters")

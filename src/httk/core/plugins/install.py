@@ -428,7 +428,7 @@ def install_plugin(source: str | Path, *, force: bool = False) -> InstalledPlugi
         _check_shim_collisions(manifest.name, manifest)
         metadata: dict[str, object] = {
             "format": "httk-plugin-install",
-            "format_version": 1,
+            "format_version": 2,
             "name": manifest.name,
             "source": original_source,
             **acquisition,

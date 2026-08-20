@@ -207,7 +207,7 @@ def seal_project(out_path: str | Path, project_path: str | Path | None = None) -
     payloads = {f"project/{_relative(path, project)}": path.read_bytes() for path in files}
     manifest = {
         "format": "httk-seal",
-        "format_version": 1,
+        "format_version": 2,
         "tree_digest": digest,
         "directories": directories,
         "files": [
@@ -286,7 +286,7 @@ def verify_seal(
         if (
             manifest.get("format") != "httk-seal"
             or type(manifest.get("format_version")) is not int
-            or manifest["format_version"] != 1
+            or manifest["format_version"] != 2
         ):
             raise ValueError("unsupported seal format")
         manifest_tree_digest = _digest_text(manifest.get("tree_digest"), "manifest tree_digest")

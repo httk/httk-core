@@ -61,7 +61,7 @@ def test_initialize_creates_only_the_anchor(tmp_path: Path) -> None:
     seed = control / "keys" / "project.seed"
     assert stat.S_IMODE(seed.stat().st_mode) == 0o600
 
-    assert metadata["format"] == "httk-project" and metadata["format_version"] == 1
+    assert metadata["format"] == "httk-project" and metadata["format_version"] == 2
     assert metadata["name"] == "campaign" and metadata["description"] == "a run"
     assert str(metadata["public_key"]).startswith("ed25519:")
     assert metadata["trusted_keys"] == []
@@ -111,7 +111,7 @@ def test_read_project_validates_the_format(tmp_path: Path) -> None:
     _write_project(tmp_path, {"format": "something-else", "format_version": 1})
     with pytest.raises(ValueError, match="unsupported httk project format"):
         read_project(tmp_path)
-    _write_project(tmp_path, {"format": "httk-project", "format_version": 2})
+    _write_project(tmp_path, {"format": "httk-project", "format_version": 1})
     with pytest.raises(ValueError, match="unsupported httk project format"):
         read_project(tmp_path)
 

@@ -169,7 +169,7 @@ template files already copied. The request envelope is:
 ```json
 {
   "format": "httk-project-template-instantiate",
-  "format_version": 1,
+  "format_version": 2,
   "template": "starter",
   "parameters": {"name": "Ada", "count": 1},
   "project": {
