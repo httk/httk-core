@@ -53,13 +53,13 @@ discovery convention and registration surfaces.
 The core-owned `httk plugin` command installs and manages plugins:
 
 ```console
-httk plugin install SOURCE [--force]
+httk plugin install [--force] SOURCE...
 httk plugin list
-httk plugin show NAME [--json]
-httk plugin path NAME PROGRAM
+httk plugin show [--json] NAME...
+httk plugin path --program PROGRAM NAME...
 httk plugin run NAME PROGRAM [ARGS...]
-httk plugin build NAME
-httk plugin uninstall NAME
+httk plugin build NAME...
+httk plugin uninstall NAME...
 ```
 
 See {doc}`plugins` for source forms, manifests, builds, and program shims.
@@ -69,9 +69,9 @@ See {doc}`plugins` for source forms, manifests, builds, and program shims.
 `httk project init` accepts the normal project options plus template options:
 
 ```console
-httk project init [PATH] [--name NAME] [--description TEXT]
-httk project init PATH --template SELECTOR
-httk project init PATH --template SELECTOR --parameter NAME=VALUE
+httk project init [--description TEXT] PATH...
+httk project init --name NAME --template SELECTOR PATH
+httk project init --template SELECTOR --parameter NAME=VALUE PATH...
 httk project init --list-templates
 ```
 

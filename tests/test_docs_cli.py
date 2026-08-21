@@ -39,7 +39,7 @@ def test_cli_compose_and_filter_and_inventory(tmp_path: Path, capsys: pytest.Cap
     inventory.write_bytes(b"# Sphinx inventory version 2\n# Project: core\n# Version: dev:main\n" + zlib.compress(b""))
     copy = tmp_path / "copy.inv"
     assert (
-        cli.command(["fetch-inventory", inventory.as_uri(), str(copy), "--expect-project", "core"], context(tmp_path))
+        cli.command(["fetch-inventory", "--expect-project", "core", inventory.as_uri(), str(copy)], context(tmp_path))
         == 0
     )
 
@@ -107,8 +107,12 @@ def test_cli_lock_and_lock_check_use_library(
         calls.append((project, output))
 
     monkeypatch.setattr(cli, "generate_lock", fake_generate)
-    assert cli.command(["lock"], context(tmp_path)) == 0
-    assert calls == [(tmp_path, tmp_path / "docs/requirements.lock")]
+    second = tmp_path / "second"
+    assert cli.command(["lock", str(tmp_path), str(second)], context(tmp_path)) == 0
+    assert calls == [
+        (tmp_path, tmp_path / "docs/requirements.lock"),
+        (second, second / "docs/requirements.lock"),
+    ]
     checked: list[Path] = []
     monkeypatch.setattr(cli, "check_lock", lambda project, lock: checked.append(lock))
     assert cli.command(["lock-check"], context(tmp_path)) == 0
@@ -144,13 +148,13 @@ def test_cli_check_release_happy_path(tmp_path: Path, capsys: pytest.CaptureFixt
         f"# httk-docs-lock-schema: 1\n# input-hash: sha256:{digest}\n# python: 3.12\n# platform: linux\nrequests==2.32\n",
         encoding="utf-8",
     )
-    assert cli.command(["check-release", "--project-dir", str(tmp_path), "--tag", "v2.0.2"], context(tmp_path)) == 0
+    assert cli.command(["check-release", "--tag", "v2.0.2", str(tmp_path)], context(tmp_path)) == 0
     assert "passed" in capsys.readouterr().out
 
 
 def test_cli_check_release_failure_path(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     (tmp_path / "pyproject.toml").write_text('[project]\nversion="2.0.2"\n', encoding="utf-8")
-    assert cli.command(["check-release", "--project-dir", str(tmp_path), "--tag", "v2.0.2"], context(tmp_path)) == 1
+    assert cli.command(["check-release", "--tag", "v2.0.2", str(tmp_path)], context(tmp_path)) == 1
     assert "documentation lock is missing" in capsys.readouterr().err
 
 
@@ -158,8 +162,15 @@ def test_cli_relative_project_dir_resolves_once(tmp_path: Path, monkeypatch: pyt
     monkeypatch.chdir(tmp_path.parent)
     calls: list[tuple[Path, Path]] = []
     monkeypatch.setattr(cli, "generate_lock", lambda project, output: calls.append((project, output)))
-    assert cli.command(["lock", "--project-dir", tmp_path.name], context(Path.cwd())) == 0
+    assert cli.command(["lock", tmp_path.name], context(Path.cwd())) == 0
     assert calls == [(tmp_path, tmp_path / "docs" / "requirements.lock")]
+
+
+def test_cli_path_error_does_not_abort_later_projects(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[Path] = []
+    monkeypatch.setattr(cli, "generate_lock", lambda project, _output: calls.append(project))
+    assert cli.command(["lock", "~__httk_missing_user__", str(tmp_path)], context(tmp_path)) == 1
+    assert calls == [tmp_path]
 
 
 def test_cli_refresh_inventories_release_file_fixture(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
@@ -179,7 +190,7 @@ def test_cli_refresh_inventories_release_file_fixture(tmp_path: Path, capsys: py
     base = (tmp_path / "published").as_uri()
     assert (
         cli.command(
-            ["refresh-inventories", "--project-dir", str(tmp_path), "--base-url", base, "--channel", "release"],
+            ["refresh-inventories", "--base-url", base, "--channel", "release", str(tmp_path)],
             context(tmp_path),
         )
         == 0
@@ -203,12 +214,11 @@ def test_cli_refresh_inventories_missing_pin_is_clean_failure(
         cli.command(
             [
                 "refresh-inventories",
-                "--project-dir",
-                str(tmp_path),
                 "--base-url",
                 "file:///missing",
                 "--channel",
                 "release",
+                str(tmp_path),
             ],
             context(tmp_path),
         )
@@ -237,12 +247,11 @@ def test_cli_refresh_inventories_wrong_project_is_clean_failure(
         cli.command(
             [
                 "refresh-inventories",
-                "--project-dir",
-                str(tmp_path),
                 "--base-url",
                 (tmp_path / "published").as_uri(),
                 "--channel",
                 "release",
+                str(tmp_path),
             ],
             context(tmp_path),
         )
@@ -271,12 +280,11 @@ def test_cli_refresh_inventories_wrong_version_is_clean_failure(
         cli.command(
             [
                 "refresh-inventories",
-                "--project-dir",
-                str(tmp_path),
                 "--base-url",
                 (tmp_path / "published").as_uri(),
                 "--channel",
                 "release",
+                str(tmp_path),
             ],
             context(tmp_path),
         )
@@ -312,12 +320,11 @@ def test_cli_refresh_inventories_second_failure_preserves_all_originals(
         cli.command(
             [
                 "refresh-inventories",
-                "--project-dir",
-                str(tmp_path),
                 "--base-url",
                 (tmp_path / "published").as_uri(),
                 "--channel",
                 "release",
+                str(tmp_path),
             ],
             context(tmp_path),
         )

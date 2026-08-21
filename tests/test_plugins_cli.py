@@ -53,14 +53,14 @@ def test_install_and_path_hint(homes: tuple[Path, Path], capsys) -> None:
     assert f"add {shims_home()} to PATH" in output
     monkeypatch_path = os.pathsep.join([str(shims_home()), str(tmp_path / "path")])
     os.environ["PATH"] = monkeypatch_path
-    assert command(["install", str(source), "--force"], _context(tmp_path)) == 0
+    assert command(["install", "--force", str(source)], _context(tmp_path)) == 0
     assert f"add {shims_home()} to PATH" not in capsys.readouterr().out
     assert (data / "plugins/demo").is_dir()
 
 
 def test_install_failure_uses_command_error(homes: tuple[Path, Path], capsys) -> None:
     _, tmp_path = homes
-    assert command(["install", str(tmp_path / "missing")], _context(tmp_path)) == 2
+    assert command(["install", str(tmp_path / "missing")], _context(tmp_path)) == 1
     assert capsys.readouterr().err.startswith("httk plugin:")
 
 
@@ -85,13 +85,23 @@ def test_show_text_and_json(homes: tuple[Path, Path], capsys) -> None:
     assert "templates:" in output and "starter  a starter" in output
     assert "workflows:" in output and "  workflow" in output
     assert "programs:" in output and "tool  bin/tool  the tool" in output
-    assert command(["show", "demo", "--json"], _context(tmp_path)) == 0
+    assert command(["show", "--json", "demo"], _context(tmp_path)) == 0
     description = json.loads(capsys.readouterr().out)
-    assert description["name"] == "demo"
-    assert description["templates"][0]["id"] == "starter"
-    assert description["programs"][0]["name"] == "tool"
-    assert command(["show", "missing"], _context(tmp_path)) == 2
+    assert description[0]["name"] == "demo"
+    assert description[0]["templates"][0]["id"] == "starter"
+    assert description[0]["programs"][0]["name"] == "tool"
+    assert command(["show", "missing"], _context(tmp_path)) == 1
     assert "httk plugin:" in capsys.readouterr().err
+
+
+def test_batch_install_and_show_continue_after_target_failure(homes: tuple[Path, Path], capsys) -> None:
+    _, tmp_path = homes
+    first = _plugin(tmp_path / "first", "first")
+    second = _plugin(tmp_path / "second", "second", program="other")
+    assert command(["install", str(tmp_path / "missing"), str(first), str(second)], _context(tmp_path)) == 1
+    assert "missing" in capsys.readouterr().err
+    assert command(["show", "--json", "first", "second"], _context(tmp_path)) == 0
+    assert [item["name"] for item in json.loads(capsys.readouterr().out)] == ["first", "second"]
 
 
 def test_build_uninstall_path_and_run(homes: tuple[Path, Path], capsys) -> None:
@@ -112,7 +122,7 @@ def test_build_uninstall_path_and_run(homes: tuple[Path, Path], capsys) -> None:
     assert command(["install", str(source)], _context(tmp_path)) == 0
     assert " (built)" in capsys.readouterr().out
     result = tmp_path / "args"
-    assert command(["path", "built", "tool"], _context(tmp_path)) == 0
+    assert command(["path", "--program", "tool", "built"], _context(tmp_path)) == 0
     path = Path(capsys.readouterr().out.strip())
     assert path.is_absolute()
     assert command(["run", "built", "tool", str(result), "--flag"], _context(tmp_path)) == 0

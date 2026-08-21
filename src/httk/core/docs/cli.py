@@ -63,11 +63,10 @@ _ERRORS = (
 )
 
 
-def build_parser(program: str, project_dir: Path) -> argparse.ArgumentParser:
-    """Build the ``httk docs`` parser with a project-directory default.
+def build_parser(program: str) -> argparse.ArgumentParser:
+    """Build the ``httk docs`` parser.
 
     :param program: Program name displayed by the parser.
-    :param project_dir: Default project directory for project-aware commands.
     :return: Configured command-line parser.
     """
 
@@ -77,12 +76,12 @@ def build_parser(program: str, project_dir: Path) -> argparse.ArgumentParser:
 
     lock = subparsers.add_parser("lock", help="generate the documentation lock")
     lock.set_defaults(handler=_handle_lock, help_parser=lock)
-    _add_project_dir(lock, project_dir)
+    lock.add_argument("projects", metavar="PROJECT", nargs="+")
     lock.add_argument("--out", type=Path, help="lock output path (default: PROJECT/docs/requirements.lock)")
 
     lock_check = subparsers.add_parser("lock-check", help="check the documentation lock")
     lock_check.set_defaults(handler=_handle_lock_check, help_parser=lock_check)
-    _add_project_dir(lock_check, project_dir)
+    lock_check.add_argument("projects", metavar="PROJECT", nargs="*")
     lock_check.add_argument("--lock", type=Path, help="lock path (default: PROJECT/docs/requirements.lock)")
 
     compose = subparsers.add_parser("compose", help="compose a docs-site tree")
@@ -99,7 +98,7 @@ def build_parser(program: str, project_dir: Path) -> argparse.ArgumentParser:
 
     release = subparsers.add_parser("check-release", help="check a release tag and docs lock")
     release.set_defaults(handler=_handle_release, help_parser=release)
-    _add_project_dir(release, project_dir)
+    release.add_argument("projects", metavar="PROJECT", nargs="*")
     release.add_argument("--tag", required=True)
 
     filtered = subparsers.add_parser("filter-lock", help="remove internal pins from a lock")
@@ -117,7 +116,7 @@ def build_parser(program: str, project_dir: Path) -> argparse.ArgumentParser:
 
     refresh = subparsers.add_parser("refresh-inventories", help="refresh committed internal dependency inventories")
     refresh.set_defaults(handler=_handle_refresh_inventories, help_parser=refresh)
-    _add_project_dir(refresh, project_dir)
+    refresh.add_argument("projects", metavar="PROJECT", nargs="+")
     refresh.add_argument(
         "--base-url", default=None, help="documentation site base URL (default: HTTK_DOCS_BASE_URL or docs.httk.org)"
     )
@@ -139,28 +138,41 @@ def build_parser(program: str, project_dir: Path) -> argparse.ArgumentParser:
     return parser
 
 
-def _add_project_dir(parser: argparse.ArgumentParser, default: Path) -> None:
-    parser.add_argument(
-        "--project-dir", type=lambda value: Path(value).expanduser().resolve(), default=default.resolve()
-    )
+def _project_path(value: str, base: Path) -> Path:
+    path = Path(value).expanduser()
+    return (base / path).resolve() if not path.is_absolute() else path.resolve()
 
 
-def _lock_path(arguments: argparse.Namespace) -> Path:
-    return arguments.lock or arguments.project_dir / "docs" / "requirements.lock"
+def _handle_lock(arguments: argparse.Namespace, context: CLIContext) -> int:
+    failed = False
+    for raw_project in arguments.projects:
+        label: str | Path = raw_project
+        try:
+            project = _project_path(raw_project, context.cwd)
+            label = project
+            output = arguments.out or project / "docs" / "requirements.lock"
+            generate_lock(project, output)
+            print(f"generated documentation lock: {output}")
+        except _ERRORS as exc:
+            failed = True
+            print(f"{context.program} docs: {label}: {exc}", file=sys.stderr)
+    return 1 if failed else 0
 
 
-def _handle_lock(arguments: argparse.Namespace, _context: CLIContext) -> int:
-    output = arguments.out or arguments.project_dir / "docs" / "requirements.lock"
-    generate_lock(arguments.project_dir, output)
-    print(f"generated documentation lock: {output}")
-    return 0
-
-
-def _handle_lock_check(arguments: argparse.Namespace, _context: CLIContext) -> int:
-    path = _lock_path(arguments)
-    check_lock(arguments.project_dir, path)
-    print(f"documentation lock is current: {path}")
-    return 0
+def _handle_lock_check(arguments: argparse.Namespace, context: CLIContext) -> int:
+    failed = False
+    for raw_project in arguments.projects or [str(context.cwd)]:
+        label: str | Path = raw_project
+        try:
+            project = _project_path(raw_project, context.cwd)
+            label = project
+            path = arguments.lock or project / "docs" / "requirements.lock"
+            check_lock(project, path)
+            print(f"documentation lock is current: {path}")
+        except _ERRORS as exc:
+            failed = True
+            print(f"{context.program} docs: {label}: {exc}", file=sys.stderr)
+    return 1 if failed else 0
 
 
 def _handle_compose(arguments: argparse.Namespace, _context: CLIContext) -> int:
@@ -197,10 +209,19 @@ def _parse_release_argument(text: str) -> Version:
             raise VersionError(f"invalid release {text!r}; expected vX.Y.Z or X.Y.Z") from exc
 
 
-def _handle_release(arguments: argparse.Namespace, _context: CLIContext) -> int:
-    result = check_release(arguments.project_dir, arguments.tag)
-    print(f"release check passed: {result.tag}")
-    return 0
+def _handle_release(arguments: argparse.Namespace, context: CLIContext) -> int:
+    failed = False
+    for raw_project in arguments.projects or [str(context.cwd)]:
+        label: str | Path = raw_project
+        try:
+            project = _project_path(raw_project, context.cwd)
+            label = project
+            result = check_release(project, arguments.tag)
+            print(f"release check passed: {result.tag}")
+        except _ERRORS as exc:
+            failed = True
+            print(f"{context.program} docs: {label}: {exc}", file=sys.stderr)
+    return 1 if failed else 0
 
 
 def _handle_filter(arguments: argparse.Namespace, _context: CLIContext) -> int:
@@ -225,12 +246,11 @@ def _handle_inventory(arguments: argparse.Namespace, _context: CLIContext) -> in
     return 0
 
 
-def _handle_refresh_inventories(arguments: argparse.Namespace, _context: CLIContext) -> int:
+def _refresh_inventories_one(project: Path, arguments: argparse.Namespace) -> None:
     """Refresh all committed inventories declared by versioning.toml."""
 
     from .config import load_versioning_config
 
-    project = arguments.project_dir
     versioning_path = project / "docs" / "versioning.toml"
     config = load_versioning_config(versioning_path)
     base_url = arguments.base_url or os.environ.get("HTTK_DOCS_BASE_URL", "https://docs.httk.org")
@@ -285,7 +305,20 @@ def _handle_refresh_inventories(arguments: argparse.Namespace, _context: CLICont
         shutil.rmtree(staging_dir, ignore_errors=True)
     for slug, _staged, _destination, url in refreshed:
         print(f"refreshed {slug} inventory from {url}")
-    return 0
+
+
+def _handle_refresh_inventories(arguments: argparse.Namespace, context: CLIContext) -> int:
+    failed = False
+    for raw_project in arguments.projects:
+        label: str | Path = raw_project
+        try:
+            project = _project_path(raw_project, context.cwd)
+            label = project
+            _refresh_inventories_one(project, arguments)
+        except _ERRORS as exc:
+            failed = True
+            print(f"{context.program} docs: {label}: {exc}", file=sys.stderr)
+    return 1 if failed else 0
 
 
 def _handle_commit_site(arguments: argparse.Namespace, _context: CLIContext) -> int:
@@ -327,9 +360,16 @@ def command(argv: Sequence[str], context: CLIContext) -> int:
     :return: Process-style exit status.
     """
 
-    parser = build_parser(f"{context.program} docs", context.cwd)
+    parser = build_parser(f"{context.program} docs")
     try:
         arguments = parser.parse_args(list(argv))
+    except SystemExit as exc:
+        return exc.code if isinstance(exc.code, int) else 2
+    try:
+        if arguments.subcommand == "lock" and arguments.out is not None and len(arguments.projects) != 1:
+            parser.error("--out requires exactly one PROJECT")
+        if arguments.subcommand == "lock-check" and arguments.lock is not None and len(arguments.projects) > 1:
+            parser.error("--lock requires at most one PROJECT")
     except SystemExit as exc:
         return exc.code if isinstance(exc.code, int) else 2
     handler = getattr(arguments, "handler", None)

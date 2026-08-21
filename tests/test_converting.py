@@ -60,5 +60,5 @@ def test_unknown_output_destination_fails(_register_stubs: None, tmp_path: Path,
 def test_format_forwards_to_save(_register_stubs: None, tmp_path: Path) -> None:
     (tmp_path / "in.ina").write_text("hello", encoding="utf-8")
     # ``out.dat`` has no writer by name; ``--format convtest`` selects one.
-    assert command(["in.ina", "out.dat", "--format", "convtest"], _context(tmp_path)) == 0
+    assert command(["--format", "convtest", "in.ina", "out.dat"], _context(tmp_path)) == 0
     assert (tmp_path / "out.dat").read_text(encoding="utf-8") == "hello"

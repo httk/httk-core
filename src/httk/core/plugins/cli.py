@@ -102,14 +102,20 @@ def _render(description: dict[str, object]) -> str:
 
 
 def _handle_install(arguments: argparse.Namespace, context: CLIContext) -> int:
-    """Install one plugin source."""
+    """Install plugin sources in order, continuing after failures."""
 
-    installed = install_plugin(arguments.source, force=arguments.force)
-    suffix = " (built)" if installed.metadata.get("built") is True else ""
-    print(f"Installed plugin {installed.name!r} from {arguments.source}{suffix}")
-    if str(shims_home()) not in os.environ.get("PATH", "").split(os.pathsep):
-        print(f"note: add {shims_home()} to PATH to run plugin programs by name")
-    return 0
+    failed = False
+    for source in arguments.sources:
+        try:
+            installed = install_plugin(source, force=arguments.force)
+            suffix = " (built)" if installed.metadata.get("built") is True else ""
+            print(f"Installed plugin {installed.name!r} from {source}{suffix}")
+            if str(shims_home()) not in os.environ.get("PATH", "").split(os.pathsep):
+                print(f"note: add {shims_home()} to PATH to run plugin programs by name")
+        except _ERRORS as exc:
+            failed = True
+            print(f"{context.program} plugin: {source}: {exc}", file=sys.stderr)
+    return 1 if failed else 0
 
 
 def _handle_list(arguments: argparse.Namespace, context: CLIContext) -> int:
@@ -125,37 +131,64 @@ def _handle_list(arguments: argparse.Namespace, context: CLIContext) -> int:
 
 
 def _handle_show(arguments: argparse.Namespace, context: CLIContext) -> int:
-    """Describe one installed plugin."""
+    """Describe installed plugins."""
 
-    description = _description(_find_plugin(arguments.name))
+    descriptions: list[dict[str, object]] = []
+    failed = False
+    for name in arguments.names:
+        try:
+            descriptions.append(_description(_find_plugin(name)))
+        except _ERRORS as exc:
+            failed = True
+            print(f"{context.program} plugin: {name}: {exc}", file=sys.stderr)
     if arguments.json:
-        print(json.dumps(description, indent=2, sort_keys=True))
+        print(json.dumps(descriptions, indent=2, sort_keys=True))
     else:
-        print(_render(description))
-    return 0
+        for description in descriptions:
+            print(f"=== {description.get('name')} ===")
+            print(_render(description))
+    return 1 if failed else 0
 
 
 def _handle_uninstall(arguments: argparse.Namespace, context: CLIContext) -> int:
-    """Uninstall one plugin."""
+    """Uninstall installed plugins."""
 
-    uninstall_plugin(arguments.name)
-    print(f"Uninstalled plugin {arguments.name!r}")
-    return 0
+    failed = False
+    for name in arguments.names:
+        try:
+            uninstall_plugin(name)
+            print(f"Uninstalled plugin {name!r}")
+        except _ERRORS as exc:
+            failed = True
+            print(f"{context.program} plugin: {name}: {exc}", file=sys.stderr)
+    return 1 if failed else 0
 
 
 def _handle_build(arguments: argparse.Namespace, context: CLIContext) -> int:
-    """Build one installed plugin."""
+    """Build installed plugins."""
 
-    build_plugin(arguments.name)
-    print(f"Built plugin {arguments.name!r}")
-    return 0
+    failed = False
+    for name in arguments.names:
+        try:
+            build_plugin(name)
+            print(f"Built plugin {name!r}")
+        except _ERRORS as exc:
+            failed = True
+            print(f"{context.program} plugin: {name}: {exc}", file=sys.stderr)
+    return 1 if failed else 0
 
 
 def _handle_path(arguments: argparse.Namespace, context: CLIContext) -> int:
-    """Print one installed plugin program path."""
+    """Print installed plugin program paths."""
 
-    print(plugin_program(arguments.name, arguments.program))
-    return 0
+    failed = False
+    for name in arguments.names:
+        try:
+            print(plugin_program(name, arguments.program))
+        except _ERRORS as exc:
+            failed = True
+            print(f"{context.program} plugin: {name}: {exc}", file=sys.stderr)
+    return 1 if failed else 0
 
 
 def _handle_run(arguments: argparse.Namespace, context: CLIContext) -> int:
@@ -166,8 +199,12 @@ def _handle_run(arguments: argparse.Namespace, context: CLIContext) -> int:
 
 
 def _build_install(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("source", metavar="SOURCE", help="the plugin source to install")
+    parser.add_argument("sources", metavar="SOURCE", nargs="+", help="plugin sources to install")
     parser.add_argument("--force", action="store_true", help="replace an installed plugin with the same name")
+
+
+def _build_names(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("names", metavar="NAME", nargs="+", help="installed plugin names")
 
 
 def _build_name(parser: argparse.ArgumentParser) -> None:
@@ -175,17 +212,18 @@ def _build_name(parser: argparse.ArgumentParser) -> None:
 
 
 def _build_show(parser: argparse.ArgumentParser) -> None:
-    _build_name(parser)
+    _build_names(parser)
     parser.add_argument("--json", action="store_true", help="print the description as one JSON document")
 
 
 def _build_path(parser: argparse.ArgumentParser) -> None:
-    _build_name(parser)
-    parser.add_argument("program", metavar="PROGRAM", help="the declared program name")
+    parser.add_argument("--program", required=True, metavar="PROGRAM", help="the declared program name")
+    _build_names(parser)
 
 
 def _build_run(parser: argparse.ArgumentParser) -> None:
-    _build_path(parser)
+    _build_name(parser)
+    parser.add_argument("program", metavar="PROGRAM", help="the declared program name")
     parser.add_argument("args", metavar="ARGS", nargs=argparse.REMAINDER, help="arguments for the program")
 
 
@@ -226,9 +264,9 @@ def build_parser(program: str) -> argparse.ArgumentParser:
         "uninstall",
         summary="uninstall a plugin",
         handler=_handle_uninstall,
-        build=_build_name,
+        build=_build_names,
     )
-    _add_leaf(subparsers, "build", summary="build an installed plugin", handler=_handle_build, build=_build_name)
+    _add_leaf(subparsers, "build", summary="build installed plugins", handler=_handle_build, build=_build_names)
     _add_leaf(subparsers, "path", summary="print a plugin program path", handler=_handle_path, build=_build_path)
     _add_leaf(subparsers, "run", summary="run a plugin program", handler=_handle_run, build=_build_run)
     return parser

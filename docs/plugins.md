@@ -16,11 +16,11 @@ installed plugin with the same name.
 
 ```console
 httk plugin list
-httk plugin show NAME [--json]
+httk plugin show [--json] NAME...
 httk plugin run NAME PROGRAM [ARGS...]
-httk plugin path NAME PROGRAM
-httk plugin build NAME
-httk plugin uninstall NAME
+httk plugin path --program PROGRAM NAME...
+httk plugin build NAME...
+httk plugin uninstall NAME...
 ```
 
 Programs are exposed through shims in `data_home()/bin`. Add that directory to

@@ -24,7 +24,7 @@ docs-inventories:
 
 # Regenerate the portable documentation lock (network target).
 docs-lock:
-	$(PYTHON) -m httk.core.docs lock
+	$(PYTHON) -m httk.core.docs lock .
 
 # Verify the lock in a clean environment and run the strict documentation build
 # (network target; the lock installation and build are intentionally transparent).

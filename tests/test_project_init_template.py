@@ -59,10 +59,24 @@ def test_init_with_explicit_static_template(tmp_path: Path, capsys) -> None:
     )
     target = tmp_path / "project"
 
-    assert command(["init", str(target), "--template", str(source)], _context(tmp_path)) == 0
+    assert command(["init", "--template", str(source), str(target)], _context(tmp_path)) == 0
     assert (target / PROJECT_DIRECTORY / PROJECT_FILE).is_file()
     assert (target / "README.md").read_text(encoding="utf-8") == "hello\n"
     assert "Initialized httk project" in capsys.readouterr().out
+
+
+def test_init_and_show_batch_continue_after_target_failure(tmp_path: Path, capsys) -> None:
+    existing = tmp_path / "existing"
+    fresh = tmp_path / "fresh"
+    assert command(["init", str(existing)], _context(tmp_path)) == 0
+    capsys.readouterr()
+
+    assert command(["init", str(existing), str(fresh)], _context(tmp_path)) == 1
+    assert (fresh / PROJECT_DIRECTORY / PROJECT_FILE).is_file()
+    assert str(existing) in capsys.readouterr().err
+
+    assert command(["show", "--json", str(existing), str(fresh)], _context(tmp_path)) == 0
+    assert len(json.loads(capsys.readouterr().out)) == 2
 
 
 def test_plugin_selectors_ambiguity_and_list(tmp_path: Path, capsys) -> None:
@@ -77,16 +91,16 @@ def test_plugin_selectors_ambiguity_and_list(tmp_path: Path, capsys) -> None:
     assert output.endswith("templates can also be given as a directory path\n")
 
     qualified = tmp_path / "qualified"
-    assert command(["init", str(qualified), "--template", "alpha:unique"], _context(tmp_path)) == 0
+    assert command(["init", "--template", "alpha:unique", str(qualified)], _context(tmp_path)) == 0
     assert (qualified / PROJECT_FILE).exists() is False
     assert (qualified / PROJECT_DIRECTORY / PROJECT_FILE).is_file()
 
     bare = tmp_path / "bare"
-    assert command(["init", str(bare), "--template", "unique"], _context(tmp_path)) == 0
+    assert command(["init", "--template", "unique", str(bare)], _context(tmp_path)) == 0
     assert (bare / PROJECT_DIRECTORY / PROJECT_FILE).is_file()
 
     ambiguous = tmp_path / "ambiguous"
-    assert command(["init", str(ambiguous), "--template", "same"], _context(tmp_path)) == 2
+    assert command(["init", "--template", "same", str(ambiguous)], _context(tmp_path)) == 1
     error = capsys.readouterr().err
     assert "one:same, two:same" in error
     assert not ambiguous.exists()
@@ -119,7 +133,7 @@ print(json.dumps({'notes': ['parameters checked']}))
         },
     )
     missing = tmp_path / "missing"
-    assert command(["init", str(missing), "--template", str(source)], _context(tmp_path)) == 2
+    assert command(["init", "--template", str(source), str(missing)], _context(tmp_path)) == 1
     assert not missing.exists()
     assert "missing mandatory" in capsys.readouterr().err
 
@@ -128,13 +142,13 @@ print(json.dumps({'notes': ['parameters checked']}))
         command(
             [
                 "init",
-                str(target),
                 "--template",
                 str(source),
                 "--parameter",
                 "n=3",
                 "--parameter",
                 'text="hello=world"',
+                str(target),
             ],
             _context(tmp_path),
         )
@@ -148,8 +162,8 @@ print(json.dumps({'notes': ['parameters checked']}))
 
     undeclared = tmp_path / "undeclared"
     assert (
-        command(["init", str(undeclared), "--template", str(source), "--parameter", "other=true"], _context(tmp_path))
-        == 2
+        command(["init", "--template", str(source), "--parameter", "other=true", str(undeclared)], _context(tmp_path))
+        == 1
     )
     assert not undeclared.exists()
     assert "declares no parameters" in capsys.readouterr().err
@@ -157,11 +171,11 @@ print(json.dumps({'notes': ['parameters checked']}))
 
 def test_parameter_and_list_combinations_fail(tmp_path: Path, capsys) -> None:
     target = tmp_path / "plain"
-    assert command(["init", str(target), "--parameter", "x=1"], _context(tmp_path)) == 2
+    assert command(["init", "--parameter", "x=1", str(target)], _context(tmp_path)) == 2
     assert not target.exists()
     assert "requires --template" in capsys.readouterr().err
 
-    assert command(["init", str(target), "--list-templates"], _context(tmp_path)) == 2
+    assert command(["init", "--list-templates", str(target)], _context(tmp_path)) == 2
     assert "cannot be combined" in capsys.readouterr().err
 
 
@@ -177,13 +191,13 @@ raise SystemExit(1)
         },
     )
     fresh = tmp_path / "fresh"
-    assert command(["init", str(fresh), "--template", str(source)], _context(tmp_path)) == 2
+    assert command(["init", "--template", str(source), str(fresh)], _context(tmp_path)) == 1
     assert not fresh.exists()
 
     existing = tmp_path / "existing"
     existing.mkdir()
     (existing / "user.txt").write_text("keep", encoding="utf-8")
-    assert command(["init", str(existing), "--template", str(source)], _context(tmp_path)) == 2
+    assert command(["init", "--template", str(source), str(existing)], _context(tmp_path)) == 1
     assert (existing / "user.txt").read_text(encoding="utf-8") == "keep"
     assert (existing / PROJECT_DIRECTORY).is_dir()
     assert (existing / "hook-created.txt").is_file()
@@ -206,7 +220,7 @@ print('{}')
     target = tmp_path / "project"
     assert (
         command(
-            ["init", str(target), "--name", "Example", "--description", "A project", "--template", str(source)],
+            ["init", "--name", "Example", "--description", "A project", "--template", str(source), str(target)],
             _context(tmp_path),
         )
         == 0

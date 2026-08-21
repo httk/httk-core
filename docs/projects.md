@@ -17,26 +17,27 @@ The core-owned `httk project` command has five subcommands:
 `init`, `show`, `import-v1`, `seal`, and `verify-seal`.
 
 ```console
-httk project init
-httk project init PATH --name NAME --description TEXT
-httk project show
-httk project show PATH --json
-httk project import-v1 PATH
-httk project import-v1 PATH --source DIR --name NAME
+httk project init [--description TEXT] PATH...
+httk project init --name NAME --description TEXT PATH
+httk project show [PATH...]
+httk project show --json PATH...
+httk project import-v1 PATH...
+httk project import-v1 --source DIR --name NAME PATH
 httk project seal OUT.ZIP
-httk project verify-seal ZIP [--expect-key FINGERPRINT] [--trusted-key FINGERPRINT ...]
+httk project verify-seal [--expect-key FINGERPRINT] [--trusted-key FINGERPRINT ...] ZIP...
 ```
 
-`init` makes `PATH` a project, or uses the current directory when `PATH` is
-omitted. `--name` defaults to the directory name and `--description` defaults
-to an empty string. It refuses an existing project and creates
+`init` makes each `PATH` a project. At least one path is required; `--name`
+is available when initializing one path and defaults to its directory name.
+`--description` defaults to an empty string. It refuses an existing project and creates
 `httk_project/project.json`, the project's Ed25519 key under
 `httk_project/keys/`, and `httk_project/remotes/`. It creates no workflow
 workspace. To populate a new project from a plugin or an explicit template,
 use `httk project init --template`; see the Project templates section below.
 
-`show` describes the nearest project, or the project named by `PATH`.
-`--json` emits one machine-readable document. `import-v1` imports the legacy v1 project in
+`show` describes the nearest project when no path is supplied, or each named
+project. Human output is target-delimited and `--json` always emits an array.
+`import-v1` imports each legacy v1 project in
 `PATH/ht.project` by default; `--source DIR` selects another v1 directory.
 
 `seal` packages the nearest project tree into a signed redistribution ZIP,
@@ -69,7 +70,7 @@ Install a plugin, then initialize a project from one of its templates:
 
 ```console
 httk plugin install ./my-plugin
-httk project init my-project --template my-plugin:starter --parameter n=3
+httk project init --template my-plugin:starter --parameter n=3 my-project
 ```
 
 List installed templates and their plugin-qualified selectors with:
@@ -81,7 +82,7 @@ httk project init --list-templates
 An explicit template directory works without a plugin:
 
 ```console
-httk project init my-project --template ./templates/starter
+httk project init --template ./templates/starter my-project
 ```
 
 Templates can also be selected by a bare template ID when exactly one
@@ -151,8 +152,8 @@ parsed as JSON when possible and is otherwise treated as a literal string.
 Quote a literal string as JSON, for example:
 
 ```console
-httk project init demo --template starter \
-  --parameter name='"Ada"' --parameter count=3 --parameter enabled=true
+httk project init --template starter \
+  --parameter name='"Ada"' --parameter count=3 --parameter enabled=true demo
 ```
 
 The quotes around `"Ada"` are needed because an unquoted `Ada` is the JSON

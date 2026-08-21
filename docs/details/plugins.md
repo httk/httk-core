@@ -97,10 +97,10 @@ installation: the plugin remains installed with `built` set to `false`, and
 any shims from that failed build are removed. The command reports the remedy:
 
 ```console
-httk plugin build NAME
+httk plugin build NAME...
 ```
 
-`httk plugin build NAME` reruns the declared build and republishes its
+`httk plugin build NAME...` reruns the declared build and republishes each
 programs. A plugin without a build table has `built = null` in its metadata;
 its declared programs are checked and shimmed directly during installation.
 
@@ -138,7 +138,8 @@ exec "/absolute/path/to/data_home/plugins/name/bin/program" "$@"
 ```
 
 This is a portability limitation: the generated shim assumes a POSIX `sh` is
-available. `httk plugin path` returns the installed program path, and
+available. `httk plugin path --program PROGRAM NAME...` returns installed
+program paths, and
 `httk plugin run` executes it without requiring a PATH entry.
 
 An existing shim blocks installation unless it is recorded as belonging to

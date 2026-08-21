@@ -105,25 +105,11 @@ def _render(description: dict[str, object]) -> str:
 # ---------------------------------------------------------------------------
 
 
-def _handle_init(arguments: argparse.Namespace, context: CLIContext) -> int:
+def _init_one(path: Path, arguments: argparse.Namespace) -> None:
     """Create one project anchor at PATH, refusing an existing project."""
 
-    path = Path(arguments.path or context.cwd).expanduser().resolve()
-    if arguments.list_templates:
-        if arguments.path or arguments.template or arguments.parameter:
-            raise ValueError("--list-templates cannot be combined with PATH, --template, or --parameter")
-        templates = available_templates()
-        if not templates:
-            print("no templates available")
-        else:
-            for plugin, template in templates:
-                print(f"{plugin}:{template.id}  {template.description or ''}")
-            print("templates can also be given as a directory path")
-        return 0
     if (path / PROJECT_DIRECTORY / PROJECT_FILE).is_file():
         raise ValueError(f"{path} is already an httk project")
-    if arguments.parameter and not arguments.template:
-        raise ValueError("--parameter requires --template")
     if not arguments.template:
         metadata = initialize_project(
             path,
@@ -131,7 +117,7 @@ def _handle_init(arguments: argparse.Namespace, context: CLIContext) -> int:
             description=arguments.description,
         )
         print(f"Initialized httk project {metadata['name']!r} in {path / PROJECT_DIRECTORY}")
-        return 0
+        return
 
     template = resolve_template(arguments.template)
     supplied: dict[str, object] = {}
@@ -176,30 +162,74 @@ def _handle_init(arguments: argparse.Namespace, context: CLIContext) -> int:
     print(f"Initialized httk project {project['name']!r} in {path / PROJECT_DIRECTORY}")
     for note in notes:
         print(f"note: {note}")
-    return 0
+
+
+def _handle_init(arguments: argparse.Namespace, context: CLIContext) -> int:
+    if arguments.list_templates:
+        templates = available_templates()
+        if not templates:
+            print("no templates available")
+        else:
+            for plugin, template in templates:
+                print(f"{plugin}:{template.id}  {template.description or ''}")
+            print("templates can also be given as a directory path")
+        return 0
+    failed = False
+    for raw_path in arguments.paths:
+        label: str | Path = raw_path
+        try:
+            path = Path(raw_path).expanduser().resolve()
+            label = path
+            _init_one(path, arguments)
+        except _ERRORS as exc:
+            failed = True
+            print(f"{context.program} project: {label}: {exc}", file=sys.stderr)
+    return 1 if failed else 0
 
 
 def _handle_import_v1(arguments: argparse.Namespace, context: CLIContext) -> int:
     """Import a legacy v1 project into a new v2 anchor."""
 
-    path = Path(arguments.path or context.cwd).expanduser().resolve()
-    if (path / PROJECT_DIRECTORY / PROJECT_FILE).is_file():
-        raise ValueError(f"{path} is already an httk project")
-    source = Path(arguments.source or path / "ht.project").expanduser().resolve()
-    import_v1_project(path, source=source, name=arguments.name)
-    print(f"imported {source} -> {path / PROJECT_DIRECTORY}")
-    return 0
+    failed = False
+    for raw_path in arguments.paths:
+        label: str | Path = raw_path
+        try:
+            path = Path(raw_path).expanduser().resolve()
+            label = path
+            if (path / PROJECT_DIRECTORY / PROJECT_FILE).is_file():
+                raise ValueError(f"{path} is already an httk project")
+            source = Path(arguments.source or path / "ht.project").expanduser().resolve()
+            import_v1_project(path, source=source, name=arguments.name)
+            print(f"imported {source} -> {path / PROJECT_DIRECTORY}")
+        except _ERRORS as exc:
+            failed = True
+            print(f"{context.program} project: {label}: {exc}", file=sys.stderr)
+    return 1 if failed else 0
 
 
 def _handle_show(arguments: argparse.Namespace, context: CLIContext) -> int:
     """Describe the nearest project: its metadata and keys."""
 
-    description = describe_project(arguments.path or context.cwd)
+    descriptions: list[dict[str, object]] = []
+    failed = False
+    paths = arguments.paths or [str(context.cwd)]
+    for raw_path in paths:
+        label: str | Path = raw_path
+        try:
+            path = Path(raw_path).expanduser().resolve()
+            label = path
+            description = describe_project(path)
+        except _ERRORS as exc:
+            failed = True
+            print(f"{context.program} project: {label}: {exc}", file=sys.stderr)
+            continue
+        descriptions.append(description)
+        if not arguments.json:
+            print(f"=== {path} ===")
+            print(_render(description))
     if arguments.json:
-        print(json.dumps(description, indent=2, sort_keys=True))
-    else:
-        print(_render(description))
-    return 0
+        print(json.dumps(descriptions, indent=2, sort_keys=True))
+    return 1 if failed else 0
 
 
 def _handle_seal(arguments: argparse.Namespace, context: CLIContext) -> int:
@@ -213,23 +243,31 @@ def _handle_seal(arguments: argparse.Namespace, context: CLIContext) -> int:
 def _handle_verify_seal(arguments: argparse.Namespace, context: CLIContext) -> int:
     """Verify a signed redistribution ZIP and print its signer."""
 
-    report = verify_seal(
-        arguments.zip_path,
-        expect_key=arguments.expect_key,
-        trusted_keys=arguments.trusted_keys,
-    )
-    print(report["status"])
-    print(f"public_key: {report['public_key']}")
-    print(f"fingerprint: {report['fingerprint']}")
-    return 0
+    failed = False
+    for raw_path in arguments.zip_paths:
+        try:
+            report = verify_seal(
+                raw_path,
+                expect_key=arguments.expect_key,
+                trusted_keys=arguments.trusted_keys,
+            )
+        except _ERRORS as exc:
+            failed = True
+            print(f"{context.program} project: {raw_path}: {exc}", file=sys.stderr)
+            continue
+        print(f"=== {raw_path} ===")
+        print(report["status"])
+        print(f"public_key: {report['public_key']}")
+        print(f"fingerprint: {report['fingerprint']}")
+    return 1 if failed else 0
 
 
 def _build_init(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
-        "path",
+        "paths",
         metavar="PATH",
-        nargs="?",
-        help="the directory to make a project (default: the working directory)",
+        nargs="*",
+        help="directories to make projects",
     )
     parser.add_argument("--name", metavar="NAME", help="the project name (default: the directory name)")
     parser.add_argument("--description", metavar="TEXT", default="", help="a one-line description")
@@ -245,20 +283,20 @@ def _build_init(parser: argparse.ArgumentParser) -> None:
 
 def _build_show(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
-        "path",
+        "paths",
         metavar="PATH",
-        nargs="?",
-        help="the project to describe (default: the nearest project of the working directory)",
+        nargs="*",
+        help="projects to describe (default: the nearest project of the working directory)",
     )
     parser.add_argument("--json", action="store_true", help="print the description as one JSON document")
 
 
 def _build_import_v1(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
-        "path",
+        "paths",
         metavar="PATH",
-        nargs="?",
-        help="the v1 project to import (default: the working directory)",
+        nargs="+",
+        help="projects to import",
     )
     parser.add_argument("--source", metavar="DIR", help="the v1 project directory (default: PATH/ht.project)")
     parser.add_argument("--name", metavar="NAME", help="the imported project name")
@@ -269,7 +307,7 @@ def _build_seal(parser: argparse.ArgumentParser) -> None:
 
 
 def _build_verify_seal(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("zip_path", metavar="ZIP", help="signed redistribution ZIP to verify")
+    parser.add_argument("zip_paths", metavar="ZIP", nargs="+", help="signed redistribution ZIPs to verify")
     parser.add_argument("--expect-key", metavar="FINGERPRINT", help="require this signer fingerprint")
     parser.add_argument(
         "--trusted-key",
@@ -308,7 +346,7 @@ def build_parser(program: str) -> argparse.ArgumentParser:
 
     parser = argparse.ArgumentParser(prog=program, description="Create and inspect httk projects")
     parser.set_defaults(handler=None, help_parser=parser)
-    subparsers = parser.add_subparsers(metavar="COMMAND")
+    subparsers = parser.add_subparsers(dest="subcommand", metavar="COMMAND")
     _add_leaf(subparsers, "init", summary="create a project anchor here", handler=_handle_init, build=_build_init)
     _add_leaf(
         subparsers,
@@ -350,6 +388,27 @@ def command(argv: Sequence[str], context: CLIContext) -> int:
         arguments = parser.parse_args(list(argv))
     except SystemExit as exc:
         return exc.code if isinstance(exc.code, int) else 1
+    try:
+        if arguments.subcommand == "init":
+            if arguments.list_templates:
+                if (
+                    arguments.paths
+                    or arguments.name
+                    or arguments.description
+                    or arguments.template
+                    or arguments.parameter
+                ):
+                    parser.error("--list-templates cannot be combined with PATH or project/template options")
+            elif not arguments.paths:
+                parser.error("init requires at least one PATH")
+            elif arguments.name and len(arguments.paths) != 1:
+                parser.error("--name requires exactly one PATH")
+            elif arguments.parameter and not arguments.template:
+                parser.error("--parameter requires --template")
+        elif arguments.subcommand == "import-v1" and (arguments.source or arguments.name) and len(arguments.paths) != 1:
+            parser.error("--source and --name require exactly one PATH")
+    except SystemExit as exc:
+        return exc.code if isinstance(exc.code, int) else 2
     handler: Handler | None = getattr(arguments, "handler", None)
     if handler is None:
         getattr(arguments, "help_parser", parser).print_help()

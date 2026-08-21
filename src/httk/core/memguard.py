@@ -102,23 +102,25 @@ def _group_rss_bytes(pgid: int) -> int:
     return total
 
 
-def _parser() -> argparse.ArgumentParser:
+def _parser(prog: str = "httk memguard") -> argparse.ArgumentParser:
     """Build the command-line parser."""
     return argparse.ArgumentParser(
+        prog=prog,
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
 
-def main(argv: Sequence[str] | None = None) -> int:
+def main(argv: Sequence[str] | None = None, *, prog: str = "httk memguard") -> int:
     """Run the requested command under the process-group memory guard.
 
     :param argv: Command-line arguments, excluding the program name. When
         omitted, arguments are read from ``sys.argv``.
+    :param prog: Program name displayed in command-line help.
     :return: The child exit status, 137 for a budget breach, or 2 when the
         platform cannot provide the Linux process-group sampler.
     """
-    parser = _parser()
+    parser = _parser(prog)
     parser.add_argument("--max-rss-gb", type=float, default=24.0, help="group-total RSS budget (default 24)")
     parser.add_argument(
         "--as-gb",
@@ -186,9 +188,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     return return_code
 
 
-def command(argv: Sequence[str], _context: CLIContext) -> int:
+def command(argv: Sequence[str], context: CLIContext) -> int:
     """Adapt the memory guard to the top-level ``httk`` command contract."""
-    return main(argv)
+    return main(argv, prog=f"{context.program} memguard")
 
 
 if __name__ == "__main__":

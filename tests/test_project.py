@@ -183,13 +183,13 @@ def test_import_v1_creates_the_anchor_and_adopts_legacy_keys(tmp_path: Path) -> 
 
 def test_cli_init_and_show(tmp_path: Path, monkeypatch, capsys) -> None:
     monkeypatch.chdir(tmp_path)
-    assert main(["project", "init", "--name", "demo", "--description", "hi"]) == 0
+    assert main(["project", "init", "--name", "demo", "--description", "hi", str(tmp_path)]) == 0
     printed = capsys.readouterr().out
     assert "Initialized httk project" in printed and "demo" in printed
     assert (tmp_path / PROJECT_DIRECTORY / PROJECT_FILE).is_file()
 
     # Mirrors `git init`: refuses an existing project rather than reinitializing.
-    assert main(["project", "init", "--name", "demo"]) == 2
+    assert main(["project", "init", "--name", "demo", str(tmp_path)]) == 1
     assert "already an httk project" in capsys.readouterr().err
 
     assert main(["project", "show"]) == 0
@@ -198,17 +198,17 @@ def test_cli_init_and_show(tmp_path: Path, monkeypatch, capsys) -> None:
 
     assert main(["project", "show", "--json"]) == 0
     description = json.loads(capsys.readouterr().out)
-    assert description["format"] == "httk-project-description"
-    assert description["project"]["name"] == "demo"
-    assert description["keys"]["pinned"] is True
-    assert description["keys"]["public_key"]["fingerprint"].startswith("sha256:")
+    assert description[0]["format"] == "httk-project-description"
+    assert description[0]["project"]["name"] == "demo"
+    assert description[0]["keys"]["pinned"] is True
+    assert description[0]["keys"]["public_key"]["fingerprint"].startswith("sha256:")
 
 
 def test_cli_init_defaults_the_name_to_the_directory(tmp_path: Path, monkeypatch, capsys) -> None:
     target = tmp_path / "named-dir"
     target.mkdir()
     monkeypatch.chdir(target)
-    assert main(["project", "init"]) == 0
+    assert main(["project", "init", str(target)]) == 0
     capsys.readouterr()
     assert read_project(target)["name"] == "named-dir"
 
@@ -219,17 +219,24 @@ def test_cli_show_refuses_v1_and_import_v1_creates_anchor(tmp_path: Path, monkey
     (legacy / "config").write_text("[main]\nproject_name = imported\n", encoding="utf-8")
     monkeypatch.chdir(tmp_path)
 
-    assert main(["project", "init"]) == 2
+    assert main(["project", "init", str(tmp_path)]) == 1
     assert "httk project import-v1" in capsys.readouterr().err
 
-    assert main(["project", "show"]) == 2
+    assert main(["project", "show"]) == 1
     assert "httk project import-v1" in capsys.readouterr().err
 
-    assert main(["project", "import-v1"]) == 0
+    assert main(["project", "import-v1", str(tmp_path)]) == 0
     output = capsys.readouterr().out
     assert f"imported {legacy.resolve()} -> {tmp_path / PROJECT_DIRECTORY}" in output
     assert read_project(tmp_path)["name"] == "imported"
     assert (tmp_path / PROJECT_DIRECTORY / PROJECT_FILE).is_file()
+
+
+def test_cli_show_path_error_does_not_abort_later_projects(tmp_path: Path, capsys) -> None:
+    project = tmp_path / "valid"
+    initialize_project(project, name="valid")
+    assert command(["show", "~__httk_missing_user__", str(project)], CLIContext("httk", tmp_path)) == 1
+    assert f"=== {project} ===" in capsys.readouterr().out
 
 
 def test_bare_project_command_prints_help(tmp_path) -> None:
