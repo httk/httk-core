@@ -23,7 +23,10 @@ F = fractions.Fraction
         ("0.123", F(1, 1000)),
         ("0.1", F(1, 10)),
         (".25", F(1, 100)),
-        ("5.", F(1)),
+        ("0.", None),
+        ("1.", None),
+        ("-3.", None),
+        ("5.", None),
         ("10", None),
         ("0", None),
         ("-3", None),
@@ -33,6 +36,9 @@ F = fractions.Fraction
         "three-decimals",
         "one-decimal",
         "leading-point",
+        "trailing-point-zero",
+        "trailing-point-one",
+        "trailing-point-negative",
         "trailing-point",
         "integer",
         "zero",
@@ -57,9 +63,10 @@ def test_the_sign_is_not_part_of_the_claim() -> None:
         ("2E2", F(100)),
         ("1e0", F(1)),
         ("0.5e1", F(1)),
+        ("1.e3", None),
     ],
 )
-def test_an_exponent_scales_the_precision(literal: str, expected: F) -> None:
+def test_an_exponent_scales_the_precision(literal: str, expected: F | None) -> None:
     """The mantissa's digits set the precision; the exponent then moves it."""
     assert decimal_precision(literal) == expected
 
@@ -119,6 +126,10 @@ def test_values_with_no_claim_are_skipped_not_treated_as_precise() -> None:
 def test_integer_literals_make_no_precision_claim() -> None:
     assert combined_precision(["0", "10", "-3"]) is None
     assert combined_precision(["0", "0.5"]) == F(1, 10)
+
+
+def test_trailing_points_make_no_claim() -> None:
+    assert combined_precision(["0.", "1.", "-3.", "0.25"]) == F(1, 100)
 
 
 def test_no_claim_at_all_gives_none() -> None:

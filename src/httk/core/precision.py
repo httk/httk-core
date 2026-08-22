@@ -58,7 +58,7 @@ def decimal_precision(text: object) -> fractions.Fraction | None:
     * ``"0.123"`` -> ``1/1000`` — three digits after the point
     * ``"-0.5"`` -> ``1/10`` — the sign is not part of the claim
     * ``".25"`` -> ``1/100`` — a leading point is still two digits
-    * ``"5."`` -> ``1`` — a trailing point states no fraction
+    * ``"5."`` -> ``None`` — a trailing point makes no precision claim
     * ``"10"`` -> ``None`` — an integer literal states a value exactly, like a rational
     * ``"1.2e-3"`` -> ``1/10000`` — one digit, then scaled by the exponent
     * ``"1/3"`` -> ``None`` — exact, not measured
@@ -90,6 +90,9 @@ def decimal_precision(text: object) -> fractions.Fraction | None:
         # allows both parts to be empty, so reject that here rather than reporting a
         # precision for it.
         if not match.group("int_part") and not match.group("frac"):
+            return None
+        if not match.group("frac"):
+            # A trailing point states no measured precision, including with an exponent.
             return None
         digits_after_point = len(match.group("frac"))
 
