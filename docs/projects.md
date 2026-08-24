@@ -27,8 +27,8 @@ httk project seal OUT.ZIP
 httk project verify-seal [--expect-key FINGERPRINT] [--trusted-key FINGERPRINT ...] ZIP...
 ```
 
-`init` makes each `PATH` a project. At least one path is required; `--name`
-is available when initializing one path and defaults to its directory name.
+`init` makes each `PATH` a project. At least one path is required. `--name`
+is available when initializing one path and defaults to its directory name;
 `--description` defaults to an empty string. It refuses an existing project and creates
 `httk_project/project.json`, the project's Ed25519 key under
 `httk_project/keys/`, and `httk_project/remotes/`. It creates no workflow
