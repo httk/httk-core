@@ -1,11 +1,12 @@
 """Tests for the core data records."""
 
 import datetime
+from dataclasses import replace
 
 import pytest
 
 from httk.core import DataRecord, DataRecordEntry
-from httk.core.storage import content_id
+from httk.core.storage import content_id, project_storage_record
 
 
 def test_from_value_is_canonical_and_round_trips() -> None:
@@ -14,7 +15,19 @@ def test_from_value_is_canonical_and_round_trips() -> None:
     assert first.value_json == '{"a":1,"b":2}'
     assert first.value == {"a": 1, "b": 2}
     assert first.value_json == second.value_json
-    assert first.id == second.id
+    assert content_id(first) == content_id(second)
+
+
+def test_from_value_preserves_entry_ids() -> None:
+    record = DataRecord.from_value(
+        "https://example.org/def",
+        "_httk_total_energy",
+        1,
+        id="httk.example-1-1",
+        immutable_id="httk.example-1-1~1",
+    )
+    assert record.id == "httk.example-1-1"
+    assert record.immutable_id == "httk.example-1-1~1"
 
 
 @pytest.mark.parametrize("value_json", ['{"b":2,"a":1}', ' {"a":1,"b":2}', '{"a":1,"a":1}', '{"a":NaN}'])
@@ -27,7 +40,7 @@ def test_direct_canonical_value_json_matches_from_value() -> None:
     direct = DataRecord("https://example.org/def", "_httk_total_energy", '{"a":1,"b":2}')
     created = DataRecord.from_value("https://example.org/def", "_httk_total_energy", {"b": 2, "a": 1})
     assert direct.value_json == created.value_json
-    assert direct.id == created.id
+    assert content_id(direct) == content_id(created)
 
 
 @pytest.mark.parametrize(
@@ -64,3 +77,10 @@ def test_data_record_content_id_pin() -> None:
     )
     # A changed value means a storage-identity break; metadata is excluded.
     assert content_id(record) == "04e3a194913be8367d0df153a98cc07a6eb34640268c26580ad253ae740be140"
+    identified = replace(record, id="logical", immutable_id="other-immutable")
+    assert record.id is None
+    assert identified.id == "logical"
+    assert content_id(identified) == content_id(record)
+    projected = DataRecord(**project_storage_record(DataRecord, identified))
+    assert projected.id == "logical"
+    assert projected.immutable_id == "other-immutable"

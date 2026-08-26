@@ -13,7 +13,7 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field, fields
 from typing import Annotated, Any, ClassVar, Self
 
-from .storage import IdentitySkip, StorageInfo, content_id
+from .storage import IdentitySkip, Indexed, StorageInfo, Unique
 
 RUNS_DEFINITION_ID = "https://schemas.httk.org/defs/v0.1/entrytypes/runs"
 _TIMESTAMP_FIELDS = frozenset({"last_modified"})
@@ -117,32 +117,29 @@ class Run:
     :param inputs: The labeled entries consumed by the run.
     :param artifacts: The labeled entries created by the run.
     :param outputs: The labeled entries returned by the run.
-    :param immutable_id: An optional provider-specific immutable identifier.
+    :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+    :param immutable_id: The per-revision immutable id; minted by the store when None.
     :param last_modified: The optional timezone-aware metadata timestamp.
     """
 
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
         storage_name="core_run",
         identity_name="core_run",
-        indexes=(("workflow_declaration_uri",), ("immutable_id",), ("last_modified",)),
+        indexes=(("workflow_declaration_uri",), ("last_modified",)),
     )
 
     workflow_declaration_uri: str | None = None
     inputs: tuple[RunEdge, ...] = ()
     artifacts: tuple[RunEdge, ...] = ()
     outputs: tuple[RunEdge, ...] = ()
-    immutable_id: Annotated[str | None, IdentitySkip()] = field(default=None, compare=False)
+    id: Annotated[str | None, IdentitySkip(), Indexed()] = field(default=None, compare=False)
+    immutable_id: Annotated[str | None, IdentitySkip(), Unique()] = field(default=None, compare=False)
     last_modified: Annotated[datetime.datetime | None, IdentitySkip()] = field(default=None, compare=False)
 
     @property
     def type(self) -> str:
         """Return the served entry type name."""
         return "_httk_runs"
-
-    @property
-    def id(self) -> str:
-        """Return the content identity of this run."""
-        return content_id(self)
 
     def __post_init__(self) -> None:
         _validate_uri(self.workflow_declaration_uri, "workflow_declaration_uri")

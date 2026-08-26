@@ -1,12 +1,13 @@
 """Tests for the core provenance records."""
 
 import datetime
+from dataclasses import replace
 from typing import Any, cast
 
 import pytest
 
 from httk.core import ProductLink, Run, RunEdge, RunEntry
-from httk.core.storage import content_id
+from httk.core.storage import content_id, project_storage_record
 
 
 def test_run_edge_create_and_validation() -> None:
@@ -43,7 +44,7 @@ def test_run_constructor_and_create_coerce_edges_and_timestamp() -> None:
     )
     assert created == Run("https://example.org/workflow/1", inputs=run.inputs, last_modified=timestamp)
     assert created.type == "_httk_runs"
-    assert created.id == content_id(created)
+    assert created.id is None
     with pytest.raises(ValueError, match="Unknown field"):
         Run.from_obj({"unknown": 1})
 
@@ -110,7 +111,19 @@ def test_provenance_content_id_pins() -> None:
             run.inputs,
             run.artifacts,
             run.outputs,
-            "other",
-            datetime.datetime(2030, 1, 1, tzinfo=datetime.UTC),
+            id="other",
+            immutable_id="other-immutable",
+            last_modified=datetime.datetime(2030, 1, 1, tzinfo=datetime.UTC),
         )
     )
+
+
+def test_run_ids_are_stored_metadata_outside_content_identity() -> None:
+    run = Run(inputs=(RunEdge("input", "files", "file-1"),))
+    identified = replace(run, id="logical", immutable_id="immutable")
+    assert run.id is None
+    assert identified.id == "logical"
+    assert content_id(identified) == content_id(run)
+    projected = Run(**project_storage_record(Run, identified))
+    assert projected.id == "logical"
+    assert projected.immutable_id == "immutable"

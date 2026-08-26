@@ -3,7 +3,7 @@
 Importing this package discovers installed capability modules and exposes
 their registered readers, writers, adapters, and related public APIs.
 
-The deliberate public surface contains 90 names.
+The deliberate public surface is defined by ``__all__``.
 """
 
 #
@@ -43,6 +43,17 @@ from .datastream import (
     TextstreamURLView,
     known_compressions,
     register_compression,
+)
+from .entry_ids import (
+    ENTRY_ID_PATTERN,
+    IMMUTABLE_ID_PATTERN,
+    check_entry_id,
+    check_immutable_id,
+    format_entry_id,
+    format_immutable_id,
+    is_url_safe_id,
+    parse_entry_id,
+    parse_immutable_id,
 )
 from .entry_provider import EntryProvider, RelatedEntry
 from .entry_types import Calculation, File, Reference
@@ -110,6 +121,8 @@ from .views import Backend, View, coerce, coerce_view, unview, unwrap
 _discover_and_register()
 
 __all__ = [
+    "ENTRY_ID_PATTERN",
+    "IMMUTABLE_ID_PATTERN",
     "MISSING",
     "Backend",
     "BytestreamFileView",
@@ -163,6 +176,8 @@ __all__ = [
     "Unique",
     "VectorLike",
     "View",
+    "check_entry_id",
+    "check_immutable_id",
     "coerce",
     "coerce_view",
     "combined_precision",
@@ -170,8 +185,11 @@ __all__ = [
     "credits",
     "decimal_precision",
     "fetch",
+    "format_entry_id",
+    "format_immutable_id",
     "has_reader_for",
     "has_writer_for",
+    "is_url_safe_id",
     "known_compressions",
     "known_definition_prefixes",
     "known_entry_providers",
@@ -181,6 +199,8 @@ __all__ = [
     "load_property_definition",
     "load_source",
     "numpy_available",
+    "parse_entry_id",
+    "parse_immutable_id",
     "register_citation",
     "register_cli_command",
     "register_compression",

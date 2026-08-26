@@ -1,6 +1,7 @@
 """Tests for the core file records."""
 
 import datetime
+from dataclasses import replace
 from typing import Any, cast
 
 import pytest
@@ -13,7 +14,7 @@ from httk.core.register import (
     resolve_entry_family,
     resolve_entry_record,
 )
-from httk.core.storage import content_id
+from httk.core.storage import content_id, project_storage_record
 
 
 def _record(**metadata: object) -> FileRecord:
@@ -33,9 +34,10 @@ def test_file_record_content_id_and_metadata_exclusion() -> None:
     record = _record()
     # A changed value means a storage-identity break.
     assert content_id(record) == "349a6fc790d32f824296482b89f946d84329fe76cbf4f4c67f3b099911b8a455"
-    assert record.id == content_id(record)
+    assert record.id is None
     assert record.type == "files"
     metadata = {
+        "id": "logical",
         "immutable_id": "immutable",
         "last_modified": datetime.datetime(2026, 1, 2, 3, 4, 5, tzinfo=datetime.UTC),
         "url_stable_until": datetime.datetime(2027, 1, 2, 3, 4, 5, tzinfo=datetime.UTC),
@@ -46,6 +48,13 @@ def test_file_record_content_id_and_metadata_exclusion() -> None:
         "checksums": {"sha256": "different"},
     }
     assert content_id(_record(**metadata)) == content_id(record)
+
+    identified = replace(record, id="logical", immutable_id="immutable")
+    assert identified.id == "logical"
+    assert content_id(identified) == content_id(record)
+    projected = FileRecord(**project_storage_record(FileRecord, identified))
+    assert projected.id == "logical"
+    assert projected.immutable_id == "immutable"
 
 
 def test_file_entry_and_record_create() -> None:

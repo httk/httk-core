@@ -7,7 +7,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field, fields
 from typing import Annotated, Any, ClassVar, Self
 
-from .storage import IdentitySkip, StorageInfo, content_id, stored_property
+from .storage import IdentitySkip, Indexed, StorageInfo, Unique, stored_property
 
 RECORDS_DEFINITION_ID = "https://schemas.httk.org/defs/v0.1/entrytypes/records"
 _CANONICAL_JSON_ERROR = "value_json must be canonical JSON — use DataRecord.from_value."
@@ -57,13 +57,14 @@ class DataRecord:
     ``value_json`` is canonical JSON, with sorted object keys, compact
     separators, and no non-finite numeric values. ``value`` decodes it on
     access; ``value_number`` exposes finite numeric values for numeric queries.
-    The immutable and timestamp metadata fields are excluded from content
-    identity.
+    The human-readable and immutable identifiers and timestamp metadata are
+    excluded from content identity.
 
     :param definition_id: The property definition IRI for the value.
     :param name: The property name.
     :param value_json: The canonical JSON representation of the value.
-    :param immutable_id: An optional provider-specific immutable identifier.
+    :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+    :param immutable_id: The per-revision immutable id; minted by the store when None.
     :param last_modified: The optional timezone-aware metadata timestamp.
     """
 
@@ -76,18 +77,14 @@ class DataRecord:
     definition_id: str
     name: str
     value_json: str
-    immutable_id: Annotated[str | None, IdentitySkip()] = field(default=None, compare=False)
+    id: Annotated[str | None, IdentitySkip(), Indexed()] = field(default=None, compare=False)
+    immutable_id: Annotated[str | None, IdentitySkip(), Unique()] = field(default=None, compare=False)
     last_modified: Annotated[datetime.datetime | None, IdentitySkip()] = field(default=None, compare=False)
 
     @property
     def type(self) -> str:
         """Return the served entry type name."""
         return "_httk_records"
-
-    @property
-    def id(self) -> str:
-        """Return the content identity of this record."""
-        return content_id(self)
 
     @property
     def value(self) -> Any:
@@ -127,6 +124,7 @@ class DataRecord:
         name: str,
         value: Any,
         *,
+        id: str | None = None,
         immutable_id: str | None = None,
         last_modified: datetime.datetime | None = None,
     ) -> Self:
@@ -135,7 +133,8 @@ class DataRecord:
         :param definition_id: The property definition IRI for the value.
         :param name: The property name.
         :param value: The JSON value to encode.
-        :param immutable_id: An optional provider-specific immutable identifier.
+        :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+        :param immutable_id: The per-revision immutable id; minted by the store when None.
         :param last_modified: The optional timezone-aware metadata timestamp.
         :return: A data record containing the canonical JSON value.
         :raises TypeError: If the value contains an unsupported object.
@@ -145,6 +144,7 @@ class DataRecord:
             definition_id,
             name,
             json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False),
+            id=id,
             immutable_id=immutable_id,
             last_modified=last_modified,
         )
