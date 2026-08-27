@@ -117,6 +117,9 @@ class Run:
     :param inputs: The labeled entries consumed by the run.
     :param artifacts: The labeled entries created by the run.
     :param outputs: The labeled entries returned by the run.
+    :param source_id: The run's identifier in the system that executed it; part
+        of the content identity so re-collecting the same job deduplicates to
+        one row while distinct jobs stay distinct.
     :param id: The human-readable entry id shared by all revisions; minted by the store when None.
     :param immutable_id: The per-revision immutable id; minted by the store when None.
     :param last_modified: The optional timezone-aware metadata timestamp.
@@ -132,6 +135,7 @@ class Run:
     inputs: tuple[RunEdge, ...] = ()
     artifacts: tuple[RunEdge, ...] = ()
     outputs: tuple[RunEdge, ...] = ()
+    source_id: Annotated[str | None, Indexed()] = field(default=None)
     id: Annotated[str | None, IdentitySkip(), Indexed()] = field(default=None, compare=False)
     immutable_id: Annotated[str | None, IdentitySkip(), Unique()] = field(default=None, compare=False)
     last_modified: Annotated[datetime.datetime | None, IdentitySkip()] = field(default=None, compare=False)
@@ -143,6 +147,7 @@ class Run:
 
     def __post_init__(self) -> None:
         _validate_uri(self.workflow_declaration_uri, "workflow_declaration_uri")
+        _validate_uri(self.source_id, "source_id")
         for side in ("inputs", "artifacts", "outputs"):
             values = _edges(getattr(self, side))
             labels: set[str] = set()

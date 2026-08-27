@@ -155,6 +155,30 @@
                 "https://github.com/httk-workflows/vasp-relax/releases/tag/v1.0.0",
                 "https://schemas.httk.org/workflows/vasp-relax/v1.0"
             ]
+        },
+        "source_id": {
+            "$id": "https://schemas.httk.org/defs/v0.1/properties/core/source_id",
+            "x-optimade-requirements": {
+                "support": "may",
+                "sortable": true,
+                "query-support": "all mandatory",
+                "response-level": "may"
+            },
+            "title": "source ID",
+            "x-optimade-type": "string",
+            "x-optimade-definition": {
+                "kind": "property",
+                "version": "0.1.0",
+                "format": "1.3",
+                "name": "source_id",
+                "label": "source_id_property_httk"
+            },
+            "x-optimade-unit": "inapplicable",
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "The run's identifier in the system that executed it. For httk-workflow jobs, this is the workspace and job identity in the form <workspace_id>:<job_id>. This property participates in httk content identity so re-collecting the same job deduplicates while distinct jobs remain distinct."
         }
     }
 }

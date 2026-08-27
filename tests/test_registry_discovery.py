@@ -59,7 +59,14 @@ def test_discovery_registers_httk_entry_types_families_and_records() -> None:
     runs = load_entry_type_definition(runs_id)
     records = load_entry_type_definition(records_id)
     assert runs.name == "runs"
-    assert set(runs.properties) == {"id", "type", "immutable_id", "last_modified", "workflow_declaration_uri"}
+    assert set(runs.properties) == {
+        "id",
+        "type",
+        "immutable_id",
+        "source_id",
+        "last_modified",
+        "workflow_declaration_uri",
+    }
     assert records.name == "records"
     assert set(records.properties) == {"id", "type", "immutable_id", "last_modified"}
     assert resolve_entry_record("core-run") is httk.core.provenance.Run
