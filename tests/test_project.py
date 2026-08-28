@@ -56,7 +56,7 @@ def test_initialize_creates_only_the_anchor(tmp_path: Path) -> None:
     assert (control / "keys" / "project.pub").is_file()
     assert (control / "remotes").is_dir()
     # The anchor and nothing above it: a core installation makes no workspace.
-    assert not (project / ".httk-workflow").exists()
+    assert not (project / ".httk-workspace").exists()
 
     seed = control / "keys" / "project.seed"
     assert stat.S_IMODE(seed.stat().st_mode) == 0o600
@@ -172,7 +172,7 @@ def test_import_v1_creates_the_anchor_and_adopts_legacy_keys(tmp_path: Path) -> 
     assert metadata["trusted_keys"] == [recorded]
     assert metadata["legacy_queue_imported"] is False
     # The anchor import makes no workspace either.
-    assert not (project / ".httk-workflow").exists()
+    assert not (project / ".httk-workspace").exists()
     assert (project / PROJECT_DIRECTORY / "keys" / "legacy-public" / "old.pub").is_file()
 
 
