@@ -64,6 +64,22 @@ httk plugin uninstall NAME...
 
 See {doc}`plugins` for source forms, manifests, builds, and program shims.
 
+## httk system
+
+The core-owned `httk system reset` command removes both per-user httk state
+directories: the configuration directory (`~/.config/httk`) and the data
+directory (`~/.local/share/httk`). `HTTK_CONFIG_HOME` and `HTTK_DATA_HOME`
+environment overrides are honored:
+
+```console
+httk system reset
+httk system reset --force
+```
+
+Reset asks for confirmation when standard input is a terminal. Use `--force`
+for non-interactive use. It exits with `0` after resetting, `1` when the
+operation is declined, and `2` for invalid usage or an operational error.
+
 ## Project initialization options
 
 `httk project init` accepts the normal project options plus template options:
