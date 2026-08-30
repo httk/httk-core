@@ -148,7 +148,7 @@ def cli_extensions(command: str) -> tuple[Callable[..., Any], ...]:
     """Return resolved leaf providers registered for a command group.
 
     Lazy ``"module:callable"`` references are imported and resolved at call
-    time, mirroring :meth:`CLICommand.resolve`; a broken reference propagates
+    time, mirroring ``CLICommand.resolve``; a broken reference propagates
     the import or attribute error.
 
     :param command: The group name to look up.
