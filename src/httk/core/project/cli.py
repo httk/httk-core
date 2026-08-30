@@ -13,6 +13,7 @@ from collections.abc import Callable, Sequence
 from pathlib import Path
 
 from httk.core.cli import CLIContext
+from httk.core.register.cli import cli_extensions
 
 from .anchor import (
     PROJECT_DIRECTORY,
@@ -376,6 +377,12 @@ def build_parser(program: str) -> argparse.ArgumentParser:
         handler=_handle_verify_export,
         build=_build_verify_export,
     )
+    # Installed modules mount extra leaves under `httk project` via the
+    # `register_cli_extension("project", ...)` surface. A broken provider is a
+    # real installation error and is allowed to propagate, matching the policy
+    # for a broken registered command.
+    for provider in cli_extensions("project"):
+        provider(subparsers)
     return parser
 
 

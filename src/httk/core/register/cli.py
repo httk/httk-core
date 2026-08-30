@@ -21,7 +21,7 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, cast
 
-from ._base import resolve_callable
+from ._base import _same_callable_reference, resolve_callable
 
 if TYPE_CHECKING:
     from ..cli import CLIContext
@@ -55,6 +55,7 @@ class CLICommand:
 _CLI_NAME = re.compile(r"[a-z][a-z0-9]*(?:-[a-z0-9]+)*")
 _CLI_RESERVED = frozenset({"help", "version"})
 _cli_commands: dict[str, CLICommand] = {}
+_cli_extensions: dict[str, list[str | Callable[..., Any]]] = {}
 
 
 def register_cli_command(name: str, handler: str | Callable[..., Any], summary: str) -> None:
@@ -107,3 +108,51 @@ def cli_command(name: str) -> CLICommand | None:
     """
 
     return _cli_commands.get(name)
+
+
+def register_cli_extension(command: str, provider: str | Callable[..., Any]) -> None:
+    """Register a lazy leaf provider under a core-owned command group.
+
+    A provider is either a callable or a lazy ``"module:callable"`` reference
+    with the contract
+    ``provider(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) -> None``.
+    It adds parsers to the group's subparsers whose ``set_defaults(handler=...)``
+    handlers follow the group's ``(argparse.Namespace, CLIContext) -> int``
+    contract; the mounting group owns error dispatch. Validation mirrors
+    :func:`register_cli_command`: reserved names and duplicate ``(command,
+    provider)`` registrations are errors rather than order-dependent overrides.
+
+    :param command: The lowercase hyphen-separated group name to extend.
+    :param provider: The provider callable or lazy ``"module:callable"`` reference.
+    :raises TypeError: If ``provider`` is neither callable nor a lazy reference.
+    :raises ValueError: If the command name, provider reference, or registration is invalid.
+    """
+
+    if not isinstance(command, str) or _CLI_NAME.fullmatch(command) is None:
+        raise ValueError(f"invalid CLI command name: {command!r}")
+    if command in _CLI_RESERVED:
+        raise ValueError(f"reserved CLI command name: {command!r}")
+    if not callable(provider) and not isinstance(provider, str):
+        raise TypeError("CLI extension provider must be callable or a 'module:callable' reference")
+    if isinstance(provider, str):
+        module_name, separator, attribute = provider.partition(":")
+        if not separator or not module_name or not attribute:
+            raise ValueError("lazy CLI extension provider must use 'module:callable' syntax")
+    providers = _cli_extensions.setdefault(command, [])
+    if any(_same_callable_reference(existing, provider) for existing in providers):
+        raise ValueError(f"CLI extension is already registered for {command!r}: {provider!r}")
+    providers.append(provider)
+
+
+def cli_extensions(command: str) -> tuple[Callable[..., Any], ...]:
+    """Return resolved leaf providers registered for a command group.
+
+    Lazy ``"module:callable"`` references are imported and resolved at call
+    time, mirroring :meth:`CLICommand.resolve`; a broken reference propagates
+    the import or attribute error.
+
+    :param command: The group name to look up.
+    :return: Resolved providers in registration order.
+    """
+
+    return tuple(resolve_callable(provider) for provider in _cli_extensions.get(command, ()))
