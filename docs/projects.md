@@ -14,7 +14,7 @@ top of the anchor without making the anchor depend on them.
 ## The command line
 
 The core-owned `httk project` command has five subcommands:
-`init`, `show`, `import-v1`, `seal`, and `verify-seal`.
+`init`, `show`, `import-v1`, `export`, and `verify-export`.
 
 ```console
 httk project init [--description TEXT] PATH...
@@ -23,8 +23,8 @@ httk project show [PATH...]
 httk project show --json PATH...
 httk project import-v1 PATH...
 httk project import-v1 --source DIR --name NAME PATH
-httk project seal OUT.ZIP
-httk project verify-seal [--expect-key FINGERPRINT] [--trusted-key FINGERPRINT ...] ZIP...
+httk project export OUT.ZIP
+httk project verify-export [--expect-key FINGERPRINT] [--trusted-key FINGERPRINT ...] ZIP...
 ```
 
 `init` makes each `PATH` a project. At least one path is required. `--name`
@@ -40,12 +40,12 @@ project. Human output is target-delimited and `--json` always emits an array.
 `import-v1` imports each legacy v1 project in
 `PATH/ht.project` by default; `--source DIR` selects another v1 directory.
 
-`seal` packages the nearest project tree into a signed redistribution ZIP,
+`export` packages the nearest project tree into a signed redistribution ZIP,
 excluding the private key, and signs it with the project's Ed25519 key.
-`verify-seal` checks such a ZIP and prints the signer's public key and
+`verify-export` checks such a ZIP and prints the signer's public key and
 fingerprint; `--expect-key` requires a specific signer fingerprint and
 `--trusted-key` (repeatable) supplies fingerprints to trust. The programmatic
-equivalents are `seal_project` and `verify_seal` in `httk.core.project`.
+equivalents are `export_project` and `verify_export` in `httk.core.project`.
 
 Root options are processed before command dispatch. `-C DIR` changes directory
 first, so any *httk* command can target a project from elsewhere:

@@ -31,7 +31,7 @@ from .anchor import (
     require_project,
 )
 
-__all__ = ["PROJECT_PRIVATE_KEY_RELATIVE_PATH", "seal_project", "verify_seal"]
+__all__ = ["PROJECT_PRIVATE_KEY_RELATIVE_PATH", "export_project", "verify_export"]
 
 PROJECT_PRIVATE_KEY_RELATIVE_PATH = f"{PROJECT_DIRECTORY}/keys/project.seed"
 """The exact private-key path created by the project identity implementation."""
@@ -50,7 +50,7 @@ def _sha256(data: bytes) -> str:
 
 def _digest_text(value: object, label: str) -> str:
     if not isinstance(value, str) or len(value) != 64 or any(char not in "0123456789abcdef" for char in value):
-        raise ValueError(f"seal {label} must be a lowercase SHA-256 digest")
+        raise ValueError(f"export {label} must be a lowercase SHA-256 digest")
     return value
 
 
@@ -105,9 +105,9 @@ def _inventory(project: Path, output: Path, private_material: frozenset[bytes]) 
         if _excluded(relative, output_relative):
             continue
         if _private_key_like(relative):
-            raise ValueError(f"private-key-like file cannot be sealed: {relative}")
+            raise ValueError(f"private-key-like file cannot be exported: {relative}")
         if entry.is_symlink():
-            raise ValueError(f"symlink is forbidden in immutable seal: {entry}")
+            raise ValueError(f"symlink is forbidden in immutable export: {entry}")
         if entry.is_dir():
             directories.append(relative)
         elif entry.is_file():
@@ -117,7 +117,7 @@ def _inventory(project: Path, output: Path, private_material: frozenset[bytes]) 
                 raise ValueError(f"file content matches a project private key: {relative}")
             files.append(entry)
         else:
-            raise ValueError(f"special file is forbidden in immutable seal: {entry}")
+            raise ValueError(f"special file is forbidden in immutable export: {entry}")
     return files, directories
 
 
@@ -144,14 +144,14 @@ def _read_seed(project: Path) -> tuple[bytes, frozenset[bytes]]:
 
 def _reject_output_collision(project: Path, destination: Path) -> None:
     if destination == project:
-        raise ValueError("seal output cannot be the project directory")
+        raise ValueError("export output cannot be the project directory")
     if destination.exists():
         control = project / PROJECT_DIRECTORY
         for protected in control.rglob("*"):
             if protected.is_file():
                 try:
                     if os.path.samefile(destination, protected):
-                        raise ValueError(f"seal output collides with protected project data: {destination}")
+                        raise ValueError(f"export output collides with protected project data: {destination}")
                 except OSError:
                     pass
     try:
@@ -159,9 +159,9 @@ def _reject_output_collision(project: Path, destination: Path) -> None:
     except ValueError:
         return
     if relative.parts and relative.parts[0].casefold() == PROJECT_DIRECTORY.casefold():
-        raise ValueError(f"seal output cannot be inside protected project data: {destination}")
+        raise ValueError(f"export output cannot be inside protected project data: {destination}")
     if destination.exists():
-        raise ValueError(f"seal output already exists inside the project tree: {destination}")
+        raise ValueError(f"export output already exists inside the project tree: {destination}")
 
 
 def _zip_write(path: Path, entries: dict[str, bytes]) -> None:
@@ -182,7 +182,7 @@ def _zip_write(path: Path, entries: dict[str, bytes]) -> None:
         temporary.unlink(missing_ok=True)
 
 
-def seal_project(out_path: str | Path, project_path: str | Path | None = None) -> Path:
+def export_project(out_path: str | Path, project_path: str | Path | None = None) -> Path:
     """Create a signed ZIP containing a project without private keys.
 
     The path and suffix exclusions are primary.  The content guard catches
@@ -192,7 +192,7 @@ def seal_project(out_path: str | Path, project_path: str | Path | None = None) -
     :param out_path: Destination ZIP path.
     :param project_path: Project root, or None to discover the nearest project.
     :return: The destination path.
-    :raises ValueError: If the project is unsafe to seal or its identity is invalid.
+    :raises ValueError: If the project is unsafe to export or its identity is invalid.
     """
 
     project = require_project(project_path)
@@ -206,7 +206,7 @@ def seal_project(out_path: str | Path, project_path: str | Path | None = None) -
     digest = tree_digest(project, exclude=excluded)
     payloads = {f"project/{_relative(path, project)}": path.read_bytes() for path in files}
     manifest = {
-        "format": "httk-seal",
+        "format": "httk-export",
         "format_version": 2,
         "tree_digest": digest,
         "directories": directories,
@@ -222,7 +222,7 @@ def seal_project(out_path: str | Path, project_path: str | Path | None = None) -
         "signature": base64.b64encode(ed25519_sign(seed, manifest_bytes)).decode("ascii"),
     }
     _zip_write(
-        destination, {**payloads, "seal/manifest.json": manifest_bytes, "seal/signature": _json_bytes(signature)}
+        destination, {**payloads, "export/manifest.json": manifest_bytes, "export/signature": _json_bytes(signature)}
     )
     return destination
 
@@ -236,9 +236,9 @@ def _read_member(archive: zipfile.ZipFile, name: str, label: str) -> bytes:
     try:
         return archive.read(name)
     except KeyError as error:
-        raise ValueError(f"missing seal {label}: {name}") from error
+        raise ValueError(f"missing export {label}: {name}") from error
     except (zipfile.BadZipFile, EOFError, zlib.error) as error:
-        raise ValueError(f"corrupt seal {label}: {name}") from error
+        raise ValueError(f"corrupt export {label}: {name}") from error
 
 
 def _fingerprint(value: str) -> str:
@@ -251,15 +251,15 @@ def _fingerprint(value: str) -> str:
     return key_fingerprint(value)
 
 
-def verify_seal(
+def verify_export(
     zip_path: str | Path,
     *,
     expect_key: str | None = None,
     trusted_keys: Iterable[str] = (),
 ) -> dict[str, object]:
-    """Verify a sealed project ZIP and return signer information.
+    """Verify an exported project ZIP and return signer information.
 
-    :param zip_path: Seal ZIP to verify.
+    :param zip_path: Export ZIP to verify.
     :param expect_key: Expected signer fingerprint or public key.
     :param trusted_keys: Trusted signer fingerprints or public keys.
     :return: A JSON-ready verification report.
@@ -270,25 +270,25 @@ def verify_seal(
     try:
         archive = zipfile.ZipFile(path)
     except (OSError, zipfile.BadZipFile) as error:
-        raise ValueError(f"invalid seal ZIP: {path}") from error
+        raise ValueError(f"invalid export ZIP: {path}") from error
     with archive:
         names = archive.namelist()
         if len(names) != len(set(names)) or not all(_safe_member(name) for name in names):
-            raise ValueError("seal contains invalid or duplicate ZIP members")
-        manifest_bytes = _read_member(archive, "seal/manifest.json", "manifest")
-        signature_bytes = _read_member(archive, "seal/signature", "signature")
+            raise ValueError("export contains invalid or duplicate ZIP members")
+        manifest_bytes = _read_member(archive, "export/manifest.json", "manifest")
+        signature_bytes = _read_member(archive, "export/signature", "signature")
         try:
             manifest = json.loads(manifest_bytes)
         except (UnicodeDecodeError, json.JSONDecodeError) as error:
-            raise ValueError("invalid seal manifest JSON") from error
+            raise ValueError("invalid export manifest JSON") from error
         if not isinstance(manifest, dict):
-            raise ValueError("seal manifest JSON must be an object")
+            raise ValueError("export manifest JSON must be an object")
         if (
-            manifest.get("format") != "httk-seal"
+            manifest.get("format") != "httk-export"
             or type(manifest.get("format_version")) is not int
             or manifest["format_version"] != 2
         ):
-            raise ValueError("unsupported seal format")
+            raise ValueError("unsupported export format")
         manifest_tree_digest = _digest_text(manifest.get("tree_digest"), "manifest tree_digest")
         files = manifest.get("files")
         directories = manifest.get("directories", [])
@@ -297,15 +297,15 @@ def verify_seal(
             or not isinstance(directories, list)
             or not all(isinstance(directory, str) for directory in directories)
         ):
-            raise ValueError("seal manifest file inventory is invalid")
+            raise ValueError("export manifest file inventory is invalid")
         try:
             signature = json.loads(signature_bytes)
         except (UnicodeDecodeError, json.JSONDecodeError) as error:
-            raise ValueError("invalid seal signature JSON") from error
+            raise ValueError("invalid export signature JSON") from error
         if not isinstance(signature, dict):
-            raise ValueError("seal signature JSON must be an object")
+            raise ValueError("export signature JSON must be an object")
         if signature.get("algorithm") != "Ed25519":
-            raise ValueError("unsupported seal signature algorithm")
+            raise ValueError("unsupported export signature algorithm")
         try:
             public_text = signature["public_key"]
             signature_text = signature["signature"]
@@ -314,7 +314,7 @@ def verify_seal(
             public = parse_public_key(public_text)
             signed = base64.b64decode(signature_text, validate=True)
         except (KeyError, ValueError, binascii.Error) as error:
-            raise ValueError("seal signature is malformed") from error
+            raise ValueError("export signature is malformed") from error
         metadata_bytes = _read_member(archive, "project/httk_project/project.json", "project metadata")
         public_file_bytes = _read_member(archive, "project/httk_project/keys/project.pub", "project public key")
         try:
@@ -333,9 +333,9 @@ def verify_seal(
         if bundled_public != pinned:
             raise ValueError("bundled project public key does not match its pinned key")
         if format_public_key(public) != pinned:
-            raise ValueError("seal signature key does not match the pinned project key")
+            raise ValueError("export signature key does not match the pinned project key")
         if not ed25519_verify(public, manifest_bytes, signed):
-            raise ValueError("bad seal signature")
+            raise ValueError("bad export signature")
         file_names: list[str] = []
         for item in files:
             if (
@@ -343,33 +343,33 @@ def verify_seal(
                 or not isinstance(item.get("path"), str)
                 or not isinstance(item.get("sha256"), str)
             ):
-                raise ValueError("seal manifest file inventory is invalid")
+                raise ValueError("export manifest file inventory is invalid")
             relative = item["path"]
             expected_hash = _digest_text(item["sha256"], f"file hash for {relative}")
             if not _safe_member(relative) or _private_key_like(relative):
-                raise ValueError(f"seal contains private-key-like path: {relative}")
+                raise ValueError(f"export contains private-key-like path: {relative}")
             member = f"project/{relative}"
             data = _read_member(archive, member, "project file")
             if _sha256(data) != expected_hash:
-                raise ValueError(f"seal file hash mismatch: {relative}")
+                raise ValueError(f"export file hash mismatch: {relative}")
             file_names.append(member)
         if len(file_names) != len(set(file_names)):
-            raise ValueError("seal manifest repeats a file")
-        expected = {"seal/manifest.json", "seal/signature", *file_names}
+            raise ValueError("export manifest repeats a file")
+        expected = {"export/manifest.json", "export/signature", *file_names}
         if set(names) != expected:
-            raise ValueError("seal contains files not listed by its manifest")
+            raise ValueError("export contains files not listed by its manifest")
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             for directory in directories:
                 if not isinstance(directory, str) or not _safe_member(directory) or _private_key_like(directory):
-                    raise ValueError("seal manifest directory inventory is invalid")
+                    raise ValueError("export manifest directory inventory is invalid")
                 (root / directory).mkdir(parents=True, exist_ok=True)
             for member in file_names:
                 target = root / member.removeprefix("project/")
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(_read_member(archive, member, "project file"))
             if tree_digest(root) != manifest_tree_digest:
-                raise ValueError("seal tree digest mismatch")
+                raise ValueError("export tree digest mismatch")
         expected_fingerprint = _fingerprint(expect_key) if expect_key is not None else None
         trusted_values = (trusted_keys,) if isinstance(trusted_keys, str) else trusted_keys
         trusted_fingerprints = {_fingerprint(key) for key in trusted_values}

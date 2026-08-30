@@ -1,8 +1,8 @@
 """The core-owned ``httk project`` command.
 
 ``httk project`` owns the anchor: ``init`` creates one (like ``git init``),
-``show`` describes it, ``seal`` creates a signed redistribution,
-``verify-seal`` checks one, and ``import-v1`` migrates a legacy project.
+``show`` describes it, ``export`` creates a signed redistribution,
+``verify-export`` checks one, and ``import-v1`` migrates a legacy project.
 """
 
 import argparse
@@ -25,7 +25,7 @@ from .anchor import (
     require_project,
     trusted_project_keys,
 )
-from .seal import seal_project, verify_seal
+from .export import export_project, verify_export
 from .templates import available_templates, check_parameters, instantiate_template, resolve_template
 
 #: Everything a handler may raise that is an operator's problem rather than a
@@ -232,21 +232,21 @@ def _handle_show(arguments: argparse.Namespace, context: CLIContext) -> int:
     return 1 if failed else 0
 
 
-def _handle_seal(arguments: argparse.Namespace, context: CLIContext) -> int:
-    """Seal the nearest project tree into a signed redistribution ZIP."""
+def _handle_export(arguments: argparse.Namespace, context: CLIContext) -> int:
+    """Export the nearest project tree into a signed redistribution ZIP."""
 
-    output = seal_project(Path(arguments.out_zip).expanduser().resolve(), context.cwd)
-    print(f"sealed project to {output}")
+    output = export_project(Path(arguments.out_zip).expanduser().resolve(), context.cwd)
+    print(f"exported project to {output}")
     return 0
 
 
-def _handle_verify_seal(arguments: argparse.Namespace, context: CLIContext) -> int:
+def _handle_verify_export(arguments: argparse.Namespace, context: CLIContext) -> int:
     """Verify a signed redistribution ZIP and print its signer."""
 
     failed = False
     for raw_path in arguments.zip_paths:
         try:
-            report = verify_seal(
+            report = verify_export(
                 raw_path,
                 expect_key=arguments.expect_key,
                 trusted_keys=arguments.trusted_keys,
@@ -302,11 +302,11 @@ def _build_import_v1(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--name", metavar="NAME", help="the imported project name")
 
 
-def _build_seal(parser: argparse.ArgumentParser) -> None:
+def _build_export(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("out_zip", metavar="OUT.ZIP", help="destination signed redistribution ZIP")
 
 
-def _build_verify_seal(parser: argparse.ArgumentParser) -> None:
+def _build_verify_export(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("zip_paths", metavar="ZIP", nargs="+", help="signed redistribution ZIPs to verify")
     parser.add_argument("--expect-key", metavar="FINGERPRINT", help="require this signer fingerprint")
     parser.add_argument(
@@ -363,14 +363,18 @@ def build_parser(program: str) -> argparse.ArgumentParser:
         build=_build_import_v1,
     )
     _add_leaf(
-        subparsers, "seal", summary="create a signed project redistribution", handler=_handle_seal, build=_build_seal
+        subparsers,
+        "export",
+        summary="create a signed project redistribution",
+        handler=_handle_export,
+        build=_build_export,
     )
     _add_leaf(
         subparsers,
-        "verify-seal",
+        "verify-export",
         summary="verify a signed project redistribution",
-        handler=_handle_verify_seal,
-        build=_build_verify_seal,
+        handler=_handle_verify_export,
+        build=_build_verify_export,
     )
     return parser
 
