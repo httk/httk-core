@@ -7,7 +7,7 @@ processed before command dispatch:
 httk -C DIR COMMAND [ARG ...]
 httk -h
 httk --version
-httk help COMMAND
+httk help COMMAND [SUBCOMMAND ...]
 ```
 
 `-C DIR` changes directory before dispatch, with git-style semantics. The
@@ -43,9 +43,13 @@ def command(argv: Sequence[str], context: CLIContext) -> int:
     return 0
 ```
 
-Command names use lowercase, hyphen-separated syntax. `help COMMAND` invokes
-that command with `--help`. `help` by itself is equivalent to root help;
-`help` and `version` are reserved names. See {doc}`registry` for the complete
+Command names use lowercase, hyphen-separated syntax. `help` works at every
+level: `httk help COMMAND ...` and a trailing `help` after any subcommand chain
+(e.g. `httk workflow runner help`) print that level's help; group levels
+describe the group and list subcommands, leaf levels print usage with argument
+definitions. `help` is only recognized before the first option, so it remains
+usable as an option value. `help` by itself is equivalent to root help; `help`
+and `version` are reserved names. See {doc}`registry` for the complete
 discovery convention and registration surfaces.
 
 ## Plugins

@@ -73,3 +73,66 @@ def test_duplicate_and_reserved_registration() -> None:
 def test_unknown_command(capsys) -> None:
     assert main(["definitely-unknown"]) == 2
     assert "unknown command" in capsys.readouterr().err
+
+
+def _register_help_probe(tmp_path: Path, monkeypatch, name: str) -> str:
+    module = tmp_path / "help_probe_cli.py"
+    module.write_text(
+        """def command(argv, context):
+    print(",".join(argv))
+    return 0
+""",
+        encoding="utf-8",
+    )
+    monkeypatch.syspath_prepend(str(tmp_path))
+    register_cli_command(name, "help_probe_cli:command", "help probe command")
+    return name
+
+
+def test_trailing_help_rewritten(tmp_path: Path, monkeypatch, capsys) -> None:
+    name = _register_help_probe(tmp_path, monkeypatch, "x-help-test-1")
+    assert main([name, "a", "b", "help"]) == 0
+    assert capsys.readouterr().out.strip() == "a,b,--help"
+
+
+def test_help_drops_following_tokens(tmp_path: Path, monkeypatch, capsys) -> None:
+    name = _register_help_probe(tmp_path, monkeypatch, "x-help-test-2")
+    assert main([name, "a", "help", "ignored"]) == 0
+    assert capsys.readouterr().out.strip() == "a,--help"
+
+
+def test_help_after_option_not_rewritten(tmp_path: Path, monkeypatch, capsys) -> None:
+    name = _register_help_probe(tmp_path, monkeypatch, "x-help-test-3")
+    assert main([name, "--opt", "help"]) == 0
+    assert capsys.readouterr().out.strip() == "--opt,help"
+
+
+def test_root_help_command_appends_help(tmp_path: Path, monkeypatch, capsys) -> None:
+    name = _register_help_probe(tmp_path, monkeypatch, "x-help-test-4")
+    assert main(["help", name, "a"]) == 0
+    assert capsys.readouterr().out.strip() == "a,--help"
+
+
+def test_root_help_command_with_trailing_help(tmp_path: Path, monkeypatch, capsys) -> None:
+    name = _register_help_probe(tmp_path, monkeypatch, "x-help-test-5")
+    assert main(["help", name, "a", "help"]) == 0
+    assert capsys.readouterr().out.strip() == "a,--help"
+
+
+def test_bare_help_and_unknown(capsys) -> None:
+    assert main(["help"]) == 0
+    assert "usage:" in capsys.readouterr().out
+    assert main(["help", "no-such-cmd"]) == 2
+    assert "unknown command" in capsys.readouterr().err
+
+
+def test_convert_help_end_to_end(capsys) -> None:
+    assert main(["convert", "help"]) == 0
+    out = capsys.readouterr().out
+    assert "usage:" in out
+    assert "INPUT" in out
+
+
+def test_project_help_lists_subcommands(capsys) -> None:
+    assert main(["project", "help"]) == 0
+    assert "init" in capsys.readouterr().out

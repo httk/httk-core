@@ -42,13 +42,34 @@ def _root_help(program: str) -> str:
         "  --version    show the httk-core version",
         "",
         "commands:",
-        "  help         show root help or help for one command",
+        "  help         show help for the root, a command, or a subcommand",
     ]
     for name in known_cli_commands():
         command = cli_command(name)
         assert command is not None
         lines.append(f"  {name:<12s} {command.summary}")
     return "\n".join(lines)
+
+
+def _rewrite_help(arguments: list[str]) -> list[str]:
+    """Turn a bare ``help`` in the leading subcommand chain into ``--help``.
+
+    Only tokens before the first option-like token (starting with ``-``) are
+    considered; the first ``help`` there is replaced with ``--help`` and the
+    tokens after it are dropped, so ``workflow runner help`` becomes
+    ``workflow runner --help``. Tokens after an option are never rewritten,
+    which keeps ``help`` usable as an option value or a file name.
+
+    :param arguments: Subcommand chain to rewrite.
+    :return: Arguments with the first leading ``help`` turned into ``--help``.
+    """
+
+    for index, argument in enumerate(arguments):
+        if argument.startswith("-"):
+            break
+        if argument == "help":
+            return arguments[:index] + ["--help"]
+    return arguments
 
 
 def _error(program: str, message: str) -> int:
@@ -102,17 +123,19 @@ def main(argv: Sequence[str] | None = None) -> int:
         if len(arguments) == 1:
             print(_root_help(program))
             return 0
-        if len(arguments) != 2:
-            return _error(program, "help accepts at most one command")
         command = cli_command(arguments[1])
         if command is None:
             return _error(program, f"unknown command: {arguments[1]}")
-        return int(command.resolve()(["--help"], context))
+        rest = _rewrite_help(arguments[2:])
+        if rest[-1:] != ["--help"]:
+            rest.append("--help")
+        return int(command.resolve()(rest, context))
 
     name = arguments.pop(0)
     command = cli_command(name)
     if command is None:
         return _error(program, f"unknown command: {name}")
+    arguments = _rewrite_help(arguments)
     try:
         return int(command.resolve()(arguments, context))
     except KeyboardInterrupt:
