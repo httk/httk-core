@@ -56,9 +56,9 @@ httk -C ~/proj project show --json
 ```
 
 See {doc}`cli` for the root command-line rules. The `httk project` namespace
-belongs to *httk-core*; modules provide their own namespaces, for example
-`httk workflow project ...`. There is no project-subcommand extension
-mechanism.
+belongs to *httk-core*, and an installed module may mount additional
+subcommands on it through `register_cli_extension` — *httk-workflow* adds
+`doctor`, `manifest`, `seal`, and `unseal` this way.
 
 ## Project templates
 
