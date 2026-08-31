@@ -51,15 +51,20 @@ __all__ = [
     "SealReport",
     "SealVerification",
     "SealedError",
+    "build_seal_body",
     "default_project_keys",
+    "diff_records",
     "is_project_sealed",
+    "normalize_trusted_keys",
     "project_seal_path",
     "read_seal",
     "resolve_seal_keys",
     "seal_project",
+    "sign_seal_body",
     "unseal_project",
     "verify_project",
     "verify_seal",
+    "write_seal",
 ]
 
 _LOGGER = logging.getLogger(__name__)
@@ -331,8 +336,20 @@ def default_project_keys(root: str | os.PathLike[str], refs: Sequence[str] | Non
 # -- writing -----------------------------------------------------------------
 
 
-def _build_body(kind: str, subject: Mapping[str, object], records: Sequence[dict[str, object]]) -> dict[str, object]:
-    """Assemble the signed body of one seal document."""
+def build_seal_body(
+    kind: str, subject: Mapping[str, object], records: Sequence[dict[str, object]]
+) -> dict[str, object]:
+    """Assemble the signed body of one seal document.
+
+    The returned mapping is the exact, canonical body a signature is taken over
+    — its ``created_at`` is stamped now — so a caller signs and writes it with
+    :func:`sign_seal_body` and :func:`write_seal`.
+
+    :param kind: The sealed level, such as ``project`` or a member kind.
+    :param subject: The identifiers of the sealed subject.
+    :param records: The recorded contents of the sealed subject.
+    :return: The unsigned seal body.
+    """
 
     return {
         "format": _FORMAT,
@@ -352,8 +369,13 @@ def _utc_now() -> str:
     return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def _sign(body: dict[str, object], keys: Sequence[SealKey]) -> tuple[str, list[dict[str, object]]]:
-    """Digest the body and produce one detached signature per key."""
+def sign_seal_body(body: dict[str, object], keys: Sequence[SealKey]) -> tuple[str, list[dict[str, object]]]:
+    """Digest a seal body and produce one detached signature per key.
+
+    :param body: The seal body from :func:`build_seal_body`.
+    :param keys: The signing keys, each a ``(role, seed)`` pair.
+    :return: The hex body digest and the detached signatures.
+    """
 
     body_digest = hashlib.sha256(_DOMAIN + json_bytes(body)).digest()
     message = _DOMAIN + body_digest
@@ -371,19 +393,19 @@ def _sign(body: dict[str, object], keys: Sequence[SealKey]) -> tuple[str, list[d
     return body_digest.hex(), signatures
 
 
-def _write_seal(
-    path: Path,
-    kind: str,
-    subject: Mapping[str, object],
-    records: Sequence[dict[str, object]],
-    keys: Sequence[SealKey],
-) -> Path:
-    """Write one signed seal document atomically and return its path."""
+def write_seal(path: Path, body: dict[str, object], keys: Sequence[SealKey]) -> Path:
+    """Sign a seal body and write the seal document atomically.
+
+    :param path: Where to write the seal document.
+    :param body: The seal body from :func:`build_seal_body`.
+    :param keys: The signing keys, each a ``(role, seed)`` pair.
+    :return: The written seal path.
+    :raises SealError: If no signing key is available.
+    """
 
     if not keys:
-        raise SealError(f"no signing key is available to seal the {kind}")
-    body = _build_body(kind, subject, records)
-    body_sha256, signatures = _sign(body, keys)
+        raise SealError(f"no signing key is available to seal the {body.get('kind')}")
+    body_sha256, signatures = sign_seal_body(body, keys)
     document = {**body, "body_sha256": body_sha256, "signatures": signatures}
     write_json_atomic(path, document, durable=True)
     return path
@@ -439,8 +461,12 @@ def read_seal(path: str | os.PathLike[str]) -> Seal:
     )
 
 
-def _normalize_trusted(trusted_keys: Iterable[str]) -> set[str]:
-    """Return trust anchors as canonical keys and fingerprints, skipping junk."""
+def normalize_trusted_keys(trusted_keys: Iterable[str]) -> set[str]:
+    """Return trust anchors as canonical keys and fingerprints, skipping junk.
+
+    :param trusted_keys: Trust anchors as ``ed25519:`` keys or ``sha256:`` fingerprints.
+    :return: The canonical keys and fingerprints, with unparseable entries dropped.
+    """
 
     result: set[str] = set()
     for entry in trusted_keys:
@@ -486,7 +512,7 @@ def verify_seal(
         message = _DOMAIN + bytes.fromhex(seal.body_sha256)
     except ValueError:
         return SealVerification(False, INVALID, "the seal's recorded digest is not hex", (), missing, ())
-    trusted = _normalize_trusted(trusted_keys)
+    trusted = normalize_trusted_keys(trusted_keys)
     signers: list[str] = []
     any_invalid = False
     any_trusted = False
@@ -533,8 +559,13 @@ def _combine(base: SealVerification, discrepancies: Sequence[Discrepancy]) -> Se
     return replace(base, valid=False, verdict=INVALID, reason=reason, discrepancies=tuple(discrepancies))
 
 
-def _diff_records(recorded: Sequence[dict[str, object]], actual: Sequence[dict[str, object]]) -> list[Discrepancy]:
-    """Diff two path-keyed record lists into discrepancies."""
+def diff_records(recorded: Sequence[dict[str, object]], actual: Sequence[dict[str, object]]) -> list[Discrepancy]:
+    """Diff two path-keyed record lists into discrepancies.
+
+    :param recorded: The records a seal recorded.
+    :param actual: The records the tree holds now.
+    :return: The per-path discrepancies, sorted by path.
+    """
 
     recorded_by_path = {str(record["path"]): record for record in recorded}
     actual_by_path = {str(record["path"]): record for record in actual}
@@ -614,7 +645,8 @@ def seal_project(project_root: str | os.PathLike[str], *, keys: SealKeys | None 
     records.extend(member_records)
     resolved = keys if keys is not None else default_project_keys(root)
     subject = {"project_id": str(metadata["project_id"])}
-    return _write_seal(project_seal_path(root), "project", subject, records, resolved.keys)
+    body = build_seal_body("project", subject, records)
+    return write_seal(project_seal_path(root), body, resolved.keys)
 
 
 def unseal_project(project_root: str | os.PathLike[str]) -> None:
@@ -632,7 +664,7 @@ def _verify_project_records(root: Path, seal: Seal, metadata: dict[str, object])
     exclusions = _seal_exclusions(root, metadata)
     recorded_files = [record for record in seal.records if "type" in record]
     actual_files = file_records(root, exclusions=exclusions)
-    discrepancies = _diff_records(recorded_files, actual_files)
+    discrepancies = diff_records(recorded_files, actual_files)
     recorded_members = {str(record["member"]): record for record in seal.records if "member" in record}
     present = {member.path: member for member in project_members(root)}
     for relpath in sorted(set(recorded_members) | set(present)):

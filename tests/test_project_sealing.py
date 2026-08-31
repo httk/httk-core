@@ -8,6 +8,7 @@ from httk.core.project import initialize_project
 from httk.core.project.members import register_project_member
 from httk.core.project.sealing import (
     SealError,
+    build_seal_body,
     is_project_sealed,
     project_seal_path,
     read_seal,
@@ -16,6 +17,7 @@ from httk.core.project.sealing import (
     unseal_project,
     verify_project,
     verify_seal,
+    write_seal,
 )
 
 from _toy_member import ToyMemberHandler, toy_kind_registered
@@ -129,3 +131,15 @@ def test_seal_roundtrip_signature(project: Path) -> None:
     assert seal.kind == "project"
     unseal_project(project)
     assert not is_project_sealed(project)
+
+
+def test_write_seal_read_seal_roundtrip(project: Path) -> None:
+    keys = resolve_seal_keys(["project"], project_root=project)
+    body = build_seal_body("custom", {"id": "x"}, [{"path": "a", "type": "file"}])
+    path = project / "httk_project" / "custom-seal.json"
+    write_seal(path, body, keys.keys)
+    seal = read_seal(path)
+    assert seal.kind == "custom"
+    assert seal.subject == {"id": "x"}
+    assert list(seal.records) == [{"path": "a", "type": "file"}]
+    assert verify_seal(path).valid

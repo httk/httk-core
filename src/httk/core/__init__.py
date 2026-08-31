@@ -69,7 +69,7 @@ from .property_definitions import (
     standard_entry_type,
 )
 from .provenance import ProductLink, Run, RunEdge, RunEntry
-from .register.cli import cli_extensions, register_cli_command, register_cli_extension
+from .register.cli import register_cli_command
 from .register.entries import (
     known_entry_providers,
     register_entry_family,
@@ -183,7 +183,6 @@ __all__ = [
     "View",
     "check_entry_id",
     "check_immutable_id",
-    "cli_extensions",
     "coerce",
     "coerce_view",
     "combined_precision",
@@ -211,7 +210,6 @@ __all__ = [
     "project_member_handler",
     "register_citation",
     "register_cli_command",
-    "register_cli_extension",
     "register_compression",
     "register_definition_prefix",
     "register_entry_family",

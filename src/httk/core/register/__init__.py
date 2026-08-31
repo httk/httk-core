@@ -23,12 +23,9 @@ from .cli import (  # noqa: F401
     CLICommand,
     CLIHandler,
     _cli_commands,
-    _cli_extensions,
     cli_command,
-    cli_extensions,
     known_cli_commands,
     register_cli_command,
-    register_cli_extension,
 )
 from .entries import (  # noqa: F401
     OptimadeEntryBinding,
@@ -103,7 +100,6 @@ __all__ = [
     "OptimadeEntryBinding",
     "PluginRegistry",
     "cli_command",
-    "cli_extensions",
     "entry_family_info",
     "entry_providers",
     "entry_record_info",
@@ -129,7 +125,6 @@ __all__ = [
     "reader_filenames",
     "readers",
     "register_cli_command",
-    "register_cli_extension",
     "register_entry_family",
     "register_entry_provider",
     "register_entry_record",

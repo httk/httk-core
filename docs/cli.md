@@ -12,8 +12,9 @@ httk help COMMAND [SUBCOMMAND ...]
 
 `-C DIR` changes directory before dispatch, with git-style semantics. The
 core-owned `httk project` command provides the project workflow; see
-{doc}`projects`. Installed modules can mount extra subcommands under it with
-`register_cli_extension` (see below).
+{doc}`projects`. A module extends a project by registering a *member kind*
+with `register_project_member_kind` (see {doc}`projects`), not by adding CLI
+leaves.
 
 Capability modules register additional top-level commands under the
 `httk.registry.cli.<module>` discovery tier. Registration is lazy, so root help
@@ -43,27 +44,6 @@ def command(argv: Sequence[str], context: CLIContext) -> int:
     print(context.cwd)
     return 0
 ```
-
-Modules can also mount extra leaves under a core-owned command group with
-`register_cli_extension`. A provider adds parsers to the group's subparsers;
-each parser's `set_defaults(handler=...)` handler follows the group's
-`(argparse.Namespace, CLIContext) -> int` contract, and the mounting group
-owns error dispatch:
-
-```python
-from httk.core import register_cli_extension
-
-register_cli_extension("project", "example_package.cli:add_leaves")
-
-
-def add_leaves(subparsers):
-    parser = subparsers.add_parser("frobnicate", help="frobnicate the project")
-    parser.set_defaults(handler=frobnicate, help_parser=parser)
-```
-
-Providers are registered lazily from `httk.registry.cli.<module>` like commands,
-resolved when the group builds its parser. Registration is strict the same way:
-reserved names and duplicate `(command, provider)` registrations are errors.
 
 Command names use lowercase, hyphen-separated syntax. `help` works at every
 level: `httk help COMMAND ...` and a trailing `help` after any subcommand chain

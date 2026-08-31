@@ -1,17 +1,15 @@
 """The core-owned ``httk project doctor|manifest|seal|unseal|verify-seal`` leaves."""
 
-import argparse
 from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
 
-from httk.core import CLIContext, register_cli_extension
+from httk.core import CLIContext
 from httk.core.project import initialize_project
-from httk.core.project.cli import build_parser, command
+from httk.core.project.cli import command
 from httk.core.project.members import register_project_member
 from httk.core.project.sealing import resolve_seal_keys
-from httk.core.register.cli import _cli_extensions
 from httk.core.register.members import project_member_kinds
 
 from _toy_member import ToyMemberHandler, toy_kind_registered
@@ -28,14 +26,11 @@ def project(tmp_path: Path) -> Path:
 @pytest.fixture(autouse=True)
 def _isolate() -> Iterator[None]:
     kinds = dict(project_member_kinds._by_key)
-    exts = {name: list(providers) for name, providers in _cli_extensions.items()}
     try:
         yield
     finally:
         project_member_kinds._by_key.clear()
         project_member_kinds._by_key.update(kinds)
-        _cli_extensions.clear()
-        _cli_extensions.update(exts)
 
 
 def _run(project: Path, *argv: str) -> int:
@@ -136,16 +131,3 @@ def test_seal_deep_verify_with_member(project: Path, capsys: pytest.CaptureFixtu
         out = capsys.readouterr().out
     assert code == 0
     assert "toy\twork" in out
-
-
-def _colliding_provider(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]") -> None:
-    parser = subparsers.add_parser("doctor", help="workflow doctor", description="workflow doctor")
-    parser.set_defaults(handler=lambda a, c: 0, help_parser=parser)
-
-
-def test_colliding_extension_leaf_is_skipped(project: Path) -> None:
-    register_cli_extension("project", _colliding_provider)
-    # build_parser must not raise even though the extension re-adds `doctor`.
-    parser = build_parser("httk project")
-    sub = next(a for a in parser._actions if isinstance(a, argparse._SubParsersAction))
-    assert "doctor" in sub.choices

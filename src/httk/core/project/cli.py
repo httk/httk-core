@@ -7,7 +7,6 @@
 
 import argparse
 import json
-import logging
 import shutil
 import sys
 from collections.abc import Callable, Sequence
@@ -16,7 +15,6 @@ from pathlib import Path
 
 from httk.core.cli import CLIContext
 from httk.core.identity import identity_key_paths
-from httk.core.register.cli import cli_extensions
 from httk.core.register.members import project_member_handler
 
 from .anchor import (
@@ -52,8 +50,6 @@ from .sealing import (
     verify_project,
 )
 from .templates import available_templates, check_parameters, instantiate_template, resolve_template
-
-_LOGGER = logging.getLogger(__name__)
 
 #: Everything a handler may raise that is an operator's problem rather than a
 #: defect. Anything here is reported as ``PROGRAM: message`` and exits ``2``.
@@ -762,16 +758,6 @@ def build_parser(program: str) -> argparse.ArgumentParser:
         handler=_handle_verify_seal,
         build=_build_verify_seal,
     )
-    # Installed modules mount extra leaves under `httk project` via the
-    # `register_cli_extension("project", ...)` surface. During the transition
-    # while *httk-workflow* still mounts its own `doctor|manifest|seal|unseal`
-    # this way, a provider leaf whose name collides with a core-owned leaf is
-    # skipped rather than fatal; this disappears when that extension is removed.
-    for provider in cli_extensions("project"):
-        try:
-            provider(subparsers)
-        except argparse.ArgumentError as exc:
-            _LOGGER.debug("skipping project CLI extension leaf that collides with a core leaf: %s", exc)
     return parser
 
 

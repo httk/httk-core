@@ -202,14 +202,10 @@ registration package belongs under `httk.registry.cli.<module>`. The CLI
 surface and user-facing workflow are documented in {doc}`/cli`; see also
 {ref}`readers` for the analogous IO registration pattern.
 
-`register_cli_extension(command, provider)` mounts extra leaves under a
-core-owned command group (for example `httk project`). The provider is a
-callable or a `"module:callable"` reference with the contract
-`provider(subparsers) -> None`; it adds parsers whose
-`set_defaults(handler=...)` handlers follow the group's
-`(argparse.Namespace, CLIContext) -> int` contract, and the mounting group
-owns error dispatch. Registration is strict the same way `register_cli_command`
-is: reserved names and duplicate `(command, provider)` registrations are errors.
+The core-owned command groups own their own leaves; a module extends the
+`httk project` group not by mounting CLI leaves but by registering a project
+*member kind* with `register_project_member_kind(kind, handler)`, which the
+core seal, manifest, doctor, and verify verbs delegate to (see {doc}`/projects`).
 
 ## Definition prefixes
 

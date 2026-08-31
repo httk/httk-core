@@ -26,9 +26,8 @@ class ToyMemberHandler:
     def seal(self, member_root: Path, keys: object) -> Path:
         assert isinstance(keys, sealing.SealKeys)
         records = file_records(member_root, exclusions=(_SEAL,))
-        return sealing._write_seal(
-            member_root / _SEAL, "toy", {"member": member_root.name}, records, keys.keys
-        )
+        body = sealing.build_seal_body("toy", {"member": member_root.name}, records)
+        return sealing.write_seal(member_root / _SEAL, body, keys.keys)
 
     def unseal(self, member_root: Path) -> None:
         (member_root / _SEAL).unlink(missing_ok=True)
@@ -49,7 +48,7 @@ class ToyMemberHandler:
         base = sealing.verify_seal(path, trusted_keys=trusted_keys)
         seal = sealing.read_seal(path)
         actual = file_records(member_root, exclusions=(_SEAL,))
-        combined = sealing._combine(base, sealing._diff_records(list(seal.records), actual))
+        combined = sealing._combine(base, sealing.diff_records(list(seal.records), actual))
         return (combined.as_entry("toy", member_root.name),)
 
     def doctor(self, member_root: Path, *, repair: bool) -> tuple[dict[str, object], ...]:
