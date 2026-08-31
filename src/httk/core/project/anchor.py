@@ -236,19 +236,21 @@ def key_fingerprint(value: str) -> str:
 
 
 def _write_project_key(control: Path) -> str:
+    # Imported lazily so ``httk.core.identity`` (which reads this package's
+    # ``_util``) and this module can each be imported first without a cycle.
+    from ..identity import _write_key_file_atomic
+
     seed = ed25519_generate_seed()
     key_dir = control / "keys"
     key_dir.mkdir()
-    private_path = key_dir / "project.seed"
-    descriptor = os.open(private_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-    with os.fdopen(descriptor, "w", encoding="ascii") as stream:
-        stream.write(base64.b64encode(seed).decode("ascii") + "\n")
-    os.chmod(private_path, 0o600)
-    public = ed25519_public_key(seed)
-    (key_dir / "project.pub").write_text(
-        base64.b64encode(public).decode("ascii") + "\n",
-        encoding="ascii",
+    _write_key_file_atomic(
+        key_dir / "project.seed",
+        base64.b64encode(seed).decode("ascii") + "\n",
+        0o600,
+        exclusive=True,
     )
+    public = ed25519_public_key(seed)
+    _write_key_file_atomic(key_dir / "project.pub", base64.b64encode(public).decode("ascii") + "\n", 0o644)
     return format_public_key(public)
 
 
