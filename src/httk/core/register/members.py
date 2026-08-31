@@ -34,7 +34,7 @@ def register_project_member_kind(kind: str, handler: str | Callable[..., Any]) -
     A *handler* is either a callable or a lazy ``"module:callable"`` reference
     that takes no arguments and returns an object implementing
     :class:`~httk.core.project.members.ProjectMemberHandler`. Registering a kind
-    is how an installed module teaches the core seal, manifest, and doctor verbs
+    is how an installed module teaches the core seal, manifest, and repair verbs
     to delegate that member's internals to it. This mirrors
     :func:`~httk.core.register.entries.register_entry_provider`.
 

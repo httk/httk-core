@@ -7,7 +7,7 @@ member contains, how it is sealed, and how it is checked is delegated to the
 handler that module registers for the kind (see
 :mod:`httk.core.register.members`).
 
-Core owns the verbs — seal, manifest, doctor, verify — and this on-disk registry
+Core owns the verbs — seal, manifest, repair, verify — and this on-disk registry
 that tells those verbs which subtrees to hand off and to whom. It interprets a
 member no further than its path and kind.
 """
@@ -59,7 +59,7 @@ class ProjectMemberHandler(Protocol):
 
     Every method takes the member's own root — ``project_root / member.path`` —
     rather than the project, so a handler never has to rediscover where it lives.
-    The manifest, doctor, and verify verbs core owns call exactly these; a member
+    The manifest, repair, and verify verbs core owns call exactly these; a member
     seals through its own module, and core only records the resulting digest.
     """
 
@@ -113,32 +113,36 @@ class ProjectMemberHandler(Protocol):
 
         ...
 
-    def doctor(self, member_root: Path, *, repair: bool) -> tuple[dict[str, object], ...]:
-        """Check, and optionally repair, this member, returning its findings.
+    def repair(self, member_root: Path, *, apply: bool) -> tuple[dict[str, object], ...]:
+        """Repair this member, or report only, returning its findings.
 
-        Each finding is a mapping in the doctor shape — ``check``, ``status``,
+        Each finding is a mapping in the repair shape — ``check``, ``status``,
         ``message``, ``repairable``, ``repaired``, ``action``, ``details`` — so
-        they concatenate with core's own anchor findings.
+        they concatenate with core's own anchor findings. Repairs are applied by
+        default; ``apply=False`` is a dry run that mutates nothing.
 
         :param member_root: This member's root directory.
-        :param repair: Whether to apply automatic repairs.
-        :return: The member's doctor findings.
+        :param apply: Whether to apply repairs; ``False`` reports only.
+        :return: The member's repair findings.
         """
 
         ...
 
-    def scan_project(self, project_root: Path, *, repair: bool) -> tuple[dict[str, object], ...]:
+    def scan_project(self, project_root: Path, *, apply: bool, adopt: bool) -> tuple[dict[str, object], ...]:
         """Optionally scan the whole project for members of this kind.
 
         Core calls this once per registered kind at project scope, whether or not
         any member of the kind is registered, so a handler can surface members
         present on disk but missing from ``members.json`` — the exact rescue an
-        empty registry needs. It is optional: core invokes it only when the
-        handler defines it, so a handler with nothing to scan simply omits it.
-        Findings use the same mapping shape as :meth:`doctor`.
+        empty registry needs. Repairs are applied by default; ``apply=False`` is a
+        dry run that mutates nothing, and *adopt* tells the scan whether to also
+        (re)establish members' machine-local links on this machine. It is
+        optional: core invokes it only when the handler defines it. Findings use
+        the same mapping shape as :meth:`repair`.
 
         :param project_root: The project root to scan.
-        :param repair: Whether to apply automatic repairs.
+        :param apply: Whether to apply repairs; ``False`` reports only.
+        :param adopt: Whether to adopt members of this kind on this machine.
         :return: The project-scope findings for this kind.
         """
 
@@ -152,7 +156,7 @@ class ProjectMemberHandler(Protocol):
         registers the member's workspace in the per-user name registry under its
         recorded *name*. It is idempotent and never mutates sealed state. Core
         invokes it only when the handler defines it, passing the member's
-        recorded name; findings use the same mapping shape as :meth:`doctor`.
+        recorded name; findings use the same mapping shape as :meth:`repair`.
 
         :param member_root: This member's root directory.
         :param name: The member's recorded name, or ``None`` when it has none.

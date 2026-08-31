@@ -1,4 +1,4 @@
-"""The core-owned ``httk project doctor|manifest|seal|unseal|verify-seal`` leaves."""
+"""The core-owned ``httk project repair|manifest|seal|unseal|verify-seal`` leaves."""
 
 from collections.abc import Iterator
 from pathlib import Path
@@ -38,30 +38,32 @@ def _run(project: Path, *argv: str) -> int:
     return command(list(argv), CLIContext("httk", project))
 
 
-def test_doctor_reports_and_exit_zero(project: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    code = _run(project, "doctor")
+def test_repair_reports_and_exit_zero(project: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    code = _run(project, "repair")
     out = capsys.readouterr().out
     assert code == 0
     assert "key_pin" in out
     assert "manifest" in out
 
 
-def test_doctor_unknown_member_kind_is_error(project: Path, capsys: pytest.CaptureFixture[str]) -> None:
+def test_repair_unknown_member_kind_is_error(project: Path, capsys: pytest.CaptureFixture[str]) -> None:
     (project / "work").mkdir()
     register_project_member(project, "work", "ghost")
-    code = _run(project, "doctor")
+    code = _run(project, "repair")
     out = capsys.readouterr().out
     assert "no registered handler" in out
     assert code == 1
 
 
-def test_doctor_concatenates_member_findings(project: Path, capsys: pytest.CaptureFixture[str]) -> None:
+def test_repair_concatenates_member_findings(project: Path, capsys: pytest.CaptureFixture[str]) -> None:
     (project / "work").mkdir()
     with toy_kind_registered():
         register_project_member(project, "work", "toy")
-        code = _run(project, "doctor")
+        code = _run(project, "repair")
     out = capsys.readouterr().out
     assert "toy:work" in out
+    # Default applies repairs (apply=True) to each member.
+    assert _toy_member.REPAIR_CALLS == [("work", True)]
     assert code == 0
 
 
@@ -134,15 +136,38 @@ def test_seal_deep_verify_with_member(project: Path, capsys: pytest.CaptureFixtu
     assert "toy\twork" in out
 
 
-def test_doctor_runs_scan_project_with_empty_registry(
+def test_repair_runs_scan_project_with_empty_registry(
     project: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     # No members registered; the kind's project-scope scan must still run.
     with toy_kind_registered():
-        code = _run(project, "doctor")
+        code = _run(project, "repair")
     out = capsys.readouterr().out
     assert "toy:scan" in out
     assert code == 0
+    # Default drives the scan with repairs on and adoption on.
+    assert _toy_member.SCAN_CALLS == [(True, True)]
+
+
+def test_repair_no_adopt_skips_adoption(project: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    (project / "work").mkdir()
+    with toy_kind_registered():
+        register_project_member(project, "work", "toy")
+        code = _run(project, "repair", "--no-adopt")
+    assert code == 0
+    assert _toy_member.SCAN_CALLS == [(True, False)]
+    assert _toy_member.REPAIR_CALLS == [("work", True)]
+
+
+def test_repair_dry_run_mutates_nothing(project: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    (project / "work").mkdir()
+    with toy_kind_registered():
+        register_project_member(project, "work", "toy")
+        code = _run(project, "repair", "--dry-run")
+    assert code == 0
+    # apply=False propagates to both the per-member repair and the kind scan.
+    assert _toy_member.REPAIR_CALLS == [("work", False)]
+    assert _toy_member.SCAN_CALLS == [(False, True)]
 
 
 def test_adopt_invokes_hook_with_recorded_name(project: Path, capsys: pytest.CaptureFixture[str]) -> None:

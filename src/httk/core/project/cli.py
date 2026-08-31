@@ -6,6 +6,7 @@
 """
 
 import argparse
+import inspect
 import json
 import shutil
 import sys
@@ -343,7 +344,7 @@ def _build_verify_export(parser: argparse.ArgumentParser) -> None:
 
 
 # ---------------------------------------------------------------------------
-# doctor, manifest, seal, unseal, verify-seal
+# repair, manifest, seal, unseal, verify-seal
 # ---------------------------------------------------------------------------
 
 
@@ -371,7 +372,7 @@ def _confirm(prompt: str, *, force: bool) -> bool:
 
 
 def _finding(check: str, status: str, message: str, **extra: object) -> dict[str, object]:
-    """Return one doctor finding in the shared mapping shape."""
+    """Return one repair finding in the shared mapping shape."""
 
     details = extra.get("details")
     return {
@@ -385,7 +386,7 @@ def _finding(check: str, status: str, message: str, **extra: object) -> dict[str
     }
 
 
-def _check_key_pin(project: Path, metadata: dict[str, object], repair: bool) -> dict[str, object]:
+def _check_key_pin(project: Path, metadata: dict[str, object], apply: bool) -> dict[str, object]:
     """Without a pin, manifest verification has no anchor but the manifest itself."""
 
     if pinned_project_key(metadata) is not None:
@@ -397,7 +398,7 @@ def _check_key_pin(project: Path, metadata: dict[str, object], repair: bool) -> 
         "project.json pins no public key, so every manifest verifies as an unknown key",
         repairable=repairable,
     )
-    if repair and repairable:
+    if apply and repairable:
         pinned = pin_project_key(project)
         finding["action"] = f"pinned {key_fingerprint(str(pinned['public_key']))}"
         finding["repaired"] = True
@@ -425,27 +426,32 @@ def _check_manifest(project: Path) -> dict[str, object]:
     )
 
 
-def project_doctor(project_root: str | Path | None = None, *, repair: bool = False) -> dict[str, object]:
-    """Check a project's anchor and every member, and optionally repair it.
+def project_repair(
+    project_root: str | Path | None = None, *, apply: bool = True, adopt: bool = True
+) -> dict[str, object]:
+    """Repair a project's anchor and every member, or report only under dry run.
 
     Core owns the anchor checks — the key pin and the manifest — and each member
-    handler contributes its own findings, concatenated after them.
+    handler contributes its own findings, concatenated after them. Repairs are
+    applied by default; ``apply=False`` is a dry run that mutates nothing. Member
+    adoption is driven through each kind's project-scope scan, gated by *adopt*.
 
     :param project_root: Project root, or None to discover the nearest project.
-    :param repair: Whether to apply automatic repairs.
-    :return: JSON-compatible doctor report.
+    :param apply: Whether to apply repairs; ``False`` reports only.
+    :param adopt: Whether the kind-scope scan should adopt members on this machine.
+    :return: JSON-compatible repair report.
     """
 
     project = require_project(project_root)
     metadata = read_project(project)
     findings: list[dict[str, object]] = [
-        _check_key_pin(project, metadata, repair),
+        _check_key_pin(project, metadata, apply),
         _check_manifest(project),
     ]
     for member in project_members(project):
         try:
             handler = project_member_handler(member.kind)
-            findings.extend(handler.doctor(project / member.path, repair=repair))
+            findings.extend(handler.repair(project / member.path, apply=apply))
         except LookupError:
             findings.append(
                 _finding(
@@ -458,30 +464,39 @@ def project_doctor(project_root: str | Path | None = None, *, repair: bool = Fal
     # present on disk but absent from members.json even when the registry is empty.
     for kind in known_project_member_kinds():
         scan = getattr(project_member_handler(kind), "scan_project", None)
-        if scan is not None:
-            findings.extend(scan(project, repair=repair))
+        if scan is None:
+            continue
+        # ponytail: transition shim — httk-workflow's scan_project still takes the
+        # old `repair=` keyword; drop this branch once its packet takes (apply, adopt).
+        if "apply" in inspect.signature(scan).parameters:
+            findings.extend(scan(project, apply=apply, adopt=adopt))
+        else:
+            findings.extend(scan(project, repair=apply))
     return {
-        "format": "httk-project-doctor",
+        "format": "httk-project-repair",
         "format_version": 2,
         "root": str(project),
         "project_id": metadata.get("project_id"),
         "checked_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "repair": repair,
+        "apply": apply,
+        "adopt": adopt,
         "findings": findings,
         "problems": sum(finding["status"] != "ok" for finding in findings),
         "repaired": sum(bool(finding["repaired"]) for finding in findings),
     }
 
 
-def _handle_doctor(arguments: argparse.Namespace, context: CLIContext) -> int:
-    """Check, and optionally repair, one or more projects."""
+def _handle_repair(arguments: argparse.Namespace, context: CLIContext) -> int:
+    """Repair one or more projects, or report only under --dry-run."""
 
     paths = arguments.paths or [str(context.cwd)]
     reports: list[dict[str, object]] = []
     failed = False
+    apply = not arguments.dry_run
+    adopt = not arguments.no_adopt
     for raw_path in paths:
         try:
-            report = project_doctor(Path(raw_path).expanduser().resolve(), repair=arguments.repair)
+            report = project_repair(Path(raw_path).expanduser().resolve(), apply=apply, adopt=adopt)
         except _ERRORS as exc:
             failed = True
             print(f"{context.program} project: {raw_path}: {exc}", file=sys.stderr)
@@ -645,14 +660,15 @@ def _handle_verify_seal(arguments: argparse.Namespace, context: CLIContext) -> i
     return exit_code
 
 
-def _build_doctor(parser: argparse.ArgumentParser) -> None:
+def _build_repair(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "paths",
         metavar="PATH",
         nargs="*",
-        help="the project to check (default: the nearest project of the working directory)",
+        help="the project to repair (default: the nearest project of the working directory)",
     )
-    parser.add_argument("--repair", action="store_true", help="also fix every finding that can be fixed automatically")
+    parser.add_argument("--no-adopt", action="store_true", help="perform other repairs but skip adopting members here")
+    parser.add_argument("--dry-run", action="store_true", help="report findings only; mutate nothing")
     parser.add_argument("--json", action="store_true", help="print the report as one JSON document")
 
 
@@ -795,10 +811,10 @@ def build_parser(program: str) -> argparse.ArgumentParser:
     )
     _add_leaf(
         subparsers,
-        "doctor",
-        summary="check, and optionally repair, this project",
-        handler=_handle_doctor,
-        build=_build_doctor,
+        "repair",
+        summary="repair this project, or report only with --dry-run",
+        handler=_handle_repair,
+        build=_build_repair,
     )
     _add_leaf(
         subparsers,

@@ -3,7 +3,7 @@
 The toy is a ``toy`` kind whose member is an ordinary subdirectory. It seals
 itself with a trivial core-format seal written through the same sealing
 primitives core uses, so a project seal can transitively cover it and the whole
-verify/manifest/doctor path can be driven without *httk-workflow* installed.
+verify/manifest/repair path can be driven without *httk-workflow* installed.
 """
 
 import contextlib
@@ -19,6 +19,12 @@ _SEAL = ".toy-seal.json"
 #: Records ``(member_name_dir, recorded_name)`` for each toy ``adopt`` call, so a
 #: test can assert the hook ran with the member's recorded name.
 ADOPT_CALLS: list[tuple[str, str | None]] = []
+
+#: Records ``(member_name_dir, apply)`` for each toy ``repair`` call.
+REPAIR_CALLS: list[tuple[str, bool]] = []
+
+#: Records ``(apply, adopt)`` for each toy ``scan_project`` call.
+SCAN_CALLS: list[tuple[bool, bool]] = []
 
 
 class ToyMemberHandler:
@@ -52,7 +58,8 @@ class ToyMemberHandler:
         combined = sealing._combine(base, sealing.diff_records(list(seal.records), actual))
         return (combined.as_entry("toy", member_root.name),)
 
-    def doctor(self, member_root: Path, *, repair: bool) -> tuple[dict[str, object], ...]:
+    def repair(self, member_root: Path, *, apply: bool) -> tuple[dict[str, object], ...]:
+        REPAIR_CALLS.append((member_root.name, apply))
         sealed = (member_root / _SEAL).is_file()
         return (
             {
@@ -66,14 +73,15 @@ class ToyMemberHandler:
             },
         )
 
-    def scan_project(self, project_root: Path, *, repair: bool) -> tuple[dict[str, object], ...]:
+    def scan_project(self, project_root: Path, *, apply: bool, adopt: bool) -> tuple[dict[str, object], ...]:
         # A stand-in for a real "unregistered members under this project" scan:
         # runs at project scope regardless of what members.json records.
+        SCAN_CALLS.append((apply, adopt))
         return (
             {
                 "check": "toy:scan",
                 "status": "ok",
-                "message": f"toy scanned {project_root.name}",
+                "message": f"toy scanned {project_root.name} apply={apply} adopt={adopt}",
                 "repairable": False,
                 "repaired": False,
                 "action": None,
@@ -107,6 +115,8 @@ def toy_kind_registered(kind: str = "toy") -> Iterator[None]:
 
     saved = dict(project_member_kinds._by_key)
     ADOPT_CALLS.clear()
+    REPAIR_CALLS.clear()
+    SCAN_CALLS.clear()
     register_project_member_kind(kind, ToyMemberHandler)
     try:
         yield

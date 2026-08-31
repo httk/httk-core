@@ -14,7 +14,7 @@ anchor, so the anchor stays useful to a core-only installation.
 
 The on-disk format — the ``format`` and ``format_version`` members, the key
 file names and modes, and the directory layout — is shared with *httk-workflow*
-so its manifests and doctor interoperate with core projects.
+so its manifests and repair interoperate with core projects.
 """
 
 import base64

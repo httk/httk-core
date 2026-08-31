@@ -57,7 +57,7 @@ httk -C ~/proj project show --json
 
 See {doc}`cli` for the root command-line rules. The `httk project` namespace
 belongs to *httk-core*, which owns every verb on it: `init | show | import-v1 |
-export | verify-export` for the anchor, and `doctor | manifest | seal | unseal |
+export | verify-export` for the anchor, and `repair | manifest | seal | unseal |
 verify-seal` for checking and pinning the tree (see {doc}`sealing`).
 
 (project-members)=
@@ -71,7 +71,7 @@ member only teaches core how to treat its own subtree. Three pieces cooperate:
 - **A module registers a kind.** `register_project_member_kind(kind, handler)`
   (from `httk.core`) records a lazy `"module:callable"` reference that resolves
   to an object implementing `ProjectMemberHandler` — the methods core drives:
-  `manifest_exclusions`, `guard`, `seal_digest`, `verify`, `doctor`, and the
+  `manifest_exclusions`, `guard`, `seal_digest`, `verify`, `repair`, and the
   optional `scan_project`. (A member seals through its own module; core only
   records the resulting digest.)
 - **A project records its members.** `register_project_member(project_root,
@@ -80,13 +80,13 @@ member only teaches core how to treat its own subtree. Three pieces cooperate:
   set, are unique within a project). Registration is refused while the project
   is sealed. `project_members` reads them back; `set_project_member_name` sets
   or clears a member's name.
-- **Core drives the verbs.** `httk project seal`, `manifest`, `doctor`, and
+- **Core drives the verbs.** `httk project seal`, `manifest`, `repair`, and
   `verify-seal` hand each registered member's subtree to its handler and fold the
   results into one project-wide answer — a project seal records each member's own
   seal digest, so it transitively pins whole subtrees without re-hashing them.
 
 A member whose kind no module has installed is reported clearly rather than
-silently skipped: sealing refuses it, and `doctor` and `verify-seal` flag it.
+silently skipped: sealing refuses it, and `repair` and `verify-seal` flag it.
 
 `httk project adopt` (re)establishes each member's machine-local links on the
 current machine — the per-user or machine-local bindings a member needs to be

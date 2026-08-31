@@ -205,7 +205,7 @@ surface and user-facing workflow are documented in {doc}`/cli`; see also
 The core-owned command groups own their own leaves; a module extends the
 `httk project` group not by mounting CLI leaves but by registering a project
 *member kind* with `register_project_member_kind(kind, handler)`, which the
-core seal, manifest, doctor, and verify verbs delegate to (see {doc}`/projects`).
+core seal, manifest, repair, and verify verbs delegate to (see {doc}`/projects`).
 
 ## Definition prefixes
 
