@@ -6,7 +6,6 @@
 """
 
 import argparse
-import inspect
 import json
 import shutil
 import sys
@@ -466,12 +465,7 @@ def project_repair(
         scan = getattr(project_member_handler(kind), "scan_project", None)
         if scan is None:
             continue
-        # ponytail: transition shim — httk-workflow's scan_project still takes the
-        # old `repair=` keyword; drop this branch once its packet takes (apply, adopt).
-        if "apply" in inspect.signature(scan).parameters:
-            findings.extend(scan(project, apply=apply, adopt=adopt))
-        else:
-            findings.extend(scan(project, repair=apply))
+        findings.extend(scan(project, apply=apply, adopt=adopt))
     return {
         "format": "httk-project-repair",
         "format_version": 2,
