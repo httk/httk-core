@@ -49,6 +49,7 @@ from .members import (
     members_path,
     project_members,
     register_project_member,
+    set_project_member_name,
     unregister_project_member,
     update_project_member_path,
 )
@@ -123,6 +124,7 @@ __all__ = [
     "resolve_seal_keys",
     "resolve_trusted_keys",
     "seal_project",
+    "set_project_member_name",
     "sign_seal_body",
     "trust_project_key",
     "trusted_project_keys",

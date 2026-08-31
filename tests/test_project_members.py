@@ -11,6 +11,7 @@ from httk.core.project.members import (
     members_path,
     project_members,
     register_project_member,
+    set_project_member_name,
     unregister_project_member,
     update_project_member_path,
 )
@@ -119,3 +120,46 @@ def test_read_refuses_duplicate_path(project: Path) -> None:
     )
     with pytest.raises(ValueError, match="members.json"):
         project_members(project)
+
+
+def test_name_roundtrips_and_updates(project: Path) -> None:
+    register_project_member(project, "work", "toy", name="alpha")
+    (member,) = project_members(project)
+    assert member == ProjectMember(path="work", kind="toy", name="alpha")
+    # Re-registering the same path updates kind AND name.
+    register_project_member(project, "work", "other", name="beta")
+    assert project_members(project) == (ProjectMember(path="work", kind="other", name="beta"),)
+
+
+def test_duplicate_name_refused_on_register(project: Path) -> None:
+    (project / "other").mkdir()
+    register_project_member(project, "work", "toy", name="dup")
+    with pytest.raises(ValueError, match="members.json"):
+        register_project_member(project, "other", "toy", name="dup")
+
+
+def test_duplicate_name_refused_on_read(project: Path) -> None:
+    members_path(project).write_text(
+        '{"format":"httk-project-members","format_version":1,'
+        '"members":[{"path":"a","kind":"toy","name":"dup"},{"path":"b","kind":"toy","name":"dup"}]}',
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="members.json"):
+        project_members(project)
+
+
+def test_name_preserved_across_move(project: Path) -> None:
+    (project / "moved").mkdir()
+    register_project_member(project, "work", "toy", name="alpha")
+    moved = update_project_member_path(project, "work", "moved")
+    assert moved == (ProjectMember(path="moved", kind="toy", name="alpha"),)
+
+
+def test_set_project_member_name(project: Path) -> None:
+    register_project_member(project, "work", "toy")
+    named = set_project_member_name(project, "work", "gamma")
+    assert named == (ProjectMember(path="work", kind="toy", name="gamma"),)
+    cleared = set_project_member_name(project, "work", None)
+    assert cleared == (ProjectMember(path="work", kind="toy", name=None),)
+    with pytest.raises(ValueError, match="no project member"):
+        set_project_member_name(project, "nowhere", "x")

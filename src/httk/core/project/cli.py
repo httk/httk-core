@@ -505,6 +505,54 @@ def _handle_doctor(arguments: argparse.Namespace, context: CLIContext) -> int:
     return 1 if failed else 0
 
 
+def _handle_adopt(arguments: argparse.Namespace, context: CLIContext) -> int:
+    """(Re)establish local links for each member whose handler adopts them."""
+
+    paths = arguments.paths or [str(context.cwd)]
+    reports: list[dict[str, object]] = []
+    failed = False
+    any_hook = False
+    for raw_path in paths:
+        try:
+            project = require_project(Path(raw_path).expanduser().resolve())
+            members = project_members(project)
+        except _ERRORS as exc:
+            failed = True
+            print(f"{context.program} project: {raw_path}: {exc}", file=sys.stderr)
+            continue
+        findings: list[dict[str, object]] = []
+        for member in members:
+            try:
+                handler = project_member_handler(member.kind)
+            except LookupError:
+                findings.append(
+                    _finding(
+                        f"member:{member.path}",
+                        "error",
+                        f"member kind {member.kind!r} has no registered handler; install the module that provides it",
+                    )
+                )
+                continue
+            adopt = getattr(handler, "adopt", None)
+            if adopt is None:
+                continue
+            any_hook = True
+            findings.extend(adopt(project / member.path, name=member.name))
+        reports.append({"root": str(project), "findings": findings})
+        if not arguments.json:
+            if len(paths) > 1:
+                print(f"=== {project} ===")
+            for finding in findings:
+                print(f"{finding['status']}\t{finding['check']}\t{finding['message']}")
+        if any(finding.get("status") == "error" for finding in findings):
+            failed = True
+    if arguments.json:
+        print(json.dumps(reports if len(paths) > 1 else reports[0] if reports else {}, indent=2, sort_keys=True))
+    elif not any_hook and not failed:
+        print("no project member has an adopt hook; nothing to adopt")
+    return 1 if failed else 0
+
+
 def _handle_manifest_create(arguments: argparse.Namespace, context: CLIContext) -> int:
     """Write the signed manifest of the nearest project."""
 
@@ -606,6 +654,16 @@ def _build_doctor(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument("--repair", action="store_true", help="also fix every finding that can be fixed automatically")
     parser.add_argument("--json", action="store_true", help="print the report as one JSON document")
+
+
+def _build_adopt(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "paths",
+        metavar="PATH",
+        nargs="*",
+        help="the project to adopt (default: the nearest project of the working directory)",
+    )
+    parser.add_argument("--json", action="store_true", help="print the findings as one JSON document")
 
 
 def _build_manifest_create(parser: argparse.ArgumentParser) -> None:
@@ -741,6 +799,13 @@ def build_parser(program: str) -> argparse.ArgumentParser:
         summary="check, and optionally repair, this project",
         handler=_handle_doctor,
         build=_build_doctor,
+    )
+    _add_leaf(
+        subparsers,
+        "adopt",
+        summary="(re)establish this project's members on this machine",
+        handler=_handle_adopt,
+        build=_build_adopt,
     )
     _add_manifest_group(subparsers)
     _add_leaf(

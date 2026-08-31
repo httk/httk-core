@@ -30,6 +30,7 @@ __all__ = [
     "members_path",
     "project_members",
     "register_project_member",
+    "set_project_member_name",
     "unregister_project_member",
     "update_project_member_path",
 ]
@@ -45,10 +46,12 @@ class ProjectMember:
     :param path: The member's posix relpath below the project root (``"."`` is
         the project root itself).
     :param kind: The member kind, whose handler owns the member's internals.
+    :param name: The member's recorded name, or ``None`` when it has none.
     """
 
     path: str
     kind: str
+    name: str | None = None
 
 
 class ProjectMemberHandler(Protocol):
@@ -141,6 +144,23 @@ class ProjectMemberHandler(Protocol):
 
         ...
 
+    def adopt(self, member_root: Path, *, name: str | None) -> tuple[dict[str, object], ...]:
+        """Optionally (re)establish this member's local links on this machine.
+
+        Adoption is the act of rebuilding whatever per-user or machine-local
+        links a member needs to be usable *here* — for example, httk-workflow
+        registers the member's workspace in the per-user name registry under its
+        recorded *name*. It is idempotent and never mutates sealed state. Core
+        invokes it only when the handler defines it, passing the member's
+        recorded name; findings use the same mapping shape as :meth:`doctor`.
+
+        :param member_root: This member's root directory.
+        :param name: The member's recorded name, or ``None`` when it has none.
+        :return: The adoption findings for this member.
+        """
+
+        ...
+
     def guard(self, member_root: Path) -> AbstractContextManager[object]:
         """Return a context manager fencing the member while it is snapshotted.
 
@@ -187,9 +207,13 @@ def project_members(project_root: str | os.PathLike[str]) -> tuple[ProjectMember
         raise ValueError(f"project members must be an array: {path}")
     members: list[ProjectMember] = []
     seen: set[str] = set()
+    seen_names: set[str] = set()
     for item in raw:
         if not isinstance(item, dict) or not isinstance(item.get("path"), str) or not isinstance(item.get("kind"), str):
             raise ValueError(f"malformed project member record: {item!r}")
+        name = item.get("name")
+        if name is not None and not isinstance(name, str):
+            raise ValueError(f"project member name must be a string or absent in {path}: {item!r}")
         relpath = str(item["path"])
         posix = PurePosixPath(relpath)
         if posix.is_absolute() or ".." in posix.parts:
@@ -197,7 +221,11 @@ def project_members(project_root: str | os.PathLike[str]) -> tuple[ProjectMember
         if relpath in seen:
             raise ValueError(f"project member path is recorded more than once in {path}: {relpath!r}")
         seen.add(relpath)
-        members.append(ProjectMember(path=relpath, kind=str(item["kind"])))
+        if isinstance(name, str):
+            if name in seen_names:
+                raise ValueError(f"project member name is recorded more than once in {path}: {name!r}")
+            seen_names.add(name)
+        members.append(ProjectMember(path=relpath, kind=str(item["kind"]), name=name))
     return tuple(members)
 
 
@@ -217,7 +245,10 @@ def _write_members(path: Path, members: Sequence[ProjectMember]) -> None:
     document = {
         "format": MEMBERS_FORMAT,
         "format_version": MEMBERS_FORMAT_VERSION,
-        "members": [{"path": member.path, "kind": member.kind} for member in members],
+        "members": [
+            {"path": member.path, "kind": member.kind, **({"name": member.name} if member.name is not None else {})}
+            for member in members
+        ],
     }
     write_json_atomic(path, document, durable=True)
 
@@ -237,26 +268,31 @@ def register_project_member(
     project_root: str | os.PathLike[str],
     path: str | os.PathLike[str],
     kind: str,
+    *,
+    name: str | None = None,
 ) -> tuple[ProjectMember, ...]:
     """Record that a member of *kind* lives at *path*, idempotently.
 
     The path is normalized to a posix relpath below the project root and a path
-    outside the project is refused. Registering the same path with the same kind
-    is a no-op; registering an existing path with a new kind replaces its kind.
+    outside the project is refused. Registering the same path again replaces its
+    kind and name.
 
     :param project_root: The project root whose registry to update.
     :param path: The member's path, absolute or relative to the project root.
     :param kind: The member kind whose handler owns the member.
+    :param name: The member's recorded name, or ``None`` for none.
     :return: The members after the update.
     :raises httk.core.project.sealing.SealedError: If the project is sealed.
-    :raises ValueError: If the path is outside the project.
+    :raises ValueError: If the path is outside the project or the name duplicates another member's.
     """
 
     root = Path(project_root).expanduser().resolve()
     _refuse_when_sealed(root)
     relative = _relative_member_path(root, path)
     members = [member for member in project_members(root) if member.path != relative]
-    members.append(ProjectMember(path=relative, kind=kind))
+    if name is not None and any(member.name == name for member in members):
+        raise ValueError(f"project member name {name!r} is already recorded in {members_path(root)}")
+    members.append(ProjectMember(path=relative, kind=kind, name=name))
     members.sort(key=lambda member: member.path)
     _write_members(members_path(root), members)
     return tuple(members)
@@ -309,9 +345,40 @@ def update_project_member_path(
     if all(member.path != old_relative for member in members):
         raise ValueError(f"no project member is recorded at {old_relative!r}")
     moved = [
-        ProjectMember(path=new_relative, kind=member.kind) if member.path == old_relative else member
+        ProjectMember(path=new_relative, kind=member.kind, name=member.name) if member.path == old_relative else member
         for member in members
     ]
     moved.sort(key=lambda member: member.path)
     _write_members(members_path(root), moved)
     return tuple(moved)
+
+
+def set_project_member_name(
+    project_root: str | os.PathLike[str],
+    path: str | os.PathLike[str],
+    name: str | None,
+) -> tuple[ProjectMember, ...]:
+    """Set (or clear) the recorded name of the member at *path*.
+
+    :param project_root: The project root whose registry to update.
+    :param path: The member's path, absolute or relative to the project root.
+    :param name: The name to record, or ``None`` to clear it.
+    :return: The members after the update.
+    :raises httk.core.project.sealing.SealedError: If the project is sealed.
+    :raises ValueError: If no member is at *path* or the name duplicates another member's.
+    """
+
+    root = Path(project_root).expanduser().resolve()
+    _refuse_when_sealed(root)
+    relative = _relative_member_path(root, path)
+    members = list(project_members(root))
+    if all(member.path != relative for member in members):
+        raise ValueError(f"no project member is recorded at {relative!r}")
+    if name is not None and any(member.path != relative and member.name == name for member in members):
+        raise ValueError(f"project member name {name!r} is already recorded in {members_path(root)}")
+    renamed = [
+        ProjectMember(path=member.path, kind=member.kind, name=name) if member.path == relative else member
+        for member in members
+    ]
+    _write_members(members_path(root), renamed)
+    return tuple(renamed)

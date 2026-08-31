@@ -12,6 +12,7 @@ from httk.core.project.members import register_project_member
 from httk.core.project.sealing import resolve_seal_keys
 from httk.core.register.members import project_member_kinds
 
+import _toy_member
 from _toy_member import ToyMemberHandler, toy_kind_registered
 
 
@@ -142,3 +143,31 @@ def test_doctor_runs_scan_project_with_empty_registry(
     out = capsys.readouterr().out
     assert "toy:scan" in out
     assert code == 0
+
+
+def test_adopt_invokes_hook_with_recorded_name(project: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    (project / "work").mkdir()
+    with toy_kind_registered():
+        register_project_member(project, "work", "toy", name="alpha")
+        code = _run(project, "adopt")
+        out = capsys.readouterr().out
+    assert code == 0
+    assert _toy_member.ADOPT_CALLS == [("work", "alpha")]
+    assert "toy:adopt:work" in out
+    assert "alpha" in out
+
+
+def test_adopt_missing_handler_is_error(project: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    (project / "work").mkdir()
+    register_project_member(project, "work", "ghost")
+    code = _run(project, "adopt")
+    out = capsys.readouterr().out
+    assert code == 1
+    assert "no registered handler" in out
+
+
+def test_adopt_noop_when_no_hook(project: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    code = _run(project, "adopt")
+    out = capsys.readouterr().out
+    assert code == 0
+    assert "nothing to adopt" in out

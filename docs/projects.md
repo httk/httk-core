@@ -75,9 +75,11 @@ member only teaches core how to treat its own subtree. Three pieces cooperate:
   optional `scan_project`. (A member seals through its own module; core only
   records the resulting digest.)
 - **A project records its members.** `register_project_member(project_root,
-  path, kind)` writes `httk_project/members.json`, mapping a subtree path to its
-  kind. Registration is refused while the project is sealed. `project_members`
-  reads them back.
+  path, kind, *, name=None)` writes `httk_project/members.json`, mapping a
+  subtree path to its kind and an optional recorded `name` (member names, when
+  set, are unique within a project). Registration is refused while the project
+  is sealed. `project_members` reads them back; `set_project_member_name` sets
+  or clears a member's name.
 - **Core drives the verbs.** `httk project seal`, `manifest`, `doctor`, and
   `verify-seal` hand each registered member's subtree to its handler and fold the
   results into one project-wide answer — a project seal records each member's own
@@ -85,6 +87,13 @@ member only teaches core how to treat its own subtree. Three pieces cooperate:
 
 A member whose kind no module has installed is reported clearly rather than
 silently skipped: sealing refuses it, and `doctor` and `verify-seal` flag it.
+
+`httk project adopt` (re)establishes each member's machine-local links on the
+current machine — the per-user or machine-local bindings a member needs to be
+usable here, such as httk-workflow registering the member's workspace in the
+per-user name registry under its recorded name. Adoption is idempotent and never
+touches sealed state; a member whose handler defines no adopt hook is simply
+skipped, and adopting a project with no such members is a no-op.
 
 ## Project templates
 

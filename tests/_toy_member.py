@@ -16,6 +16,10 @@ from httk.core.records import file_records
 
 _SEAL = ".toy-seal.json"
 
+#: Records ``(member_name_dir, recorded_name)`` for each toy ``adopt`` call, so a
+#: test can assert the hook ran with the member's recorded name.
+ADOPT_CALLS: list[tuple[str, str | None]] = []
+
 
 class ToyMemberHandler:
     """A minimal :class:`~httk.core.project.members.ProjectMemberHandler`."""
@@ -77,6 +81,20 @@ class ToyMemberHandler:
             },
         )
 
+    def adopt(self, member_root: Path, *, name: str | None) -> tuple[dict[str, object], ...]:
+        ADOPT_CALLS.append((member_root.name, name))
+        return (
+            {
+                "check": f"toy:adopt:{member_root.name}",
+                "status": "ok",
+                "message": f"adopted {member_root.name} as {name!r}",
+                "repairable": False,
+                "repaired": False,
+                "action": None,
+                "details": {},
+            },
+        )
+
     def guard(self, member_root: Path) -> contextlib.AbstractContextManager[object]:
         return contextlib.nullcontext()
 
@@ -88,6 +106,7 @@ def toy_kind_registered(kind: str = "toy") -> Iterator[None]:
     from httk.core.register.members import project_member_kinds, register_project_member_kind
 
     saved = dict(project_member_kinds._by_key)
+    ADOPT_CALLS.clear()
     register_project_member_kind(kind, ToyMemberHandler)
     try:
         yield
