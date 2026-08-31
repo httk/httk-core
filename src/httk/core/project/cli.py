@@ -15,7 +15,7 @@ from pathlib import Path
 
 from httk.core.cli import CLIContext
 from httk.core.identity import identity_key_paths
-from httk.core.register.members import project_member_handler
+from httk.core.register.members import known_project_member_kinds, project_member_handler
 
 from .anchor import (
     PROJECT_DIRECTORY,
@@ -454,6 +454,12 @@ def project_doctor(project_root: str | Path | None = None, *, repair: bool = Fal
                     f"member kind {member.kind!r} has no registered handler; install the module that provides it",
                 )
             )
+    # Once per installed kind at project scope, so a kind can surface members
+    # present on disk but absent from members.json even when the registry is empty.
+    for kind in known_project_member_kinds():
+        scan = getattr(project_member_handler(kind), "scan_project", None)
+        if scan is not None:
+            findings.extend(scan(project, repair=repair))
     return {
         "format": "httk-project-doctor",
         "format_version": 2,

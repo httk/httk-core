@@ -29,9 +29,6 @@ class ToyMemberHandler:
         body = sealing.build_seal_body("toy", {"member": member_root.name}, records)
         return sealing.write_seal(member_root / _SEAL, body, keys.keys)
 
-    def unseal(self, member_root: Path) -> None:
-        (member_root / _SEAL).unlink(missing_ok=True)
-
     def seal_digest(self, member_root: Path) -> tuple[str, str]:
         path = member_root / _SEAL
         if not path.is_file():
@@ -65,8 +62,20 @@ class ToyMemberHandler:
             },
         )
 
-    def describe(self, member_root: Path) -> dict[str, object]:
-        return {"kind": "toy", "root": str(member_root), "sealed": (member_root / _SEAL).is_file()}
+    def scan_project(self, project_root: Path, *, repair: bool) -> tuple[dict[str, object], ...]:
+        # A stand-in for a real "unregistered members under this project" scan:
+        # runs at project scope regardless of what members.json records.
+        return (
+            {
+                "check": "toy:scan",
+                "status": "ok",
+                "message": f"toy scanned {project_root.name}",
+                "repairable": False,
+                "repaired": False,
+                "action": None,
+                "details": {},
+            },
+        )
 
     def guard(self, member_root: Path) -> contextlib.AbstractContextManager[object]:
         return contextlib.nullcontext()

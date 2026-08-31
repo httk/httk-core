@@ -131,3 +131,14 @@ def test_seal_deep_verify_with_member(project: Path, capsys: pytest.CaptureFixtu
         out = capsys.readouterr().out
     assert code == 0
     assert "toy\twork" in out
+
+
+def test_doctor_runs_scan_project_with_empty_registry(
+    project: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # No members registered; the kind's project-scope scan must still run.
+    with toy_kind_registered():
+        code = _run(project, "doctor")
+    out = capsys.readouterr().out
+    assert "toy:scan" in out
+    assert code == 0

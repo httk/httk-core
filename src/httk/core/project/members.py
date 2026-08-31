@@ -16,7 +16,7 @@ import os
 from collections.abc import Sequence
 from contextlib import AbstractContextManager
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Protocol
 
 from .._json import read_json, write_json_atomic
@@ -56,7 +56,8 @@ class ProjectMemberHandler(Protocol):
 
     Every method takes the member's own root — ``project_root / member.path`` —
     rather than the project, so a handler never has to rediscover where it lives.
-    The seal, manifest, doctor, and verify verbs core owns call exactly these.
+    The manifest, doctor, and verify verbs core owns call exactly these; a member
+    seals through its own module, and core only records the resulting digest.
     """
 
     def manifest_exclusions(self, project_root: Path, member_relpath: str) -> tuple[str, ...]:
@@ -70,24 +71,6 @@ class ProjectMemberHandler(Protocol):
         :param project_root: The project root the patterns are relative to.
         :param member_relpath: This member's relpath below the project root.
         :return: The exclusion patterns this member contributes.
-        """
-
-        ...
-
-    def seal(self, member_root: Path, keys: object) -> Path:
-        """Seal this member's own subtree and return its seal path.
-
-        :param member_root: This member's root directory.
-        :param keys: The resolved signing keys to sign the member seal with.
-        :return: The written member seal path.
-        """
-
-        ...
-
-    def unseal(self, member_root: Path) -> None:
-        """Remove this member's own seal.
-
-        :param member_root: This member's root directory.
         """
 
         ...
@@ -141,11 +124,19 @@ class ProjectMemberHandler(Protocol):
 
         ...
 
-    def describe(self, member_root: Path) -> dict[str, object]:
-        """Describe this member for an operator diagnostic.
+    def scan_project(self, project_root: Path, *, repair: bool) -> tuple[dict[str, object], ...]:
+        """Optionally scan the whole project for members of this kind.
 
-        :param member_root: This member's root directory.
-        :return: A JSON-compatible description of the member.
+        Core calls this once per registered kind at project scope, whether or not
+        any member of the kind is registered, so a handler can surface members
+        present on disk but missing from ``members.json`` — the exact rescue an
+        empty registry needs. It is optional: core invokes it only when the
+        handler defines it, so a handler with nothing to scan simply omits it.
+        Findings use the same mapping shape as :meth:`doctor`.
+
+        :param project_root: The project root to scan.
+        :param repair: Whether to apply automatic repairs.
+        :return: The project-scope findings for this kind.
         """
 
         ...
@@ -195,10 +186,18 @@ def project_members(project_root: str | os.PathLike[str]) -> tuple[ProjectMember
     if not isinstance(raw, list):
         raise ValueError(f"project members must be an array: {path}")
     members: list[ProjectMember] = []
+    seen: set[str] = set()
     for item in raw:
         if not isinstance(item, dict) or not isinstance(item.get("path"), str) or not isinstance(item.get("kind"), str):
             raise ValueError(f"malformed project member record: {item!r}")
-        members.append(ProjectMember(path=str(item["path"]), kind=str(item["kind"])))
+        relpath = str(item["path"])
+        posix = PurePosixPath(relpath)
+        if posix.is_absolute() or ".." in posix.parts:
+            raise ValueError(f"project member path is absolute or escapes the project in {path}: {relpath!r}")
+        if relpath in seen:
+            raise ValueError(f"project member path is recorded more than once in {path}: {relpath!r}")
+        seen.add(relpath)
+        members.append(ProjectMember(path=relpath, kind=str(item["kind"])))
     return tuple(members)
 
 

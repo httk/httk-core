@@ -51,6 +51,7 @@ __all__ = [
     "create_manifest",
     "project_exclusions",
     "resolve_trusted_keys",
+    "verdict_for_key",
     "verify_manifest",
 ]
 
@@ -319,14 +320,21 @@ def resolve_trusted_keys(
     return tuple(keys)
 
 
-def _verdict_for_key(
+def verdict_for_key(
     public_key: str,
     trusted: Sequence[str],
     *,
     manifest: Path,
     manifest_format: str,
 ) -> ManifestVerification:
-    """Classify a verified signature against the trust anchors of a project."""
+    """Classify a verified signature against the trust anchors of a project.
+
+    :param public_key: The recorded public key whose signature already verified.
+    :param trusted: The project's trust anchors.
+    :param manifest: The manifest the verdict is about.
+    :param manifest_format: The manifest format label carried into the verdict.
+    :return: The trusted or unknown-key verdict for the signer.
+    """
 
     if public_key in trusted:
         return ManifestVerification(
@@ -357,6 +365,11 @@ def _verdict_for_key(
         public_key,
         tuple(trusted),
     )
+
+
+# Transition alias: httk-workflow still imports the private name; drop this once
+# its packet switches to verdict_for_key.
+_verdict_for_key = verdict_for_key
 
 
 def _verify_v2(root: Path, path: Path, trusted: Sequence[str]) -> ManifestVerification:
@@ -396,7 +409,7 @@ def _verify_v2(root: Path, path: Path, trusted: Sequence[str]) -> ManifestVerifi
             public_key=recorded,
             trusted_keys=tuple(trusted),
         )
-    return _verdict_for_key(recorded, trusted, manifest=path, manifest_format="v2")
+    return verdict_for_key(recorded, trusted, manifest=path, manifest_format="v2")
 
 
 def verify_manifest(

@@ -70,9 +70,10 @@ member only teaches core how to treat its own subtree. Three pieces cooperate:
 
 - **A module registers a kind.** `register_project_member_kind(kind, handler)`
   (from `httk.core`) records a lazy `"module:callable"` reference that resolves
-  to an object implementing `ProjectMemberHandler` — the member's own
-  `manifest_exclusions`, `seal`, `unseal`, `seal_digest`, `verify`, `doctor`,
-  `describe`, and `guard`.
+  to an object implementing `ProjectMemberHandler` — the methods core drives:
+  `manifest_exclusions`, `guard`, `seal_digest`, `verify`, `doctor`, and the
+  optional `scan_project`. (A member seals through its own module; core only
+  records the resulting digest.)
 - **A project records its members.** `register_project_member(project_root,
   path, kind)` writes `httk_project/members.json`, mapping a subtree path to its
   kind. Registration is refused while the project is sealed. `project_members`

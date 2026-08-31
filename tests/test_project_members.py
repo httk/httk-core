@@ -99,3 +99,23 @@ def test_registration_refused_while_sealed(project: Path) -> None:
 
 def test_missing_registry_is_empty(project: Path) -> None:
     assert project_members(project) == ()
+
+
+def test_read_refuses_escaping_path(project: Path) -> None:
+    members_path(project).write_text(
+        '{"format":"httk-project-members","format_version":1,'
+        '"members":[{"path":"../evil","kind":"toy"}]}',
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="members.json"):
+        project_members(project)
+
+
+def test_read_refuses_duplicate_path(project: Path) -> None:
+    members_path(project).write_text(
+        '{"format":"httk-project-members","format_version":1,'
+        '"members":[{"path":"work","kind":"toy"},{"path":"work","kind":"other"}]}',
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="members.json"):
+        project_members(project)
