@@ -33,7 +33,7 @@ from httk.core.crypto import (
 )
 from httk.core.userdirs import config_home
 
-from .project._util import json_bytes, read_json, write_json_atomic
+from ._json import json_bytes, read_json, write_json_atomic
 
 __all__ = [
     "IDENTITY_CONFIG_FORMAT",

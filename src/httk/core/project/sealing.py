@@ -22,11 +22,11 @@ from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 
+from .._json import json_bytes, write_json_atomic
 from ..crypto import ed25519_public_key, ed25519_sign, ed25519_verify
 from ..identity import identity_key_paths, identity_seed
 from ..records import file_records
 from ..register.members import project_member_handler
-from ._util import json_bytes, write_json_atomic
 from .anchor import (
     PROJECT_DIRECTORY,
     canonical_public_key,

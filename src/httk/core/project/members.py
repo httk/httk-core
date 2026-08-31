@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
 
-from ._util import read_json, write_json_atomic
+from .._json import read_json, write_json_atomic
 from .anchor import PROJECT_DIRECTORY
 
 __all__ = [

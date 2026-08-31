@@ -31,7 +31,7 @@ from pathlib import Path
 # workflow installation imports the project CLI during core's plugin discovery.
 from httk.core.crypto import ed25519_generate_seed, ed25519_public_key
 
-from ._util import write_json_atomic
+from .._json import write_json_atomic
 
 #: The control directory that marks a project root, like ``.git`` marks a
 #: repository. Every command discovers a project by finding this directory at or
@@ -236,8 +236,8 @@ def key_fingerprint(value: str) -> str:
 
 
 def _write_project_key(control: Path) -> str:
-    # Imported lazily so ``httk.core.identity`` (which reads this package's
-    # ``_util``) and this module can each be imported first without a cycle.
+    # Imported lazily to keep ``httk.core.identity`` importable while this
+    # package is still initializing during core's plugin discovery.
     from ..identity import _write_key_file_atomic
 
     seed = ed25519_generate_seed()

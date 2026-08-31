@@ -1,4 +1,4 @@
-"""Private JSON helpers for the project anchor.
+"""Deterministic JSON helpers shared across httk.core.
 
 The on-disk representation of ``project.json`` is shared with *httk-workflow*:
 compact, key-sorted, non-ASCII-preserving encoding with a trailing newline,

@@ -24,10 +24,10 @@ from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 
+from .._json import json_bytes
 from ..crypto import ed25519_public_key, ed25519_sign, ed25519_verify
 from ..records import file_records
 from ..register.members import project_member_handler
-from ._util import json_bytes
 from .anchor import (
     PROJECT_DIRECTORY,
     PROJECT_FILE,

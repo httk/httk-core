@@ -247,3 +247,18 @@ def test_absent_signature_is_accepted_and_tampering_is_rejected() -> None:
     tampered = {**signed, "value": 2}
     result = verify_document(tampered)
     assert result.present and not result.valid
+
+
+def test_identity_imports_first_in_fresh_subprocess() -> None:
+    """Guard the identity<->project import cycle.
+
+    ``httk.core.identity`` is a lower layer than ``httk.core.project`` and must
+    import cleanly as the very first httk import in a fresh interpreter. Run it
+    in a subprocess so a re-introduced cycle cannot hide behind an import order
+    another test already warmed up.
+    """
+
+    import subprocess
+    import sys
+
+    subprocess.run([sys.executable, "-c", "import httk.core.identity"], check=True)
