@@ -79,6 +79,12 @@ from .io import (  # noqa: F401
     writer_formats,
     writers,
 )
+from .members import (  # noqa: F401
+    known_project_member_kinds,
+    project_member_handler,
+    project_member_kinds,
+    register_project_member_kind,
+)
 from .schemas import (  # noqa: F401
     _entry_type_definitions,
     _property_definitions,
@@ -112,12 +118,14 @@ __all__ = [
     "known_filenames",
     "known_format_adapters",
     "known_optimade_entry_bindings",
+    "known_project_member_kinds",
     "known_property_definitions",
     "known_writer_formats",
     "known_writers",
     "load_entry_type_definition",
     "load_property_definition",
     "optimade_entry_binding",
+    "project_member_handler",
     "reader_filenames",
     "readers",
     "register_cli_command",
@@ -129,6 +137,7 @@ __all__ = [
     "register_format_adapter",
     "register_format_serializer",
     "register_optimade_entry_binding",
+    "register_project_member_kind",
     "register_property_definition",
     "register_reader",
     "register_writer",

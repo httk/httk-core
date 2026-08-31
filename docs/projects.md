@@ -56,9 +56,34 @@ httk -C ~/proj project show --json
 ```
 
 See {doc}`cli` for the root command-line rules. The `httk project` namespace
-belongs to *httk-core*, and an installed module may mount additional
-subcommands on it through `register_cli_extension` — *httk-workflow* adds
-`doctor`, `manifest`, `seal`, and `unseal` this way.
+belongs to *httk-core*, which owns every verb on it: `init | show | import-v1 |
+export | verify-export` for the anchor, and `doctor | manifest | seal | unseal |
+verify-seal` for checking and pinning the tree (see {doc}`sealing`).
+
+(project-members)=
+
+## Project members
+
+A project can hold *members*: self-contained subtrees whose internals another
+module owns — a workflow workspace is the first one. Core owns the verbs; a
+member only teaches core how to treat its own subtree. Three pieces cooperate:
+
+- **A module registers a kind.** `register_project_member_kind(kind, handler)`
+  (from `httk.core`) records a lazy `"module:callable"` reference that resolves
+  to an object implementing `ProjectMemberHandler` — the member's own
+  `manifest_exclusions`, `seal`, `unseal`, `seal_digest`, `verify`, `doctor`,
+  `describe`, and `guard`.
+- **A project records its members.** `register_project_member(project_root,
+  path, kind)` writes `httk_project/members.json`, mapping a subtree path to its
+  kind. Registration is refused while the project is sealed. `project_members`
+  reads them back.
+- **Core drives the verbs.** `httk project seal`, `manifest`, `doctor`, and
+  `verify-seal` hand each registered member's subtree to its handler and fold the
+  results into one project-wide answer — a project seal records each member's own
+  seal digest, so it transitively pins whole subtrees without re-hashing them.
+
+A member whose kind no module has installed is reported clearly rather than
+silently skipped: sealing refuses it, and `doctor` and `verify-seal` flag it.
 
 ## Project templates
 

@@ -7,13 +7,17 @@
 
 import argparse
 import json
+import logging
 import shutil
 import sys
 from collections.abc import Callable, Sequence
+from datetime import UTC, datetime
 from pathlib import Path
 
 from httk.core.cli import CLIContext
+from httk.core.identity import identity_key_paths
 from httk.core.register.cli import cli_extensions
+from httk.core.register.members import project_member_handler
 
 from .anchor import (
     PROJECT_DIRECTORY,
@@ -21,13 +25,35 @@ from .anchor import (
     import_v1_project,
     initialize_project,
     key_fingerprint,
+    pin_project_key,
     pinned_project_key,
+    project_public_key_path,
     read_project,
+    read_public_key_file,
     require_project,
     trusted_project_keys,
 )
 from .export import export_project, verify_export
+from .manifests import (
+    VALID_TRUSTED,
+    VALID_UNKNOWN_KEY,
+    create_manifest,
+    resolve_trusted_keys,
+    verify_manifest,
+)
+from .members import project_members
+from .sealing import (
+    SealKeys,
+    default_project_keys,
+    project_seal_path,
+    read_seal,
+    seal_project,
+    unseal_project,
+    verify_project,
+)
 from .templates import available_templates, check_parameters, instantiate_template, resolve_template
+
+_LOGGER = logging.getLogger(__name__)
 
 #: Everything a handler may raise that is an operator's problem rather than a
 #: defect. Anything here is reported as ``PROGRAM: message`` and exits ``2``.
@@ -321,6 +347,336 @@ def _build_verify_export(parser: argparse.ArgumentParser) -> None:
 
 
 # ---------------------------------------------------------------------------
+# doctor, manifest, seal, unseal, verify-seal
+# ---------------------------------------------------------------------------
+
+
+def _confirm(prompt: str, *, force: bool) -> bool:
+    """Gate one destructive action behind a terminal confirmation.
+
+    ``--force`` answers yes without asking; without a terminal and without
+    ``--force`` the action is refused with a hint rather than blocking on an
+    unanswerable prompt.
+
+    :param prompt: The question to ask, without the ``[y/N]`` suffix.
+    :param force: Whether ``--force`` was given, answering yes unconditionally.
+    :return: Whether the action was confirmed.
+    """
+
+    if force:
+        return True
+    if not sys.stdin.isatty():
+        print("this operation without a terminal requires --force", file=sys.stderr)
+        return False
+    if input(f"{prompt} [y/N] ").strip().lower() in {"y", "yes"}:
+        return True
+    print("not unsealed")
+    return False
+
+
+def _finding(check: str, status: str, message: str, **extra: object) -> dict[str, object]:
+    """Return one doctor finding in the shared mapping shape."""
+
+    details = extra.get("details")
+    return {
+        "check": check,
+        "status": status,
+        "message": message,
+        "repairable": bool(extra.get("repairable", False)),
+        "repaired": bool(extra.get("repaired", False)),
+        "action": extra.get("action"),
+        "details": dict(details) if isinstance(details, dict) else {},
+    }
+
+
+def _check_key_pin(project: Path, metadata: dict[str, object], repair: bool) -> dict[str, object]:
+    """Without a pin, manifest verification has no anchor but the manifest itself."""
+
+    if pinned_project_key(metadata) is not None:
+        return _finding("key_pin", "ok", "project.json pins the project's public key")
+    repairable = project_public_key_path(project).is_file()
+    finding = _finding(
+        "key_pin",
+        "warning",
+        "project.json pins no public key, so every manifest verifies as an unknown key",
+        repairable=repairable,
+    )
+    if repair and repairable:
+        pinned = pin_project_key(project)
+        finding["action"] = f"pinned {key_fingerprint(str(pinned['public_key']))}"
+        finding["repaired"] = True
+        finding["status"] = "ok"
+        metadata.update(pinned)
+    return finding
+
+
+def _check_manifest(project: Path) -> dict[str, object]:
+    """Manifest staleness is reported and never repaired behind an operator."""
+
+    path = project / PROJECT_DIRECTORY / "manifest.jsonl.bz2"
+    if not path.is_file():
+        return _finding("manifest", "warning", "this project has no manifest", details={"present": False})
+    try:
+        verification = verify_manifest(project)
+    except (OSError, ValueError) as exc:
+        return _finding("manifest", "error", f"the manifest could not be verified: {exc}")
+    status = {"valid_trusted": "ok", "valid_unknown_key": "warning"}.get(verification.verdict, "error")
+    return _finding(
+        "manifest",
+        status,
+        f"{verification.verdict}: {verification.reason}",
+        details={"verdict": verification.verdict},
+    )
+
+
+def project_doctor(project_root: str | Path | None = None, *, repair: bool = False) -> dict[str, object]:
+    """Check a project's anchor and every member, and optionally repair it.
+
+    Core owns the anchor checks — the key pin and the manifest — and each member
+    handler contributes its own findings, concatenated after them.
+
+    :param project_root: Project root, or None to discover the nearest project.
+    :param repair: Whether to apply automatic repairs.
+    :return: JSON-compatible doctor report.
+    """
+
+    project = require_project(project_root)
+    metadata = read_project(project)
+    findings: list[dict[str, object]] = [
+        _check_key_pin(project, metadata, repair),
+        _check_manifest(project),
+    ]
+    for member in project_members(project):
+        try:
+            handler = project_member_handler(member.kind)
+            findings.extend(handler.doctor(project / member.path, repair=repair))
+        except LookupError:
+            findings.append(
+                _finding(
+                    f"member:{member.path}",
+                    "error",
+                    f"member kind {member.kind!r} has no registered handler; install the module that provides it",
+                )
+            )
+    return {
+        "format": "httk-project-doctor",
+        "format_version": 2,
+        "root": str(project),
+        "project_id": metadata.get("project_id"),
+        "checked_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "repair": repair,
+        "findings": findings,
+        "problems": sum(finding["status"] != "ok" for finding in findings),
+        "repaired": sum(bool(finding["repaired"]) for finding in findings),
+    }
+
+
+def _handle_doctor(arguments: argparse.Namespace, context: CLIContext) -> int:
+    """Check, and optionally repair, one or more projects."""
+
+    paths = arguments.paths or [str(context.cwd)]
+    reports: list[dict[str, object]] = []
+    failed = False
+    for raw_path in paths:
+        try:
+            report = project_doctor(Path(raw_path).expanduser().resolve(), repair=arguments.repair)
+        except _ERRORS as exc:
+            failed = True
+            print(f"{context.program} project: {raw_path}: {exc}", file=sys.stderr)
+            continue
+        reports.append(report)
+        findings = report["findings"]
+        assert isinstance(findings, list)
+        if not arguments.json:
+            if len(paths) > 1:
+                print(f"=== {report['root']} ===")
+            for finding in findings:
+                repaired = " (repaired)" if finding.get("repaired") else ""
+                print(f"{finding['status']}\t{finding['check']}\t{finding['message']}{repaired}")
+            print(f"{report['problems']} problem(s), {report['repaired']} repaired")
+        # A warning is a thing to know about, not to fail a script on; only a
+        # check that is actually broken makes the command itself fail.
+        if any(finding.get("status") == "error" for finding in findings):
+            failed = True
+    if arguments.json:
+        print(json.dumps(reports if len(paths) > 1 else reports[0] if reports else {}, indent=2, sort_keys=True))
+    return 1 if failed else 0
+
+
+def _handle_manifest_create(arguments: argparse.Namespace, context: CLIContext) -> int:
+    """Write the signed manifest of the nearest project."""
+
+    print(create_manifest(arguments.project or context.cwd, output=arguments.manifest))
+    return 0
+
+
+def _handle_manifest_verify(arguments: argparse.Namespace, context: CLIContext) -> int:
+    """Verify one project manifest against the tree and its trust anchors."""
+
+    verification = verify_manifest(
+        arguments.project or context.cwd,
+        manifest=arguments.manifest,
+        trusted_keys=arguments.trusted_key,
+    )
+    print("valid" if verification.valid else "invalid")
+    print(f"{verification.verdict}: {verification.reason}")
+    return verification.exit_code
+
+
+def _handle_seal(arguments: argparse.Namespace, context: CLIContext) -> int:
+    """Seal a project: its loose files and every member's seal digest."""
+
+    root = require_project(arguments.project or context.cwd)
+    refs = [ref.strip() for ref in arguments.keys.split(",") if ref.strip()] if arguments.keys else None
+    resolved: SealKeys | None = default_project_keys(root, refs) if refs is not None else None
+    seal_project(root, keys=resolved)
+    seal = read_seal(project_seal_path(root))
+    roles = ",".join(str(signature.get("role")) for signature in seal.signatures)
+    print(f"{root}\tsealed\t{roles}")
+    return 0
+
+
+def _handle_unseal(arguments: argparse.Namespace, context: CLIContext) -> int:
+    """Remove a project's seal, after confirmation."""
+
+    root = require_project(arguments.project or context.cwd)
+    if not _confirm(f"Unseal the project at {root}?", force=arguments.force):
+        return 1
+    unseal_project(root)
+    print(f"{root}\tunsealed")
+    return 0
+
+
+def _default_trusted_keys(project: Path, explicit: list[str]) -> list[str]:
+    """Return the trust anchors ``verify-seal`` uses by default.
+
+    A tree sealed by its own project or its own operator identity verifies as
+    trusted without the operator naming a key: the project's pinned keys, every
+    explicitly supplied key, and the local identity's public key when one exists.
+    """
+
+    trusted = list(resolve_trusted_keys(project, trusted_keys=explicit))
+    public_key_path = identity_key_paths()[1]
+    if public_key_path.is_file():
+        identity_key = read_public_key_file(public_key_path)
+        if identity_key not in trusted:
+            trusted.append(identity_key)
+    return trusted
+
+
+def _handle_verify_seal(arguments: argparse.Namespace, context: CLIContext) -> int:
+    """Verify the project seal and, unless shallow, every member seal it references."""
+
+    root = require_project(arguments.path or context.cwd)
+    trusted = _default_trusted_keys(root, list(arguments.trusted_key))
+    report = verify_project(root, trusted_keys=trusted, deep=not arguments.shallow)
+    verdicts = [str(entry["verdict"]) for entry in report.entries]
+    if not report.ok:
+        exit_code, final = 1, "FAILED"
+    elif VALID_UNKNOWN_KEY in verdicts:
+        exit_code, final = 3, "UNTRUSTED"
+    else:
+        exit_code, final = 0, "ok"
+    if arguments.json:
+        document = {
+            "entries": list(report.entries),
+            "ok": report.ok,
+            "trusted": bool(report.entries) and all(verdict == VALID_TRUSTED for verdict in verdicts),
+        }
+        print(json.dumps(document, indent=2, sort_keys=True))
+        return exit_code
+    for entry in report.entries:
+        print(f"{entry['level']}\t{entry['subject']}\t{entry['verdict']}\t{entry['reason'] or '-'}")
+        discrepancies = entry["discrepancies"]
+        assert isinstance(discrepancies, list)
+        for discrepancy in discrepancies:
+            print(f"  {discrepancy['kind']}\t{discrepancy['path']}")
+    print(final)
+    return exit_code
+
+
+def _build_doctor(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "paths",
+        metavar="PATH",
+        nargs="*",
+        help="the project to check (default: the nearest project of the working directory)",
+    )
+    parser.add_argument("--repair", action="store_true", help="also fix every finding that can be fixed automatically")
+    parser.add_argument("--json", action="store_true", help="print the report as one JSON document")
+
+
+def _build_manifest_create(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("project", metavar="PROJECT", nargs="?", help="the project (default: the nearest one)")
+    parser.add_argument("--manifest", metavar="PATH", help="write the manifest here rather than in the project")
+
+
+def _build_manifest_verify(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("project", metavar="PROJECT", nargs="?", help="the project (default: the nearest one)")
+    parser.add_argument("--manifest", metavar="PATH", help="verify this manifest rather than the project's")
+    parser.add_argument(
+        "--trusted-key",
+        action="append",
+        default=[],
+        metavar="PATH_OR_VALUE",
+        help=(
+            "trust this Ed25519 public key as well: an ed25519:BASE64 value or the path of a *.pub file "
+            "(repeatable). The project's pinned key is always trusted"
+        ),
+    )
+
+
+def _build_seal(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("project", metavar="PROJECT", nargs="?", help="the project to seal (default: the nearest one)")
+    parser.add_argument(
+        "--keys",
+        metavar="REFS",
+        help="comma-separated seal-key refs to sign with (default: the project's seal_keys member)",
+    )
+
+
+def _build_unseal(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "project", metavar="PROJECT", nargs="?", help="the project to unseal (default: the nearest one)"
+    )
+    parser.add_argument("--force", action="store_true", help="skip the confirmation prompt")
+
+
+def _build_verify_seal(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("path", metavar="PATH", nargs="?", help="a project to verify (default: the nearest one)")
+    parser.add_argument("--json", action="store_true", help="print the report as one JSON document")
+    parser.add_argument(
+        "--trusted-key",
+        action="append",
+        default=[],
+        metavar="KEY_OR_FINGERPRINT",
+        help=(
+            "trust this key as well: an ed25519:BASE64 value, a sha256: fingerprint, or the path of a *.pub file "
+            "(repeatable). The project's pinned keys and the local identity are always trusted"
+        ),
+    )
+    parser.add_argument("--shallow", action="store_true", help="verify only the project seal, not the member seals")
+
+
+def _add_manifest_group(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]") -> None:
+    """Mount the ``manifest create|verify`` group under the project command."""
+
+    manifest = subparsers.add_parser(
+        "manifest", help="create and verify the signed project manifest", description="Create and verify the manifest"
+    )
+    manifest.set_defaults(handler=None, help_parser=manifest)
+    actions = manifest.add_subparsers(dest="manifest_action", metavar="ACTION")
+    create = actions.add_parser("create", help="write the signed manifest", description="Write the signed manifest")
+    create.set_defaults(handler=_handle_manifest_create, help_parser=create)
+    _build_manifest_create(create)
+    verify = actions.add_parser(
+        "verify", help="verify the manifest against the tree", description="Verify one project manifest"
+    )
+    verify.set_defaults(handler=_handle_manifest_verify, help_parser=verify)
+    _build_manifest_verify(verify)
+
+
+# ---------------------------------------------------------------------------
 # Assembly and dispatch
 # ---------------------------------------------------------------------------
 
@@ -377,12 +733,45 @@ def build_parser(program: str) -> argparse.ArgumentParser:
         handler=_handle_verify_export,
         build=_build_verify_export,
     )
+    _add_leaf(
+        subparsers,
+        "doctor",
+        summary="check, and optionally repair, this project",
+        handler=_handle_doctor,
+        build=_build_doctor,
+    )
+    _add_manifest_group(subparsers)
+    _add_leaf(
+        subparsers,
+        "seal",
+        summary="seal the project and every member it holds",
+        handler=_handle_seal,
+        build=_build_seal,
+    )
+    _add_leaf(
+        subparsers,
+        "unseal",
+        summary="remove the project's seal",
+        handler=_handle_unseal,
+        build=_build_unseal,
+    )
+    _add_leaf(
+        subparsers,
+        "verify-seal",
+        summary="verify a sealed project tree against its seals",
+        handler=_handle_verify_seal,
+        build=_build_verify_seal,
+    )
     # Installed modules mount extra leaves under `httk project` via the
-    # `register_cli_extension("project", ...)` surface. A broken provider is a
-    # real installation error and is allowed to propagate, matching the policy
-    # for a broken registered command.
+    # `register_cli_extension("project", ...)` surface. During the transition
+    # while *httk-workflow* still mounts its own `doctor|manifest|seal|unseal`
+    # this way, a provider leaf whose name collides with a core-owned leaf is
+    # skipped rather than fatal; this disappears when that extension is removed.
     for provider in cli_extensions("project"):
-        provider(subparsers)
+        try:
+            provider(subparsers)
+        except argparse.ArgumentError as exc:
+            _LOGGER.debug("skipping project CLI extension leaf that collides with a core leaf: %s", exc)
     return parser
 
 

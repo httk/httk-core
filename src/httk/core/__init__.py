@@ -83,6 +83,11 @@ from .register.io import (
     register_reader,
     register_writer,
 )
+from .register.members import (
+    known_project_member_kinds,
+    project_member_handler,
+    register_project_member_kind,
+)
 from .register.schemas import (
     load_entry_type_definition,
     load_property_definition,
@@ -194,6 +199,7 @@ __all__ = [
     "known_compressions",
     "known_definition_prefixes",
     "known_entry_providers",
+    "known_project_member_kinds",
     "load",
     "load_entry_type_definition",
     "load_many",
@@ -202,6 +208,7 @@ __all__ = [
     "numpy_available",
     "parse_entry_id",
     "parse_immutable_id",
+    "project_member_handler",
     "register_citation",
     "register_cli_command",
     "register_cli_extension",
@@ -214,6 +221,7 @@ __all__ = [
     "register_format_adapter",
     "register_format_serializer",
     "register_optimade_entry_binding",
+    "register_project_member_kind",
     "register_property_definition",
     "register_reader",
     "register_writer",

@@ -69,6 +69,7 @@ plugins
 crypto
 identity
 projects
+sealing
 property_definitions
 vectors
 exactmath
