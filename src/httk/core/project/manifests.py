@@ -367,10 +367,6 @@ def verdict_for_key(
     )
 
 
-# Transition alias: httk-workflow still imports the private name; drop this once
-# its packet switches to verdict_for_key.
-
-
 def _verify_v2(root: Path, path: Path, trusted: Sequence[str]) -> ManifestVerification:
     """Verify one v2 manifest against *root* and classify its signing key."""
 
