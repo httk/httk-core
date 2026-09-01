@@ -4,13 +4,17 @@ import logging
 import re
 
 __all__ = [
+    "ALTERNATIVE_ID_PATTERN",
+    "ALTERNATIVE_KIND_PATTERN",
     "ENTRY_ID_PATTERN",
     "IMMUTABLE_ID_PATTERN",
     "check_entry_id",
     "check_immutable_id",
+    "format_alternative_id",
     "format_entry_id",
     "format_immutable_id",
     "is_url_safe_id",
+    "parse_alternative_id",
     "parse_entry_id",
     "parse_immutable_id",
 ]
@@ -18,9 +22,12 @@ __all__ = [
 ENTRY_ID_PATTERN = re.compile(r"^([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)-([A-Za-z0-9_]+)-([1-9][0-9]*)$")
 _ENTRY_ID_BODY = re.sub(r"\((?!\?)", "(?:", ENTRY_ID_PATTERN.pattern[1:-1])
 IMMUTABLE_ID_PATTERN = re.compile(rf"^({_ENTRY_ID_BODY})~([1-9][0-9]*)$")
+ALTERNATIVE_KIND_PATTERN = re.compile(r"^[a-z][a-z0-9_]*$")
+ALTERNATIVE_ID_PATTERN = re.compile(rf"^({_ENTRY_ID_BODY})~([a-z][a-z0-9_]*)(?:~([1-9][0-9]*))?$")
 
 _ENTRY_ID_SYNTAX = "<base>-<series>-<number>"
 _IMMUTABLE_ID_SYNTAX = "<base>-<series>-<number>~<revision>"
+_ALTERNATIVE_ID_SYNTAX = "<base>-<series>-<number>~<kind>[~<revision>]"
 
 
 def format_entry_id(base: str, series: str, number: int) -> str:
@@ -55,6 +62,26 @@ def format_immutable_id(entry_id: str, revision: int) -> str:
     return f"{entry_id}~{revision}"
 
 
+def format_alternative_id(entry_id: str, kind: str, revision: int | None = None) -> str:
+    """Format an alternative identifier for a named alternative representation of an entry.
+
+    :param entry_id: URL-safe entry identifier, including non-conforming user identifiers.
+    :param kind: Alternative-kind token matching ``[a-z][a-z0-9_]*``.
+    :param revision: Optional positive revision number of the alternative.
+    :return: The formatted alternative identifier.
+    :raises TypeError: If ``revision`` is given and is not a non-boolean integer.
+    :raises ValueError: If ``kind`` is malformed, ``entry_id`` is not URL-safe, or ``revision`` is less than one.
+    """
+    if ALTERNATIVE_KIND_PATTERN.fullmatch(kind) is None:
+        raise ValueError(f"Invalid alternative kind {kind!r}; expected {ALTERNATIVE_KIND_PATTERN.pattern}.")
+    if not is_url_safe_id(entry_id):
+        raise ValueError(f"Invalid entry id {entry_id!r}; it must be URL-safe (non-empty printable ASCII without '/').")
+    if revision is None:
+        return f"{entry_id}~{kind}"
+    _validate_positive_int(revision, "revision")
+    return f"{entry_id}~{kind}~{revision}"
+
+
 def parse_entry_id(value: str) -> tuple[str, str, int] | None:
     """Parse a recommended entry identifier.
 
@@ -77,6 +104,19 @@ def parse_immutable_id(value: str) -> tuple[str, int] | None:
     if match is None or ENTRY_ID_PATTERN.fullmatch(match.group(1)) is None:
         return None
     return match.group(1), int(match.group(2))
+
+
+def parse_alternative_id(value: str) -> tuple[str, str, int | None] | None:
+    """Parse an alternative identifier with a recommended embedded entry id.
+
+    :param value: Alternative identifier to parse.
+    :return: The ``(entry_id, kind, revision)`` parts (``revision`` ``None`` when absent), or ``None`` if invalid.
+    """
+    match = ALTERNATIVE_ID_PATTERN.fullmatch(value)
+    if match is None or ENTRY_ID_PATTERN.fullmatch(match.group(1)) is None:
+        return None
+    revision = match.group(3)
+    return match.group(1), match.group(2), None if revision is None else int(revision)
 
 
 def is_url_safe_id(value: str) -> bool:
@@ -114,11 +154,12 @@ def check_immutable_id(value: str) -> str:
     :raises ValueError: If the identifier is not URL-safe.
     """
     _check_url_safety(value, "immutable")
-    if parse_immutable_id(value) is None:
+    if parse_immutable_id(value) is None and parse_alternative_id(value) is None:
         logging.getLogger(__name__).warning(
-            "Immutable id %r does not match the recommended syntax %s.",
+            "Immutable id %r does not match the recommended syntax %s or %s.",
             value,
             _IMMUTABLE_ID_SYNTAX,
+            _ALTERNATIVE_ID_SYNTAX,
             extra={"context": "store"},
         )
     return value

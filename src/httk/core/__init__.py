@@ -45,13 +45,17 @@ from .datastream import (
     register_compression,
 )
 from .entry_ids import (
+    ALTERNATIVE_ID_PATTERN,
+    ALTERNATIVE_KIND_PATTERN,
     ENTRY_ID_PATTERN,
     IMMUTABLE_ID_PATTERN,
     check_entry_id,
     check_immutable_id,
+    format_alternative_id,
     format_entry_id,
     format_immutable_id,
     is_url_safe_id,
+    parse_alternative_id,
     parse_entry_id,
     parse_immutable_id,
 )
@@ -126,6 +130,8 @@ from .views import Backend, View, coerce, coerce_view, unview, unwrap
 _discover_and_register()
 
 __all__ = [
+    "ALTERNATIVE_ID_PATTERN",
+    "ALTERNATIVE_KIND_PATTERN",
     "ENTRY_ID_PATTERN",
     "IMMUTABLE_ID_PATTERN",
     "MISSING",
@@ -190,6 +196,7 @@ __all__ = [
     "credits",
     "decimal_precision",
     "fetch",
+    "format_alternative_id",
     "format_entry_id",
     "format_immutable_id",
     "has_reader_for",
@@ -205,6 +212,7 @@ __all__ = [
     "load_property_definition",
     "load_source",
     "numpy_available",
+    "parse_alternative_id",
     "parse_entry_id",
     "parse_immutable_id",
     "project_member_handler",

@@ -224,6 +224,7 @@ def canonical_form(
     *,
     as_record: type[Any] | None = None,
     projector: Callable[[type[Any], Any], Mapping[str, object]] = project_storage_record,
+    extras: Mapping[str, object] | None = None,
 ) -> str:
     """Return the versioned, type-tagged canonical JSON for a record value.
 
@@ -234,14 +235,19 @@ def canonical_form(
     represented by :class:`~httk.core.storage.stored_property`, are outside the
     content identity. Registered custom encoders apply only to exact leaf types.
 
+    ``extras`` fold additional save-time key/value pairs into the identity of
+    the root record only; child records never receive them. When ``extras`` is
+    ``None`` or empty the output is byte-identical to omitting it.
+
     :param obj: The record or projected source to encode.
     :param as_record: An explicit record class override, if supplied.
     :param projector: The record-level projection function.
+    :param extras: Root-only identity contributions encoded through the value machinery.
     :return: Versioned, type-tagged canonical JSON.
     :raises TypeError: If a value or projection cannot be represented.
     :raises ValueError: If a projection is invalid or contains a cycle.
     """
-    encoder = _Encoder(projector)
+    encoder = _Encoder(projector, extras=extras)
     target = resolve_storage_record(obj, as_record=as_record)
     value = encoder.record(obj, target, ())
     return _canonical_json(value)
@@ -252,24 +258,32 @@ def content_id(
     *,
     as_record: type[Any] | None = None,
     projector: Callable[[type[Any], Any], Mapping[str, object]] = project_storage_record,
+    extras: Mapping[str, object] | None = None,
 ) -> str:
     """Return the lowercase SHA-256 content identity of ``obj``.
 
     The digest covers :func:`~httk.core.storage.identity.canonical_form`, including exact-type leaf
     encodings and excluding fields marked with :class:`~httk.core.storage.markers.IdentitySkip`.
 
+    ``extras`` fold additional save-time key/value pairs into the root record's
+    identity (see :func:`~httk.core.storage.identity.canonical_form`). Extras-bearing calls bypass the
+    trusted per-instance cache entirely, so they never read or poison it.
+
     :param obj: The record or projected source to identify.
     :param as_record: An explicit record class override, if supplied.
     :param projector: The record-level projection function.
+    :param extras: Root-only identity contributions encoded through the value machinery.
     :return: The lowercase SHA-256 hexadecimal digest.
     :raises TypeError: If a value or projection cannot be represented.
     :raises ValueError: If a projection is invalid or contains a cycle.
     """
-    if projector is project_storage_record:
-        return _trusted_content_id(obj, as_record=as_record, projector=projector)
-    # Custom projectors deliberately bypass both cache lookup and cache
-    # installation.  Their output is outside the trusted projection contract.
-    return _content_id_uncached(obj, as_record=as_record, projector=projector)
+    if extras or projector is not project_storage_record:
+        # Custom projectors and extras-bearing calls deliberately bypass both
+        # cache lookup and cache installation.  A custom projector's output is
+        # outside the trusted projection contract; extras are root-only and
+        # must never read or write the extras-less trusted cache.
+        return _content_id_uncached(obj, as_record=as_record, projector=projector, extras=extras)
+    return _trusted_content_id(obj, as_record=as_record, projector=projector)
 
 
 def _content_id_uncached(
@@ -277,8 +291,9 @@ def _content_id_uncached(
     *,
     as_record: type[Any] | None,
     projector: Callable[[type[Any], Any], Mapping[str, object]],
+    extras: Mapping[str, object] | None = None,
 ) -> str:
-    encoder = _Encoder(projector)
+    encoder = _Encoder(projector, extras=extras)
     target = resolve_storage_record(obj, as_record=as_record)
     value = encoder.record(obj, target, ())
     return hashlib.sha256(_canonical_json(value).encode("utf-8")).hexdigest()
@@ -393,8 +408,10 @@ class _Encoder:
         *,
         cache_enabled: bool = False,
         epoch: object | None = None,
+        extras: Mapping[str, object] | None = None,
     ) -> None:
         self._projector = projector
+        self._extras = extras
         self._active: set[tuple[type[Any], int]] = set()
         self._active_containers: set[int] = set()
         self._cache_enabled = cache_enabled
@@ -424,12 +441,20 @@ class _Encoder:
                 if name in excluded:
                     continue
                 fields.append([name, self.value(values[name], plans.get(name, _ANY_PLAN), (*path, name))])
-            return {
+            result: dict[str, Any] = {
                 "fields": fields,
                 "identity_name": storage_identity_name(record_type),
                 "type": "record",
                 "version": 2,
             }
+            # Extras fold into the root record only (path ``()``).  Child
+            # records reach ``record`` exclusively via ``record_digest`` with a
+            # non-empty path, so their encodings and digests never see extras.
+            if path == () and self._extras:
+                result["extras"] = [
+                    [key, self.value(self._extras[key], _ANY_PLAN, ("<extras>", key))] for key in sorted(self._extras)
+                ]
+            return result
         finally:
             self._active.remove(key)
 

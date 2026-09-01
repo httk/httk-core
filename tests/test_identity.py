@@ -995,3 +995,59 @@ def test_entry_family_and_backing_registries_are_lazy_and_strict() -> None:
         register_entry_family(name="bad-identity-family", family="not-a-reference")
     with pytest.raises(ValueError, match="No entry family"):
         register_entry_record(name="bad-identity-record", family="missing", record=backing_ref)
+
+
+def test_extras_change_the_digest_and_absent_extras_are_byte_identical() -> None:
+    record = _Golden(3, Fraction(1, 2), ("a", "b"))
+    golden = canonical_form(record)
+    assert "extras" not in golden
+    assert canonical_form(record, extras=None) == golden
+    assert canonical_form(record, extras={}) == golden
+    assert content_id(record, extras=None) == content_id(record)
+    assert content_id(record, extras={}) == content_id(record)
+    with_extras = content_id(record, extras={"kind": "conventional", "main": "httk.mydb-1-1"})
+    assert with_extras != content_id(record)
+    assert '"extras":' in canonical_form(record, extras={"kind": "conventional"})
+
+
+def test_extras_key_order_is_irrelevant() -> None:
+    record = _Golden(3, Fraction(1, 2), ("a", "b"))
+    first = content_id(record, extras={"kind": "conventional", "main": "httk.mydb-1-1"})
+    second = content_id(record, extras={"main": "httk.mydb-1-1", "kind": "conventional"})
+    assert first == second
+
+
+def test_extras_do_not_poison_the_trusted_cache_in_either_direction() -> None:
+    record = _Golden(7, Fraction(2, 3), ("x",))
+    target = resolve_storage_record(record)
+
+    plain = content_id(record)
+    with_extras = content_id(record, extras={"kind": "conventional"})
+    plain_again = content_id(record)
+
+    assert plain == plain_again
+    assert with_extras != plain
+    cached = identity_module._cache_lookup(record, target, identity_module._canonical_epoch)
+    assert cached == plain
+
+
+def test_root_extras_do_not_affect_child_encodings() -> None:
+    @dataclass(frozen=True)
+    class Child:
+        value: int
+
+    @dataclass(frozen=True)
+    class Parent:
+        child: Child
+
+    parent = Parent(Child(5))
+    plain_child = content_id(Child(5))
+
+    without = json.loads(canonical_form(parent))
+    with_extras = json.loads(canonical_form(parent, extras={"kind": "conventional"}))
+    child_ref_without = dict(without["fields"])["child"]
+    child_ref_with = dict(with_extras["fields"])["child"]
+
+    assert child_ref_without == child_ref_with
+    assert child_ref_with["content_id"] == plain_child
+    assert "extras" not in child_ref_with
