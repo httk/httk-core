@@ -29,7 +29,7 @@ def test_run_constructor_and_create_coerce_edges_and_timestamp() -> None:
         "https://example.org/workflow/1",
         inputs=cast(Any, [{"label": "input", "entry_type": "calculations", "entry_id": "calc-1"}]),
         artifacts=(RunEdge("artifact", "files", "file-1"),),
-        outputs=cast(Any, iter((RunEdge("output", "_httk_records", "record-1"),))),
+        outputs=cast(Any, iter((RunEdge("output", "records", "record-1"),))),
         source_id="source",
         immutable_id="immutable",
         last_modified=timestamp,
@@ -45,7 +45,7 @@ def test_run_constructor_and_create_coerce_edges_and_timestamp() -> None:
         }
     )
     assert created == Run("https://example.org/workflow/1", inputs=run.inputs, last_modified=timestamp)
-    assert created.type == "_httk_runs"
+    assert created.type == "runs"
     assert created.source_id is None
     assert created.id is None
     with pytest.raises(ValueError, match="Unknown field"):
@@ -67,14 +67,14 @@ def test_run_rejects_bad_uri_and_naive_timestamp() -> None:
 
 
 def test_product_link_and_logical_family() -> None:
-    link = ProductLink("_httk_records", "record-1", "_httk_records", "record-2", "curated")
+    link = ProductLink("records", "record-1", "records", "record-2", "curated")
     assert ProductLink.from_obj(link) is link
     assert (
         ProductLink.from_obj(
             {
-                "source_type": "_httk_records",
+                "source_type": "records",
                 "source_id": "record-1",
-                "target_type": "_httk_records",
+                "target_type": "records",
                 "target_id": "record-2",
                 "label": "curated",
             }
@@ -82,8 +82,8 @@ def test_product_link_and_logical_family() -> None:
         == link
     )
     with pytest.raises(ValueError, match="source and target"):
-        ProductLink("_httk_records", "record-1", "_httk_records", "record-1", "self")
-    assert RunEntry.type == "_httk_runs"
+        ProductLink("records", "record-1", "records", "record-1", "self")
+    assert RunEntry.type == "runs"
     assert RunEntry.definition_id == "https://schemas.httk.org/defs/v0.1/entrytypes/runs"
     with pytest.raises(TypeError, match="store a Run directly"):
         RunEntry()
@@ -95,20 +95,20 @@ def test_provenance_content_id_pins() -> None:
         "https://example.org/workflow/1",
         inputs=(edge,),
         artifacts=(RunEdge("artifact", "files", "file-1"),),
-        outputs=(RunEdge("output", "_httk_records", "record-1"),),
+        outputs=(RunEdge("output", "records", "record-1"),),
         source_id="source",
         immutable_id="immutable",
         last_modified=datetime.datetime(2026, 1, 2, 3, 4, 5, tzinfo=datetime.UTC),
     )
-    link = ProductLink(
-        "_httk_records", "record-1", "_httk_records", "record-2", "curated", "https://example.org/workflow/1"
-    )
+    link = ProductLink("records", "record-1", "records", "record-2", "curated", "https://example.org/workflow/1")
     # A changed value means a storage-identity break.
     assert content_id(edge) == "4e18906b8f17b826a58e360963965da3a0729b6d3c282332826801ad4d669c62"
     # A changed value means a storage-identity break; metadata is excluded.
-    assert content_id(run) == "a4796f0c0a30e4e9e94390c4950a9eceeac7b4e0091ca5d64beab1fe364df833"
+    # Re-pinned Sep-2026: unprefixing the edge vocabulary (_httk_records -> records) rotated this pin.
+    assert content_id(run) == "a165c14eaa6452766463fcaeeb864efd840659b355dba116d802725cb18f38b8"
     # A changed value means a storage-identity break.
-    assert content_id(link) == "796d2b00369533e0698a79b8208efc21eaaf4782a5cfe6f3b3ceb19afcfeb3d8"
+    # Re-pinned Sep-2026: unprefixing the source/target vocabulary (_httk_records -> records) rotated this pin.
+    assert content_id(link) == "aa28e10aa3a427300c3baa1ec96fecec1eea7937f960ddbc566924f38b97af41"
     assert content_id(run) == content_id(
         Run(
             run.workflow_declaration_uri,

@@ -1,6 +1,8 @@
 """Stdlib-only OPTIMADE-aligned calculation provenance records.
 
-Runs are served as provider-prefixed ``_httk_runs`` entries. Their
+Runs carry the internal, unprefixed entry-type name ``runs``; the provider
+prefix (``_httk_runs``) is applied by the single wire transform at the serving
+edge, not stored here. Their
 ``has_input``/``has_artifact``/``has_output`` relationships are represented by
 loose labeled references rather than object references: inputs are consumed,
 artifacts are created, and outputs are returned. The single-creator rule for
@@ -142,8 +144,8 @@ class Run:
 
     @property
     def type(self) -> str:
-        """Return the served entry type name."""
-        return "_httk_runs"
+        """Return the internal (unprefixed) entry type name."""
+        return "runs"
 
     def __post_init__(self) -> None:
         _validate_uri(self.workflow_declaration_uri, "workflow_declaration_uri")
@@ -224,7 +226,7 @@ class RunEntry:
     This family is not itself storable; store a ``Run`` directly.
     """
 
-    type = "_httk_runs"
+    type = "runs"
     definition_id = RUNS_DEFINITION_ID
 
     def __new__(cls, *args: Any, **kwargs: Any) -> Self:

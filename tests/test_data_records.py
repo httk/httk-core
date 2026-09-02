@@ -61,7 +61,7 @@ def test_create_validation_and_family() -> None:
         DataRecord("def", "name", "not json")
     with pytest.raises(ValueError, match="Unknown field"):
         DataRecord.from_obj({"definition_id": "def", "name": "name", "value_json": "1", "extra": 1})
-    assert DataRecordEntry.type == "_httk_records"
+    assert DataRecordEntry.type == "records"
     assert DataRecordEntry.definition_id == "https://schemas.httk.org/defs/v0.1/entrytypes/records"
     with pytest.raises(TypeError, match="store a DataRecord directly"):
         DataRecordEntry()

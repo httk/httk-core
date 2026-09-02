@@ -83,8 +83,8 @@ class DataRecord:
 
     @property
     def type(self) -> str:
-        """Return the served entry type name."""
-        return "_httk_records"
+        """Return the internal (unprefixed) entry type name."""
+        return "records"
 
     @property
     def value(self) -> Any:
@@ -167,7 +167,7 @@ class DataRecordEntry:
     This family is not itself storable; store a ``DataRecord`` directly.
     """
 
-    type = "_httk_records"
+    type = "records"
     definition_id = RECORDS_DEFINITION_ID
 
     def __new__(cls, *args: Any, **kwargs: Any) -> Self:

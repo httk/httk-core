@@ -275,3 +275,74 @@ def test_register_prefix_rejects_invalid_format() -> None:
     for bad in ("exmpl", "_Exmpl_", "_exmpl", "exmpl_", "__", "_ex-l_"):
         with pytest.raises(ValueError):
             register_definition_prefix(bad, "https://example.org/defs")
+
+
+# --- EntryTypeDefinition.served_form ------------------------------------------
+
+_RUNS_DEFINITION_ID = "https://schemas.httk.org/defs/v0.1/entrytypes/runs"
+_RECORDS_DEFINITION_ID = "https://schemas.httk.org/defs/v0.1/entrytypes/records"
+
+
+def test_served_form_prefixes_vendored_runs() -> None:
+    served = load_entry_type_definition(_RUNS_DEFINITION_ID).served_form()
+    assert served.name == "_httk_runs"
+    # A renamed served form is a new document: identity cleared, internal IRI kept as extends_id.
+    assert served.definition_id is None
+    assert served.extends_id == _RUNS_DEFINITION_ID
+    assert set(served.properties) == {
+        "id",
+        "type",
+        "immutable_id",
+        "last_modified",
+        "_httk_workflow_declaration_uri",
+        "_httk_source_id",
+    }
+    # Renaming keeps the published $id; only the wire name changes.
+    workflow = served.properties["_httk_workflow_declaration_uri"]
+    assert workflow.name == "_httk_workflow_declaration_uri"
+    assert workflow.definition_id == "https://schemas.httk.org/defs/v0.1/properties/core/workflow_declaration_uri"
+
+
+def test_served_form_prefixes_vendored_records() -> None:
+    served = load_entry_type_definition(_RECORDS_DEFINITION_ID).served_form()
+    assert served.name == "_httk_records"
+    assert served.definition_id is None
+    assert served.extends_id == _RECORDS_DEFINITION_ID
+    assert set(served.properties) == {"id", "type", "immutable_id", "last_modified"}
+
+
+def test_served_form_of_standard_definition_is_identity() -> None:
+    references = standard_entry_type("references")
+    served = references.served_form()
+    assert served is references
+    assert served == references
+    assert served.name == "references"
+
+
+def test_served_form_is_idempotent() -> None:
+    for definition_id in (_RUNS_DEFINITION_ID, _RECORDS_DEFINITION_ID):
+        served = load_entry_type_definition(definition_id).served_form()
+        assert served.served_form() == served
+        assert served.served_form() is served
+
+
+def test_served_form_does_not_double_prefix_existing_prefix() -> None:
+    calc = standard_entry_type("calculations")
+    energy = PropertyDefinition.from_simple("_httk_total_energy", description="E", fulltype="float")
+    served = calc.extended({"_httk_total_energy": energy}).served_form()
+    # The extended entry keeps its standard IRI, so its name stays bare.
+    assert served.name == "calculations"
+    assert "_httk_total_energy" in served.properties
+    assert "_httk__httk_total_energy" not in served.properties
+
+
+def test_served_form_classifies_via_extends_id() -> None:
+    base = load_entry_type_definition(_RUNS_DEFINITION_ID)
+    via_extends = EntryTypeDefinition(
+        "runs", base.description, dict(base.properties), definition_id=None, extends_id=_RUNS_DEFINITION_ID
+    )
+    served = via_extends.served_form()
+    assert served.name == "_httk_runs"
+    assert served.definition_id is None
+    assert served.extends_id == _RUNS_DEFINITION_ID
+    assert "_httk_workflow_declaration_uri" in served.properties

@@ -61,16 +61,25 @@ _OPTIMADE_DEFS_BASE = "https://schemas.optimade.org/defs/v1.2/properties/optimad
 #: by :meth:`PropertyDefinition.from_simple` and are not published anywhere.
 _HTTK_DEFS_BASE = "https://schemas.httk.org/ad-hoc/defs/properties"
 
+#: The published-schema namespace under which httk's *vendored* definitions
+#: (the ``runs``/``records`` entry types and their properties) carry their real
+#: ``$id`` values. Recognized — alongside the ad-hoc base above — as belonging to
+#: the ``_httk_`` prefix, so :meth:`EntryTypeDefinition.served_form` prefixes them.
+_HTTK_PUBLISHED_DEFS_BASE = "https://schemas.httk.org/defs/"
+
 #: A valid definition prefix: a lower-case alphanumeric token wrapped in single
 #: underscores (e.g. ``_httk_`` or ``_exmpl_``).
 _DEFINITION_PREFIX_PATTERN = re.compile(r"^_[a-z0-9]+_$")
 
 #: Registry of recognized database-specific property-name prefixes. Maps each
-#: prefix to ``(id_base, source_label)``: ``id_base`` is the URL base under which
+#: prefix to ``(id_bases, source_label)``: ``id_bases`` is a non-empty tuple of
+#: URL bases recognized for the prefix — the first is the base under which
 #: :meth:`PropertyDefinition.from_simple` synthesizes ``$id`` values for names
-#: carrying the prefix, and ``source_label`` is the token used in the generated
-#: ``x-optimade-definition.label``. See :func:`register_definition_prefix`.
-_DEFINITION_PREFIXES: dict[str, tuple[str, str]] = {}
+#: carrying the prefix, and any of them marks a definition ``$id`` as belonging
+#: to the prefix for :meth:`EntryTypeDefinition.served_form`. ``source_label`` is
+#: the token used in the generated ``x-optimade-definition.label``. See
+#: :func:`register_definition_prefix`.
+_DEFINITION_PREFIXES: dict[str, tuple[tuple[str, ...], str]] = {}
 
 
 def register_definition_prefix(prefix: str, id_base: str) -> None:
@@ -84,7 +93,11 @@ def register_definition_prefix(prefix: str, id_base: str) -> None:
 
     ``prefix`` must be a lower-case alphanumeric token wrapped in single
     underscores (matching ``_[a-z0-9]+_``); anything else raises a clear
-    :class:`ValueError`. Re-registering an existing prefix overwrites its base.
+    :class:`ValueError`. The first ``id_base`` registered for a prefix is the
+    one under which :meth:`PropertyDefinition.from_simple` synthesizes ``$id``
+    values; re-registering the same prefix with a different ``id_base`` adds it
+    as another recognized base (used only to classify definition ``$id`` values)
+    without changing that synthesis base.
 
     :param prefix: The database-specific property-name prefix to register.
     :param id_base: The IRI base used for synthesized property definition IDs.
@@ -97,7 +110,11 @@ def register_definition_prefix(prefix: str, id_base: str) -> None:
             + "; a definition prefix must be a lower-case alphanumeric token wrapped in single "
             + "underscores, e.g. '_httk_'."
         )
-    _DEFINITION_PREFIXES[prefix] = (id_base, prefix.strip("_"))
+    existing = _DEFINITION_PREFIXES.get(prefix)
+    if existing is None:
+        _DEFINITION_PREFIXES[prefix] = ((id_base,), prefix.strip("_"))
+    elif id_base not in existing[0]:
+        _DEFINITION_PREFIXES[prefix] = (existing[0] + (id_base,), existing[1])
 
 
 def known_definition_prefixes() -> tuple[str, ...]:
@@ -119,8 +136,27 @@ def _matching_definition_prefix(name: str) -> str | None:
     return None
 
 
+def _prefix_for_definition_id(definition_id: str) -> str | None:
+    """Return the registered prefix whose ``id_base`` covers ``definition_id``."""
+    for prefix, (id_bases, _source) in _DEFINITION_PREFIXES.items():
+        if any(definition_id.startswith(id_base) for id_base in id_bases):
+            return prefix
+    return None
+
+
+#: OPTIMADE intrinsic property names, kept bare on the wire regardless of prefix.
+_INTRINSIC_PROPERTY_NAMES = frozenset({"id", "type", "immutable_id", "last_modified"})
+
+
+def _apply_prefix(name: str, prefix: str | None) -> str:
+    """Return ``name`` carrying ``prefix``, idempotently (no double-prefixing)."""
+    if prefix is None or name.startswith(prefix):
+        return name
+    return prefix + name
+
+
 # Pre-registered prefixes.
-_DEFINITION_PREFIXES["_httk_"] = (_HTTK_DEFS_BASE, "httk")
+_DEFINITION_PREFIXES["_httk_"] = ((_HTTK_DEFS_BASE, _HTTK_PUBLISHED_DEFS_BASE), "httk")
 
 _ANGSTROM_UNIT_DEFINITION = {
     "symbol": "angstrom",
@@ -344,7 +380,7 @@ class PropertyDefinition:
         if definition_id is not None:
             resolved_id = definition_id
         elif matched_prefix is not None:
-            resolved_id = f"{_DEFINITION_PREFIXES[matched_prefix][0]}/{name}"
+            resolved_id = f"{_DEFINITION_PREFIXES[matched_prefix][0][0]}/{name}"
         else:
             resolved_id = f"{_OPTIMADE_DEFS_BASE}/{name}"
         source = _DEFINITION_PREFIXES[matched_prefix][1] if matched_prefix is not None else "optimade"
@@ -632,6 +668,59 @@ class EntryTypeDefinition:
             self._description,
             merged,
             extends_id=self._extends_id or self._definition_id,
+        )
+
+    def served_form(self) -> "EntryTypeDefinition":
+        """Return the OPTIMADE wire form of this definition.
+
+        This is the single authority for provider wire-naming. Internally every
+        entry type and property carries its bare, unprefixed name; the prefix is
+        applied only here, at the serving edge:
+
+        - The entry-type name gets a registered prefix when this definition's
+          identity IRI (``definition_id`` or, failing that, ``extends_id``) lies
+          under one of that prefix's registered ``id_base`` values (see
+          :func:`register_definition_prefix`); a standard definition, whose IRI
+          matches no registered base, keeps its bare name.
+        - Each property whose own ``$id`` lies under a registered base gets that
+          prefix; standard-``$id`` properties and the OPTIMADE intrinsics
+          (``id``, ``type``, ``immutable_id``, ``last_modified``) stay bare.
+
+        A renamed result is a new document, so — like :meth:`extended` — it
+        clears ``definition_id`` and records the internal IRI in ``extends_id``,
+        honouring the meta-schema rule that a redefinition MUST change ``$id``.
+
+        The transform is pure (it mutates no registry state and returns a new
+        definition) and idempotent: an already-prefixed name is never
+        re-prefixed, so an already-served or fully-standard definition compares
+        equal to its :meth:`served_form` (and the same object is returned when
+        nothing changes).
+
+        :return: The wire-named entry-type definition.
+        """
+        identity = self._definition_id or self._extends_id
+        entry_prefix = _prefix_for_definition_id(identity) if identity is not None else None
+        served_name = _apply_prefix(self._name, entry_prefix)
+        served_properties: dict[str, PropertyDefinition] = {}
+        changed = served_name != self._name
+        for prop_name, definition in self._properties.items():
+            if prop_name in _INTRINSIC_PROPERTY_NAMES:
+                served_properties[prop_name] = definition
+                continue
+            served_prop_name = _apply_prefix(prop_name, _prefix_for_definition_id(definition.definition_id))
+            if served_prop_name == prop_name:
+                served_properties[prop_name] = definition
+            else:
+                served_properties[served_prop_name] = PropertyDefinition(served_prop_name, definition.as_optimade())
+                changed = True
+        if not changed:
+            return self
+        return type(self)(
+            served_name,
+            self._description,
+            served_properties,
+            definition_id=None,
+            extends_id=self._definition_id or self._extends_id,
         )
 
     def as_optimade(self) -> dict[str, Any]:
