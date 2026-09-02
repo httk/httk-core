@@ -60,11 +60,11 @@ __all__ = [
     "IdentitySkip",
     "Indexed",
     "Related",
-    "RelationshipLink",
     "Shape",
     "Skip",
     "StorageInfo",
     "Unique",
+    "WeakLink",
     "stored_property",
 ]
 
@@ -157,46 +157,49 @@ class Related:
 
 
 @dataclass(frozen=True)
-class RelationshipLink:
-    """Class-level relationship declaration: each stored row expresses one FROM→TO relationship.
+class WeakLink:
+    """Class-level declaration of a store-managed, lineage-level link to another storable class.
 
-    Declared in :attr:`StorageInfo.links`. ``source`` and ``target`` each name
-    a reference field of the declaring class, or are ``None`` to mean ``the
-    declaring class's own entry``: for every stored row, one relationship is
-    declared from the entry the source side resolves to, to the entry the
-    target side resolves to. The two canonical shapes:
+    Declared in :attr:`StorageInfo.links` on the *source* class (links are
+    directed). A weak link is a store-managed association living in a dedicated
+    link table, not in any record field: it binds *lineages*, associating this
+    record's logical id with a ``target`` record's logical id, and both
+    endpoints always resolve to the *latest* revision on their respective side
+    (this is what makes the link *weak*, in contrast to sid-pinned reference and
+    child fields). Link rows are themselves append-only lineages — they are
+    revisable, retractable, and ``as_of``-aware — and are set-valued: a source
+    lineage may link many targets under the same declaration. Because links are
+    not part of a record's value, they do **not** participate in content
+    identity; adding or retracting a link never changes the record's
+    ``content_id``.
 
-    - **join-object**: ``RelationshipLink("structure", "reference")`` on a
-      ``StructureRef`` join class — every ``StructureRef`` row relates its
-      ``structure`` to its ``reference`` (structures → references), without the
-      join class itself being served.
-    - **field-inverse**: ``RelationshipLink("structure", None, role="output")``
-      on a ``Calculation`` class — every ``Calculation`` row relates its
-      ``structure`` to the calculation itself (structures → calculations),
-      i.e. the inverse of the ``structure`` reference field.
+    Only links declared ``exposed_relationship=True`` are served through the
+    OPTIMADE relationship facility; ``role`` and ``description`` carry the same
+    per-identifier OPTIMADE metadata as :class:`Related` into each served
+    relationship. ``target`` is the storable frozen dataclass this link points
+    at; only that it is a class is checked here, as deep storability validation
+    is performed by the storage layer.
 
-    ``role`` and ``description`` carry the same OPTIMADE per-identifier
-    metadata as :class:`Related` into each relationship the link declares.
-
-    :param source: The reference field naming the FROM-side entry, or ``None`` for the declaring class's own entry.
-    :param target: The reference field naming the TO-side entry, or ``None`` for the declaring class's own entry.
+    :param name: The link name; must be a valid Python identifier. Namespaces the link (e.g. accessed as ``record.links.<name>``).
+    :param target: The storable class this link points at.
+    :param exposed_relationship: Whether the link is served through the OPTIMADE relationship facility.
     :param role: The machine-readable relationship role, if any.
     :param description: The human-readable relationship description, if any.
-    :raises ValueError: If both endpoints are ``None`` (which would relate every entry to itself), or if they name the same field.
+    :raises ValueError: If ``name`` is not a valid Python identifier.
+    :raises TypeError: If ``target`` is not a class.
     """
 
-    source: str | None
-    target: str | None
+    name: str
+    target: type
+    exposed_relationship: bool = False
     role: str | None = None
     description: str | None = None
 
     def __post_init__(self) -> None:
-        if self.source is None and self.target is None:
-            raise ValueError(
-                "RelationshipLink needs at least one named field endpoint (source and target are both None)"
-            )
-        if self.source is not None and self.source == self.target:
-            raise ValueError(f"RelationshipLink source and target must differ, both are {self.source!r}")
+        if not isinstance(self.name, str) or not self.name.isidentifier():
+            raise ValueError(f"WeakLink name must be a valid Python identifier, got {self.name!r}")
+        if not isinstance(self.target, type):
+            raise TypeError(f"WeakLink target must be a class, got {self.target!r}")
 
 
 @dataclass(frozen=True)
@@ -212,7 +215,7 @@ class StorageInfo:
     :param storage_name: The physical storage name; ``None`` derives one from the class name. Relational backends use it as the table name, and document stores use it as the collection name.
     :param indexes: Composite indexes, each a tuple of field names.
     :param dedup: The deduplication policy applied when saving; see :data:`~httk.core.storage.markers.DedupPolicy`.
-    :param links: Class-level relationship declarations; see :class:`~httk.core.storage.markers.RelationshipLink`.
+    :param links: Class-level weak-link declarations; see :class:`~httk.core.storage.markers.WeakLink`.
     :param identity_name: The logical name included in content identity; ``None`` derives it from the declaring class and its bases.
     :raises ValueError: If ``dedup`` or an identity name or index declaration is invalid.
     """
@@ -220,7 +223,7 @@ class StorageInfo:
     storage_name: str | None = None
     indexes: tuple[tuple[str, ...], ...] = ()
     dedup: DedupPolicy = "content_id"
-    links: tuple[RelationshipLink, ...] = ()
+    links: tuple[WeakLink, ...] = ()
     identity_name: str | None = None
 
     def __post_init__(self) -> None:

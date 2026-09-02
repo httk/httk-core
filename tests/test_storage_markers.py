@@ -10,13 +10,18 @@ from httk.core.storage import (
     STORAGE_INFO_ATTRIBUTE,
     Indexed,
     Related,
-    RelationshipLink,
     Shape,
     Skip,
     StorageInfo,
     Unique,
+    WeakLink,
     stored_property,
 )
+
+
+@dataclass(frozen=True)
+class _Target:
+    value: int
 
 
 def test_field_markers_are_frozen_and_equal_by_value():
@@ -58,27 +63,45 @@ def test_related_is_frozen():
         Related().role = "input"
 
 
-def test_relationship_link_endpoints():
-    link = RelationshipLink("structure", "reference")
-    assert (link.source, link.target) == ("structure", "reference")
-    assert link.role is None and link.description is None
-    inverse = RelationshipLink("structure", None, role="output", description="Produced structure")
-    assert inverse.target is None
-    assert inverse.role == "output"
-    assert inverse.description == "Produced structure"
-    assert RelationshipLink(None, "reference").source is None
+def test_weak_link_defaults():
+    link = WeakLink("projects", _Target)
+    assert link.name == "projects"
+    assert link.target is _Target
+    assert link.exposed_relationship is False
+    assert link.role is None
+    assert link.description is None
 
 
-def test_relationship_link_invariants():
+def test_weak_link_full_kwargs():
+    link = WeakLink(
+        "projects",
+        _Target,
+        exposed_relationship=True,
+        role="output",
+        description="Produced project",
+    )
+    assert link.exposed_relationship is True
+    assert link.role == "output"
+    assert link.description == "Produced project"
+
+
+def test_weak_link_invalid_name_raises():
     with pytest.raises(ValueError):
-        RelationshipLink(None, None)
+        WeakLink("not an identifier", _Target)
     with pytest.raises(ValueError):
-        RelationshipLink("structure", "structure")
+        WeakLink("", _Target)
 
 
-def test_relationship_link_is_frozen():
+def test_weak_link_non_type_target_raises():
+    with pytest.raises(TypeError):
+        WeakLink("projects", _Target(value=1))
+
+
+def test_weak_link_is_frozen_and_equal_by_value():
+    assert WeakLink("projects", _Target) == WeakLink("projects", _Target)
+    assert WeakLink("projects", _Target) != WeakLink("others", _Target)
     with pytest.raises(dataclasses.FrozenInstanceError):
-        RelationshipLink("a", "b").role = "input"
+        WeakLink("projects", _Target).role = "input"
 
 
 def test_storage_info_defaults():
@@ -90,10 +113,11 @@ def test_storage_info_defaults():
 
 
 def test_storage_info_carries_links():
-    links = (RelationshipLink("structure", "reference", role="citation"),)
+    links = (WeakLink("projects", _Target, exposed_relationship=True, role="citation"),)
     info = StorageInfo(dedup="by_value", links=links)
     assert info.links == links
     assert info.links[0].role == "citation"
+    assert info.links[0].target is _Target
 
 
 def test_storage_info_validation():

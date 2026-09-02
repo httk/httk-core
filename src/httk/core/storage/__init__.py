@@ -15,11 +15,11 @@ from .markers import (
     IdentitySkip,
     Indexed,
     Related,
-    RelationshipLink,
     Shape,
     Skip,
     StorageInfo,
     Unique,
+    WeakLink,
     stored_property,
 )
 from .stored_properties import (
@@ -50,7 +50,6 @@ __all__ = [
     "QueryScope",
     "QueryValue",
     "Related",
-    "RelationshipLink",
     "Shape",
     "Skip",
     "StorageInfo",
@@ -60,6 +59,7 @@ __all__ = [
     "StoredPropertyResponse",
     "StoredPropertySort",
     "Unique",
+    "WeakLink",
     "canonical_form",
     "content_id",
     "project_storage_record",

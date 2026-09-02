@@ -105,11 +105,11 @@ from .storage.markers import (
     IdentitySkip,
     Indexed,
     Related,
-    RelationshipLink,
     Shape,
     Skip,
     StorageInfo,
     Unique,
+    WeakLink,
     stored_property,
 )
 from .vectors import (
@@ -169,7 +169,6 @@ __all__ = [
     "Reference",
     "Related",
     "RelatedEntry",
-    "RelationshipLink",
     "Run",
     "RunEdge",
     "RunEntry",
@@ -187,6 +186,7 @@ __all__ = [
     "Unique",
     "VectorLike",
     "View",
+    "WeakLink",
     "check_entry_id",
     "check_immutable_id",
     "coerce",
