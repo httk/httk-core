@@ -9,10 +9,10 @@ persist mappings; use ``sha256`` for the storable digest.
 import datetime
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Annotated, Any, ClassVar, Self
+from typing import Annotated, Any, ClassVar, Self, cast
 
 from .entry_types import File
-from .storage import IdentitySkip, Indexed, Skip, StorageInfo, Unique
+from .storage import IdentitySkip, Indexed, Skip, StorageInfo, StoredPropertyProjection, Unique
 
 FILES_DEFINITION_ID = "https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files"
 
@@ -84,6 +84,34 @@ class FileEntry:
 
     def __new__(cls, *args: Any, **kwargs: Any) -> Self:
         raise TypeError("FileEntry is a logical entry family; store a FileRecord directly")
+
+
+def _served_file_value(field_name: str) -> StoredPropertyProjection:
+    """Return a response-only projection reading one served ``FileRecord`` field.
+
+    The served ``files`` properties map directly onto stored columns, so the
+    projection reads the field verbatim; filtering and sorting are intentionally
+    omitted (files are reached by id through their producing run's edges, not
+    filtered by metadata).
+
+    :param field_name: The ``FileRecord`` field read for the served value.
+    :return: A projection whose response reads ``field_name`` directly.
+    """
+    return StoredPropertyProjection(response=lambda record: getattr(record, field_name))
+
+
+# Default projections so ``StoredEntrySource(store, FileEntry, ...)`` resolves: a
+# stored source rejects a family whose non-nullable served properties (``url``,
+# ``name``) have no response mapping. ``size`` and ``media_type`` are the useful
+# nullable served properties; ``sha256`` is deliberately absent (it is a stored
+# field but not an OPTIMADE ``files`` property, so projecting it would be rejected
+# as unknown). Keys are the served (wire) ``files`` property names.
+cast(Any, FileRecord).__httk_stored_properties__ = {
+    "url": _served_file_value("url"),
+    "name": _served_file_value("name"),
+    "size": _served_file_value("size"),
+    "media_type": _served_file_value("media_type"),
+}
 
 
 __all__ = ["FILES_DEFINITION_ID", "FileEntry", "FileRecord"]

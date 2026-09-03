@@ -90,3 +90,38 @@ def test_file_registry_registration() -> None:
     assert known_entry_records(family="files") == ["core-file"]
     assert resolve_entry_record("core-file") is FileRecord
     assert cast(type[FileEntry], resolve_entry_family("files")).type == "files"
+
+
+def test_file_record_stored_property_projections() -> None:
+    """FileRecord declares the served projections a StoredEntrySource requires.
+
+    Without projections for its non-nullable served properties a stored source
+    rejects the family, so the presence and correctness of these projections is
+    the guard the files endpoint relies on.
+    """
+    from httk.core.register.schemas import load_entry_type_definition
+    from httk.core.storage import stored_property_projections
+
+    projections = stored_property_projections(FileRecord)
+    served = load_entry_type_definition(FILES_DEFINITION_ID).served_form()
+    intrinsic = {"id", "type", "immutable_id", "last_modified"}
+
+    # Every non-nullable served property (bar the intrinsic ids) must be projected.
+    required = {
+        name
+        for name, definition in served.properties.items()
+        if name not in intrinsic and not definition.nullable
+    }
+    assert required <= set(projections)
+    # Projection keys are exactly the intended served properties, all valid names.
+    assert set(projections) == {"url", "name", "size", "media_type"}
+    assert set(projections) <= set(served.properties)
+    # sha256 is a stored field but not an OPTIMADE files property, so it is not projected.
+    assert "sha256" not in served.properties
+    assert "sha256" not in projections
+
+    record = _record()
+    assert projections["url"].response(record) == record.url
+    assert projections["name"].response(record) == record.name
+    assert projections["size"].response(record) == record.size
+    assert projections["media_type"].response(record) == record.media_type
