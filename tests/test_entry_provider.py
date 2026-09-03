@@ -91,6 +91,7 @@ def test_related_entry_defaults_and_equality() -> None:
     assert entry.description is None
     assert entry.role is None
     assert entry.label is None
+    assert entry.relationship is None
     assert entry == RelatedEntry("references", "ref-1")
     assert entry != RelatedEntry("references", "ref-2")
     with_meta = RelatedEntry("files", "f-1", description="Input file", role="input")
@@ -99,6 +100,10 @@ def test_related_entry_defaults_and_equality() -> None:
     labeled = RelatedEntry("files", "f-1", label="artifact")
     assert labeled == RelatedEntry("files", "f-1", label="artifact")
     assert labeled != with_meta
+    grouped = RelatedEntry("files", "f-1", relationship="has_input")
+    assert grouped == RelatedEntry("files", "f-1", relationship="has_input")
+    assert grouped != RelatedEntry("files", "f-1")
+    assert grouped != RelatedEntry("files", "f-1", relationship="has_output")
 
 
 def test_related_entry_is_frozen_with_slots() -> None:

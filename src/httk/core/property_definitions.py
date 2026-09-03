@@ -155,6 +155,24 @@ def _apply_prefix(name: str, prefix: str | None) -> str:
     return prefix + name
 
 
+def apply_definition_prefix(name: str, definition_id: str | None) -> str:
+    """Return ``name`` carrying the registered prefix of a definition's IRI.
+
+    The public serving-edge transform: it looks up the database-specific prefix
+    registered for ``definition_id`` (see :func:`register_definition_prefix` /
+    :func:`known_definition_prefixes`) and applies it to ``name`` idempotently,
+    exactly as :meth:`EntryTypeDefinition.served_form` prefixes names. A
+    ``definition_id`` of ``None`` (or one under no registered prefix) leaves
+    ``name`` unchanged, and an already-prefixed ``name`` is never re-prefixed.
+
+    :param name: The internal (unprefixed) name to transform.
+    :param definition_id: The definition IRI whose registered prefix is applied, or ``None``.
+    :return: The name carrying the definition's registered prefix, or unchanged.
+    """
+    prefix = _prefix_for_definition_id(definition_id) if definition_id is not None else None
+    return _apply_prefix(name, prefix)
+
+
 # Pre-registered prefixes.
 _DEFINITION_PREFIXES["_httk_"] = ((_HTTK_DEFS_BASE, _HTTK_PUBLISHED_DEFS_BASE), "httk")
 

@@ -63,6 +63,7 @@ __all__ = [
     "Shape",
     "Skip",
     "StorageInfo",
+    "StrongLink",
     "Unique",
     "WeakLink",
     "stored_property",
@@ -180,6 +181,10 @@ class WeakLink:
     at; only that it is a class is checked here, as deep storability validation
     is performed by the storage layer.
 
+    See :class:`StrongLink` for the contrasting record-content edge marker
+    (inside content identity, revision-pinned) versus this store-managed,
+    lineage-live link (outside content identity).
+
     :param name: The link name; must be a valid Python identifier. Namespaces the link (e.g. accessed as ``record.links.<name>``).
     :param target: The storable class this link points at.
     :param exposed_relationship: Whether the link is served through the OPTIMADE relationship facility.
@@ -200,6 +205,47 @@ class WeakLink:
             raise ValueError(f"WeakLink name must be a valid Python identifier, got {self.name!r}")
         if not isinstance(self.target, type):
             raise TypeError(f"WeakLink target must be a class, got {self.target!r}")
+
+
+@dataclass(frozen=True)
+class StrongLink:
+    """Field marker: a record-content edge collection servable as OPTIMADE relationships.
+
+    Attached via :class:`typing.Annotated` to a child field holding a tuple of
+    edge records whose element class carries the string fields ``label``,
+    ``entry_type``, and ``entry_id``. Unlike :class:`WeakLink` — a store-managed,
+    mutable curation association that lives in a dedicated link table, stays
+    outside content identity, and always resolves to each endpoint's *latest*
+    revision (lineage-live) — a strong link is *record content*: it is part of
+    the declaring record's value, so it participates in content identity and is
+    pinned to that record's revision. Both directions are servable as OPTIMADE
+    relationships.
+
+    Exposure is the declaration: a present ``relationship`` exposes the forward
+    edge under that key; a present ``reverse`` additionally exposes the reverse
+    edge under that key (the reverse view is derived at serving time from the
+    stored forward edges, never stored). The names declared here are INTERNAL
+    and unprefixed; the serving edge applies the provider prefix. This marker is
+    code-only: it is never persisted, is stripped by content-identity
+    canonicalization, and is excluded from the schema fingerprint.
+
+    :param relationship: The internal (unprefixed) forward relationship key; must be a valid Python identifier.
+    :param reverse: The internal (unprefixed) reverse relationship key, or ``None`` to expose no reverse edge; when set, must be a valid Python identifier.
+    :param role: The machine-readable relationship role, if any.
+    :param description: The human-readable relationship description, if any.
+    :raises ValueError: If ``relationship`` (or ``reverse`` when not ``None``) is not a valid Python identifier.
+    """
+
+    relationship: str
+    reverse: str | None = None
+    role: str | None = None
+    description: str | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.relationship, str) or not self.relationship.isidentifier():
+            raise ValueError(f"StrongLink relationship must be a valid Python identifier, got {self.relationship!r}")
+        if self.reverse is not None and (not isinstance(self.reverse, str) or not self.reverse.isidentifier()):
+            raise ValueError(f"StrongLink reverse must be a valid Python identifier or None, got {self.reverse!r}")
 
 
 @dataclass(frozen=True)

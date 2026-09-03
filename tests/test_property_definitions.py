@@ -346,3 +346,14 @@ def test_served_form_classifies_via_extends_id() -> None:
     assert served.definition_id is None
     assert served.extends_id == _RUNS_DEFINITION_ID
     assert "_httk_workflow_declaration_uri" in served.properties
+
+
+def test_apply_definition_prefix_public_transform() -> None:
+    from httk.core import apply_definition_prefix
+
+    # A registered httk IRI prefixes the name; None or an unregistered IRI is bare.
+    assert apply_definition_prefix("has_input", _RUNS_DEFINITION_ID) == "_httk_has_input"
+    assert apply_definition_prefix("has_input", None) == "has_input"
+    assert apply_definition_prefix("has_input", "https://schemas.optimade.org/x") == "has_input"
+    # Idempotent: an already-prefixed name is never re-prefixed.
+    assert apply_definition_prefix("_httk_has_input", _RUNS_DEFINITION_ID) == "_httk_has_input"

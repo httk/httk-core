@@ -48,13 +48,16 @@ class RelatedEntry:
     no role is declared and no default is assumed. ``label`` is the provenance
     edge label (the OPTIMADE relation-object ``label``); until relation-object
     serving exists, it is served on the OPTIMADE side as prefixed relationship
-    metadata.
+    metadata. ``relationship`` is the served semantic relationship key (wire
+    form, set by serving edges) under which this related entry is grouped;
+    ``None`` means group by ``entry_type`` (the existing behavior).
 
     :param entry_type: The entry type of the related entry.
     :param id: The identifier of the related entry.
     :param description: The human-readable relationship description, if declared.
     :param role: The machine-readable relationship role, if declared.
     :param label: The provenance edge label, if declared.
+    :param relationship: The served semantic relationship key this entry is grouped under, or ``None`` to group by ``entry_type``.
     """
 
     entry_type: str
@@ -71,6 +74,9 @@ class RelatedEntry:
 
     label: str | None = None
     """The provenance edge label, if declared."""
+
+    relationship: str | None = None
+    """The served semantic relationship key (wire form) this entry is grouped under; ``None`` groups by ``entry_type``."""
 
 
 class EntryProvider(ABC):
@@ -177,5 +183,29 @@ class EntryProvider(ABC):
 
         :param entry_type: The entry type whose relationships are requested.
         :return: Related entries keyed by the source record identifier.
+        """
+        return {}
+
+    def reverse_relationships(self) -> Mapping[str, Mapping[str, tuple[RelatedEntry, ...]]]:
+        """Return derived reverse related entries keyed by target entry type and id.
+
+        A provider that owns edge records (e.g. run provenance edges) exposes,
+        through this hook, the *reverse* view of those edges: for every entry it
+        points at, the related entries a consumer should attach to that target
+        entry's relationships block. The result maps a target entry type to a
+        mapping of target entry id to a flat tuple of
+        :class:`~httk.core.RelatedEntry` values, e.g. ``{"structures":
+        {"struct-1": (RelatedEntry("_httk_runs", "run-1", role="input",
+        relationship="_httk_is_input"),)}}``.
+
+        Unlike :meth:`relationships`, which is keyed by a provider's *own* served
+        records, this is keyed by the *target* entry type and id — the reverse
+        edge belongs to an entry another (sibling) provider serves. A consumer
+        merges these related entries into the target entry's block; targets no
+        served provider supplies are simply not resolvable. The default
+        implementation returns an empty mapping (no reverse relationships); a
+        provider that owns servable edges overrides it.
+
+        :return: Related entries keyed by target entry type and then target entry id.
         """
         return {}

@@ -15,7 +15,7 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field, fields
 from typing import Annotated, Any, ClassVar, Self
 
-from .storage import IdentitySkip, Indexed, StorageInfo, Unique
+from .storage import IdentitySkip, Indexed, StorageInfo, StrongLink, Unique
 
 RUNS_DEFINITION_ID = "https://schemas.httk.org/defs/v0.1/entrytypes/runs"
 _TIMESTAMP_FIELDS = frozenset({"last_modified"})
@@ -69,15 +69,24 @@ class RunEdge:
     """Store one loose labeled reference from a run to another entry.
 
     Edges deliberately keep the related entry's type and identifier as
-    strings rather than object references, so a run can refer to entries
-    served by another provider.
+    strings rather than object references. ``entry_type`` is the INTERNAL
+    (unprefixed) entry-type name and ``entry_id`` is the raw store-minted id of
+    an entry in the SAME database; cross-provider linking is not supported. Edges
+    are servable as OPTIMADE semantic relationships — the forward direction under
+    the owning field's :class:`~httk.core.storage.StrongLink` ``relationship``
+    key, the reverse direction derived at serving time — so the composite
+    ``(entry_type, entry_id)`` index exists for those reverse lookups.
 
     :param label: The relationship label.
-    :param entry_type: The related entry type name.
-    :param entry_id: The related entry identifier.
+    :param entry_type: The related entry type name (internal, unprefixed).
+    :param entry_id: The related entry identifier (raw store-minted id, same database).
     """
 
-    __httk_storage__: ClassVar[StorageInfo] = StorageInfo(storage_name="core_run_edge", identity_name="core_run_edge")
+    __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
+        storage_name="core_run_edge",
+        identity_name="core_run_edge",
+        indexes=(("entry_type", "entry_id"),),
+    )
 
     label: str
     entry_type: str
@@ -111,9 +120,16 @@ class Run:
     Every invariant is cheap and total, so there is deliberately no
     ``__httk_validate__`` hook.
 
-    Edges remain loose string triples by design, never object references.
-    Labels are unique independently on each of ``inputs``, ``artifacts``, and
-    ``outputs``.
+    Edges remain loose string triples by design, never object references: each
+    edge names an entry by its INTERNAL (unprefixed) ``entry_type`` and raw
+    store-minted ``entry_id`` in the SAME database (cross-provider linking is not
+    supported). Labels are unique independently on each of ``inputs``,
+    ``artifacts``, and ``outputs``. The three sides carry
+    :class:`~httk.core.storage.StrongLink` markers declaring their internal
+    (unprefixed) relationship keys, so each side is servable as an OPTIMADE
+    semantic relationship in both directions (forward under the marker's
+    ``relationship`` key, reverse derived at serving time); the provider prefix
+    is applied at the serving edge, not here.
 
     :param workflow_declaration_uri: The workflow declaration IRI, if declared.
     :param inputs: The labeled entries consumed by the run.
@@ -134,9 +150,9 @@ class Run:
     )
 
     workflow_declaration_uri: str | None = None
-    inputs: tuple[RunEdge, ...] = ()
-    artifacts: tuple[RunEdge, ...] = ()
-    outputs: tuple[RunEdge, ...] = ()
+    inputs: Annotated[tuple[RunEdge, ...], StrongLink("has_input", reverse="is_input", role="input")] = ()
+    artifacts: Annotated[tuple[RunEdge, ...], StrongLink("has_artifact", reverse="is_artifact", role="artifact")] = ()
+    outputs: Annotated[tuple[RunEdge, ...], StrongLink("has_output", reverse="is_output", role="output")] = ()
     source_id: Annotated[str | None, Indexed()] = field(default=None)
     id: Annotated[str | None, IdentitySkip(), Indexed()] = field(default=None, compare=False)
     immutable_id: Annotated[str | None, IdentitySkip(), Unique()] = field(default=None, compare=False)

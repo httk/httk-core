@@ -2,12 +2,43 @@
 
 import datetime
 from dataclasses import replace
-from typing import Any, cast
+from typing import Annotated, Any, cast, get_args, get_origin, get_type_hints
 
 import pytest
 
 from httk.core import ProductLink, Run, RunEdge, RunEntry
-from httk.core.storage import content_id, project_storage_record
+from httk.core.storage import STORAGE_INFO_ATTRIBUTE, StrongLink, content_id, project_storage_record
+
+
+def _strong_link(field_name: str) -> StrongLink:
+    annotation = get_type_hints(Run, include_extras=True)[field_name]
+    assert get_origin(annotation) is Annotated
+    markers = [arg for arg in get_args(annotation)[1:] if isinstance(arg, StrongLink)]
+    assert len(markers) == 1
+    return markers[0]
+
+
+def test_run_edge_fields_carry_strong_link_markers() -> None:
+    expected = {
+        "inputs": ("has_input", "is_input", "input"),
+        "artifacts": ("has_artifact", "is_artifact", "artifact"),
+        "outputs": ("has_output", "is_output", "output"),
+    }
+    for field_name, (relationship, reverse, role) in expected.items():
+        marker = _strong_link(field_name)
+        assert (marker.relationship, marker.reverse, marker.role) == (relationship, reverse, role)
+
+
+def test_strong_link_rejects_invalid_identifiers() -> None:
+    with pytest.raises(ValueError, match="relationship"):
+        StrongLink("has input")
+    with pytest.raises(ValueError, match="reverse"):
+        StrongLink("has_input", reverse="is input")
+
+
+def test_run_edge_declares_composite_index() -> None:
+    info = getattr(RunEdge, STORAGE_INFO_ATTRIBUTE)
+    assert ("entry_type", "entry_id") in info.indexes
 
 
 def test_run_edge_create_and_validation() -> None:
