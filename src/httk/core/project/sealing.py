@@ -64,6 +64,7 @@ __all__ = [
     "unseal_project",
     "verify_project",
     "verify_seal",
+    "verify_signed_body",
     "write_seal",
 ]
 
@@ -481,42 +482,44 @@ def normalize_trusted_keys(trusted_keys: Iterable[str]) -> set[str]:
     return result
 
 
-def verify_seal(
-    path: str | os.PathLike[str],
+def verify_signed_body(
+    body_bytes: bytes,
+    body_sha256: str,
+    signatures: Sequence[Mapping[str, object]],
     *,
     trusted_keys: Iterable[str] = (),
     expected_roles: Iterable[str] = (),
 ) -> SealVerification:
-    """Verify one seal's body digest and signatures, and classify the signers.
+    """Verify one signed body's digest and signatures, and classify the signers.
 
-    This checks the seal against itself, not against the subject: at least one
-    signature must verify, any signature that does not makes the seal invalid,
-    and the seal is trusted when a verifying signer is a pinned key or
-    fingerprint. Subject-level checks are done by :func:`verify_project`.
+    This is the signature core shared by :func:`verify_seal` and any other
+    caller signing a body with :func:`sign_seal_body`: the recorded digest must
+    match the canonical ``body_bytes``, at least one signature must verify, any
+    signature that does not makes the body invalid, and the body is trusted when
+    a verifying signer is a pinned key or fingerprint.
 
-    :param path: The seal file to verify.
+    :param body_bytes: The canonical bytes the recorded digest is taken over.
+    :param body_sha256: The recorded hex digest of the signed body.
+    :param signatures: The detached signatures over the body digest.
     :param trusted_keys: Trust anchors as ``ed25519:`` keys or ``sha256:`` fingerprints.
-    :param expected_roles: Signing roles the seal is expected to carry.
+    :param expected_roles: Signing roles the body is expected to carry.
     :return: The signature verdict.
-    :raises ValueError: If the file is not a valid seal document.
-    :raises OSError: If the file cannot be read.
     """
 
-    seal = read_seal(path)
     expected = tuple(expected_roles)
-    present_roles = {str(signature.get("role")) for signature in seal.signatures}
+    present_roles = {str(signature.get("role")) for signature in signatures}
     missing = tuple(role for role in expected if role not in present_roles)
-    if hashlib.sha256(_DOMAIN + seal.body_bytes).hexdigest() != seal.body_sha256:
+    if hashlib.sha256(_DOMAIN + body_bytes).hexdigest() != body_sha256:
         return SealVerification(False, INVALID, "the seal body does not match its recorded digest", (), missing, ())
     try:
-        message = _DOMAIN + bytes.fromhex(seal.body_sha256)
+        message = _DOMAIN + bytes.fromhex(body_sha256)
     except ValueError:
         return SealVerification(False, INVALID, "the seal's recorded digest is not hex", (), missing, ())
     trusted = normalize_trusted_keys(trusted_keys)
     signers: list[str] = []
     any_invalid = False
     any_trusted = False
-    for signature in seal.signatures:
+    for signature in signatures:
         key = signature.get("key")
         raw = signature.get("signature")
         if not isinstance(key, str) or not isinstance(raw, str):
@@ -544,6 +547,37 @@ def verify_seal(
         return SealVerification(True, VALID_TRUSTED, "signed by a trusted key", tuple(signers), missing, ())
     return SealVerification(
         True, VALID_UNKNOWN_KEY, "the signature verifies but no signer is trusted", tuple(signers), missing, ()
+    )
+
+
+def verify_seal(
+    path: str | os.PathLike[str],
+    *,
+    trusted_keys: Iterable[str] = (),
+    expected_roles: Iterable[str] = (),
+) -> SealVerification:
+    """Verify one seal's body digest and signatures, and classify the signers.
+
+    This checks the seal against itself, not against the subject: at least one
+    signature must verify, any signature that does not makes the seal invalid,
+    and the seal is trusted when a verifying signer is a pinned key or
+    fingerprint. Subject-level checks are done by :func:`verify_project`.
+
+    :param path: The seal file to verify.
+    :param trusted_keys: Trust anchors as ``ed25519:`` keys or ``sha256:`` fingerprints.
+    :param expected_roles: Signing roles the seal is expected to carry.
+    :return: The signature verdict.
+    :raises ValueError: If the file is not a valid seal document.
+    :raises OSError: If the file cannot be read.
+    """
+
+    seal = read_seal(path)
+    return verify_signed_body(
+        seal.body_bytes,
+        seal.body_sha256,
+        seal.signatures,
+        trusted_keys=trusted_keys,
+        expected_roles=expected_roles,
     )
 
 

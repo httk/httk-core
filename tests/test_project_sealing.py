@@ -143,3 +143,28 @@ def test_write_seal_read_seal_roundtrip(project: Path) -> None:
     assert seal.subject == {"id": "x"}
     assert list(seal.records) == [{"path": "a", "type": "file"}]
     assert verify_seal(path).valid
+
+
+def test_verify_signed_body_valid_tampered_and_untrusted(project: Path) -> None:
+    from httk.core._json import json_bytes
+    from httk.core.crypto import ed25519_public_key
+    from httk.core.project import format_public_key, key_fingerprint
+    from httk.core.project.sealing import sign_seal_body, verify_signed_body
+
+    seed = b"\x01" * 32
+    fingerprint = key_fingerprint(format_public_key(ed25519_public_key(seed)))
+    body = build_seal_body("custom", {"id": "x"}, [{"path": "a", "type": "file"}])
+    body_sha256, signatures = sign_seal_body(body, [("identity", seed)])
+    body_bytes = json_bytes(body)
+
+    valid = verify_signed_body(body_bytes, body_sha256, signatures)
+    assert valid.valid and valid.verdict == "valid_unknown_key"
+
+    trusted = verify_signed_body(body_bytes, body_sha256, signatures, trusted_keys=[fingerprint])
+    assert trusted.verdict == "valid_trusted"
+
+    tampered = verify_signed_body(body_bytes + b" ", body_sha256, signatures)
+    assert not tampered.valid and tampered.verdict == "invalid"
+
+    untrusted = verify_signed_body(body_bytes, body_sha256, signatures, trusted_keys=["sha256:deadbeef"])
+    assert untrusted.verdict == "valid_unknown_key"
