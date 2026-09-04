@@ -1,9 +1,10 @@
 """The core-owned ``httk init`` and ``httk identity`` commands.
 
-These configure the per-user operator identity that lives in
-``identity.json``: :command:`httk init` records the bare name and email and
-ensures a default signing key, and :command:`httk identity` manages the named
-identities. Both are thin command-line wrappers over :mod:`httk.core.identity`.
+These configure the per-user operator identities that live in
+``identity.json``: :command:`httk init` establishes the first named default
+identity, and :command:`httk identity` manages that same store. Future
+per-user initialization will also live under :command:`httk init`. Both are
+thin command-line wrappers over :mod:`httk.core.identity`.
 """
 
 import argparse
@@ -15,6 +16,7 @@ from pathlib import Path
 from httk.core.cli import CLIContext
 from httk.core.identity import (
     add_identity,
+    configured_operator_identity,
     identity_config_path,
     identity_key_paths,
     identity_public_key,
@@ -56,7 +58,11 @@ def _identity_report(short: str, name: str, email: str, is_default: bool) -> dic
 
 
 def init_command(argv: Sequence[str], context: CLIContext) -> int:
-    """Write the per-user configuration and ensure an operator identity key.
+    """Set up httk for this user by establishing the default operator identity.
+
+    This getting-started command is idempotent: once a default identity exists,
+    it reports that setup without prompting or changing the identity store.
+    Future per-user initialization will also live here.
 
     :param argv: Arguments following the ``init`` command name.
     :param context: Root CLI invocation context.
@@ -65,7 +71,7 @@ def init_command(argv: Sequence[str], context: CLIContext) -> int:
 
     parser = argparse.ArgumentParser(
         prog=f"{context.program} init",
-        description="Write the per-user configuration and ensure an operator identity key",
+        description="Set up httk for this user and establish the default operator identity",
     )
     parser.add_argument("--name", metavar="NAME", help="the operator's name")
     parser.add_argument("--email", metavar="EMAIL", help="the operator's email address")
@@ -76,20 +82,48 @@ def init_command(argv: Sequence[str], context: CLIContext) -> int:
         return exc.code if isinstance(exc.code, int) else 1
 
     try:
-        current = read_identity_config()
+        current_identity = configured_operator_identity()
+        if current_identity is not None:
+            assert current_identity.short is not None
+            print(
+                json.dumps(
+                    {
+                        **_identity_report(
+                            current_identity.short,
+                            current_identity.name,
+                            current_identity.email,
+                            True,
+                        ),
+                        "created": False,
+                    },
+                    indent=2,
+                    sort_keys=True,
+                )
+            )
+            return 0
+
         name = _required(
             arguments.name,
             "name",
             non_interactive=arguments.non_interactive,
-            default=str(current.get("name", "")) or None,
         )
         email = _required(
             arguments.email,
             "email",
             non_interactive=arguments.non_interactive,
-            default=str(current.get("email", "")) or None,
         )
-        print(json.dumps(initialize_identity(name, email), indent=2, sort_keys=True))
+        created, identity = initialize_identity(name, email)
+        assert identity.short is not None
+        print(
+            json.dumps(
+                {
+                    **_identity_report(identity.short, identity.name, identity.email, True),
+                    "created": created,
+                },
+                indent=2,
+                sort_keys=True,
+            )
+        )
     except _ERRORS as exc:
         print(f"{parser.prog}: {exc}", file=sys.stderr)
         return 2

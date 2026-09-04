@@ -49,7 +49,7 @@ register_cli_command("system", "httk.core.system:command", "reset per-user httk 
 register_cli_command(
     "init",
     "httk.core.identity_cli:init_command",
-    "write the per-user configuration and identity key",
+    "set up httk for this user (establishes the default operator identity)",
 )
 register_cli_command(
     "identity",

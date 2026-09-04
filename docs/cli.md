@@ -88,9 +88,9 @@ operation is declined, and `2` for invalid usage or an operational error.
 
 ## httk init
 
-The core-owned `httk init` command records the per-user operator identity — a
-name and an email — in `identity.json` and ensures its default Ed25519 signing
-key exists:
+The core-owned `httk init` command gets a user started by creating a named
+operator identity as the default in `identity.json` and ensuring its Ed25519
+signing key exists:
 
 ```console
 httk init --name "A User" --email a@example.test
@@ -98,16 +98,16 @@ httk init --non-interactive --name "A User" --email a@example.test
 ```
 
 A missing `--name` or `--email` is prompted for when standard input is a
-terminal, prefilled from the recorded identity; `--non-interactive` refuses a
-missing value instead. `init` is idempotent: an existing signing key is kept
-while the recorded name and email are updated. It exits `0` on success and `2`
-for invalid usage or an operational error.
+terminal; `--non-interactive` refuses a missing value instead. The short name
+is derived from the email's local part. `init` is idempotent: when a default
+identity already exists it reports that setup and changes nothing. It exits
+`0` on success and `2` for invalid usage or an operational error.
 
 ## httk identity
 
 The core-owned `httk identity` command manages the named operator identities in
-`identity.json`. Each named identity has its own signing key; the first added
-becomes the default:
+the same `identity.json` store. Each named identity has its own signing key; the
+first added becomes the default:
 
 ```console
 httk identity add alice --name "Alice" --email alice@example.test

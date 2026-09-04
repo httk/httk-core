@@ -14,7 +14,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from httk.core.cli import CLIContext
-from httk.core.identity import identity_key_paths
+from httk.core.identity import local_public_keys
 from httk.core.register.members import known_project_member_kinds, project_member_handler
 
 from .anchor import (
@@ -27,7 +27,6 @@ from .anchor import (
     pinned_project_key,
     project_public_key_path,
     read_project,
-    read_public_key_file,
     require_project,
     trusted_project_keys,
 )
@@ -609,15 +608,13 @@ def _handle_unseal(arguments: argparse.Namespace, context: CLIContext) -> int:
 def _default_trusted_keys(project: Path, explicit: list[str]) -> list[str]:
     """Return the trust anchors ``verify-seal`` uses by default.
 
-    A tree sealed by its own project or its own operator identity verifies as
+    A tree sealed by its own project or its own operator identities verifies as
     trusted without the operator naming a key: the project's pinned keys, every
-    explicitly supplied key, and the local identity's public key when one exists.
+    explicitly supplied key, and the local identities' public keys when they exist.
     """
 
     trusted = list(resolve_trusted_keys(project, trusted_keys=explicit))
-    public_key_path = identity_key_paths()[1]
-    if public_key_path.is_file():
-        identity_key = read_public_key_file(public_key_path)
+    for identity_key in local_public_keys():
         if identity_key not in trusted:
             trusted.append(identity_key)
     return trusted
@@ -722,7 +719,7 @@ def _build_verify_seal(parser: argparse.ArgumentParser) -> None:
         metavar="KEY_OR_FINGERPRINT",
         help=(
             "trust this key as well: an ed25519:BASE64 value, a sha256: fingerprint, or the path of a *.pub file "
-            "(repeatable). The project's pinned keys and the local identity are always trusted"
+            "(repeatable). The project's pinned keys and local operator identities are always trusted"
         ),
     )
     parser.add_argument("--shallow", action="store_true", help="verify only the project seal, not the member seals")

@@ -15,12 +15,13 @@ isolated runs keep out of a real user's configuration.
 ## Command line
 
 The identity store is set up and managed from the root command line. `httk init`
-records the bare name and email and ensures the default signing key; `httk
-identity` manages the named identities.
+is the getting-started command: it creates the first named operator identity as
+the default. It is idempotent; re-running it reports the existing setup and
+changes nothing. `httk identity` manages identities in that same store,
+including adding more identities and choosing a different default.
 
 ```console
 httk init --name "Alice" --email alice@example.test
-httk identity add alice --name "Alice" --email alice@example.test
 httk identity add ci_bot --name "CI" --email ci@example.test --default
 httk identity list --json
 httk identity default alice
@@ -28,9 +29,8 @@ httk identity remove ci_bot
 ```
 
 `httk init` prompts for a missing name or email on a terminal and, with
-`--non-interactive`, refuses one instead. It is idempotent: an existing key is
-kept while the recorded name and email are updated. See {doc}`cli` for the full
-command reference.
+`--non-interactive`, refuses one instead. The short name is derived from the
+email's local part. See {doc}`cli` for the full command reference.
 
 ## Named identities
 
@@ -45,9 +45,9 @@ resolve_operator_identity("alice").label      # "Alice <alice@example.test>"
 ```
 
 `add_identity`, `set_default_identity`, and `remove_identity` maintain
-`identity.json`; `initialize_identity(name, email)` records a bare (un-named)
-identity and its default key. `resolve_operator_identity` also accepts a literal
-`Name <email>` selector for one-off attribution.
+`identity.json`; `initialize_identity(name, email)` establishes the first
+named identity when no default is configured. `resolve_operator_identity` also
+accepts a literal `Name <email>` selector for one-off attribution.
 
 ## Signing documents
 

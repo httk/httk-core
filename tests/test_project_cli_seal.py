@@ -3,17 +3,17 @@
 from collections.abc import Iterator
 from pathlib import Path
 
+import _toy_member
 import pytest
+from _toy_member import ToyMemberHandler, toy_kind_registered
 
 from httk.core import CLIContext
+from httk.core.identity import add_identity
 from httk.core.project import initialize_project
 from httk.core.project.cli import command
 from httk.core.project.members import register_project_member
 from httk.core.project.sealing import resolve_seal_keys
 from httk.core.register.members import project_member_kinds
-
-import _toy_member
-from _toy_member import ToyMemberHandler, toy_kind_registered
 
 
 @pytest.fixture
@@ -118,6 +118,24 @@ def test_verify_seal_untrusted_exit_three(project: Path, capsys: pytest.CaptureF
     assert out.strip().endswith("UNTRUSTED")
 
 
+def test_verify_seal_trusts_all_local_operator_identity_keys(project: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    add_identity("alice", "Alice", "alice@example.test")
+    add_identity("bob", "Bob", "bob@example.test")
+    assert _run(project, "seal", "--keys", "identity:bob") == 0
+    capsys.readouterr()
+
+    import json
+
+    manifest = project / "httk_project" / "project.json"
+    metadata = json.loads(manifest.read_text(encoding="utf-8"))
+    metadata.pop("public_key", None)
+    manifest.write_text(json.dumps(metadata), encoding="utf-8")
+    code = _run(project, "verify-seal")
+    out = capsys.readouterr().out
+    assert code == 0
+    assert out.strip().endswith("ok")
+
+
 def test_unseal_requires_force_without_terminal(project: Path, capsys: pytest.CaptureFixture[str]) -> None:
     _run(project, "seal")
     capsys.readouterr()
@@ -143,9 +161,7 @@ def test_seal_deep_verify_with_member(project: Path, capsys: pytest.CaptureFixtu
     assert "toy\twork" in out
 
 
-def test_repair_runs_scan_project_with_empty_registry(
-    project: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_repair_runs_scan_project_with_empty_registry(project: Path, capsys: pytest.CaptureFixture[str]) -> None:
     # No members registered; the kind's project-scope scan must still run.
     with toy_kind_registered():
         code = _run(project, "repair")

@@ -43,7 +43,7 @@ def _init(*arguments: str) -> int:
 
 
 def test_root_help_lists_init_and_identity() -> None:
-    import httk.core  # noqa: F401  # trigger command discovery
+    import httk.core  # noqa: F401, I001  # trigger command discovery
 
     from httk.core.register import known_cli_commands
 
@@ -57,33 +57,60 @@ def test_root_help_prints_the_summaries(capsys: pytest.CaptureFixture[str]) -> N
     assert main(["--help"]) == 0
     printed = capsys.readouterr().out
     assert "init" in printed and "identity" in printed
-    assert "write the per-user configuration and identity key" in printed
+    assert "set up httk for this user" in printed
     assert "manage named operator identities" in printed
 
 
 def test_init_is_xdg_isolated_and_private_key_is_0600(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     assert _init("--name", "A User", "--email", "a@example.test", "--non-interactive") == 0
-    private, public = identity_key_paths()
+    private, public = identity_key_paths("a")
     assert private.is_file() and public.is_file()
     assert private.stat().st_mode & 0o777 == 0o600
     stored = read_identity_config()
-    assert stored["name"] == "A User" and stored["email"] == "a@example.test"
+    assert stored["default_identity"] == "a"
+    assert stored["identities"] == {"a": {"name": "A User", "email": "a@example.test"}}
+    assert "name" not in stored and "email" not in stored
+    report = json.loads(capsys.readouterr().out)
+    assert report == {
+        "created": True,
+        "default": True,
+        "email": "a@example.test",
+        "name": "A User",
+        "public_key": report["public_key"],
+        "short": "a",
+    }
 
 
-def test_init_updates_name_and_email_on_an_existing_identity() -> None:
+def test_init_reports_existing_identity_without_modifying_store(capsys: pytest.CaptureFixture[str]) -> None:
     assert _init("--name", "First", "--email", "first@example.test", "--non-interactive") == 0
-    seed_before = identity_key_paths()[0].read_bytes()
+    capsys.readouterr()
+    seed_before = identity_key_paths("first")[0].read_bytes()
+    config_before = read_identity_config()
     assert _init("--name", "Second", "--email", "second@example.test", "--non-interactive") == 0
-    stored = read_identity_config()
-    assert stored["name"] == "Second" and stored["email"] == "second@example.test"
-    # Idempotent on the key: the seed is kept, never regenerated.
-    assert identity_key_paths()[0].read_bytes() == seed_before
+    report = json.loads(capsys.readouterr().out)
+    assert report["created"] is False
+    assert report["short"] == "first"
+    assert read_identity_config() == config_before
+    assert identity_key_paths("first")[0].read_bytes() == seed_before
 
 
 def test_init_non_interactive_refuses_a_missing_value(capsys: pytest.CaptureFixture[str]) -> None:
     assert _init("--non-interactive") == 2
     assert "missing required value 'name'" in capsys.readouterr().err
-    assert not identity_key_paths()[0].exists()
+    assert not identity_key_paths("operator")[0].exists()
+
+
+def test_init_refuses_ambiguous_identities_with_default_guidance(capsys: pytest.CaptureFixture[str]) -> None:
+    write_identity_config(
+        {
+            "identities": {
+                "alice": {"name": "Alice", "email": "alice@example.test"},
+                "bob": {"name": "Bob", "email": "bob@example.test"},
+            },
+        }
+    )
+    assert _init("--non-interactive") == 2
+    assert "httk identity default" in capsys.readouterr().err
 
 
 def test_identity_cli_round_trip_and_key_permissions(capsys: pytest.CaptureFixture[str]) -> None:
@@ -154,9 +181,7 @@ def test_identity_add_rejects_an_invalid_short(capsys: pytest.CaptureFixture[str
     ("name", "email"),
     (("Bad\nName", "bad@example.test"), ("Bad<Name", "bad@example.test"), ("Good", "bad"), ("Good", "bad > @x")),
 )
-def test_identity_add_rejects_unforwardable_labels(
-    capsys: pytest.CaptureFixture[str], name: str, email: str
-) -> None:
+def test_identity_add_rejects_unforwardable_labels(capsys: pytest.CaptureFixture[str], name: str, email: str) -> None:
     assert _identity("add", "bad", "--name", name, "--email", email) == 2
     assert "identity" in capsys.readouterr().err
     assert not identity_key_paths("bad")[0].exists()

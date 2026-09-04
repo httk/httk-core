@@ -45,6 +45,7 @@ __all__ = [
     "DocumentSignature",
     "OperatorIdentity",
     "add_identity",
+    "configured_operator_identity",
     "ensure_identity_key",
     "identity_config_path",
     "identity_key_paths",
@@ -53,6 +54,7 @@ __all__ = [
     "import_v1_identity",
     "initialize_identity",
     "keys_home",
+    "local_public_keys",
     "read_identity_config",
     "remove_identity",
     "resolve_operator_identity",
@@ -140,17 +142,15 @@ def write_identity_config(values: Mapping[str, object]) -> Path:
     return path
 
 
-def identity_key_paths(short: str | None = None) -> tuple[Path, Path]:
+def identity_key_paths(short: str) -> tuple[Path, Path]:
     """Return the paths of the local identity seed and public key.
 
-    :param short: Named identity short name, or ``None`` for the default key.
+    :param short: Named identity short name.
     :return: Seed path followed by public-key path.
     :raises ValueError: If ``short`` is not a valid identity short name.
     """
-    root = keys_home()
-    if short is None:
-        return root / "identity.seed", root / "identity.pub"
     _validate_identity_short(short)
+    root = keys_home()
     return root / f"identity-{short}.seed", root / f"identity-{short}.pub"
 
 
@@ -285,16 +285,15 @@ def _write_key_file_atomic(path: Path, text: str, mode: int, *, exclusive: bool 
         temporary.unlink(missing_ok=True)
 
 
-def ensure_identity_key(short: str | None = None) -> tuple[Path, Path]:
+def ensure_identity_key(short: str) -> tuple[Path, Path]:
     """Create the user's standard Ed25519 identity key if it is absent.
 
-    :param short: Named identity short name, or ``None`` for the default key.
+    :param short: Named identity short name.
     :return: Seed path followed by public-key path.
     :raises ValueError: If an existing seed is not a standard Ed25519 seed.
     """
 
-    paths = identity_key_paths() if short is None else identity_key_paths(short)
-    return _ensure_identity_key_paths(*paths)
+    return _ensure_identity_key_paths(*identity_key_paths(short))
 
 
 @dataclass(frozen=True)
@@ -354,28 +353,39 @@ def _default_operator_identity(values: Mapping[str, object]) -> OperatorIdentity
     selected = values.get("default_identity")
     if "default_identity" in values:
         if not isinstance(selected, str) or selected not in identities:
-            raise ValueError("the configured default identity does not name a configured identity")
+            raise ValueError(
+                "the configured default identity does not name a configured identity; "
+                "choose one with `httk identity default`"
+            )
         short = selected
     elif len(identities) == 1:
         short = next(iter(identities))
     else:
-        name = values.get("name")
-        email = values.get("email")
-        if not isinstance(name, str) or not name or not isinstance(email, str) or not email:
-            raise ValueError("no operator identity is configured")
-        return OperatorIdentity(None, name, email, identity_key_paths()[0])
+        if identities:
+            raise ValueError("multiple operator identities are configured; choose one with `httk identity default`")
+        raise ValueError("no operator identity is configured")
     name, email = identities[short]
     return OperatorIdentity(short, name, email, identity_key_paths(short)[0])
 
 
 def _truly_unconfigured(values: Mapping[str, object]) -> bool:
-    if "default_identity" in values:
-        return False
-    if "identities" in values:
-        identities = values["identities"]
-        if not isinstance(identities, Mapping) or identities:
-            return False
-    return all(key not in values or values[key] in (None, "") for key in ("name", "email"))
+    return "default_identity" not in values and not _configured_identities(values)
+
+
+def configured_operator_identity() -> OperatorIdentity | None:
+    """Resolve the configured default operator identity, if one exists.
+
+    :return: The resolved default identity, or ``None`` when no identity is configured.
+    :raises ValueError: If the configured identities are malformed or ambiguous.
+    """
+
+    values = read_identity_config()
+    try:
+        return _default_operator_identity(values)
+    except ValueError:
+        if not _truly_unconfigured(values):
+            raise
+        return None
 
 
 def resolve_operator_identity(selector: str | None) -> OperatorIdentity:
@@ -395,12 +405,8 @@ def resolve_operator_identity(selector: str | None) -> OperatorIdentity:
             )
         name = (literal.group("name") or "").strip()
         email = literal.group("email")
-        try:
-            seed_path = _default_operator_identity(values).seed_path
-        except ValueError:
-            if not _truly_unconfigured(values):
-                raise
-            seed_path = None
+        configured = configured_operator_identity()
+        seed_path = None if configured is None else configured.seed_path
         return OperatorIdentity(None, name.strip(), email, seed_path)
     identities = _configured_identities(values)
     if selector is not None:
@@ -412,42 +418,50 @@ def resolve_operator_identity(selector: str | None) -> OperatorIdentity:
     return _default_operator_identity(values)
 
 
-def initialize_identity(name: str, email: str) -> dict[str, object]:
-    """Record a bare operator identity and ensure its default signing key.
+def _derive_identity_short(email: str) -> str:
+    """Derive a valid named-identity short name from an email address."""
 
-    This is the un-named identity: the top-level ``name`` and ``email`` that the
-    default resolves to when no named identity is configured, signed with the
-    default key. Named identities are added with :func:`add_identity`.
+    local = email.split("@", 1)[0].lower()
+    short = re.sub(r"[^a-z0-9_-]", "-", local)
+    short = re.sub(r"-+", "-", short).strip("-")
+    short = re.sub(r"^[^a-z0-9]+", "", short)
+    return short or "operator"
+
+
+def initialize_identity(name: str, email: str) -> tuple[bool, OperatorIdentity]:
+    """Establish the per-user operator identity when it is not configured.
+
+    If a default identity already resolves, this function leaves the identity
+    store untouched and reports that identity. If identities exist but no
+    default can resolve, it refuses because choosing one is an operator action.
+    Otherwise it derives a short name from *email* and creates the first named
+    identity, which becomes the default.
 
     :param name: Operator name to record.
     :param email: Operator email address to record.
-    :return: The resulting identity configuration members.
+    :return: Whether an identity was created, and the configured identity.
+    :raises ValueError: If identities are ambiguous or the name/email are invalid.
     """
 
-    values = read_identity_config()
-    values.update(
-        {
-            "format": IDENTITY_CONFIG_FORMAT,
-            "format_version": IDENTITY_CONFIG_FORMAT_VERSION,
-            "name": name,
-            "email": email,
-        }
-    )
-    write_identity_config(values)
-    ensure_identity_key()
-    return values
+    identity = configured_operator_identity()
+    if identity is not None:
+        return False, identity
+    short = _derive_identity_short(email)
+    add_identity(short, name, email)
+    return True, resolve_operator_identity(short)
 
 
 def import_v1_identity(source: str | os.PathLike[str] | None = None) -> dict[str, object]:
     """Import name, email, and public identity from a legacy ``~/.httk`` tree.
 
-    The operator name, email, and public identity are recorded in the per-user
-    identity configuration. Legacy 64-byte private key material is deliberately
-    left untouched.
+    When no named identity is configured, a legacy name and email create the
+    first named identity. If an identity already exists, legacy name and email
+    are skipped rather than recorded. Legacy 64-byte private key material is
+    deliberately left untouched.
 
     :param source: Legacy configuration root, or the default legacy home.
-    :return: The imported identity members (``name``, ``email``, and
-        ``legacy_public_key`` when a legacy public key was found).
+    :return: The created identity's ``short``, ``name``, and ``email`` when one
+        was created, plus ``legacy_public_key`` when a legacy public key was found.
     :raises FileNotFoundError: If the legacy configuration file is absent.
     """
 
@@ -459,12 +473,15 @@ def import_v1_identity(source: str | os.PathLike[str] | None = None) -> dict[str
     parser.read(legacy_config, encoding="utf-8")
 
     values = read_identity_config()
-    values.update(
-        {
-            "name": parser.get("main", "name", fallback=str(values.get("name", ""))),
-            "email": parser.get("main", "email", fallback=str(values.get("email", ""))),
-        }
-    )
+    identities = _configured_identities(values)
+    legacy_name = parser.get("main", "name", fallback="")
+    legacy_email = parser.get("main", "email", fallback="")
+    result: dict[str, object] = {}
+    if not identities and legacy_name and legacy_email:
+        short = _derive_identity_short(legacy_email)
+        add_identity(short, legacy_name, legacy_email)
+        values = read_identity_config()
+        result.update({"short": short, "name": legacy_name, "email": legacy_email})
     legacy_public = root / "keys" / "key1.pub"
     if legacy_public.is_file():
         public_target = keys_home() / "legacy-identity.pub"
@@ -472,7 +489,9 @@ def import_v1_identity(source: str | os.PathLike[str] | None = None) -> dict[str
         public_target.write_bytes(legacy_public.read_bytes())
         values["legacy_public_key"] = str(public_target)
     write_identity_config(values)
-    return {key: values[key] for key in ("name", "email", "legacy_public_key") if key in values}
+    if "legacy_public_key" in values:
+        result["legacy_public_key"] = values["legacy_public_key"]
+    return result
 
 
 def add_identity(short: str, name: str, email: str, *, make_default: bool = False) -> dict[str, object]:
@@ -571,17 +590,8 @@ def identity_seed(seed_path: Path | None = None) -> bytes | None:
     """
 
     if seed_path is None:
-        values = read_identity_config()
-        try:
-            seed_path = _default_operator_identity(values).seed_path
-        except ValueError:
-            # A bare installation with only a default key and no configured
-            # identity still signs with that key; an installation that has
-            # configured identities but no resolvable default is ambiguous and
-            # must refuse rather than silently pick one.
-            if not _truly_unconfigured(values):
-                raise
-            seed_path = identity_key_paths()[0]
+        configured = configured_operator_identity()
+        seed_path = None if configured is None else configured.seed_path
     if seed_path is None:
         return None
     try:
@@ -599,6 +609,27 @@ def identity_public_key(seed_path: Path | None = None) -> str | None:
 
     seed = identity_seed(seed_path)
     return None if seed is None else "ed25519:" + base64.b64encode(ed25519_public_key(seed)).decode("ascii")
+
+
+def local_public_keys() -> list[str]:
+    """Return the keys configured identities can actually sign with.
+
+    The seed is authoritative; a configured identity with no seed is omitted,
+    while a seed refusal remains an error rather than silently narrowing trust.
+
+    :return: Canonical encoded public keys for the local operator identities.
+    :raises ValueError: If a configured identity seed is unreadable or malformed.
+    """
+
+    keys: list[str] = []
+    for short in _configured_identities(read_identity_config()):
+        seed_path, _ = identity_key_paths(short)
+        key = identity_public_key(seed_path)
+        if key is None:
+            continue
+        if key not in keys:
+            keys.append(key)
+    return keys
 
 
 def signature_digest(document: Mapping[str, object]) -> bytes:

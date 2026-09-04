@@ -10,7 +10,9 @@ from httk.core.identity import (
     identity_key_paths,
     identity_public_key,
     identity_seed,
+    import_v1_identity,
     initialize_identity,
+    local_public_keys,
     read_identity_config,
     remove_identity,
     resolve_operator_identity,
@@ -61,8 +63,9 @@ def test_add_succeeds_without_default_in_existing_multi_identity_config() -> Non
 
 
 def test_resolution_order_and_literal_selector() -> None:
-    with pytest.raises(ValueError, match="no operator identity is configured"):
-        resolve_operator_identity(None)
+    assert identity_seed() is None
+    with pytest.raises(ValueError, match="unknown identity"):
+        resolve_operator_identity("missing")
 
     add_identity("alice", "Alice", "alice@example.test")
     add_identity("bob", "Bob", "bob@example.test")
@@ -72,24 +75,37 @@ def test_resolution_order_and_literal_selector() -> None:
     literal = resolve_operator_identity("<forward@example.test>")
     assert literal.label == " <forward@example.test>"
     assert literal.seed_path == resolve_operator_identity("alice").seed_path
+    literal_signed = sign_document({"format": "literal"}, seed_path=literal.seed_path)
+    assert verify_document(literal_signed).valid
     with pytest.raises(ValueError, match="alice, bob"):
         resolve_operator_identity("missing")
 
 
-def test_default_falls_back_to_bare_name_email() -> None:
+@pytest.mark.parametrize(
+    ("email", "expected"),
+    (("Alice.Bob@example.test", "alice-bob"), ("___@example.test", "operator")),
+)
+def test_initialize_identity_derives_short_and_creates_named_default(email: str, expected: str) -> None:
+    created, identity = initialize_identity("User", email)
+    assert created
+    assert identity.short == expected
+    assert identity.seed_path == identity_key_paths(expected)[0]
+    assert identity_key_paths(expected)[0].exists()
     values = read_identity_config()
-    values["name"] = "Legacy"
-    values["email"] = "legacy@example.test"
-    write_identity_config(values)
-    assert resolve_operator_identity(None).short is None
-    assert resolve_operator_identity(None).label == "Legacy <legacy@example.test>"
+    assert "name" not in values and "email" not in values
+    assert values["default_identity"] == expected
 
 
-def test_initialize_identity_records_bare_identity_and_key() -> None:
-    values = initialize_identity("Legacy", "legacy@example.test")
-    assert values["name"] == "Legacy" and values["email"] == "legacy@example.test"
-    assert identity_key_paths()[0].stat().st_mode & 0o777 == 0o600
-    assert resolve_operator_identity(None).short is None
+def test_initialize_identity_is_idempotent() -> None:
+    created, first = initialize_identity("First", "first@example.test")
+    seed_before = first.seed_path.read_bytes()  # type: ignore[union-attr]
+    config_before = read_identity_config()
+    assert created
+
+    created, second = initialize_identity("Second", "second@example.test")
+    assert not created and second == first
+    assert read_identity_config() == config_before
+    assert first.seed_path.read_bytes() == seed_before  # type: ignore[union-attr]
 
 
 def test_literal_selector_without_config_is_unsigned() -> None:
@@ -145,12 +161,25 @@ def test_ambiguous_identities_refuse_signing() -> None:
             },
         }
     )
-    with pytest.raises(ValueError, match="no operator identity is configured"):
+    with pytest.raises(ValueError, match="identity default"):
         resolve_operator_identity(None)
-    with pytest.raises(ValueError, match="no operator identity is configured"):
+    with pytest.raises(ValueError, match="identity default"):
         identity_seed()
-    with pytest.raises(ValueError, match="no operator identity is configured"):
+    with pytest.raises(ValueError, match="identity default"):
         sign_document({"format": "test"})
+
+
+def test_initialize_identity_rejects_ambiguous_identities_with_guidance() -> None:
+    write_identity_config(
+        {
+            "identities": {
+                "alice": {"name": "Alice", "email": "alice@example.test"},
+                "bob": {"name": "Bob", "email": "bob@example.test"},
+            },
+        }
+    )
+    with pytest.raises(ValueError, match="httk identity default"):
+        initialize_identity("New", "new@example.test")
 
 
 def test_identity_key_paths_refuse_symlinks(tmp_path: Path) -> None:
@@ -234,6 +263,81 @@ def test_named_signing_round_trip_and_public_key() -> None:
     signed = sign_document({"format": "test"}, seed_path=resolve_operator_identity("alice").seed_path)
     assert verify_document(signed).valid
     assert signed["operator_key"] == expected
+
+
+def test_local_public_keys_lists_configured_identity_keys() -> None:
+    add_identity("alice", "Alice", "alice@example.test")
+    add_identity("bob", "Bob", "bob@example.test")
+    _, bob_public = identity_key_paths("bob")
+    expected = [
+        identity_public_key(identity_key_paths("alice")[0]),
+        identity_public_key(identity_key_paths("bob")[0]),
+    ]
+    bob_public.unlink()
+    assert local_public_keys() == expected
+
+
+def test_local_public_keys_uses_seed_when_public_file_is_tampered() -> None:
+    add_identity("alice", "Alice", "alice@example.test")
+    add_identity("bob", "Bob", "bob@example.test")
+    _, alice_public = identity_key_paths("alice")
+    expected = local_public_keys()
+    alice_public.write_bytes(identity_key_paths("bob")[1].read_bytes())
+    assert local_public_keys() == expected
+
+
+def test_local_public_keys_skips_an_identity_with_no_seed() -> None:
+    add_identity("alice", "Alice", "alice@example.test")
+    identity_key_paths("alice")[0].unlink()
+    assert local_public_keys() == []
+
+
+def test_local_public_keys_refuses_a_symlinked_seed(tmp_path: Path) -> None:
+    add_identity("alice", "Alice", "alice@example.test")
+    seed_path, _ = identity_key_paths("alice")
+    target = tmp_path / "seed"
+    target.write_bytes(seed_path.read_bytes())
+    seed_path.unlink()
+    seed_path.symlink_to(target)
+    with pytest.raises(ValueError, match="identity seed"):
+        local_public_keys()
+
+
+def test_import_v1_identity_creates_named_identity(tmp_path: Path) -> None:
+    legacy = tmp_path / "legacy"
+    (legacy / "keys").mkdir(parents=True)
+    (legacy / "config").write_text("[main]\nname = Imported\nemail = Mixed.Case@example.test\n", encoding="utf-8")
+    result = import_v1_identity(legacy)
+    assert result["short"] == "mixed-case"
+    assert result["name"] == "Imported"
+    assert read_identity_config()["default_identity"] == "mixed-case"
+
+
+def test_import_v1_identity_is_idempotent(tmp_path: Path) -> None:
+    legacy = tmp_path / "legacy"
+    legacy.mkdir()
+    (legacy / "config").write_text("[main]\nname = Imported\nemail = imported@example.test\n", encoding="utf-8")
+    first = import_v1_identity(legacy)
+    values_before = read_identity_config()
+    second = import_v1_identity(legacy)
+    assert first == {"short": "imported", "name": "Imported", "email": "imported@example.test"}
+    assert second == {}
+    assert read_identity_config() == values_before
+
+
+def test_import_v1_identity_does_not_record_legacy_label_when_configured(tmp_path: Path) -> None:
+    add_identity("existing", "Existing", "existing@example.test")
+    legacy = tmp_path / "legacy"
+    (legacy / "keys").mkdir(parents=True)
+    (legacy / "config").write_text("[main]\nname = Ignored\nemail = ignored@example.test\n", encoding="utf-8")
+    (legacy / "keys" / "key1.pub").write_bytes(identity_key_paths("existing")[1].read_bytes())
+    result = import_v1_identity(legacy)
+    legacy_public_key = result["legacy_public_key"]
+    assert isinstance(legacy_public_key, str)
+    values = read_identity_config()
+    assert values["identities"] == {"existing": {"name": "Existing", "email": "existing@example.test"}}
+    assert "name" not in values and "email" not in values
+    assert Path(legacy_public_key).is_file()
 
 
 def test_absent_signature_is_accepted_and_tampering_is_rejected() -> None:
