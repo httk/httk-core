@@ -107,7 +107,12 @@ def test_parallel_load_many_close_shuts_down_executor(
             super().__exit__(*args)
 
     monkeypatch.setattr(loading_module, "ProcessPoolExecutor", TrackingExecutor)
-    results = load_many(["first.many", "second.many"], processes=2)
+    # This test only asserts executor shutdown on close(). The runtime-registered
+    # reader is not guaranteed inside a worker (documented on load_many), and on
+    # Python 3.14 the default start method is forkserver, so the worker cannot see
+    # it and raises. Use errors="return" so the first result yields instead of
+    # raising, letting close() run and exercise the executor lifecycle.
+    results = load_many(["first.many", "second.many"], processes=2, errors="return")
     next(results)
     results.close()
     assert TrackingExecutor.exited

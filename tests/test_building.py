@@ -140,5 +140,8 @@ def test_matches_json_type(value: object, type_name: str, expected: bool) -> Non
 
 def test_load_manifest_toml_reports_line_and_column(tmp_path: Path) -> None:
     path = _manifest_file(tmp_path, "[thing\ncommand = true\n")
-    with pytest.raises(ValueError, match=r"invalid httk_test\.toml \(line 2, column 1\)"):
+    # tomllib reports the syntax-error position differently across CPython versions
+    # (e.g. 3.13 flags line 2 col 1, 3.14 flags line 1 col 7); assert only that a
+    # line/column is surfaced, not the version-specific coordinates.
+    with pytest.raises(ValueError, match=r"invalid httk_test\.toml \(line \d+, column \d+\)"):
         _manifest.load_manifest_toml(path, tmp_path)
