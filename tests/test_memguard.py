@@ -23,8 +23,12 @@ def test_cli_path_passes_through_child_exit_code() -> None:
         cli_main(
             [
                 "memguard",
+                # Budget must exceed the child interpreter's own startup RSS
+                # (~10 MiB on 3.12, ~12 MiB on 3.13/3.14) or memguard kills it
+                # before it can exit; the breach test below uses a tight budget
+                # against a deliberately memory-hungry child.
                 "--max-rss-gb",
-                "0.01",
+                "0.1",
                 "--interval",
                 "0.01",
                 "--",
@@ -43,8 +47,11 @@ def test_budget_pass_reports_peak() -> None:
             sys.executable,
             "-m",
             _MODULE,
+            # Budget must exceed the child interpreter's own startup RSS
+            # (~10 MiB on 3.12, ~12 MiB on 3.13/3.14); 10 MiB was on the edge
+            # and killed a bare interpreter on 3.14.
             "--max-rss-gb",
-            "0.01",
+            "0.1",
             "--interval",
             "0.01",
             "--",
