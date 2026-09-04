@@ -99,7 +99,8 @@ commits to must not change beneath it — so unseal first.
 a final `ok` / `UNTRUSTED` / `FAILED` word whose exit code matches the table
 above. By default the project's pinned keys and the local identity's public key
 are trusted, so a tree sealed by its own project or identity verifies as
-`valid_trusted` without naming a key; `--trusted-key` adds more, as an `ed25519:`
+`valid_trusted` without naming a key (that local identity is the one `httk init`
+and `httk identity` configure; see {doc}`identity`); `--trusted-key` adds more, as an `ed25519:`
 key, a `sha256:` fingerprint, or a `*.pub` file. `--json` prints
 `{ "entries": [...], "ok": ..., "trusted": ... }`.
 

@@ -12,6 +12,26 @@ Identity is per-user state. The signing keys live under
 variable relocates the entire per-user identity store, which is how tests and
 isolated runs keep out of a real user's configuration.
 
+## Command line
+
+The identity store is set up and managed from the root command line. `httk init`
+records the bare name and email and ensures the default signing key; `httk
+identity` manages the named identities.
+
+```console
+httk init --name "Alice" --email alice@example.test
+httk identity add alice --name "Alice" --email alice@example.test
+httk identity add ci_bot --name "CI" --email ci@example.test --default
+httk identity list --json
+httk identity default alice
+httk identity remove ci_bot
+```
+
+`httk init` prompts for a missing name or email on a terminal and, with
+`--non-interactive`, refuses one instead. It is idempotent: an existing key is
+kept while the recorded name and email are updated. See {doc}`cli` for the full
+command reference.
+
 ## Named identities
 
 ```python

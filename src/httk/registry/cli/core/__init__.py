@@ -46,3 +46,13 @@ register_cli_command(
 register_cli_command("memguard", "httk.core.memguard:command", "run a command under a memory guard")
 register_cli_command("convert", "httk.core.converting:command", "convert a loadable file into a saveable format")
 register_cli_command("system", "httk.core.system:command", "reset per-user httk state")
+register_cli_command(
+    "init",
+    "httk.core.identity_cli:init_command",
+    "write the per-user configuration and identity key",
+)
+register_cli_command(
+    "identity",
+    "httk.core.identity_cli:identity_command",
+    "manage named operator identities",
+)

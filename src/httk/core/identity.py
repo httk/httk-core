@@ -17,6 +17,7 @@ keeps a mixed deployment — some installations with keys, some without — work
 """
 
 import base64
+import configparser
 import hashlib
 import os
 import re
@@ -49,6 +50,7 @@ __all__ = [
     "identity_key_paths",
     "identity_public_key",
     "identity_seed",
+    "import_v1_identity",
     "initialize_identity",
     "keys_home",
     "read_identity_config",
@@ -434,6 +436,43 @@ def initialize_identity(name: str, email: str) -> dict[str, object]:
     write_identity_config(values)
     ensure_identity_key()
     return values
+
+
+def import_v1_identity(source: str | os.PathLike[str] | None = None) -> dict[str, object]:
+    """Import name, email, and public identity from a legacy ``~/.httk`` tree.
+
+    The operator name, email, and public identity are recorded in the per-user
+    identity configuration. Legacy 64-byte private key material is deliberately
+    left untouched.
+
+    :param source: Legacy configuration root, or the default legacy home.
+    :return: The imported identity members (``name``, ``email``, and
+        ``legacy_public_key`` when a legacy public key was found).
+    :raises FileNotFoundError: If the legacy configuration file is absent.
+    """
+
+    root = Path(source).expanduser().resolve() if source is not None else (Path.home() / ".httk").resolve()
+    legacy_config = root / "config"
+    if not legacy_config.is_file():
+        raise FileNotFoundError(legacy_config)
+    parser = configparser.ConfigParser()
+    parser.read(legacy_config, encoding="utf-8")
+
+    values = read_identity_config()
+    values.update(
+        {
+            "name": parser.get("main", "name", fallback=str(values.get("name", ""))),
+            "email": parser.get("main", "email", fallback=str(values.get("email", ""))),
+        }
+    )
+    legacy_public = root / "keys" / "key1.pub"
+    if legacy_public.is_file():
+        public_target = keys_home() / "legacy-identity.pub"
+        public_target.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        public_target.write_bytes(legacy_public.read_bytes())
+        values["legacy_public_key"] = str(public_target)
+    write_identity_config(values)
+    return {key: values[key] for key in ("name", "email", "legacy_public_key") if key in values}
 
 
 def add_identity(short: str, name: str, email: str, *, make_default: bool = False) -> dict[str, object]:

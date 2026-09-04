@@ -86,6 +86,41 @@ Reset asks for confirmation when standard input is a terminal. Use `--force`
 for non-interactive use. It exits with `0` after resetting, `1` when the
 operation is declined, and `2` for invalid usage or an operational error.
 
+## httk init
+
+The core-owned `httk init` command records the per-user operator identity — a
+name and an email — in `identity.json` and ensures its default Ed25519 signing
+key exists:
+
+```console
+httk init --name "A User" --email a@example.test
+httk init --non-interactive --name "A User" --email a@example.test
+```
+
+A missing `--name` or `--email` is prompted for when standard input is a
+terminal, prefilled from the recorded identity; `--non-interactive` refuses a
+missing value instead. `init` is idempotent: an existing signing key is kept
+while the recorded name and email are updated. It exits `0` on success and `2`
+for invalid usage or an operational error.
+
+## httk identity
+
+The core-owned `httk identity` command manages the named operator identities in
+`identity.json`. Each named identity has its own signing key; the first added
+becomes the default:
+
+```console
+httk identity add alice --name "Alice" --email alice@example.test
+httk identity add ci_bot --name "CI" --email ci@example.test --default
+httk identity list --json
+httk identity default alice
+httk identity remove ci_bot ...
+```
+
+`remove` forgets an identity's attribution but deliberately leaves its key files
+on disk, so a signature it already produced stays verifiable. See
+{doc}`identity` for the identity model these commands drive.
+
 ## Project initialization options
 
 `httk project init` accepts the normal project options plus template options:

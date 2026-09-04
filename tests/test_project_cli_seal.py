@@ -25,7 +25,14 @@ def project(tmp_path: Path) -> Path:
 
 
 @pytest.fixture(autouse=True)
-def _isolate() -> Iterator[None]:
+def _isolate(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+    # Redirect the per-user config home so a real ~/.config/httk identity key
+    # cannot become a trust anchor and turn an "untrusted" seal into a trusted
+    # one (or vice versa).
+    monkeypatch.setenv("HTTK_CONFIG_HOME", str(tmp_path / "config"))
+    monkeypatch.setenv("HTTK_DATA_HOME", str(tmp_path / "data"))
+    monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
+    monkeypatch.delenv("XDG_DATA_HOME", raising=False)
     kinds = dict(project_member_kinds._by_key)
     try:
         yield
