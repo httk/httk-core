@@ -28,7 +28,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
-from .manifests import build_page_manifest, build_version_manifest, write_page_manifest
+from .manifests import _write_atomic, build_page_manifest, build_version_manifest, write_page_manifest
 from .redirect import root_redirect_html
 from .semver import Version, is_release_dir_name, parse_tag
 
@@ -140,17 +140,6 @@ def _write_if_changed(path: Path, content: str) -> bool:
         return False
     _write_atomic(path, content)
     return True
-
-
-def _write_atomic(path: Path, content: str) -> None:
-    descriptor, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.staging-", dir=path.parent)
-    temporary_path = Path(temporary_name)
-    try:
-        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-            stream.write(content)
-        os.replace(temporary_path, path)
-    finally:
-        temporary_path.unlink(missing_ok=True)
 
 
 def _remove_staging(root: Path) -> None:

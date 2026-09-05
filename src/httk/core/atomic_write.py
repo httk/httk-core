@@ -1,4 +1,4 @@
-"""Exception-safe replacement of local files, shared by filename writers."""
+"""Exception-safe local file replacement for filename-sensitive format writers."""
 
 import os
 import stat
@@ -6,6 +6,8 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
+
+__all__ = ["atomic_destination"]
 
 
 @contextmanager
@@ -16,6 +18,11 @@ def atomic_destination(destination: str | os.PathLike[str]) -> Iterator[Path]:
     basename for filename-sensitive writers. Replacing a hard link leaves its
     other links unchanged. This does not provide crash durability or serialize
     concurrent writers. The caller must close all output streams before exit.
+
+    :param destination: Output filename whose resolved parent directory exists.
+    :yields: A staging path retaining the requested basename for the writer.
+    :raises ValueError: If the resolved destination exists and is not a regular file.
+    :raises OSError: If staging or publishing the output fails.
     """
     requested = Path(destination)
     target = requested.resolve()

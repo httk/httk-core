@@ -70,7 +70,7 @@ def test_save_preserves_symlinks_permissions_and_hardlink_contents(tmp_path):
 
 
 def test_save_replacement_failure_keeps_destination(tmp_path, monkeypatch):
-    from httk.core import _atomic_write
+    from httk.core import atomic_write
 
     target = tmp_path / "out"
     target.write_bytes(b"old")
@@ -78,10 +78,9 @@ def test_save_replacement_failure_keeps_destination(tmp_path, monkeypatch):
     def refuse_replace(*args):
         raise PermissionError("replacement refused")
 
-    monkeypatch.setattr(_atomic_write.os, "replace", refuse_replace)
-    with pytest.raises(PermissionError, match="replacement refused"):
-        with _atomic_write.atomic_destination(target) as staged:
-            staged.write_bytes(b"new")
+    monkeypatch.setattr(atomic_write.os, "replace", refuse_replace)
+    with pytest.raises(PermissionError, match="replacement refused"), atomic_write.atomic_destination(target) as staged:
+        staged.write_bytes(b"new")
     assert target.read_bytes() == b"old"
     assert list(tmp_path.iterdir()) == [target]
 

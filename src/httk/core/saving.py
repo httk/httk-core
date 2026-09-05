@@ -11,8 +11,8 @@ from pathlib import PurePath
 from typing import Any
 from urllib.parse import urlsplit
 
-from ._atomic_write import atomic_destination
 from ._plugins import PluginRegistry
+from .atomic_write import atomic_destination
 from .datastream.compression import split_compression_suffix
 from .register.io import (
     _writer_for_format,
