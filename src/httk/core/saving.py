@@ -11,6 +11,7 @@ from pathlib import PurePath
 from typing import Any
 from urllib.parse import urlsplit
 
+from ._atomic_write import atomic_destination
 from ._plugins import PluginRegistry
 from .datastream.compression import split_compression_suffix
 from .register.io import (
@@ -72,6 +73,11 @@ def save(obj: Any, destination: str | os.PathLike[str], *, format: str | None = 
     registry converts non-neutral objects before writing, and a recognized
     compression suffix wraps the destination transparently.
 
+    Filename output replaces its destination only after writing and closing
+    successfully, so lazy inputs may safely be saved over their source file.
+    Existing symlinks are followed and permission bits retained; other hard
+    links retain the old data. This is not a crash-durability guarantee.
+
     :param obj: Object or neutral payload to serialize and write.
     :param destination: Local filename or path to write.
     :param format: Optional registered format name that selects the writer.
@@ -93,19 +99,19 @@ def save(obj: Any, destination: str | os.PathLike[str], *, format: str | None = 
         payload = format_serializers.dispatch(format_tag, obj)
     from ._plugins import resolve_callable
 
-    with ExitStack() as stack:
-        writer_destination: str | os.PathLike[str] | io.TextIOBase = destination
+    with atomic_destination(destination) as staged, ExitStack() as stack:
+        writer_destination: str | os.PathLike[str] | io.TextIOBase = staged
         _inner, codec = split_compression_suffix(PurePath(destination_name).name)
         if codec is not None:
             if codec.name == "gzip":
-                writer_destination = stack.enter_context(gzip.open(destination_name, "wt", encoding="utf-8"))
+                writer_destination = stack.enter_context(gzip.open(staged, "wt", encoding="utf-8"))
             elif codec.name == "bzip2":
-                writer_destination = stack.enter_context(bz2.open(destination_name, "wt", encoding="utf-8"))
+                writer_destination = stack.enter_context(bz2.open(staged, "wt", encoding="utf-8"))
             elif codec.name == "xz":
-                writer_destination = stack.enter_context(lzma.open(destination_name, "wt", encoding="utf-8"))
+                writer_destination = stack.enter_context(lzma.open(staged, "wt", encoding="utf-8"))
             elif codec.name == "lzma":
                 writer_destination = stack.enter_context(
-                    lzma.open(destination_name, "wt", encoding="utf-8", format=lzma.FORMAT_ALONE)
+                    lzma.open(staged, "wt", encoding="utf-8", format=lzma.FORMAT_ALONE)
                 )
             else:
                 raise ValueError(f"save cannot write compression codec {codec.name!r}")
