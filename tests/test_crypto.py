@@ -1,4 +1,5 @@
 import pytest
+import hashlib
 
 from httk.core.crypto import (
     ed25519_backend_available,
@@ -38,3 +39,56 @@ def test_cryptography_parity_when_available() -> None:
     assert ed25519_public_key(_SEED, backend="cryptography") == _PUBLIC
     assert ed25519_sign(_SEED, b"", backend="cryptography") == _SIGNATURE
     assert ed25519_verify(_PUBLIC, b"", _SIGNATURE, backend="cryptography")
+
+
+@pytest.mark.parametrize("backend", ["pure", "cryptography"])
+@pytest.mark.parametrize("case", ["small-order", "noncanonical-y", "negative-zero", "scalar-order", "scalar-overflow"])
+def test_malformed_points_and_scalars(backend, case):
+    from httk.core.crypto import _L, _P
+
+    if not ed25519_backend_available(backend):
+        pytest.skip("optional backend unavailable")
+    identity = (1).to_bytes(32, "little")
+    if case == "small-order":
+        key, signature = identity, identity + bytes(32)
+    elif case == "noncanonical-y":
+        key, signature = _P.to_bytes(32, "little"), _SIGNATURE
+    elif case == "negative-zero":
+        key, signature = ((1 << 255) | 1).to_bytes(32, "little"), _SIGNATURE
+    elif case == "scalar-order":
+        key, signature = _PUBLIC, _SIGNATURE[:32] + _L.to_bytes(32, "little")
+    else:
+        scalar = int.from_bytes(_SIGNATURE[32:], "little") + _L
+        key, signature = _PUBLIC, _SIGNATURE[:32] + scalar.to_bytes(32, "little")
+    assert not ed25519_verify(key, b"", signature, backend=backend)
+    # Check the point encoding at both public-input positions.
+    if case in {"small-order", "noncanonical-y", "negative-zero"}:
+        assert not ed25519_verify(_PUBLIC, b"", key + _SIGNATURE[32:], backend=backend)
+
+
+@pytest.mark.parametrize("index", range(8))
+def test_generated_cross_backend_signatures(index):
+    if not ed25519_backend_available("cryptography"):
+        pytest.skip("optional backend unavailable")
+    seed = hashlib.sha256(f"httk synthetic test seed {index}".encode()).digest()
+    message = bytes(range(256)) * index
+    public = ed25519_public_key(seed, backend="pure")
+    assert public == ed25519_public_key(seed, backend="cryptography")
+    signed = ed25519_sign(seed, message, backend="pure")
+    assert signed == ed25519_sign(seed, message, backend="cryptography")
+    for backend in ("pure", "cryptography"):
+        assert ed25519_verify(public, message, signed, backend=backend)
+        assert not ed25519_verify(public, message + b"changed", signed, backend=backend)
+
+
+def test_backend_selection_without_optional_dependency(monkeypatch):
+    from httk.core import crypto
+
+    monkeypatch.setattr(crypto, "_cryptography_available", lambda: False)
+    assert ed25519_sign(_SEED, b"") == _SIGNATURE
+    assert ed25519_public_key(_SEED, backend="stdlib") == _PUBLIC
+    assert ed25519_verify(_PUBLIC, b"", _SIGNATURE)
+    with pytest.raises(ImportError, match="not installed"):
+        ed25519_sign(_SEED, b"", backend="cryptography")
+    with pytest.raises(ValueError, match="unknown"):
+        ed25519_sign(_SEED, b"", backend="unknown")

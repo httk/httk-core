@@ -5,6 +5,9 @@ These signing primitives are used by project identity and trust.
 All private keys accepted and returned by this module are standard 32-byte
 Ed25519 seeds. The stdlib implementation follows RFC 8032 and is kept as a
 portable fallback; ``cryptography`` is used automatically when installed.
+The fallback uses variable-time Python arithmetic: use ``cryptography`` for
+private-key operations where timing exposure matters. Both backends reject
+non-canonical encodings and small-order public keys/signature points.
 """
 
 import hashlib
@@ -116,23 +119,35 @@ def _pure_sign(seed: bytes, message: bytes) -> bytes:
     return encoded_r + int.to_bytes((nonce + challenge * scalar) % _L, 32, "little")
 
 
-def _pure_verify(public_key: bytes, message: bytes, signature: bytes) -> bool:
+def _verification_points(
+    public_key: bytes, signature: bytes
+) -> tuple[tuple[int, int, int, int], tuple[int, int, int, int]] | None:
+    """Apply the same public-input validation policy before either verifier."""
     if len(public_key) != 32 or len(signature) != 64:
-        return False
+        return None
     scalar = int.from_bytes(signature[32:], "little")
     if scalar >= _L:
-        return False
+        return None
     try:
         public_point = _decode_point(public_key)
         r_point = _decode_point(signature[:32])
     except ValueError:
-        return False
-    # Reject small-order points. This closes the common cofactor-validation
-    # ambiguity while retaining every RFC 8032 test vector.
+        return None
+    # A backend installation must not change whether a small-order identity key
+    # (which can admit signatures without a secret) passes project verification.
     if _encode_point(_scalar_multiply(public_point, 8)) == _encode_point(_IDENTITY):
-        return False
+        return None
     if _encode_point(_scalar_multiply(r_point, 8)) == _encode_point(_IDENTITY):
+        return None
+    return public_point, r_point
+
+
+def _pure_verify(public_key: bytes, message: bytes, signature: bytes) -> bool:
+    points = _verification_points(public_key, signature)
+    if points is None:
         return False
+    public_point, r_point = points
+    scalar = int.from_bytes(signature[32:], "little")
     challenge = _hint(signature[:32] + public_key + message) % _L
     left = _scalar_multiply(_BASE, scalar)
     right = _point_add(r_point, _scalar_multiply(public_point, challenge))
@@ -240,6 +255,10 @@ def ed25519_verify(
 ) -> bool:
     """Return whether ``signature`` is valid, treating malformed input as false.
 
+    Both backends require canonical points, a scalar below the group order,
+    and non-small-order public and signature points. These input checks use
+    public data only; private-key arithmetic remains in the selected backend.
+
     :param public_key: 32-byte Ed25519 public key.
     :param message: Bytes whose signature is being checked.
     :param signature: 64-byte Ed25519 signature.
@@ -255,6 +274,8 @@ def ed25519_verify(
     if len(key) != 32 or len(signed) != 64:
         return False
     if _backend(backend) == "cryptography":
+        if _verification_points(key, signed) is None:
+            return False
         _, ed25519, exceptions = _cryptography_modules()
         try:
             ed25519.Ed25519PublicKey.from_public_bytes(key).verify(signed, payload)
@@ -262,7 +283,3 @@ def ed25519_verify(
             return False
         return True
     return _pure_verify(key, payload, signed)
-
-
-# Verb-first aliases make the operations easy to discover without creating a
-# second key representation.
