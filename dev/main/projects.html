@@ -1,0 +1,1001 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="Sealing and manifests" href="sealing.html"><link rel="prev" title="Operator identity" href="identity.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Projects - httk-core dev:main documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="_static/selector.css?v=626bada3" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+<div class="announcement">
+  <aside class="announcement-content">
+     Development documentation (dev:main) — content may differ from any release. 
+  </aside>
+</div>
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">httk-core dev:main documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  <span class="sidebar-brand-text">httk-core dev:main documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1 has-children"><a class="reference internal" href="reference/index.html">Reference</a><input aria-label="Toggle navigation of Reference" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/autoapi/httk/core/index.html">httk.core</a><input aria-label="Toggle navigation of httk.core" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/atomic_write/index.html">httk.core.atomic_write</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/building/index.html">httk.core.building</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/citations/index.html">httk.core.citations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/cli/index.html">httk.core.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/converting/index.html">httk.core.converting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/crypto/index.html">httk.core.crypto</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/data_records/index.html">httk.core.data_records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/dataset_loader/index.html">httk.core.dataset_loader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/datasets/index.html">httk.core.datasets</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="reference/autoapi/httk/core/datastream/index.html">httk.core.datastream</a><input aria-label="Toggle navigation of httk.core.datastream" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_api/index.html">httk.core.datastream.bytestream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_backend/index.html">httk.core.datastream.bytestream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_bytes/index.html">httk.core.datastream.bytestream_bytes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_bytes_view/index.html">httk.core.datastream.bytestream_bytes_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_common/index.html">httk.core.datastream.bytestream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_file/index.html">httk.core.datastream.bytestream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_file_view/index.html">httk.core.datastream.bytestream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_filename/index.html">httk.core.datastream.bytestream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_filename_view/index.html">httk.core.datastream.bytestream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_like/index.html">httk.core.datastream.bytestream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_request/index.html">httk.core.datastream.bytestream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_request_view/index.html">httk.core.datastream.bytestream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_url/index.html">httk.core.datastream.bytestream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_url_view/index.html">httk.core.datastream.bytestream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_view/index.html">httk.core.datastream.bytestream_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/compression/index.html">httk.core.datastream.compression</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/datastream_url/index.html">httk.core.datastream.datastream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/network_policy/index.html">httk.core.datastream.network_policy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_api/index.html">httk.core.datastream.textstream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_backend/index.html">httk.core.datastream.textstream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_common/index.html">httk.core.datastream.textstream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_file/index.html">httk.core.datastream.textstream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_file_view/index.html">httk.core.datastream.textstream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_filename/index.html">httk.core.datastream.textstream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_filename_view/index.html">httk.core.datastream.textstream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_like/index.html">httk.core.datastream.textstream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_request/index.html">httk.core.datastream.textstream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_request_view/index.html">httk.core.datastream.textstream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_string/index.html">httk.core.datastream.textstream_string</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_string_view/index.html">httk.core.datastream.textstream_string_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_url/index.html">httk.core.datastream.textstream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_url_view/index.html">httk.core.datastream.textstream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_view/index.html">httk.core.datastream.textstream_view</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/digests/index.html">httk.core.digests</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="reference/autoapi/httk/core/docs/index.html">httk.core.docs</a><input aria-label="Toggle navigation of httk.core.docs" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/docs/cli/index.html">httk.core.docs.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/docs/config/index.html">httk.core.docs.config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/docs/ecosystem/index.html">httk.core.docs.ecosystem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/docs/gitsite/index.html">httk.core.docs.gitsite</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/docs/inventories/index.html">httk.core.docs.inventories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/docs/lockfile/index.html">httk.core.docs.lockfile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/docs/manifests/index.html">httk.core.docs.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/docs/redirect/index.html">httk.core.docs.redirect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/docs/release/index.html">httk.core.docs.release</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/docs/semver/index.html">httk.core.docs.semver</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/docs/sitetree/index.html">httk.core.docs.sitetree</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/docs/sphinx_ext/index.html">httk.core.docs.sphinx_ext</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/entry_ids/index.html">httk.core.entry_ids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/entry_provider/index.html">httk.core.entry_provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/entry_types/index.html">httk.core.entry_types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/exactmath/index.html">httk.core.exactmath</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/fetching/index.html">httk.core.fetching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/files/index.html">httk.core.files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/identity/index.html">httk.core.identity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/identity_cli/index.html">httk.core.identity_cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/loading/index.html">httk.core.loading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/memguard/index.html">httk.core.memguard</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="reference/autoapi/httk/core/optimade/index.html">httk.core.optimade</a><input aria-label="Toggle navigation of httk.core.optimade" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/optimade/entries/index.html">httk.core.optimade.entries</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="reference/autoapi/httk/core/optimade/filter/index.html">httk.core.optimade.filter</a><input aria-label="Toggle navigation of httk.core.optimade.filter" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="reference/autoapi/httk/core/optimade/filter/parser/index.html">httk.core.optimade.filter.parser</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/optimade/resources/index.html">httk.core.optimade.resources</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="reference/autoapi/httk/core/plugins/index.html">httk.core.plugins</a><input aria-label="Toggle navigation of httk.core.plugins" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/plugins/cli/index.html">httk.core.plugins.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/plugins/install/index.html">httk.core.plugins.install</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/plugins/installed/index.html">httk.core.plugins.installed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/plugins/manifest/index.html">httk.core.plugins.manifest</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/precision/index.html">httk.core.precision</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="reference/autoapi/httk/core/project/index.html">httk.core.project</a><input aria-label="Toggle navigation of httk.core.project" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/project/anchor/index.html">httk.core.project.anchor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/project/cli/index.html">httk.core.project.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/project/export/index.html">httk.core.project.export</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/project/manifests/index.html">httk.core.project.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/project/members/index.html">httk.core.project.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/project/sealing/index.html">httk.core.project.sealing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/project/templates/index.html">httk.core.project.templates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/property_definitions/index.html">httk.core.property_definitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/provenance/index.html">httk.core.provenance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/records/index.html">httk.core.records</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="reference/autoapi/httk/core/register/index.html">httk.core.register</a><input aria-label="Toggle navigation of httk.core.register" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/register/cli/index.html">httk.core.register.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/register/entries/index.html">httk.core.register.entries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/register/io/index.html">httk.core.register.io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/register/members/index.html">httk.core.register.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/register/schemas/index.html">httk.core.register.schemas</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/report/index.html">httk.core.report</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/saving/index.html">httk.core.saving</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/schema_check/index.html">httk.core.schema_check</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/services/index.html">httk.core.services</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="reference/autoapi/httk/core/storage/index.html">httk.core.storage</a><input aria-label="Toggle navigation of httk.core.storage" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/storage/identity/index.html">httk.core.storage.identity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/storage/markers/index.html">httk.core.storage.markers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/storage/rational_text/index.html">httk.core.storage.rational_text</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/storage/stored_properties/index.html">httk.core.storage.stored_properties</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/system/index.html">httk.core.system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/userdirs/index.html">httk.core.userdirs</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="reference/autoapi/httk/core/validation/index.html">httk.core.validation</a><input aria-label="Toggle navigation of httk.core.validation" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/validation/iris/index.html">httk.core.validation.iris</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="reference/autoapi/httk/core/vectors/index.html">httk.core.vectors</a><input aria-label="Toggle navigation of httk.core.vectors" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/fracvector/index.html">httk.core.vectors.fracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/leaf_codecs/index.html">httk.core.vectors.leaf_codecs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/mutablefracvector/index.html">httk.core.vectors.mutablefracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/numeric/index.html">httk.core.vectors.numeric</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/scalar_like/index.html">httk.core.vectors.scalar_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/surdvector/index.html">httk.core.vectors.surdvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/vector_api/index.html">httk.core.vectors.vector_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/vector_backend/index.html">httk.core.vectors.vector_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/vector_frac_view/index.html">httk.core.vectors.vector_frac_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/vector_like/index.html">httk.core.vectors.vector_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/vector_native_backend/index.html">httk.core.vectors.vector_native_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/vector_native_view/index.html">httk.core.vectors.vector_native_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/vector_numpy_backend/index.html">httk.core.vectors.vector_numpy_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/vector_numpy_view/index.html">httk.core.vectors.vector_numpy_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/vector_surd_view/index.html">httk.core.vectors.vector_surd_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/vector_view/index.html">httk.core.vectors.vector_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/vectormath/index.html">httk.core.vectors.vectormath</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="reference/autoapi/httk/core/views/index.html">httk.core.views</a><input aria-label="Toggle navigation of httk.core.views" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/views/backend/index.html">httk.core.views.backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/views/coercion/index.html">httk.core.views.coercion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/views/unviewing/index.html">httk.core.views.unviewing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/views/unwrapping/index.html">httk.core.views.unwrapping</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/views/view/index.html">httk.core.views.view</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="view_backend_pattern.html">Views and Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="registry.html">Module registry</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datastreams.html">Datastreams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">The extensible command line</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugins.html">Plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="crypto.html">Cryptography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="identity.html">Operator identity</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sealing.html">Sealing and manifests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="property_definitions.html">Property definitions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vectors.html">Vectors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exactmath.html">Exact math on rationals and decimals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="credits.html">Citation credits</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="examples/index.html">Examples</a><input aria-label="Toggle navigation of Examples" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/datastreams_quickstart.html">Datastreams quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/vectors_quickstart.html">Vectors quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/exactmath_quickstart.html">Exact math quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/load_and_dataset_loader.html">Getting data into httk: the <code class="docutils literal notranslate"><span class="pre">load</span></code> dispatcher and the <code class="docutils literal notranslate"><span class="pre">DatasetLoader</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/property_definitions.html">Building a custom OPTIMADE entry type end to end</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/entry_provider.html">Implementing an <code class="docutils literal notranslate"><span class="pre">EntryProvider</span></code>: the contract <em>httk-core</em> owns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/optimade_filter.html">Parsing OPTIMADE filter strings into an abstract syntax tree</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/coerce_quickstart.html">Coercion quickstart</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Details</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="details/view_backend_pattern.html">Views and Backends in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="details/registry.html">Module registry in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="details/datastreams.html">Datastreams in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="details/plugins.html">Plugins in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="details/property_definitions.html">Property definitions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="details/vectors.html">Vectors in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="details/exactmath.html">Exact math in detail</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="reference/autoapi/index.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/autoapi/httk/core/index.html">httk.core</a><input aria-label="Toggle navigation of httk.core" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/atomic_write/index.html">httk.core.atomic_write</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/building/index.html">httk.core.building</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/citations/index.html">httk.core.citations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/cli/index.html">httk.core.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/converting/index.html">httk.core.converting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/crypto/index.html">httk.core.crypto</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/data_records/index.html">httk.core.data_records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/dataset_loader/index.html">httk.core.dataset_loader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/datasets/index.html">httk.core.datasets</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="reference/autoapi/httk/core/datastream/index.html">httk.core.datastream</a><input aria-label="Toggle navigation of httk.core.datastream" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_api/index.html">httk.core.datastream.bytestream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_backend/index.html">httk.core.datastream.bytestream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_bytes/index.html">httk.core.datastream.bytestream_bytes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_bytes_view/index.html">httk.core.datastream.bytestream_bytes_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_common/index.html">httk.core.datastream.bytestream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_file/index.html">httk.core.datastream.bytestream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_file_view/index.html">httk.core.datastream.bytestream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_filename/index.html">httk.core.datastream.bytestream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_filename_view/index.html">httk.core.datastream.bytestream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_like/index.html">httk.core.datastream.bytestream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_request/index.html">httk.core.datastream.bytestream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_request_view/index.html">httk.core.datastream.bytestream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_url/index.html">httk.core.datastream.bytestream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_url_view/index.html">httk.core.datastream.bytestream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/bytestream_view/index.html">httk.core.datastream.bytestream_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/compression/index.html">httk.core.datastream.compression</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/datastream_url/index.html">httk.core.datastream.datastream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/network_policy/index.html">httk.core.datastream.network_policy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_api/index.html">httk.core.datastream.textstream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_backend/index.html">httk.core.datastream.textstream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_common/index.html">httk.core.datastream.textstream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_file/index.html">httk.core.datastream.textstream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_file_view/index.html">httk.core.datastream.textstream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_filename/index.html">httk.core.datastream.textstream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_filename_view/index.html">httk.core.datastream.textstream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_like/index.html">httk.core.datastream.textstream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_request/index.html">httk.core.datastream.textstream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_request_view/index.html">httk.core.datastream.textstream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_string/index.html">httk.core.datastream.textstream_string</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_string_view/index.html">httk.core.datastream.textstream_string_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_url/index.html">httk.core.datastream.textstream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_url_view/index.html">httk.core.datastream.textstream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/datastream/textstream_view/index.html">httk.core.datastream.textstream_view</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/digests/index.html">httk.core.digests</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="reference/autoapi/httk/core/docs/index.html">httk.core.docs</a><input aria-label="Toggle navigation of httk.core.docs" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/docs/cli/index.html">httk.core.docs.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/docs/config/index.html">httk.core.docs.config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/docs/ecosystem/index.html">httk.core.docs.ecosystem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/docs/gitsite/index.html">httk.core.docs.gitsite</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/docs/inventories/index.html">httk.core.docs.inventories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/docs/lockfile/index.html">httk.core.docs.lockfile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/docs/manifests/index.html">httk.core.docs.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/docs/redirect/index.html">httk.core.docs.redirect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/docs/release/index.html">httk.core.docs.release</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/docs/semver/index.html">httk.core.docs.semver</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/docs/sitetree/index.html">httk.core.docs.sitetree</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/docs/sphinx_ext/index.html">httk.core.docs.sphinx_ext</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/entry_ids/index.html">httk.core.entry_ids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/entry_provider/index.html">httk.core.entry_provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/entry_types/index.html">httk.core.entry_types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/exactmath/index.html">httk.core.exactmath</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/fetching/index.html">httk.core.fetching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/files/index.html">httk.core.files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/identity/index.html">httk.core.identity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/identity_cli/index.html">httk.core.identity_cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/loading/index.html">httk.core.loading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/memguard/index.html">httk.core.memguard</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="reference/autoapi/httk/core/optimade/index.html">httk.core.optimade</a><input aria-label="Toggle navigation of httk.core.optimade" class="toctree-checkbox" id="toctree-checkbox-19" name="toctree-checkbox-19" role="switch" type="checkbox"/><label for="toctree-checkbox-19"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/optimade/entries/index.html">httk.core.optimade.entries</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="reference/autoapi/httk/core/optimade/filter/index.html">httk.core.optimade.filter</a><input aria-label="Toggle navigation of httk.core.optimade.filter" class="toctree-checkbox" id="toctree-checkbox-20" name="toctree-checkbox-20" role="switch" type="checkbox"/><label for="toctree-checkbox-20"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="reference/autoapi/httk/core/optimade/filter/parser/index.html">httk.core.optimade.filter.parser</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/optimade/resources/index.html">httk.core.optimade.resources</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="reference/autoapi/httk/core/plugins/index.html">httk.core.plugins</a><input aria-label="Toggle navigation of httk.core.plugins" class="toctree-checkbox" id="toctree-checkbox-21" name="toctree-checkbox-21" role="switch" type="checkbox"/><label for="toctree-checkbox-21"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/plugins/cli/index.html">httk.core.plugins.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/plugins/install/index.html">httk.core.plugins.install</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/plugins/installed/index.html">httk.core.plugins.installed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/plugins/manifest/index.html">httk.core.plugins.manifest</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/precision/index.html">httk.core.precision</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="reference/autoapi/httk/core/project/index.html">httk.core.project</a><input aria-label="Toggle navigation of httk.core.project" class="toctree-checkbox" id="toctree-checkbox-22" name="toctree-checkbox-22" role="switch" type="checkbox"/><label for="toctree-checkbox-22"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/project/anchor/index.html">httk.core.project.anchor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/project/cli/index.html">httk.core.project.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/project/export/index.html">httk.core.project.export</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/project/manifests/index.html">httk.core.project.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/project/members/index.html">httk.core.project.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/project/sealing/index.html">httk.core.project.sealing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/project/templates/index.html">httk.core.project.templates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/property_definitions/index.html">httk.core.property_definitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/provenance/index.html">httk.core.provenance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/records/index.html">httk.core.records</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="reference/autoapi/httk/core/register/index.html">httk.core.register</a><input aria-label="Toggle navigation of httk.core.register" class="toctree-checkbox" id="toctree-checkbox-23" name="toctree-checkbox-23" role="switch" type="checkbox"/><label for="toctree-checkbox-23"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/register/cli/index.html">httk.core.register.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/register/entries/index.html">httk.core.register.entries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/register/io/index.html">httk.core.register.io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/register/members/index.html">httk.core.register.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/register/schemas/index.html">httk.core.register.schemas</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/report/index.html">httk.core.report</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/saving/index.html">httk.core.saving</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/schema_check/index.html">httk.core.schema_check</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/services/index.html">httk.core.services</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="reference/autoapi/httk/core/storage/index.html">httk.core.storage</a><input aria-label="Toggle navigation of httk.core.storage" class="toctree-checkbox" id="toctree-checkbox-24" name="toctree-checkbox-24" role="switch" type="checkbox"/><label for="toctree-checkbox-24"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/storage/identity/index.html">httk.core.storage.identity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/storage/markers/index.html">httk.core.storage.markers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/storage/rational_text/index.html">httk.core.storage.rational_text</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/storage/stored_properties/index.html">httk.core.storage.stored_properties</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/system/index.html">httk.core.system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/autoapi/httk/core/userdirs/index.html">httk.core.userdirs</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="reference/autoapi/httk/core/validation/index.html">httk.core.validation</a><input aria-label="Toggle navigation of httk.core.validation" class="toctree-checkbox" id="toctree-checkbox-25" name="toctree-checkbox-25" role="switch" type="checkbox"/><label for="toctree-checkbox-25"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/validation/iris/index.html">httk.core.validation.iris</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="reference/autoapi/httk/core/vectors/index.html">httk.core.vectors</a><input aria-label="Toggle navigation of httk.core.vectors" class="toctree-checkbox" id="toctree-checkbox-26" name="toctree-checkbox-26" role="switch" type="checkbox"/><label for="toctree-checkbox-26"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/fracvector/index.html">httk.core.vectors.fracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/leaf_codecs/index.html">httk.core.vectors.leaf_codecs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/mutablefracvector/index.html">httk.core.vectors.mutablefracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/numeric/index.html">httk.core.vectors.numeric</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/scalar_like/index.html">httk.core.vectors.scalar_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/surdvector/index.html">httk.core.vectors.surdvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/vector_api/index.html">httk.core.vectors.vector_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/vector_backend/index.html">httk.core.vectors.vector_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/vector_frac_view/index.html">httk.core.vectors.vector_frac_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/vector_like/index.html">httk.core.vectors.vector_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/vector_native_backend/index.html">httk.core.vectors.vector_native_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/vector_native_view/index.html">httk.core.vectors.vector_native_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/vector_numpy_backend/index.html">httk.core.vectors.vector_numpy_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/vector_numpy_view/index.html">httk.core.vectors.vector_numpy_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/vector_surd_view/index.html">httk.core.vectors.vector_surd_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/vector_view/index.html">httk.core.vectors.vector_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/vectors/vectormath/index.html">httk.core.vectors.vectormath</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="reference/autoapi/httk/core/views/index.html">httk.core.views</a><input aria-label="Toggle navigation of httk.core.views" class="toctree-checkbox" id="toctree-checkbox-27" name="toctree-checkbox-27" role="switch" type="checkbox"/><label for="toctree-checkbox-27"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/views/backend/index.html">httk.core.views.backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/views/coercion/index.html">httk.core.views.coercion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/views/unviewing/index.html">httk.core.views.unviewing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/views/unwrapping/index.html">httk.core.views.unwrapping</a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/autoapi/httk/core/views/view/index.html">httk.core.views.view</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reference/autoapi/httk/registry/cli/core/index.html">httk.registry.cli.core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/autoapi/httk/registry/entries/core/index.html">httk.registry.entries.core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/autoapi/httk/registry/schemas/core/index.html">httk.registry.schemas.core</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="_sources/projects.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section class="tex2jax_ignore mathjax_ignore" id="projects">
+<h1>Projects<a class="headerlink" href="#projects" title="Link to this heading">¶</a></h1>
+<p>A <em>project</em> is to a campaign what a Git repository is to a source tree: a
+directory marked at its root by a control directory that commands discover by
+walking upward from wherever they are run. In <em>httk</em> that directory is the
+visible, deliberately non-hidden <code class="docutils literal notranslate"><span class="pre">httk_project/</span></code>; its versioned manifest is
+<code class="docutils literal notranslate"><span class="pre">httk_project/project.json</span></code>. The Git analogy describes discovery, not naming:
+the anchor is visible so it is easy to inspect and manage.</p>
+<p>The anchor lives in <code class="docutils literal notranslate"><span class="pre">httk.core.project</span></code>, so an <em>httk-core</em> installation has a
+working project on its own. Capability modules layer their own project data on
+top of the anchor without making the anchor depend on them.</p>
+<section id="the-command-line">
+<h2>The command line<a class="headerlink" href="#the-command-line" title="Link to this heading">¶</a></h2>
+<p>The core-owned <code class="docutils literal notranslate"><span class="pre">httk</span> <span class="pre">project</span></code> command has five subcommands:
+<code class="docutils literal notranslate"><span class="pre">init</span></code>, <code class="docutils literal notranslate"><span class="pre">show</span></code>, <code class="docutils literal notranslate"><span class="pre">import-v1</span></code>, <code class="docutils literal notranslate"><span class="pre">export</span></code>, and <code class="docutils literal notranslate"><span class="pre">verify-export</span></code>.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">httk project init [--description TEXT] PATH...</span>
+<span class="go">httk project init --name NAME --description TEXT PATH</span>
+<span class="go">httk project show [PATH...]</span>
+<span class="go">httk project show --json PATH...</span>
+<span class="go">httk project import-v1 PATH...</span>
+<span class="go">httk project import-v1 --source DIR --name NAME PATH</span>
+<span class="go">httk project export OUT.ZIP</span>
+<span class="go">httk project verify-export [--expect-key FINGERPRINT] [--trusted-key FINGERPRINT ...] ZIP...</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">init</span></code> makes each <code class="docutils literal notranslate"><span class="pre">PATH</span></code> a project. At least one path is required. <code class="docutils literal notranslate"><span class="pre">--name</span></code>
+is available when initializing one path and defaults to its directory name;
+<code class="docutils literal notranslate"><span class="pre">--description</span></code> defaults to an empty string. It refuses an existing project and creates
+<code class="docutils literal notranslate"><span class="pre">httk_project/project.json</span></code>, the project’s Ed25519 key under
+<code class="docutils literal notranslate"><span class="pre">httk_project/keys/</span></code>, and <code class="docutils literal notranslate"><span class="pre">httk_project/remotes/</span></code>. It creates no workflow
+workspace. To populate a new project from a plugin or an explicit template,
+use <code class="docutils literal notranslate"><span class="pre">httk</span> <span class="pre">project</span> <span class="pre">init</span> <span class="pre">--template</span></code>; see the Project templates section below.</p>
+<p><code class="docutils literal notranslate"><span class="pre">show</span></code> describes the nearest project when no path is supplied, or each named
+project. Human output is target-delimited and <code class="docutils literal notranslate"><span class="pre">--json</span></code> always emits an array.
+<code class="docutils literal notranslate"><span class="pre">import-v1</span></code> imports each legacy v1 project in
+<code class="docutils literal notranslate"><span class="pre">PATH/ht.project</span></code> by default; <code class="docutils literal notranslate"><span class="pre">--source</span> <span class="pre">DIR</span></code> selects another v1 directory.</p>
+<p><code class="docutils literal notranslate"><span class="pre">export</span></code> packages the nearest project tree into a signed redistribution ZIP,
+excluding the private key, and signs it with the project’s Ed25519 key.
+<code class="docutils literal notranslate"><span class="pre">verify-export</span></code> checks such a ZIP and prints the signer’s public key and
+fingerprint; <code class="docutils literal notranslate"><span class="pre">--expect-key</span></code> requires a specific signer fingerprint and
+<code class="docutils literal notranslate"><span class="pre">--trusted-key</span></code> (repeatable) supplies fingerprints to trust. The programmatic
+equivalents are <code class="docutils literal notranslate"><span class="pre">export_project</span></code> and <code class="docutils literal notranslate"><span class="pre">verify_export</span></code> in <code class="docutils literal notranslate"><span class="pre">httk.core.project</span></code>.</p>
+<p>Root options are processed before command dispatch. <code class="docutils literal notranslate"><span class="pre">-C</span> <span class="pre">DIR</span></code> changes directory
+first, so any <em>httk</em> command can target a project from elsewhere:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">httk -C ~/proj project show</span>
+<span class="go">httk -C ~/proj project show --json</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="cli.html"><span class="doc">The extensible command line</span></a> for the root command-line rules. The <code class="docutils literal notranslate"><span class="pre">httk</span> <span class="pre">project</span></code> namespace
+belongs to <em>httk-core</em>, which owns every verb on it: <code class="docutils literal notranslate"><span class="pre">init</span> <span class="pre">|</span> <span class="pre">show</span> <span class="pre">|</span> <span class="pre">import-v1</span> <span class="pre">|</span> <span class="pre">export</span> <span class="pre">|</span> <span class="pre">verify-export</span></code> for the anchor, and <code class="docutils literal notranslate"><span class="pre">repair</span> <span class="pre">|</span> <span class="pre">manifest</span> <span class="pre">|</span> <span class="pre">seal</span> <span class="pre">|</span> <span class="pre">unseal</span> <span class="pre">|</span> <span class="pre">verify-seal</span></code> for checking and pinning the tree (see <a class="reference internal" href="sealing.html"><span class="doc">Sealing and manifests</span></a>).</p>
+</section>
+<section id="project-members">
+<span id="id1"></span><h2>Project members<a class="headerlink" href="#project-members" title="Link to this heading">¶</a></h2>
+<p>A project can hold <em>members</em>: self-contained subtrees whose internals another
+module owns — a workflow workspace is the first one. Core owns the verbs; a
+member only teaches core how to treat its own subtree. Three pieces cooperate:</p>
+<ul class="simple">
+<li><p><strong>A module registers a kind.</strong> <code class="docutils literal notranslate"><span class="pre">register_project_member_kind(kind,</span> <span class="pre">handler)</span></code>
+(from <code class="docutils literal notranslate"><span class="pre">httk.core</span></code>) records a lazy <code class="docutils literal notranslate"><span class="pre">&quot;module:callable&quot;</span></code> reference that resolves
+to an object implementing <code class="docutils literal notranslate"><span class="pre">ProjectMemberHandler</span></code> — the methods core drives:
+<code class="docutils literal notranslate"><span class="pre">manifest_exclusions</span></code>, <code class="docutils literal notranslate"><span class="pre">guard</span></code>, <code class="docutils literal notranslate"><span class="pre">seal_digest</span></code>, <code class="docutils literal notranslate"><span class="pre">verify</span></code>, <code class="docutils literal notranslate"><span class="pre">repair</span></code>, and the
+optional <code class="docutils literal notranslate"><span class="pre">scan_project</span></code>. (A member seals through its own module; core only
+records the resulting digest.)</p></li>
+<li><p><strong>A project records its members.</strong> <code class="docutils literal notranslate"><span class="pre">register_project_member(project_root,</span> <span class="pre">path,</span> <span class="pre">kind,</span> <span class="pre">*,</span> <span class="pre">name=None)</span></code> writes <code class="docutils literal notranslate"><span class="pre">httk_project/members.json</span></code>, mapping a
+subtree path to its kind and an optional recorded <code class="docutils literal notranslate"><span class="pre">name</span></code> (member names, when
+set, are unique within a project). Registration is refused while the project
+is sealed. <code class="docutils literal notranslate"><span class="pre">project_members</span></code> reads them back; <code class="docutils literal notranslate"><span class="pre">set_project_member_name</span></code> sets
+or clears a member’s name.</p></li>
+<li><p><strong>Core drives the verbs.</strong> <code class="docutils literal notranslate"><span class="pre">httk</span> <span class="pre">project</span> <span class="pre">seal</span></code>, <code class="docutils literal notranslate"><span class="pre">manifest</span></code>, <code class="docutils literal notranslate"><span class="pre">repair</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">verify-seal</span></code> hand each registered member’s subtree to its handler and fold the
+results into one project-wide answer — a project seal records each member’s own
+seal digest, so it transitively pins whole subtrees without re-hashing them.</p></li>
+</ul>
+<p>A member whose kind no module has installed is reported clearly rather than
+silently skipped: sealing refuses it, and <code class="docutils literal notranslate"><span class="pre">repair</span></code> and <code class="docutils literal notranslate"><span class="pre">verify-seal</span></code> flag it.</p>
+<p><code class="docutils literal notranslate"><span class="pre">httk</span> <span class="pre">project</span> <span class="pre">adopt</span></code> (re)establishes each member’s machine-local links on the
+current machine — the per-user or machine-local bindings a member needs to be
+usable here, such as httk-workflow registering the member’s workspace in the
+per-user name registry under its recorded name. Adoption is idempotent and never
+touches sealed state; a member whose handler defines no adopt hook is simply
+skipped, and adopting a project with no such members is a no-op.</p>
+</section>
+<section id="project-templates">
+<h2>Project templates<a class="headerlink" href="#project-templates" title="Link to this heading">¶</a></h2>
+<p>An <em>httk₂</em> project template supplies files and, optionally, a hook that
+generates more project content. Templates can be bundled by plugins or used
+directly from a directory containing <code class="docutils literal notranslate"><span class="pre">httk_project_template.toml</span></code>.</p>
+<p>Install a plugin, then initialize a project from one of its templates:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">httk plugin install ./my-plugin</span>
+<span class="go">httk project init --template my-plugin:starter --parameter n=3 my-project</span>
+</pre></div>
+</div>
+<p>List installed templates and their plugin-qualified selectors with:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">httk project init --list-templates</span>
+</pre></div>
+</div>
+<p>An explicit template directory works without a plugin:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">httk project init --template ./templates/starter my-project</span>
+</pre></div>
+</div>
+<p>Templates can also be selected by a bare template ID when exactly one
+installed template has that ID; a bare ID shared by multiple plugins is
+ambiguous and must be qualified.</p>
+<section id="the-httk-project-template-toml-manifest">
+<h3>The <code class="docutils literal notranslate"><span class="pre">httk_project_template.toml</span></code> manifest<a class="headerlink" href="#the-httk-project-template-toml-manifest" title="Link to this heading">¶</a></h3>
+<p>The manifest is strict: its only top-level table is <code class="docutils literal notranslate"><span class="pre">[template]</span></code>, and unknown
+keys are errors.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[template]</span>
+<span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;starter&quot;</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;A small starter project&quot;</span>
+<span class="n">files</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;README.md&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;src&quot;</span><span class="p">]</span>
+
+<span class="k">[template.instantiate]</span>
+<span class="n">file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;instantiate.py&quot;</span>
+
+<span class="k">[template.parameters.name]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Project display name&quot;</span>
+
+<span class="k">[template.parameters.count]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
+<span class="n">default</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
+</pre></div>
+</div>
+<section id="template">
+<h4><code class="docutils literal notranslate"><span class="pre">[template]</span></code><a class="headerlink" href="#template" title="Link to this heading">¶</a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">id</span></code> is required and must match <code class="docutils literal notranslate"><span class="pre">[a-z0-9._-]+</span></code>; it must not be <code class="docutils literal notranslate"><span class="pre">.</span></code> or <code class="docutils literal notranslate"><span class="pre">..</span></code>,
+and must not start with <code class="docutils literal notranslate"><span class="pre">-</span></code>. <code class="docutils literal notranslate"><span class="pre">description</span></code> is an optional string.</p>
+<p><code class="docutils literal notranslate"><span class="pre">files</span></code> is an optional array of relative POSIX members. Each member may be a
+regular file or a directory. Members must remain below the template root,
+must not be absolute, contain empty components, <code class="docutils literal notranslate"><span class="pre">.</span></code>, or <code class="docutils literal notranslate"><span class="pre">..</span></code>, or traverse a
+symlink. They must be unique and may not overlap by containment. The manifest
+itself, <code class="docutils literal notranslate"><span class="pre">httk_project_template.toml</span></code>, and the instantiate hook may not be
+listed. Directory members are copied recursively; symlinks and special files
+inside them are rejected during instantiation.</p>
+</section>
+<section id="template-instantiate">
+<h4><code class="docutils literal notranslate"><span class="pre">[template.instantiate]</span></code><a class="headerlink" href="#template-instantiate" title="Link to this heading">¶</a></h4>
+<p>The table is optional and accepts the required <code class="docutils literal notranslate"><span class="pre">file</span></code> key. A <code class="docutils literal notranslate"><span class="pre">.py</span></code> file is run
+with the current Python interpreter. A non-Python file must be an executable
+regular member. The hook is required when the template declares any
+parameters.</p>
+</section>
+<section id="template-parameters-name">
+<h4><code class="docutils literal notranslate"><span class="pre">[template.parameters.&lt;name&gt;]</span></code><a class="headerlink" href="#template-parameters-name" title="Link to this heading">¶</a></h4>
+<p>Parameter names must match <code class="docutils literal notranslate"><span class="pre">[A-Za-z_][A-Za-z0-9_]*</span></code>. Each parameter table
+accepts:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">type</span></code>, required and one of <code class="docutils literal notranslate"><span class="pre">string</span></code>, <code class="docutils literal notranslate"><span class="pre">number</span></code>, <code class="docutils literal notranslate"><span class="pre">integer</span></code>, <code class="docutils literal notranslate"><span class="pre">boolean</span></code>,
+<code class="docutils literal notranslate"><span class="pre">array</span></code>, or <code class="docutils literal notranslate"><span class="pre">object</span></code>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">description</span></code>, an optional string;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">default</span></code>, an optional JSON-compatible value matching <code class="docutils literal notranslate"><span class="pre">type</span></code>.</p></li>
+</ul>
+<p>A parameter with no <code class="docutils literal notranslate"><span class="pre">default</span></code> is mandatory. A parameter with a default is
+optional and receives that default when it is not supplied. <code class="docutils literal notranslate"><span class="pre">number</span></code> accepts
+integers and floating-point numbers but not booleans; <code class="docutils literal notranslate"><span class="pre">integer</span></code> also excludes
+booleans. <code class="docutils literal notranslate"><span class="pre">array</span></code> and <code class="docutils literal notranslate"><span class="pre">object</span></code> mean JSON arrays and objects.</p>
+<p>Parameters are supplied by repeating <code class="docutils literal notranslate"><span class="pre">--parameter</span> <span class="pre">NAME=VALUE</span></code>. <code class="docutils literal notranslate"><span class="pre">VALUE</span></code> is
+parsed as JSON when possible and is otherwise treated as a literal string.
+Quote a literal string as JSON, for example:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">httk project init --template starter \</span>
+<span class="go">  --parameter name=&#39;&quot;Ada&quot;&#39; --parameter count=3 --parameter enabled=true demo</span>
+</pre></div>
+</div>
+<p>The quotes around <code class="docutils literal notranslate"><span class="pre">&quot;Ada&quot;</span></code> are needed because an unquoted <code class="docutils literal notranslate"><span class="pre">Ada</span></code> is the JSON
+fallback string, while a value such as <code class="docutils literal notranslate"><span class="pre">3</span></code> is parsed as an integer. Unknown
+parameters, missing mandatory parameters, and values of the wrong type fail
+before the project directory is created.</p>
+</section>
+</section>
+<section id="the-instantiate-hook">
+<h3>The instantiate hook<a class="headerlink" href="#the-instantiate-hook" title="Link to this heading">¶</a></h3>
+<p>The hook receives one JSON request on standard input. It runs with the project
+directory as its current working directory (<code class="docutils literal notranslate"><span class="pre">cwd</span></code>) and with the selected
+template files already copied. The request envelope is:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;httk-project-template-instantiate&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;format_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;template&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;starter&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;parameters&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Ada&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;project&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;demo&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;project_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;root&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/absolute/path/to/demo&quot;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">project</span></code> object contains the project information supplied by the caller,
+plus <code class="docutils literal notranslate"><span class="pre">root</span></code>, which is the absolute project root. The <code class="docutils literal notranslate"><span class="pre">httk</span> <span class="pre">project</span> <span class="pre">init</span></code>
+command supplies <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">description</span></code>, and <code class="docutils literal notranslate"><span class="pre">project_id</span></code>.</p>
+<p>The hook inherits the environment except that variables beginning with
+<code class="docutils literal notranslate"><span class="pre">HTTK_</span></code> are removed. <code class="docutils literal notranslate"><span class="pre">HTTK_CONFIG_HOME</span></code> and <code class="docutils literal notranslate"><span class="pre">HTTK_DATA_HOME</span></code> are retained.
+The default hook timeout is 3600 seconds. A Python hook is invoked as
+<code class="docutils literal notranslate"><span class="pre">sys.executable</span> <span class="pre">HOOK.py</span></code>; another hook is executed directly.</p>
+<p>Write one JSON object to standard output. <code class="docutils literal notranslate"><span class="pre">{}</span></code> is the empty response. The
+optional <code class="docutils literal notranslate"><span class="pre">notes</span></code> member must be an array of strings; those notes are printed
+after initialization. Other response members are accepted but ignored by the
+core. Nonzero exit status, invalid JSON, invalid notes, or a timeout fails
+instantiation.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">template_instantiate_main</span></code> helper validates the request envelope and
+writes the response for a Python hook. A minimal hook is:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">httk.core.project.templates</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemplateInstantiateRequest</span><span class="p">,</span> <span class="n">template_instantiate_main</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">handle</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">TemplateInstantiateRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;created.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">output</span><span class="p">:</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;notes&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;created project file&quot;</span><span class="p">]}</span>
+
+
+<span class="n">template_instantiate_main</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Returning <code class="docutils literal notranslate"><span class="pre">None</span></code> writes <code class="docutils literal notranslate"><span class="pre">{}</span></code>. Exceptions are reported as hook failure.</p>
+</section>
+<section id="instantiation-and-rollback">
+<h3>Instantiation and rollback<a class="headerlink" href="#instantiation-and-rollback" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">httk</span> <span class="pre">project</span> <span class="pre">init</span> <span class="pre">--template</span></code> performs the following sequence:</p>
+<ol class="arabic simple">
+<li><p>Resolve and validate the template, then validate parameters and apply
+defaults.</p></li>
+<li><p>Create the project anchor.</p></li>
+<li><p>Preflight destination collisions and copy the declared files and
+directories.</p></li>
+<li><p>Run the optional instantiate hook.</p></li>
+</ol>
+<p>Copying preserves file modes. Existing project members cause a collision
+error, and the copy preflight prevents a partial copy from that error. Hook
+changes are not transactional. If the target directory was fresh, any
+failure removes it. If the target directory already contained entries, the
+anchor and any copied or hook-created files remain and the command reports
+that partial state.</p>
+</section>
+</section>
+<section id="discovering-and-reading-a-project">
+<h2>Discovering and reading a project<a class="headerlink" href="#discovering-and-reading-a-project" title="Link to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">httk.core.project</span><span class="w"> </span><span class="kn">import</span> <span class="n">discover_project</span><span class="p">,</span> <span class="n">read_project</span><span class="p">,</span> <span class="n">require_project</span>
+
+<span class="n">root</span> <span class="o">=</span> <span class="n">discover_project</span><span class="p">()</span>       <span class="c1"># nearest project, or None</span>
+<span class="n">root</span> <span class="o">=</span> <span class="n">require_project</span><span class="p">()</span>        <span class="c1"># nearest project, or an error</span>
+<span class="n">metadata</span> <span class="o">=</span> <span class="n">read_project</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>   <span class="c1"># validated httk_project/project.json</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">discover_project(start)</span></code> resolves <code class="docutils literal notranslate"><span class="pre">start</span></code> and checks it and each parent for
+<code class="docutils literal notranslate"><span class="pre">httk_project/project.json</span></code>. It returns the project root as a <code class="docutils literal notranslate"><span class="pre">Path</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">None</span></code>; <code class="docutils literal notranslate"><span class="pre">require_project(start)</span></code> has the same behavior but raises when no
+project exists. Both refuse legacy project directories; see
+the Legacy project directories section below.</p>
+</section>
+<section id="initializing-and-importing">
+<h2>Initializing and importing<a class="headerlink" href="#initializing-and-importing" title="Link to this heading">¶</a></h2>
+<p>The API equivalents of the two creating commands are
+<code class="docutils literal notranslate"><span class="pre">initialize_project</span></code> and <code class="docutils literal notranslate"><span class="pre">import_v1_project</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">httk.core.project</span><span class="w"> </span><span class="kn">import</span> <span class="n">import_v1_project</span><span class="p">,</span> <span class="n">initialize_project</span>
+
+<span class="n">metadata</span> <span class="o">=</span> <span class="n">initialize_project</span><span class="p">(</span><span class="s2">&quot;campaign&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;My campaign&quot;</span><span class="p">)</span>
+<span class="n">metadata</span> <span class="o">=</span> <span class="n">import_v1_project</span><span class="p">(</span><span class="s2">&quot;campaign&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;My campaign&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">initialize_project</span></code> creates only the anchor, its <code class="docutils literal notranslate"><span class="pre">project.json</span></code>, its Ed25519
+key, and its <code class="docutils literal notranslate"><span class="pre">remotes/</span></code> directory. <code class="docutils literal notranslate"><span class="pre">import_v1_project</span></code> reads the v1
+<code class="docutils literal notranslate"><span class="pre">ht.project/config</span></code>, copies its public-key files into
+<code class="docutils literal notranslate"><span class="pre">httk_project/keys/legacy-public/</span></code>, records the source, and makes readable
+legacy keys trusted. It also creates the new project’s own key and pins it in
+<code class="docutils literal notranslate"><span class="pre">httk_project/project.json</span></code>; queue data is not imported by this function.</p>
+</section>
+<section id="legacy-project-directories">
+<h2>Legacy project directories<a class="headerlink" href="#legacy-project-directories" title="Link to this heading">¶</a></h2>
+<p>Discovery refuses a legacy directory by raising
+<a class="reference internal" href="reference/autoapi/httk/core/project/index.html#httk.core.project.LegacyProjectError" title="httk.core.project.LegacyProjectError"><code class="xref py py-class docutils literal notranslate"><span class="pre">httk.core.project.LegacyProjectError</span></code></a>. The refusal includes the
+remedy.</p>
+<p>A v1 project containing <code class="docutils literal notranslate"><span class="pre">ht.project</span></code> produces:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>httk<span class="w"> </span>project<span class="w"> </span>show
+<span class="go">httk project: found an httk v1 project (&#39;ht.project&#39;) at /path/to/project; create the httk v2 anchor with: httk project import-v1 /path/to/project</span>
+</pre></div>
+</div>
+<p>Run the shown <code class="docutils literal notranslate"><span class="pre">httk</span> <span class="pre">project</span> <span class="pre">import-v1</span> <span class="pre">/path/to/project</span></code>. It reads
+<code class="docutils literal notranslate"><span class="pre">/path/to/project/ht.project/config</span></code>, copies the public keys, pins the readable
+legacy keys as trusted, and creates <code class="docutils literal notranslate"><span class="pre">/path/to/project/httk_project/</span></code>.</p>
+</section>
+<section id="identity-keys-pinning-and-trust">
+<h2>Identity keys, pinning, and trust<a class="headerlink" href="#identity-keys-pinning-and-trust" title="Link to this heading">¶</a></h2>
+<p>A project owns one Ed25519 signing key. Its public half is recorded in
+<code class="docutils literal notranslate"><span class="pre">httk_project/project.json</span></code> as <code class="docutils literal notranslate"><span class="pre">public_key</span></code> and is the trust anchor against
+which a signed manifest is checked; verification does not trust a key merely
+because a manifest carries it in its own header.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">httk.core.project</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">pin_project_key</span><span class="p">,</span>        <span class="c1"># pin httk_project/keys/project.pub</span>
+    <span class="n">trust_project_key</span><span class="p">,</span>      <span class="c1"># adopt another public key</span>
+    <span class="n">pinned_project_key</span><span class="p">,</span>     <span class="c1"># the project&#39;s pinned key, or None</span>
+    <span class="n">trusted_project_keys</span><span class="p">,</span>   <span class="c1"># the pinned key and adopted keys</span>
+    <span class="n">key_fingerprint</span><span class="p">,</span>        <span class="c1"># stable sha256: display fingerprint</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">pin_project_key(root)</span></code> explicitly adopts the current
+<code class="docutils literal notranslate"><span class="pre">httk_project/keys/project.pub</span></code> as the project’s pinned trust anchor.
+<code class="docutils literal notranslate"><span class="pre">trust_project_key(root,</span> <span class="pre">key)</span></code> adds another public key to <code class="docutils literal notranslate"><span class="pre">trusted_keys</span></code>.
+<code class="docutils literal notranslate"><span class="pre">pinned_project_key(metadata)</span></code> reads the project’s own pin, while
+<code class="docutils literal notranslate"><span class="pre">trusted_project_keys(metadata)</span></code> returns it together with adopted keys.</p>
+<p>Public keys are recorded as <code class="docutils literal notranslate"><span class="pre">ed25519:BASE64</span></code>.
+<code class="docutils literal notranslate"><span class="pre">format_public_key</span></code>, <code class="docutils literal notranslate"><span class="pre">parse_public_key</span></code>, <code class="docutils literal notranslate"><span class="pre">canonical_public_key</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">read_public_key_file</span></code> convert between that spelling, raw 32-byte keys, and
+<code class="docutils literal notranslate"><span class="pre">*.pub</span></code> files. <code class="docutils literal notranslate"><span class="pre">project_public_key_path(root)</span></code> returns the path to the
+project’s public key.</p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="sealing.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Sealing and manifests</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="identity.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Operator identity</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2026, The httk-core AUTHORS
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Projects</a><ul>
+<li><a class="reference internal" href="#the-command-line">The command line</a></li>
+<li><a class="reference internal" href="#project-members">Project members</a></li>
+<li><a class="reference internal" href="#project-templates">Project templates</a><ul>
+<li><a class="reference internal" href="#the-httk-project-template-toml-manifest">The <code class="docutils literal notranslate"><span class="pre">httk_project_template.toml</span></code> manifest</a><ul>
+<li><a class="reference internal" href="#template"><code class="docutils literal notranslate"><span class="pre">[template]</span></code></a></li>
+<li><a class="reference internal" href="#template-instantiate"><code class="docutils literal notranslate"><span class="pre">[template.instantiate]</span></code></a></li>
+<li><a class="reference internal" href="#template-parameters-name"><code class="docutils literal notranslate"><span class="pre">[template.parameters.&lt;name&gt;]</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#the-instantiate-hook">The instantiate hook</a></li>
+<li><a class="reference internal" href="#instantiation-and-rollback">Instantiation and rollback</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#discovering-and-reading-a-project">Discovering and reading a project</a></li>
+<li><a class="reference internal" href="#initializing-and-importing">Initializing and importing</a></li>
+<li><a class="reference internal" href="#legacy-project-directories">Legacy project directories</a></li>
+<li><a class="reference internal" href="#identity-keys-pinning-and-trust">Identity keys, pinning, and trust</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=fe42cd0d"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=fd10adb8"></script>
+    <script src="_static/selector.js?v=e591e119"></script>
+    <script>window.HTTK_DOCS_VERSIONING = {"channel":"dev","version":"dev:main","versionPathDepth":2};</script>
+    </body>
+</html>

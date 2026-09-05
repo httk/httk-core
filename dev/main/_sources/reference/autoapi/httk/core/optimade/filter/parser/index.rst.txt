@@ -1,0 +1,104 @@
+httk.core.optimade.filter.parser
+================================
+
+.. py:module:: httk.core.optimade.filter.parser
+
+.. autoapi-nested-parse::
+
+   Parser for the OPTIMADE filter language.
+
+   Parses an OPTIMADE filter string into a nested tuple abstract syntax tree
+   (the "ojf" format), e.g.::
+
+       ('AND', ('HAS_ALL', ('=', '='), ('Identifier', 'elements'),
+                (('String', 'Ga'), ('String', 'Ti'))),
+               ('OR', ('=', ('Identifier', 'nelements'), ('Number', '3')),
+                      ('=', ('Identifier', 'nelements'), ('Number', '2'))))
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.optimade.filter.parser.FilterAst
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   httk.core.optimade.filter.parser.ParserError
+   httk.core.optimade.filter.parser.ParserSyntaxError
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.optimade.filter.parser.parse_optimade_filter
+   httk.core.optimade.filter.parser.parse_optimade_filter_raw
+
+
+Module Contents
+---------------
+
+.. py:exception:: ParserError
+
+   Bases: :py:obj:`Exception`
+
+
+   Common base class for all non-exit exceptions.
+
+
+.. py:exception:: ParserSyntaxError(*args)
+
+   Bases: :py:obj:`ParserError`
+
+
+   Common base class for all non-exit exceptions.
+
+
+   .. py:attribute:: info
+
+
+   .. py:attribute:: line
+
+
+   .. py:attribute:: pos
+
+
+   .. py:attribute:: linestr
+
+
+.. py:type:: FilterAst
+   :canonical: tuple[Any, ...]
+
+
+.. py:function:: parse_optimade_filter(filter_string, verbosity = 0)
+
+   Parse an OPTIMADE filter into the public abstract syntax tree format.
+
+   :param filter_string: OPTIMADE filter expression to parse.
+   :param verbosity: Diagnostic verbosity setting passed to the parser.
+   :return: Nested tuple abstract syntax tree in ``ojf`` format.
+   :raises ParserSyntaxError: If the filter cannot be parsed, or is too long or
+       too deeply nested to parse within the interpreter's recursion limit.
+   :raises ParserError: If the filter cannot be parsed.
+
+
+.. py:function:: parse_optimade_filter_raw(filter_string, verbosity = 0)
+
+   Parse an OPTIMADE filter and return its raw grammar parse tree.
+
+   :param filter_string: OPTIMADE filter expression to parse.
+   :param verbosity: Diagnostic verbosity setting passed to the parser.
+   :return: Raw nested tuple parse tree before ``ojf`` conversion.
+   :raises ParserSyntaxError: If the filter cannot be parsed, or is too long or
+       too deeply nested to parse within the interpreter's recursion limit.
+   :raises ParserError: If the filter cannot be parsed.
+
+

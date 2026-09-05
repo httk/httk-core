@@ -1,0 +1,77 @@
+httk.core.register.schemas
+==========================
+
+.. py:module:: httk.core.register.schemas
+
+.. autoapi-nested-parse::
+
+   Schema and definition resource registries.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.register.schemas.register_entry_type_definition
+   httk.core.register.schemas.known_entry_type_definitions
+   httk.core.register.schemas.register_property_definition
+   httk.core.register.schemas.known_property_definitions
+   httk.core.register.schemas.load_entry_type_definition
+   httk.core.register.schemas.load_property_definition
+
+
+Module Contents
+---------------
+
+.. py:function:: register_entry_type_definition(*, definition_id, resource)
+
+   Register one resource for an entry-type definition IRI.
+
+   :param definition_id: The entry-type definition IRI.
+   :param resource: The package resource reference to load.
+   :raises ValueError: If ``definition_id`` is already registered.
+
+
+.. py:function:: known_entry_type_definitions()
+
+   Return registered entry-type definition IRIs.
+
+   :return: Registered entry-type definition identifiers.
+
+
+.. py:function:: register_property_definition(*, definition_id, resource)
+
+   Register one resource for a property definition IRI.
+
+   :param definition_id: The property definition IRI.
+   :param resource: The package resource reference to load.
+   :raises ValueError: If ``definition_id`` is already registered.
+
+
+.. py:function:: known_property_definitions()
+
+   Return registered property definition IRIs.
+
+   :return: Registered property definition identifiers.
+
+
+.. py:function:: load_entry_type_definition(definition_id)
+
+   Load and verify a registered entry-type definition resource.
+
+   :param definition_id: The registered entry-type definition IRI.
+   :return: The loaded and validated entry-type definition.
+   :raises ValueError: If the IRI is unregistered or disagrees with the document.
+
+
+.. py:function:: load_property_definition(definition_id)
+
+   Load and verify a registered property definition resource.
+
+   :param definition_id: The registered property definition IRI.
+   :return: The loaded and validated property definition.
+   :raises ValueError: If the IRI is unregistered or disagrees with the document.
+
+

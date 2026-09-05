@@ -1,0 +1,229 @@
+httk.core.optimade.resources
+============================
+
+.. py:module:: httk.core.optimade.resources
+
+.. autoapi-nested-parse::
+
+   Exact, immutable source documents received from an OPTIMADE service.
+
+   ``OptimadeDocument`` deliberately stores the original response text. Use
+   ``OptimadeDocument.from_response`` when a document may be persisted: it removes
+   credentials specifically from the top-level pagination ``links.next`` value
+   without parsing and reserializing the whole response, so semantic URL values,
+   JSON number spelling, and unrelated whitespace remain authoritative. Direct
+   dataclass construction is also available when the caller controls the values.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.optimade.resources.FrozenJson
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.optimade.resources.OptimadeDocument
+   httk.core.optimade.resources.OptimadeSchemaSnapshot
+   httk.core.optimade.resources.OptimadeResource
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.optimade.resources.redact_optimade_url
+   httk.core.optimade.resources.redact_optimade_document_text
+   httk.core.optimade.resources.optimade_entry_url_info
+   httk.core.optimade.resources.is_optimade_entry_url
+   httk.core.optimade.resources.optimade_resource_from_url
+   httk.core.optimade.resources.optimade_document_root
+
+
+Module Contents
+---------------
+
+.. py:function:: redact_optimade_url(url)
+
+   Return *url* without userinfo, recognized sensitive query parameters, or its fragment.
+
+   Non-URL strings are returned unchanged except for fragment removal.
+   Non-sensitive URL spelling is retained byte-for-byte; decoding is used
+   only to recognize query keys. Fragments are not semantically load-bearing
+   for OPTIMADE URLs or file fetches and are never retained in diagnostics.
+
+   :param url: URL or diagnostic string to sanitize.
+   :return: Sanitized URL or unchanged non-URL string.
+   :raises TypeError: If *url* is not a string.
+
+
+.. py:function:: redact_optimade_document_text(text)
+
+   Sanitize only top-level pagination URLs, preserving source authority.
+
+   A direct string ``links.next`` or its JSON:API link-object ``href`` has
+   recognized URL credentials removed. Every other byte remains untouched:
+   in particular URL-like object keys, resource attributes, relationships,
+   extension values, whitespace, and number spelling are semantic source
+   data. Malformed JSON is returned unchanged because its envelope path cannot
+   be identified safely without guessing.
+
+   :param text: JSON document text to sanitize.
+   :return: Text with only recognized pagination credentials removed.
+   :raises TypeError: If *text* is not a string.
+
+
+.. py:class:: OptimadeDocument
+
+   Original OPTIMADE response text and the URL from which it was obtained.
+
+   Direct construction performs no sanitization. Use :meth:`from_response` before
+   storing an externally sourced document or URL.
+
+   :param text: Original response text, optionally sanitized by :meth:`from_response`.
+   :param source_url: URL from which the response was obtained.
+
+
+   .. py:attribute:: text
+      :type:  str
+
+
+   .. py:attribute:: source_url
+      :type:  str
+
+
+   .. py:method:: from_response(text, source_url)
+      :classmethod:
+
+
+      Construct a source-exact document with safe pagination provenance.
+
+      :param text: Response text to sanitize and retain.
+      :param source_url: Source URL to sanitize and retain.
+      :return: A source document with safe pagination provenance.
+
+
+
+.. py:class:: OptimadeSchemaSnapshot
+
+   Describe the ``/info/<entry_type>`` document for a resource response.
+
+   :param entry_type: Entry type named by the schema endpoint.
+   :param info_document: Source-exact schema response document.
+
+
+   .. py:attribute:: entry_type
+      :type:  str
+
+
+   .. py:attribute:: info_document
+      :type:  OptimadeDocument
+
+
+.. py:function:: optimade_entry_url_info(url)
+
+   Return an OPTIMADE entry type and its derived info URL, if *url* has that shape.
+
+   :param url: Candidate single-entry URL.
+   :return: Entry type and derived info URL, or ``None`` when the shape is invalid.
+
+
+.. py:function:: is_optimade_entry_url(url)
+
+   Return whether *url* has the shape of an OPTIMADE single-entry URL.
+
+   :param url: Candidate URL to inspect.
+   :return: Whether the URL identifies one OPTIMADE entry.
+
+
+.. py:function:: optimade_resource_from_url(url, *, timeout = None)
+
+   Fetch one OPTIMADE entry and its schema snapshot from *url*.
+
+   Redirects follow ``urllib`` defaults. Both requests use the datastream
+   layer and honor ``timeout`` (or its configured default when it is ``None``).
+
+   :param url: Single-entry URL to fetch.
+   :param timeout: Optional timeout applied to both requests.
+   :return: Resource backed by the entry and its schema snapshot.
+   :raises ValueError: If the URL or either response is not a valid OPTIMADE resource.
+
+
+.. py:type:: FrozenJson
+   :canonical: None | bool | int | Decimal | str | tuple['FrozenJson', ...] | Mapping[str, 'FrozenJson']
+
+
+.. py:function:: optimade_document_root(document)
+
+   Return the immutable, Decimal-preserving root of *document* lazily.
+
+   This is intentionally a small public seam for source-model consumers that
+   need to interpret an OPTIMADE envelope or an ``/info`` document without
+   duplicating JSON parsing.  The returned mapping is cached per equal
+   :class:`OptimadeDocument` and must be treated as immutable.
+
+   :param document: Source document to parse lazily.
+   :return: Cached immutable document root.
+   :raises ValueError: If the document is invalid JSON or has a non-object root.
+
+
+.. py:class:: OptimadeResource
+
+   Bases: :py:obj:`collections.abc.Mapping`\ [\ :py:obj:`str`\ , :py:obj:`FrozenJson`\ ]
+
+
+   Represent one immutable resource in an OPTIMADE response envelope.
+
+   :param document: Source-exact response document to decode lazily.
+   :param data_index: Index of the resource in the response ``data`` member.
+   :param schema: Schema snapshot applicable to the response.
+
+
+   .. py:attribute:: document
+      :type:  OptimadeDocument
+
+
+   .. py:attribute:: data_index
+      :type:  int
+
+
+   .. py:attribute:: schema
+      :type:  OptimadeSchemaSnapshot
+
+
+   .. py:method:: unwrap()
+
+      Return the immutable resource object at this response's data index.
+
+      :return: Immutable resource mapping selected from the response.
+      :raises TypeError: If ``data_index`` is not an integer.
+      :raises IndexError: If ``data_index`` is outside the response data.
+      :raises ValueError: If the response data is not an object or array of objects.
+
+
+
+   .. py:property:: id
+      :type: str
+
+
+      The protocol-mandated JSON API resource identifier.
+
+      This intentionally reads the JSON API envelope directly.  It is a
+      generic source-resource capability, not semantic recognition of a
+      transport property name.
+
+
+   .. py:property:: type
+      :type: str
+
+
+      The protocol-mandated JSON API resource type identifier.
+
+

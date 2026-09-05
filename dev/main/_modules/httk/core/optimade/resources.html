@@ -1,0 +1,1189 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../../../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../../genindex.html"><link rel="search" title="Search" href="../../../../search.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>httk.core.optimade.resources - httk-core dev:main documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/selector.css?v=626bada3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+<div class="announcement">
+  <aside class="announcement-content">
+     Development documentation (dev:main) — content may differ from any release. 
+  </aside>
+</div>
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../../index.html"><div class="brand">httk-core dev:main documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../../index.html">
+  
+  <span class="sidebar-brand-text">httk-core dev:main documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../reference/index.html">Reference</a><input aria-label="Toggle navigation of Reference" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../reference/autoapi/httk/core/index.html">httk.core</a><input aria-label="Toggle navigation of httk.core" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/atomic_write/index.html">httk.core.atomic_write</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/building/index.html">httk.core.building</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/citations/index.html">httk.core.citations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/cli/index.html">httk.core.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/converting/index.html">httk.core.converting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/crypto/index.html">httk.core.crypto</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/data_records/index.html">httk.core.data_records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/dataset_loader/index.html">httk.core.dataset_loader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datasets/index.html">httk.core.datasets</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/index.html">httk.core.datastream</a><input aria-label="Toggle navigation of httk.core.datastream" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_api/index.html">httk.core.datastream.bytestream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_backend/index.html">httk.core.datastream.bytestream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_bytes/index.html">httk.core.datastream.bytestream_bytes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_bytes_view/index.html">httk.core.datastream.bytestream_bytes_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_common/index.html">httk.core.datastream.bytestream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_file/index.html">httk.core.datastream.bytestream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_file_view/index.html">httk.core.datastream.bytestream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_filename/index.html">httk.core.datastream.bytestream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_filename_view/index.html">httk.core.datastream.bytestream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_like/index.html">httk.core.datastream.bytestream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_request/index.html">httk.core.datastream.bytestream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_request_view/index.html">httk.core.datastream.bytestream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_url/index.html">httk.core.datastream.bytestream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_url_view/index.html">httk.core.datastream.bytestream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_view/index.html">httk.core.datastream.bytestream_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/compression/index.html">httk.core.datastream.compression</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/datastream_url/index.html">httk.core.datastream.datastream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/network_policy/index.html">httk.core.datastream.network_policy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_api/index.html">httk.core.datastream.textstream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_backend/index.html">httk.core.datastream.textstream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_common/index.html">httk.core.datastream.textstream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_file/index.html">httk.core.datastream.textstream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_file_view/index.html">httk.core.datastream.textstream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_filename/index.html">httk.core.datastream.textstream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_filename_view/index.html">httk.core.datastream.textstream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_like/index.html">httk.core.datastream.textstream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_request/index.html">httk.core.datastream.textstream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_request_view/index.html">httk.core.datastream.textstream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_string/index.html">httk.core.datastream.textstream_string</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_string_view/index.html">httk.core.datastream.textstream_string_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_url/index.html">httk.core.datastream.textstream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_url_view/index.html">httk.core.datastream.textstream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_view/index.html">httk.core.datastream.textstream_view</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/digests/index.html">httk.core.digests</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/index.html">httk.core.docs</a><input aria-label="Toggle navigation of httk.core.docs" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/cli/index.html">httk.core.docs.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/config/index.html">httk.core.docs.config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/ecosystem/index.html">httk.core.docs.ecosystem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/gitsite/index.html">httk.core.docs.gitsite</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/inventories/index.html">httk.core.docs.inventories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/lockfile/index.html">httk.core.docs.lockfile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/manifests/index.html">httk.core.docs.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/redirect/index.html">httk.core.docs.redirect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/release/index.html">httk.core.docs.release</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/semver/index.html">httk.core.docs.semver</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/sitetree/index.html">httk.core.docs.sitetree</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/sphinx_ext/index.html">httk.core.docs.sphinx_ext</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/entry_ids/index.html">httk.core.entry_ids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/entry_provider/index.html">httk.core.entry_provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/entry_types/index.html">httk.core.entry_types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/exactmath/index.html">httk.core.exactmath</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/fetching/index.html">httk.core.fetching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/files/index.html">httk.core.files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/identity/index.html">httk.core.identity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/identity_cli/index.html">httk.core.identity_cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/loading/index.html">httk.core.loading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/memguard/index.html">httk.core.memguard</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../reference/autoapi/httk/core/optimade/index.html">httk.core.optimade</a><input aria-label="Toggle navigation of httk.core.optimade" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/optimade/entries/index.html">httk.core.optimade.entries</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../../../reference/autoapi/httk/core/optimade/filter/index.html">httk.core.optimade.filter</a><input aria-label="Toggle navigation of httk.core.optimade.filter" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../../reference/autoapi/httk/core/optimade/filter/parser/index.html">httk.core.optimade.filter.parser</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/optimade/resources/index.html">httk.core.optimade.resources</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../reference/autoapi/httk/core/plugins/index.html">httk.core.plugins</a><input aria-label="Toggle navigation of httk.core.plugins" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/plugins/cli/index.html">httk.core.plugins.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/plugins/install/index.html">httk.core.plugins.install</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/plugins/installed/index.html">httk.core.plugins.installed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/plugins/manifest/index.html">httk.core.plugins.manifest</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/precision/index.html">httk.core.precision</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../reference/autoapi/httk/core/project/index.html">httk.core.project</a><input aria-label="Toggle navigation of httk.core.project" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/project/anchor/index.html">httk.core.project.anchor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/project/cli/index.html">httk.core.project.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/project/export/index.html">httk.core.project.export</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/project/manifests/index.html">httk.core.project.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/project/members/index.html">httk.core.project.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/project/sealing/index.html">httk.core.project.sealing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/project/templates/index.html">httk.core.project.templates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/property_definitions/index.html">httk.core.property_definitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/provenance/index.html">httk.core.provenance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/records/index.html">httk.core.records</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../reference/autoapi/httk/core/register/index.html">httk.core.register</a><input aria-label="Toggle navigation of httk.core.register" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/register/cli/index.html">httk.core.register.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/register/entries/index.html">httk.core.register.entries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/register/io/index.html">httk.core.register.io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/register/members/index.html">httk.core.register.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/register/schemas/index.html">httk.core.register.schemas</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/report/index.html">httk.core.report</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/saving/index.html">httk.core.saving</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/schema_check/index.html">httk.core.schema_check</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/services/index.html">httk.core.services</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../reference/autoapi/httk/core/storage/index.html">httk.core.storage</a><input aria-label="Toggle navigation of httk.core.storage" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/storage/identity/index.html">httk.core.storage.identity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/storage/markers/index.html">httk.core.storage.markers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/storage/rational_text/index.html">httk.core.storage.rational_text</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/storage/stored_properties/index.html">httk.core.storage.stored_properties</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/system/index.html">httk.core.system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/userdirs/index.html">httk.core.userdirs</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../reference/autoapi/httk/core/validation/index.html">httk.core.validation</a><input aria-label="Toggle navigation of httk.core.validation" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/validation/iris/index.html">httk.core.validation.iris</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/index.html">httk.core.vectors</a><input aria-label="Toggle navigation of httk.core.vectors" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/fracvector/index.html">httk.core.vectors.fracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/leaf_codecs/index.html">httk.core.vectors.leaf_codecs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/mutablefracvector/index.html">httk.core.vectors.mutablefracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/numeric/index.html">httk.core.vectors.numeric</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/scalar_like/index.html">httk.core.vectors.scalar_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/surdvector/index.html">httk.core.vectors.surdvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/vector_api/index.html">httk.core.vectors.vector_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/vector_backend/index.html">httk.core.vectors.vector_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/vector_frac_view/index.html">httk.core.vectors.vector_frac_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/vector_like/index.html">httk.core.vectors.vector_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/vector_native_backend/index.html">httk.core.vectors.vector_native_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/vector_native_view/index.html">httk.core.vectors.vector_native_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/vector_numpy_backend/index.html">httk.core.vectors.vector_numpy_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/vector_numpy_view/index.html">httk.core.vectors.vector_numpy_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/vector_surd_view/index.html">httk.core.vectors.vector_surd_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/vector_view/index.html">httk.core.vectors.vector_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/vectormath/index.html">httk.core.vectors.vectormath</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../reference/autoapi/httk/core/views/index.html">httk.core.views</a><input aria-label="Toggle navigation of httk.core.views" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/views/backend/index.html">httk.core.views.backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/views/coercion/index.html">httk.core.views.coercion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/views/unviewing/index.html">httk.core.views.unviewing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/views/unwrapping/index.html">httk.core.views.unwrapping</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/views/view/index.html">httk.core.views.view</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../view_backend_pattern.html">Views and Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../registry.html">Module registry</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../datastreams.html">Datastreams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../cli.html">The extensible command line</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../plugins.html">Plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../crypto.html">Cryptography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../identity.html">Operator identity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../projects.html">Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../sealing.html">Sealing and manifests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../property_definitions.html">Property definitions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../vectors.html">Vectors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../exactmath.html">Exact math on rationals and decimals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../credits.html">Citation credits</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../examples/index.html">Examples</a><input aria-label="Toggle navigation of Examples" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../examples/datastreams_quickstart.html">Datastreams quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../examples/vectors_quickstart.html">Vectors quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../examples/exactmath_quickstart.html">Exact math quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../examples/load_and_dataset_loader.html">Getting data into httk: the <code class="docutils literal notranslate"><span class="pre">load</span></code> dispatcher and the <code class="docutils literal notranslate"><span class="pre">DatasetLoader</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../examples/property_definitions.html">Building a custom OPTIMADE entry type end to end</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../examples/entry_provider.html">Implementing an <code class="docutils literal notranslate"><span class="pre">EntryProvider</span></code>: the contract <em>httk-core</em> owns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../examples/optimade_filter.html">Parsing OPTIMADE filter strings into an abstract syntax tree</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../examples/coerce_quickstart.html">Coercion quickstart</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Details</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../details/view_backend_pattern.html">Views and Backends in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../details/registry.html">Module registry in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../details/datastreams.html">Datastreams in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../details/plugins.html">Plugins in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../details/property_definitions.html">Property definitions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../details/vectors.html">Vectors in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../details/exactmath.html">Exact math in detail</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../reference/autoapi/index.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../../reference/autoapi/httk/core/index.html">httk.core</a><input aria-label="Toggle navigation of httk.core" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/atomic_write/index.html">httk.core.atomic_write</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/building/index.html">httk.core.building</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/citations/index.html">httk.core.citations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/cli/index.html">httk.core.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/converting/index.html">httk.core.converting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/crypto/index.html">httk.core.crypto</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/data_records/index.html">httk.core.data_records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/dataset_loader/index.html">httk.core.dataset_loader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datasets/index.html">httk.core.datasets</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/index.html">httk.core.datastream</a><input aria-label="Toggle navigation of httk.core.datastream" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_api/index.html">httk.core.datastream.bytestream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_backend/index.html">httk.core.datastream.bytestream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_bytes/index.html">httk.core.datastream.bytestream_bytes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_bytes_view/index.html">httk.core.datastream.bytestream_bytes_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_common/index.html">httk.core.datastream.bytestream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_file/index.html">httk.core.datastream.bytestream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_file_view/index.html">httk.core.datastream.bytestream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_filename/index.html">httk.core.datastream.bytestream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_filename_view/index.html">httk.core.datastream.bytestream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_like/index.html">httk.core.datastream.bytestream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_request/index.html">httk.core.datastream.bytestream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_request_view/index.html">httk.core.datastream.bytestream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_url/index.html">httk.core.datastream.bytestream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_url_view/index.html">httk.core.datastream.bytestream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/bytestream_view/index.html">httk.core.datastream.bytestream_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/compression/index.html">httk.core.datastream.compression</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/datastream_url/index.html">httk.core.datastream.datastream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/network_policy/index.html">httk.core.datastream.network_policy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_api/index.html">httk.core.datastream.textstream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_backend/index.html">httk.core.datastream.textstream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_common/index.html">httk.core.datastream.textstream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_file/index.html">httk.core.datastream.textstream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_file_view/index.html">httk.core.datastream.textstream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_filename/index.html">httk.core.datastream.textstream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_filename_view/index.html">httk.core.datastream.textstream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_like/index.html">httk.core.datastream.textstream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_request/index.html">httk.core.datastream.textstream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_request_view/index.html">httk.core.datastream.textstream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_string/index.html">httk.core.datastream.textstream_string</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_string_view/index.html">httk.core.datastream.textstream_string_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_url/index.html">httk.core.datastream.textstream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_url_view/index.html">httk.core.datastream.textstream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/datastream/textstream_view/index.html">httk.core.datastream.textstream_view</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/digests/index.html">httk.core.digests</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/index.html">httk.core.docs</a><input aria-label="Toggle navigation of httk.core.docs" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/cli/index.html">httk.core.docs.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/config/index.html">httk.core.docs.config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/ecosystem/index.html">httk.core.docs.ecosystem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/gitsite/index.html">httk.core.docs.gitsite</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/inventories/index.html">httk.core.docs.inventories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/lockfile/index.html">httk.core.docs.lockfile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/manifests/index.html">httk.core.docs.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/redirect/index.html">httk.core.docs.redirect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/release/index.html">httk.core.docs.release</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/semver/index.html">httk.core.docs.semver</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/sitetree/index.html">httk.core.docs.sitetree</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/docs/sphinx_ext/index.html">httk.core.docs.sphinx_ext</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/entry_ids/index.html">httk.core.entry_ids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/entry_provider/index.html">httk.core.entry_provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/entry_types/index.html">httk.core.entry_types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/exactmath/index.html">httk.core.exactmath</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/fetching/index.html">httk.core.fetching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/files/index.html">httk.core.files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/identity/index.html">httk.core.identity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/identity_cli/index.html">httk.core.identity_cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/loading/index.html">httk.core.loading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/memguard/index.html">httk.core.memguard</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../reference/autoapi/httk/core/optimade/index.html">httk.core.optimade</a><input aria-label="Toggle navigation of httk.core.optimade" class="toctree-checkbox" id="toctree-checkbox-19" name="toctree-checkbox-19" role="switch" type="checkbox"/><label for="toctree-checkbox-19"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/optimade/entries/index.html">httk.core.optimade.entries</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../../../reference/autoapi/httk/core/optimade/filter/index.html">httk.core.optimade.filter</a><input aria-label="Toggle navigation of httk.core.optimade.filter" class="toctree-checkbox" id="toctree-checkbox-20" name="toctree-checkbox-20" role="switch" type="checkbox"/><label for="toctree-checkbox-20"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../../reference/autoapi/httk/core/optimade/filter/parser/index.html">httk.core.optimade.filter.parser</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/optimade/resources/index.html">httk.core.optimade.resources</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../reference/autoapi/httk/core/plugins/index.html">httk.core.plugins</a><input aria-label="Toggle navigation of httk.core.plugins" class="toctree-checkbox" id="toctree-checkbox-21" name="toctree-checkbox-21" role="switch" type="checkbox"/><label for="toctree-checkbox-21"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/plugins/cli/index.html">httk.core.plugins.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/plugins/install/index.html">httk.core.plugins.install</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/plugins/installed/index.html">httk.core.plugins.installed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/plugins/manifest/index.html">httk.core.plugins.manifest</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/precision/index.html">httk.core.precision</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../reference/autoapi/httk/core/project/index.html">httk.core.project</a><input aria-label="Toggle navigation of httk.core.project" class="toctree-checkbox" id="toctree-checkbox-22" name="toctree-checkbox-22" role="switch" type="checkbox"/><label for="toctree-checkbox-22"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/project/anchor/index.html">httk.core.project.anchor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/project/cli/index.html">httk.core.project.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/project/export/index.html">httk.core.project.export</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/project/manifests/index.html">httk.core.project.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/project/members/index.html">httk.core.project.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/project/sealing/index.html">httk.core.project.sealing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/project/templates/index.html">httk.core.project.templates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/property_definitions/index.html">httk.core.property_definitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/provenance/index.html">httk.core.provenance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/records/index.html">httk.core.records</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../reference/autoapi/httk/core/register/index.html">httk.core.register</a><input aria-label="Toggle navigation of httk.core.register" class="toctree-checkbox" id="toctree-checkbox-23" name="toctree-checkbox-23" role="switch" type="checkbox"/><label for="toctree-checkbox-23"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/register/cli/index.html">httk.core.register.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/register/entries/index.html">httk.core.register.entries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/register/io/index.html">httk.core.register.io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/register/members/index.html">httk.core.register.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/register/schemas/index.html">httk.core.register.schemas</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/report/index.html">httk.core.report</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/saving/index.html">httk.core.saving</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/schema_check/index.html">httk.core.schema_check</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/services/index.html">httk.core.services</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../reference/autoapi/httk/core/storage/index.html">httk.core.storage</a><input aria-label="Toggle navigation of httk.core.storage" class="toctree-checkbox" id="toctree-checkbox-24" name="toctree-checkbox-24" role="switch" type="checkbox"/><label for="toctree-checkbox-24"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/storage/identity/index.html">httk.core.storage.identity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/storage/markers/index.html">httk.core.storage.markers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/storage/rational_text/index.html">httk.core.storage.rational_text</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/storage/stored_properties/index.html">httk.core.storage.stored_properties</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/system/index.html">httk.core.system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../reference/autoapi/httk/core/userdirs/index.html">httk.core.userdirs</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../reference/autoapi/httk/core/validation/index.html">httk.core.validation</a><input aria-label="Toggle navigation of httk.core.validation" class="toctree-checkbox" id="toctree-checkbox-25" name="toctree-checkbox-25" role="switch" type="checkbox"/><label for="toctree-checkbox-25"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/validation/iris/index.html">httk.core.validation.iris</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/index.html">httk.core.vectors</a><input aria-label="Toggle navigation of httk.core.vectors" class="toctree-checkbox" id="toctree-checkbox-26" name="toctree-checkbox-26" role="switch" type="checkbox"/><label for="toctree-checkbox-26"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/fracvector/index.html">httk.core.vectors.fracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/leaf_codecs/index.html">httk.core.vectors.leaf_codecs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/mutablefracvector/index.html">httk.core.vectors.mutablefracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/numeric/index.html">httk.core.vectors.numeric</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/scalar_like/index.html">httk.core.vectors.scalar_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/surdvector/index.html">httk.core.vectors.surdvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/vector_api/index.html">httk.core.vectors.vector_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/vector_backend/index.html">httk.core.vectors.vector_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/vector_frac_view/index.html">httk.core.vectors.vector_frac_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/vector_like/index.html">httk.core.vectors.vector_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/vector_native_backend/index.html">httk.core.vectors.vector_native_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/vector_native_view/index.html">httk.core.vectors.vector_native_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/vector_numpy_backend/index.html">httk.core.vectors.vector_numpy_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/vector_numpy_view/index.html">httk.core.vectors.vector_numpy_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/vector_surd_view/index.html">httk.core.vectors.vector_surd_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/vector_view/index.html">httk.core.vectors.vector_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/vectors/vectormath/index.html">httk.core.vectors.vectormath</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../../reference/autoapi/httk/core/views/index.html">httk.core.views</a><input aria-label="Toggle navigation of httk.core.views" class="toctree-checkbox" id="toctree-checkbox-27" name="toctree-checkbox-27" role="switch" type="checkbox"/><label for="toctree-checkbox-27"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/views/backend/index.html">httk.core.views.backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/views/coercion/index.html">httk.core.views.coercion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/views/unviewing/index.html">httk.core.views.unviewing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/views/unwrapping/index.html">httk.core.views.unwrapping</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../reference/autoapi/httk/core/views/view/index.html">httk.core.views.view</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../reference/autoapi/httk/registry/cli/core/index.html">httk.registry.cli.core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../reference/autoapi/httk/registry/entries/core/index.html">httk.registry.entries.core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../reference/autoapi/httk/registry/schemas/core/index.html">httk.registry.schemas.core</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <h1>Source code for httk.core.optimade.resources</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Exact, immutable source documents received from an OPTIMADE service.</span>
+
+<span class="sd">``OptimadeDocument`` deliberately stores the original response text. Use</span>
+<span class="sd">``OptimadeDocument.from_response`` when a document may be persisted: it removes</span>
+<span class="sd">credentials specifically from the top-level pagination ``links.next`` value</span>
+<span class="sd">without parsing and reserializing the whole response, so semantic URL values,</span>
+<span class="sd">JSON number spelling, and unrelated whitespace remain authoritative. Direct</span>
+<span class="sd">dataclass construction is also available when the caller controls the values.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">decimal</span><span class="w"> </span><span class="kn">import</span> <span class="n">Decimal</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">threading</span><span class="w"> </span><span class="kn">import</span> <span class="n">Lock</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">MappingProxyType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">urllib.parse</span><span class="w"> </span><span class="kn">import</span> <span class="n">unquote_plus</span><span class="p">,</span> <span class="n">urlsplit</span><span class="p">,</span> <span class="n">urlunsplit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">weakref</span><span class="w"> </span><span class="kn">import</span> <span class="n">WeakKeyDictionary</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">..datastream</span><span class="w"> </span><span class="kn">import</span> <span class="n">TextstreamFileView</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..storage.markers</span><span class="w"> </span><span class="kn">import</span> <span class="n">stored_property</span>
+
+<span class="n">_SENSITIVE_QUERY_KEYS</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;access_token&quot;</span><span class="p">,</span> <span class="s2">&quot;api_key&quot;</span><span class="p">,</span> <span class="s2">&quot;apikey&quot;</span><span class="p">,</span> <span class="s2">&quot;token&quot;</span><span class="p">,</span> <span class="s2">&quot;key&quot;</span><span class="p">})</span>
+<span class="n">_NON_ENTRY_ENDPOINTS</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">&quot;info&quot;</span><span class="p">,</span> <span class="s2">&quot;links&quot;</span><span class="p">,</span> <span class="s2">&quot;versions&quot;</span><span class="p">,</span> <span class="s2">&quot;extensions&quot;</span><span class="p">})</span>
+<span class="n">_VERSION_SEGMENT</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;v1(?:\.\d+){0,2}&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="redact_optimade_url">
+<a class="viewcode-back" href="../../../../reference/autoapi/httk/core/optimade/resources/index.html#httk.core.optimade.redact_optimade_url">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">redact_optimade_url</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return *url* without userinfo, recognized sensitive query parameters, or its fragment.</span>
+
+<span class="sd">    Non-URL strings are returned unchanged except for fragment removal.</span>
+<span class="sd">    Non-sensitive URL spelling is retained byte-for-byte; decoding is used</span>
+<span class="sd">    only to recognize query keys. Fragments are not semantically load-bearing</span>
+<span class="sd">    for OPTIMADE URLs or file fetches and are never retained in diagnostics.</span>
+
+<span class="sd">    :param url: URL or diagnostic string to sanitize.</span>
+<span class="sd">    :return: Sanitized URL or unchanged non-URL string.</span>
+<span class="sd">    :raises TypeError: If *url* is not a string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;URL must be a str, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">split</span> <span class="o">=</span> <span class="n">urlsplit</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="c1"># ``urlsplit`` rejects a few malformed URL authorities (notably bad</span>
+        <span class="c1"># IPv6 brackets). Still remove recognizable credentials when retaining</span>
+        <span class="c1"># the malformed source is necessary for a later diagnostic.</span>
+        <span class="n">before_fragment</span> <span class="o">=</span> <span class="n">url</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">before_query</span><span class="p">,</span> <span class="n">query_separator</span><span class="p">,</span> <span class="n">query</span> <span class="o">=</span> <span class="n">before_fragment</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">)</span>
+        <span class="n">scheme_end</span> <span class="o">=</span> <span class="n">before_query</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;://&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">scheme_end</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">url</span>
+        <span class="n">authority_and_path</span> <span class="o">=</span> <span class="n">before_query</span><span class="p">[</span><span class="n">scheme_end</span> <span class="o">+</span> <span class="mi">3</span> <span class="p">:]</span>
+        <span class="n">authority</span><span class="p">,</span> <span class="n">path_separator</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">authority_and_path</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="n">authority</span> <span class="o">=</span> <span class="n">authority</span><span class="o">.</span><span class="n">rpartition</span><span class="p">(</span><span class="s2">&quot;@&quot;</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">kept_query</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">item</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">query</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;&amp;&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">unquote_plus</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">casefold</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_SENSITIVE_QUERY_KEYS</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">before_query</span><span class="p">[:</span> <span class="n">scheme_end</span> <span class="o">+</span> <span class="mi">3</span><span class="p">]</span>
+            <span class="o">+</span> <span class="n">authority</span>
+            <span class="o">+</span> <span class="n">path_separator</span>
+            <span class="o">+</span> <span class="n">path</span>
+            <span class="o">+</span> <span class="p">(</span><span class="n">query_separator</span> <span class="o">+</span> <span class="s2">&quot;&amp;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">kept_query</span><span class="p">)</span> <span class="k">if</span> <span class="n">query_separator</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="n">is_relative_url</span> <span class="o">=</span> <span class="n">split</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="s2">&quot;./&quot;</span><span class="p">,</span> <span class="s2">&quot;../&quot;</span><span class="p">))</span> <span class="ow">or</span> <span class="n">url</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">split</span><span class="o">.</span><span class="n">scheme</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">split</span><span class="o">.</span><span class="n">netloc</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_relative_url</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">url</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">before_fragment</span> <span class="o">=</span> <span class="n">url</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">before_query</span><span class="p">,</span> <span class="n">query_separator</span><span class="p">,</span> <span class="n">query</span> <span class="o">=</span> <span class="n">before_fragment</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">)</span>
+    <span class="n">sanitized_base</span> <span class="o">=</span> <span class="n">before_query</span>
+    <span class="k">if</span> <span class="n">split</span><span class="o">.</span><span class="n">netloc</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;://&quot;</span> <span class="ow">in</span> <span class="n">before_query</span><span class="p">:</span>
+            <span class="n">authority_start</span> <span class="o">=</span> <span class="n">before_query</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;://&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">3</span>
+        <span class="k">elif</span> <span class="n">before_query</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;//&quot;</span><span class="p">):</span>
+            <span class="n">authority_start</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">authority_start</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">slash_index</span> <span class="o">=</span> <span class="n">before_query</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">authority_start</span><span class="p">)</span>
+        <span class="n">authority_end</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">before_query</span><span class="p">)</span> <span class="k">if</span> <span class="n">slash_index</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">slash_index</span>
+        <span class="n">authority</span> <span class="o">=</span> <span class="n">before_query</span><span class="p">[</span><span class="n">authority_start</span><span class="p">:</span><span class="n">authority_end</span><span class="p">]</span>
+        <span class="n">sanitized_base</span> <span class="o">=</span> <span class="n">before_query</span><span class="p">[:</span><span class="n">authority_start</span><span class="p">]</span> <span class="o">+</span> <span class="n">authority</span><span class="o">.</span><span class="n">rpartition</span><span class="p">(</span><span class="s2">&quot;@&quot;</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">before_query</span><span class="p">[</span><span class="n">authority_end</span><span class="p">:]</span>
+
+    <span class="n">kept_query</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">item</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">query</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;&amp;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">unquote_plus</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">casefold</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_SENSITIVE_QUERY_KEYS</span>
+    <span class="p">]</span>
+    <span class="n">sanitized_query</span> <span class="o">=</span> <span class="s2">&quot;&amp;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">kept_query</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sanitized_base</span> <span class="o">+</span> <span class="p">(</span><span class="n">query_separator</span> <span class="o">+</span> <span class="n">sanitized_query</span> <span class="k">if</span> <span class="n">query_separator</span> <span class="ow">and</span> <span class="n">sanitized_query</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_json_string_end</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the exclusive end of the JSON string token at *start*.&quot;&quot;&quot;</span>
+
+    <span class="n">index</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">escaped</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">while</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+        <span class="n">character</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">escaped</span><span class="p">:</span>
+            <span class="n">escaped</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="n">character</span> <span class="o">==</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">:</span>
+            <span class="n">escaped</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">character</span> <span class="o">==</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">index</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;unterminated JSON string&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_redacted_json_string_token</span><span class="p">(</span><span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">redacted</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Remove decoded URL characters while retaining kept JSON escapes.&quot;&quot;&quot;</span>
+
+    <span class="n">units</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">token</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="n">end</span><span class="p">:</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">index</span>
+        <span class="k">if</span> <span class="n">token</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="n">end</span> <span class="ow">and</span> <span class="n">token</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;u&quot;</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">+=</span> <span class="mi">6</span>
+            <span class="n">first</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">token</span><span class="p">[</span><span class="n">start</span> <span class="o">+</span> <span class="mi">2</span> <span class="p">:</span> <span class="n">start</span> <span class="o">+</span> <span class="mi">6</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="mh">0xD800</span> <span class="o">&lt;=</span> <span class="n">first</span> <span class="o">&lt;=</span> <span class="mh">0xDBFF</span>
+                <span class="ow">and</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">5</span> <span class="o">&lt;</span> <span class="n">end</span>
+                <span class="ow">and</span> <span class="n">token</span><span class="p">[</span><span class="n">index</span> <span class="p">:</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">u&quot;</span>
+                <span class="ow">and</span> <span class="mh">0xDC00</span> <span class="o">&lt;=</span> <span class="nb">int</span><span class="p">(</span><span class="n">token</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">2</span> <span class="p">:</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">6</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mh">0xDFFF</span>
+            <span class="p">):</span>
+                <span class="n">index</span> <span class="o">+=</span> <span class="mi">6</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">+=</span> <span class="mi">2</span>
+        <span class="n">raw_unit</span> <span class="o">=</span> <span class="n">token</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">units</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">raw_unit</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">),</span> <span class="n">raw_unit</span><span class="p">))</span>
+
+    <span class="n">kept</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">wanted</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">character</span><span class="p">,</span> <span class="n">raw_unit</span> <span class="ow">in</span> <span class="n">units</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">wanted</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">redacted</span><span class="p">)</span> <span class="ow">and</span> <span class="n">character</span> <span class="o">==</span> <span class="n">redacted</span><span class="p">[</span><span class="n">wanted</span><span class="p">]:</span>
+            <span class="n">kept</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">raw_unit</span><span class="p">)</span>
+            <span class="n">wanted</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">wanted</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">redacted</span><span class="p">):</span>
+        <span class="c1"># ``redact_optimade_url`` is deletion-only, but retain a safe fallback</span>
+        <span class="c1"># if a future URL policy introduces replacement characters.</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">redacted</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">kept</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_pagination_string_spans</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Locate top-level ``links.next`` URL string tokens in valid JSON.&quot;&quot;&quot;</span>
+
+    <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">replacements</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">whitespace</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">while</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="n">length</span> <span class="ow">and</span> <span class="n">text</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="ow">in</span> <span class="s2">&quot; </span><span class="se">\t\r\n</span><span class="s2">&quot;</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">index</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">value</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">whitespace</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">text</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">_json_string_end</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">path</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">&quot;links&quot;</span><span class="p">,</span> <span class="s2">&quot;next&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;links&quot;</span><span class="p">,</span> <span class="s2">&quot;next&quot;</span><span class="p">,</span> <span class="s2">&quot;href&quot;</span><span class="p">)):</span>
+                <span class="n">decoded</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">text</span><span class="p">[</span><span class="n">index</span><span class="p">:</span><span class="n">end</span><span class="p">])</span>
+                <span class="n">redacted</span> <span class="o">=</span> <span class="n">redact_optimade_url</span><span class="p">(</span><span class="n">decoded</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">redacted</span> <span class="o">!=</span> <span class="n">decoded</span><span class="p">:</span>
+                    <span class="n">replacements</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">index</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">_redacted_json_string_token</span><span class="p">(</span><span class="n">text</span><span class="p">[</span><span class="n">index</span><span class="p">:</span><span class="n">end</span><span class="p">],</span> <span class="n">redacted</span><span class="p">)))</span>
+            <span class="k">return</span> <span class="n">end</span>
+        <span class="k">if</span> <span class="n">text</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;{&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">object_value</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">text</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;[&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">array_value</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="n">length</span> <span class="ow">and</span> <span class="n">text</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s2">&quot;,]} </span><span class="se">\t\r\n</span><span class="s2">&quot;</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">index</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">object_value</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">whitespace</span><span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">text</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;}&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">key_start</span> <span class="o">=</span> <span class="n">index</span>
+            <span class="n">key_end</span> <span class="o">=</span> <span class="n">_json_string_end</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">key_start</span><span class="p">)</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">text</span><span class="p">[</span><span class="n">key_start</span><span class="p">:</span><span class="n">key_end</span><span class="p">])</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">whitespace</span><span class="p">(</span><span class="n">key_end</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">text</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;:&quot;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;missing JSON object colon&quot;</span><span class="p">)</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">value</span><span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">path</span> <span class="o">+</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">whitespace</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">text</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;}&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">text</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;,&quot;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;missing JSON object separator&quot;</span><span class="p">)</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">whitespace</span><span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">array_value</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">whitespace</span><span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">text</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;]&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">item_index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">value</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">path</span> <span class="o">+</span> <span class="p">(</span><span class="n">item_index</span><span class="p">,))</span>
+            <span class="n">item_index</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">whitespace</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">text</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;]&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">text</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;,&quot;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;missing JSON array separator&quot;</span><span class="p">)</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">whitespace</span><span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">end</span> <span class="o">=</span> <span class="n">whitespace</span><span class="p">(</span><span class="n">value</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">()))</span>
+    <span class="k">if</span> <span class="n">end</span> <span class="o">!=</span> <span class="n">length</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;trailing JSON content&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">replacements</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="redact_optimade_document_text">
+<a class="viewcode-back" href="../../../../reference/autoapi/httk/core/optimade/resources/index.html#httk.core.optimade.redact_optimade_document_text">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">redact_optimade_document_text</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sanitize only top-level pagination URLs, preserving source authority.</span>
+
+<span class="sd">    A direct string ``links.next`` or its JSON:API link-object ``href`` has</span>
+<span class="sd">    recognized URL credentials removed. Every other byte remains untouched:</span>
+<span class="sd">    in particular URL-like object keys, resource attributes, relationships,</span>
+<span class="sd">    extension values, whitespace, and number spelling are semantic source</span>
+<span class="sd">    data. Malformed JSON is returned unchanged because its envelope path cannot</span>
+<span class="sd">    be identified safely without guessing.</span>
+
+<span class="sd">    :param text: JSON document text to sanitize.</span>
+<span class="sd">    :return: Text with only recognized pagination credentials removed.</span>
+<span class="sd">    :raises TypeError: If *text* is not a string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;document text must be a str, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">text</span><span class="p">)</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Validate first: the span scanner is intentionally small and must</span>
+        <span class="c1"># never guess envelope paths in malformed content.</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="n">replacements</span> <span class="o">=</span> <span class="n">_pagination_string_spans</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">IndexError</span><span class="p">,</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">,</span> <span class="ne">RecursionError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">text</span>
+    <span class="k">for</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">replacement</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">replacements</span><span class="p">):</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="p">[:</span><span class="n">start</span><span class="p">]</span> <span class="o">+</span> <span class="n">replacement</span> <span class="o">+</span> <span class="n">text</span><span class="p">[</span><span class="n">end</span><span class="p">:]</span>
+    <span class="k">return</span> <span class="n">text</span></div>
+
+
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="viewcode-block" id="OptimadeDocument">
+<a class="viewcode-back" href="../../../../reference/autoapi/httk/core/optimade/resources/index.html#httk.core.optimade.OptimadeDocument">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OptimadeDocument</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Original OPTIMADE response text and the URL from which it was obtained.</span>
+
+<span class="sd">    Direct construction performs no sanitization. Use :meth:`from_response` before</span>
+<span class="sd">    storing an externally sourced document or URL.</span>
+
+<span class="sd">    :param text: Original response text, optionally sanitized by :meth:`from_response`.</span>
+<span class="sd">    :param source_url: URL from which the response was obtained.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="OptimadeDocument.text">
+<a class="viewcode-back" href="../../../../reference/autoapi/httk/core/optimade/resources/index.html#httk.core.optimade.OptimadeDocument.text">[docs]</a>
+    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span></div>
+
+<div class="viewcode-block" id="OptimadeDocument.source_url">
+<a class="viewcode-back" href="../../../../reference/autoapi/httk/core/optimade/resources/index.html#httk.core.optimade.OptimadeDocument.source_url">[docs]</a>
+    <span class="n">source_url</span><span class="p">:</span> <span class="nb">str</span></div>
+
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="OptimadeDocument.from_response">
+<a class="viewcode-back" href="../../../../reference/autoapi/httk/core/optimade/resources/index.html#httk.core.optimade.OptimadeDocument.from_response">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_response</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">source_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;OptimadeDocument&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct a source-exact document with safe pagination provenance.</span>
+
+<span class="sd">        :param text: Response text to sanitize and retain.</span>
+<span class="sd">        :param source_url: Source URL to sanitize and retain.</span>
+<span class="sd">        :return: A source document with safe pagination provenance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">redact_optimade_document_text</span><span class="p">(</span><span class="n">text</span><span class="p">),</span> <span class="n">redact_optimade_url</span><span class="p">(</span><span class="n">source_url</span><span class="p">))</span></div>
+</div>
+
+
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="viewcode-block" id="OptimadeSchemaSnapshot">
+<a class="viewcode-back" href="../../../../reference/autoapi/httk/core/optimade/resources/index.html#httk.core.optimade.OptimadeSchemaSnapshot">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OptimadeSchemaSnapshot</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Describe the ``/info/&lt;entry_type&gt;`` document for a resource response.</span>
+
+<span class="sd">    :param entry_type: Entry type named by the schema endpoint.</span>
+<span class="sd">    :param info_document: Source-exact schema response document.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="OptimadeSchemaSnapshot.entry_type">
+<a class="viewcode-back" href="../../../../reference/autoapi/httk/core/optimade/resources/index.html#httk.core.optimade.OptimadeSchemaSnapshot.entry_type">[docs]</a>
+    <span class="n">entry_type</span><span class="p">:</span> <span class="nb">str</span></div>
+
+<div class="viewcode-block" id="OptimadeSchemaSnapshot.info_document">
+<a class="viewcode-back" href="../../../../reference/autoapi/httk/core/optimade/resources/index.html#httk.core.optimade.OptimadeSchemaSnapshot.info_document">[docs]</a>
+    <span class="n">info_document</span><span class="p">:</span> <span class="n">OptimadeDocument</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="optimade_entry_url_info">
+<a class="viewcode-back" href="../../../../reference/autoapi/httk/core/optimade/resources/index.html#httk.core.optimade.optimade_entry_url_info">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">optimade_entry_url_info</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return an OPTIMADE entry type and its derived info URL, if *url* has that shape.</span>
+
+<span class="sd">    :param url: Candidate single-entry URL.</span>
+<span class="sd">    :return: Entry type and derived info URL, or ``None`` when the shape is invalid.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">split</span> <span class="o">=</span> <span class="n">urlsplit</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">split</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">base</span><span class="p">,</span> <span class="n">entry_type</span><span class="p">,</span> <span class="n">entry_id</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="ow">not</span> <span class="n">entry_id</span>
+        <span class="ow">or</span> <span class="n">_VERSION_SEGMENT</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">entry_type</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="n">entry_type</span> <span class="ow">in</span> <span class="n">_NON_ENTRY_ENDPOINTS</span>
+        <span class="ow">or</span> <span class="n">re</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;[a-z_][a-z_0-9-]*&quot;</span><span class="p">,</span> <span class="n">entry_type</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">entry_type</span><span class="p">,</span> <span class="n">urlunsplit</span><span class="p">((</span><span class="n">split</span><span class="o">.</span><span class="n">scheme</span><span class="p">,</span> <span class="n">split</span><span class="o">.</span><span class="n">netloc</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/info/</span><span class="si">{</span><span class="n">entry_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="is_optimade_entry_url">
+<a class="viewcode-back" href="../../../../reference/autoapi/httk/core/optimade/resources/index.html#httk.core.optimade.is_optimade_entry_url">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_optimade_entry_url</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return whether *url* has the shape of an OPTIMADE single-entry URL.</span>
+
+<span class="sd">    :param url: Candidate URL to inspect.</span>
+<span class="sd">    :return: Whether the URL identifies one OPTIMADE entry.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">optimade_entry_url_info</span><span class="p">(</span><span class="n">url</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_read_optimade_url</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">TextstreamFileView</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;url&quot;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span> <span class="k">as</span> <span class="n">source</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">source</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not fetch OPTIMADE </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> URL </span><span class="si">{</span><span class="n">redact_optimade_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+
+
+<div class="viewcode-block" id="optimade_resource_from_url">
+<a class="viewcode-back" href="../../../../reference/autoapi/httk/core/optimade/resources/index.html#httk.core.optimade.optimade_resource_from_url">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">optimade_resource_from_url</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;OptimadeResource&quot;</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetch one OPTIMADE entry and its schema snapshot from *url*.</span>
+
+<span class="sd">    Redirects follow ``urllib`` defaults. Both requests use the datastream</span>
+<span class="sd">    layer and honor ``timeout`` (or its configured default when it is ``None``).</span>
+
+<span class="sd">    :param url: Single-entry URL to fetch.</span>
+<span class="sd">    :param timeout: Optional timeout applied to both requests.</span>
+<span class="sd">    :return: Resource backed by the entry and its schema snapshot.</span>
+<span class="sd">    :raises ValueError: If the URL or either response is not a valid OPTIMADE resource.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">optimade_entry_url_info</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">shape</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Not an OPTIMADE single-entry URL: </span><span class="si">{</span><span class="n">redact_optimade_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">entry_type</span><span class="p">,</span> <span class="n">info_url</span> <span class="o">=</span> <span class="n">shape</span>
+    <span class="n">document</span> <span class="o">=</span> <span class="n">OptimadeDocument</span><span class="o">.</span><span class="n">from_response</span><span class="p">(</span><span class="n">_read_optimade_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;entry&quot;</span><span class="p">),</span> <span class="n">url</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">entry_root</span> <span class="o">=</span> <span class="n">optimade_document_root</span><span class="p">(</span><span class="n">document</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;OPTIMADE entry response at </span><span class="si">{</span><span class="n">redact_optimade_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> is not valid JSON&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">entry_root</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">),</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;OPTIMADE entry response at </span><span class="si">{</span><span class="n">redact_optimade_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> must contain one object in &#39;data&#39;, not a list&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">info_document</span> <span class="o">=</span> <span class="n">OptimadeDocument</span><span class="o">.</span><span class="n">from_response</span><span class="p">(</span>
+        <span class="n">_read_optimade_url</span><span class="p">(</span><span class="n">info_url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;info&quot;</span><span class="p">),</span> <span class="n">info_url</span>
+    <span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">info_root</span> <span class="o">=</span> <span class="n">optimade_document_root</span><span class="p">(</span><span class="n">info_document</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;OPTIMADE info response at </span><span class="si">{</span><span class="n">redact_optimade_url</span><span class="p">(</span><span class="n">info_url</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> is not valid JSON&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">info_root</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">),</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;OPTIMADE info response at </span><span class="si">{</span><span class="n">redact_optimade_url</span><span class="p">(</span><span class="n">info_url</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> must contain an object in &#39;data&#39;&quot;</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">OptimadeResource</span><span class="p">(</span><span class="n">document</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">OptimadeSchemaSnapshot</span><span class="p">(</span><span class="n">entry_type</span><span class="p">,</span> <span class="n">info_document</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="FrozenJson">
+<a class="viewcode-back" href="../../../../reference/autoapi/httk/core/optimade/resources/index.html#httk.core.optimade.FrozenJson">[docs]</a>
+<span class="nb">type</span> <span class="n">FrozenJson</span> <span class="o">=</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">Decimal</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="s2">&quot;FrozenJson&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;FrozenJson&quot;</span><span class="p">]</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_freeze_json</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FrozenJson</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">MappingProxyType</span><span class="p">({</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">):</span> <span class="n">_freeze_json</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">_freeze_json</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="n">Decimal</span> <span class="o">|</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unexpected JSON value </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="n">_document_cache</span><span class="p">:</span> <span class="n">WeakKeyDictionary</span><span class="p">[</span><span class="n">OptimadeDocument</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">FrozenJson</span><span class="p">]]</span> <span class="o">=</span> <span class="n">WeakKeyDictionary</span><span class="p">()</span>
+<span class="n">_document_cache_lock</span> <span class="o">=</span> <span class="n">Lock</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_parsed_root</span><span class="p">(</span><span class="n">document</span><span class="p">:</span> <span class="n">OptimadeDocument</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">FrozenJson</span><span class="p">]:</span>
+    <span class="k">with</span> <span class="n">_document_cache_lock</span><span class="p">:</span>
+        <span class="n">cached</span> <span class="o">=</span> <span class="n">_document_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">document</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cached</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cached</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">parsed</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">document</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">parse_float</span><span class="o">=</span><span class="n">Decimal</span><span class="p">,</span> <span class="n">parse_int</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;OPTIMADE document is not valid JSON: </span><span class="si">{</span><span class="n">exc</span><span class="o">.</span><span class="n">msg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="n">frozen</span> <span class="o">=</span> <span class="n">_freeze_json</span><span class="p">(</span><span class="n">parsed</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">frozen</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;OPTIMADE document root must be a JSON object&quot;</span><span class="p">)</span>
+        <span class="n">_document_cache</span><span class="p">[</span><span class="n">document</span><span class="p">]</span> <span class="o">=</span> <span class="n">frozen</span>
+        <span class="k">return</span> <span class="n">frozen</span>
+
+
+<div class="viewcode-block" id="optimade_document_root">
+<a class="viewcode-back" href="../../../../reference/autoapi/httk/core/optimade/resources/index.html#httk.core.optimade.optimade_document_root">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">optimade_document_root</span><span class="p">(</span><span class="n">document</span><span class="p">:</span> <span class="n">OptimadeDocument</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">FrozenJson</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the immutable, Decimal-preserving root of *document* lazily.</span>
+
+<span class="sd">    This is intentionally a small public seam for source-model consumers that</span>
+<span class="sd">    need to interpret an OPTIMADE envelope or an ``/info`` document without</span>
+<span class="sd">    duplicating JSON parsing.  The returned mapping is cached per equal</span>
+<span class="sd">    :class:`OptimadeDocument` and must be treated as immutable.</span>
+
+<span class="sd">    :param document: Source document to parse lazily.</span>
+<span class="sd">    :return: Cached immutable document root.</span>
+<span class="sd">    :raises ValueError: If the document is invalid JSON or has a non-object root.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">_parsed_root</span><span class="p">(</span><span class="n">document</span><span class="p">)</span></div>
+
+
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="viewcode-block" id="OptimadeResource">
+<a class="viewcode-back" href="../../../../reference/autoapi/httk/core/optimade/resources/index.html#httk.core.optimade.OptimadeResource">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OptimadeResource</span><span class="p">(</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">FrozenJson</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represent one immutable resource in an OPTIMADE response envelope.</span>
+
+<span class="sd">    :param document: Source-exact response document to decode lazily.</span>
+<span class="sd">    :param data_index: Index of the resource in the response ``data`` member.</span>
+<span class="sd">    :param schema: Schema snapshot applicable to the response.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="OptimadeResource.document">
+<a class="viewcode-back" href="../../../../reference/autoapi/httk/core/optimade/resources/index.html#httk.core.optimade.OptimadeResource.document">[docs]</a>
+    <span class="n">document</span><span class="p">:</span> <span class="n">OptimadeDocument</span></div>
+
+<div class="viewcode-block" id="OptimadeResource.data_index">
+<a class="viewcode-back" href="../../../../reference/autoapi/httk/core/optimade/resources/index.html#httk.core.optimade.OptimadeResource.data_index">[docs]</a>
+    <span class="n">data_index</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="OptimadeResource.schema">
+<a class="viewcode-back" href="../../../../reference/autoapi/httk/core/optimade/resources/index.html#httk.core.optimade.OptimadeResource.schema">[docs]</a>
+    <span class="n">schema</span><span class="p">:</span> <span class="n">OptimadeSchemaSnapshot</span></div>
+
+
+<div class="viewcode-block" id="OptimadeResource.unwrap">
+<a class="viewcode-back" href="../../../../reference/autoapi/httk/core/optimade/resources/index.html#httk.core.optimade.OptimadeResource.unwrap">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">unwrap</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">FrozenJson</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the immutable resource object at this response&#39;s data index.</span>
+
+<span class="sd">        :return: Immutable resource mapping selected from the response.</span>
+<span class="sd">        :raises TypeError: If ``data_index`` is not an integer.</span>
+<span class="sd">        :raises IndexError: If ``data_index`` is outside the response data.</span>
+<span class="sd">        :raises ValueError: If the response data is not an object or array of objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">root</span> <span class="o">=</span> <span class="n">_parsed_root</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">document</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_index</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_index</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;OPTIMADE resource data_index must be an int&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_index</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;OPTIMADE resource data index out of range: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">data_index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">resource</span><span class="p">:</span> <span class="n">FrozenJson</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_index</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;OPTIMADE resource data index out of range: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">data_index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">resource</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">resource</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data_index</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">IndexError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;OPTIMADE resource data index out of range: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">data_index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;OPTIMADE document root member &#39;data&#39; must be a JSON array or object&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">resource</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;OPTIMADE document data[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">data_index</span><span class="si">}</span><span class="s2">] must be a JSON object&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">resource</span></div>
+
+
+    <span class="nd">@stored_property</span>
+<div class="viewcode-block" id="OptimadeResource.id">
+<a class="viewcode-back" href="../../../../reference/autoapi/httk/core/optimade/resources/index.html#httk.core.optimade.OptimadeResource.id">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The protocol-mandated JSON API resource identifier.</span>
+
+<span class="sd">        This intentionally reads the JSON API envelope directly.  It is a</span>
+<span class="sd">        generic source-resource capability, not semantic recognition of a</span>
+<span class="sd">        transport property name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unwrap</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;OPTIMADE resource top-level &#39;id&#39; must be a nonempty string&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+
+    <span class="nd">@stored_property</span>
+<div class="viewcode-block" id="OptimadeResource.type">
+<a class="viewcode-back" href="../../../../reference/autoapi/httk/core/optimade/resources/index.html#httk.core.optimade.OptimadeResource.type">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The protocol-mandated JSON API resource type identifier.&quot;&quot;&quot;</span>
+
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unwrap</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;OPTIMADE resource top-level &#39;type&#39; must be a nonempty string&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FrozenJson</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">unwrap</span><span class="p">()[</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unwrap</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unwrap</span><span class="p">())</span></div>
+
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2026, The httk-core AUTHORS
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="../../../../_static/documentation_options.js?v=fe42cd0d"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../_static/copybutton.js?v=fd10adb8"></script>
+    <script src="../../../../_static/selector.js?v=e591e119"></script>
+    <script>window.HTTK_DOCS_VERSIONING = {"channel":"dev","version":"dev:main","versionPathDepth":2};</script>
+    </body>
+</html>

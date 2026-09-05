@@ -1,0 +1,30 @@
+httk.core.storage.rational_text
+===============================
+
+.. py:module:: httk.core.storage.rational_text
+
+.. autoapi-nested-parse::
+
+   Canonical text rendering for exact rational values.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.storage.rational_text.fraction_to_text
+
+
+Module Contents
+---------------
+
+.. py:function:: fraction_to_text(value)
+
+   Return reduced ``p/q`` text with an explicit positive denominator.
+
+   :param value: The canonical fraction to render.
+   :return: ``numerator/denominator`` text, including ``/1`` for integers.
+
+

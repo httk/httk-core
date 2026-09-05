@@ -1,0 +1,151 @@
+httk.core.datastream.compression
+================================
+
+.. py:module:: httk.core.datastream.compression
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.datastream.compression.CompressionCodec
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.datastream.compression.register_compression
+   httk.core.datastream.compression.known_compressions
+   httk.core.datastream.compression.codec_for_name
+   httk.core.datastream.compression.split_compression_suffix
+   httk.core.datastream.compression.sniff_codec
+   httk.core.datastream.compression.open_compressed
+   httk.core.datastream.compression.validate_compression
+   httk.core.datastream.compression.reject_text_native_compression
+
+
+Module Contents
+---------------
+
+.. py:class:: CompressionCodec
+
+   A decompression codec for a single container format.
+
+   A codec is an orthogonal layer below the datastream backends: it turns a compressed
+   binary stream into an uncompressed binary stream, independently of where the compressed
+   bytes come from (a filename, an open file, raw bytes, or a remote response).
+
+   :param name: Canonical name used to select the codec explicitly.
+   :param extensions: Filename suffixes that identify the codec.
+   :param magics: Leading byte signatures used to detect the codec.
+   :param open_stream: Function that wraps compressed bytes for reading.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+      Canonical, lower-case codec name (e.g. ``"gzip"``); also how an explicit hint selects it.
+
+
+   .. py:attribute:: extensions
+      :type:  tuple[str, Ellipsis]
+
+      Recognized filename suffixes including the leading dot (e.g. ``(".gz",)``).
+
+
+   .. py:attribute:: magics
+      :type:  tuple[bytes, Ellipsis]
+
+      Leading magic-byte signatures; an empty tuple means the format cannot be sniffed.
+
+
+   .. py:attribute:: open_stream
+      :type:  collections.abc.Callable[[io.IOBase], io.IOBase]
+
+      Wrap a compressed binary stream and return a readable, decompressed binary stream.
+
+
+.. py:function:: register_compression(codec)
+
+   Register (or replace) a codec under its :attr:`~CompressionCodec.name` (case-insensitive).
+
+   :param codec: Codec to add to the registry.
+
+
+.. py:function:: known_compressions()
+
+   Return the registered codec names, in registration order.
+
+   :return: The registered codec names.
+
+
+.. py:function:: codec_for_name(name)
+
+   Return the codec whose extension matches the trailing suffix of ``name``, else ``None``.
+
+   :param name: Filename or URL path to inspect.
+   :return: The matching codec, or ``None`` when no suffix is recognized.
+
+
+.. py:function:: split_compression_suffix(name)
+
+   Split a trailing compression extension off ``name``.
+
+   ``"data.json.gz"`` becomes ``("data.json", <gzip codec>)``; a name with no recognized
+   compression extension is returned unchanged with ``None``.
+
+   :param name: Filename or URL path to split.
+   :return: The name without its recognized suffix and the matching codec, if any.
+
+
+.. py:function:: sniff_codec(stream)
+
+   Detect a codec from the leading magic bytes of ``stream`` without consuming data.
+
+   A seekable stream is read and rewound; an unseekable stream is peeked (directly when it
+   supports ``peek``, otherwise via a wrapping :class:`io.BufferedReader`). The returned
+   stream must be used in place of the input, since it may be the wrapper.
+
+   :param stream: Binary stream whose leading bytes should be inspected.
+   :return: The stream to continue reading and the detected codec, if any.
+
+
+.. py:function:: open_compressed(stream, *, compression = 'auto', name = None)
+
+   Return a decompressed view of ``stream`` according to the ``compression`` hint.
+
+   Values are ``"none"`` (passthrough), ``"extension"`` (decide from ``name`` only),
+   ``"detect"`` (always sniff magic bytes), ``"auto"`` (extension if recognized, else sniff),
+   or a registered codec name (force that codec; an unknown name raises :class:`ValueError`).
+   When no codec applies the stream is returned unchanged.
+
+   :param stream: Compressed or uncompressed binary stream to expose.
+   :param compression: Mode or codec name controlling decompression.
+   :param name: Optional source name used for extension-based selection.
+   :return: A decompressed stream, or the original stream when no codec applies.
+   :raises ValueError: If ``compression`` names an unknown codec.
+
+
+.. py:function:: validate_compression(compression)
+
+   Raise :class:`ValueError` unless ``compression`` is a known mode or registered codec name.
+
+   :param compression: Mode or codec name to validate.
+   :raises ValueError: If ``compression`` is unknown.
+
+
+.. py:function:: reject_text_native_compression(compression)
+
+   Validate a ``compression`` hint for a text-native source (an open text stream or a string).
+
+   Such sources carry no compressed bytes to decode, so only the no-op modes ``"auto"``,
+   ``"extension"``, and ``"none"`` are accepted; a codec name or ``"detect"`` raises
+   :class:`ValueError`. ``None`` (no hint given) is accepted.
+
+   :param compression: Optional compression hint supplied for a text-native source.
+   :raises ValueError: If the hint requests native decompression or magic detection.
+
+

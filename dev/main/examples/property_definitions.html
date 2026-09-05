@@ -1,0 +1,828 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Implementing an EntryProvider: the contract httk-core owns" href="entry_provider.html"><link rel="prev" title="Getting data into httk: the load dispatcher and the DatasetLoader" href="load_and_dataset_loader.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Building a custom OPTIMADE entry type end to end - httk-core dev:main documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/selector.css?v=626bada3" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+<div class="announcement">
+  <aside class="announcement-content">
+     Development documentation (dev:main) — content may differ from any release. 
+  </aside>
+</div>
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">httk-core dev:main documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">httk-core dev:main documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../reference/index.html">Reference</a><input aria-label="Toggle navigation of Reference" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/index.html">httk.core</a><input aria-label="Toggle navigation of httk.core" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/atomic_write/index.html">httk.core.atomic_write</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/building/index.html">httk.core.building</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/citations/index.html">httk.core.citations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/cli/index.html">httk.core.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/converting/index.html">httk.core.converting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/crypto/index.html">httk.core.crypto</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/data_records/index.html">httk.core.data_records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/dataset_loader/index.html">httk.core.dataset_loader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/datasets/index.html">httk.core.datasets</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/index.html">httk.core.datastream</a><input aria-label="Toggle navigation of httk.core.datastream" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_api/index.html">httk.core.datastream.bytestream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_backend/index.html">httk.core.datastream.bytestream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_bytes/index.html">httk.core.datastream.bytestream_bytes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_bytes_view/index.html">httk.core.datastream.bytestream_bytes_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_common/index.html">httk.core.datastream.bytestream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_file/index.html">httk.core.datastream.bytestream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_file_view/index.html">httk.core.datastream.bytestream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_filename/index.html">httk.core.datastream.bytestream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_filename_view/index.html">httk.core.datastream.bytestream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_like/index.html">httk.core.datastream.bytestream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_request/index.html">httk.core.datastream.bytestream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_request_view/index.html">httk.core.datastream.bytestream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_url/index.html">httk.core.datastream.bytestream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_url_view/index.html">httk.core.datastream.bytestream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_view/index.html">httk.core.datastream.bytestream_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/compression/index.html">httk.core.datastream.compression</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/datastream_url/index.html">httk.core.datastream.datastream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/network_policy/index.html">httk.core.datastream.network_policy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_api/index.html">httk.core.datastream.textstream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_backend/index.html">httk.core.datastream.textstream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_common/index.html">httk.core.datastream.textstream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_file/index.html">httk.core.datastream.textstream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_file_view/index.html">httk.core.datastream.textstream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_filename/index.html">httk.core.datastream.textstream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_filename_view/index.html">httk.core.datastream.textstream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_like/index.html">httk.core.datastream.textstream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_request/index.html">httk.core.datastream.textstream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_request_view/index.html">httk.core.datastream.textstream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_string/index.html">httk.core.datastream.textstream_string</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_string_view/index.html">httk.core.datastream.textstream_string_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_url/index.html">httk.core.datastream.textstream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_url_view/index.html">httk.core.datastream.textstream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_view/index.html">httk.core.datastream.textstream_view</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/digests/index.html">httk.core.digests</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/docs/index.html">httk.core.docs</a><input aria-label="Toggle navigation of httk.core.docs" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/cli/index.html">httk.core.docs.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/config/index.html">httk.core.docs.config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/ecosystem/index.html">httk.core.docs.ecosystem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/gitsite/index.html">httk.core.docs.gitsite</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/inventories/index.html">httk.core.docs.inventories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/lockfile/index.html">httk.core.docs.lockfile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/manifests/index.html">httk.core.docs.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/redirect/index.html">httk.core.docs.redirect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/release/index.html">httk.core.docs.release</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/semver/index.html">httk.core.docs.semver</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/sitetree/index.html">httk.core.docs.sitetree</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/sphinx_ext/index.html">httk.core.docs.sphinx_ext</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/entry_ids/index.html">httk.core.entry_ids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/entry_provider/index.html">httk.core.entry_provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/entry_types/index.html">httk.core.entry_types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/exactmath/index.html">httk.core.exactmath</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/fetching/index.html">httk.core.fetching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/files/index.html">httk.core.files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/identity/index.html">httk.core.identity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/identity_cli/index.html">httk.core.identity_cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/loading/index.html">httk.core.loading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/memguard/index.html">httk.core.memguard</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/index.html">httk.core.optimade</a><input aria-label="Toggle navigation of httk.core.optimade" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/entries/index.html">httk.core.optimade.entries</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/filter/index.html">httk.core.optimade.filter</a><input aria-label="Toggle navigation of httk.core.optimade.filter" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/filter/parser/index.html">httk.core.optimade.filter.parser</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/resources/index.html">httk.core.optimade.resources</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/index.html">httk.core.plugins</a><input aria-label="Toggle navigation of httk.core.plugins" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/cli/index.html">httk.core.plugins.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/install/index.html">httk.core.plugins.install</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/installed/index.html">httk.core.plugins.installed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/manifest/index.html">httk.core.plugins.manifest</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/precision/index.html">httk.core.precision</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/project/index.html">httk.core.project</a><input aria-label="Toggle navigation of httk.core.project" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/anchor/index.html">httk.core.project.anchor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/cli/index.html">httk.core.project.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/export/index.html">httk.core.project.export</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/manifests/index.html">httk.core.project.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/members/index.html">httk.core.project.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/sealing/index.html">httk.core.project.sealing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/templates/index.html">httk.core.project.templates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/property_definitions/index.html">httk.core.property_definitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/provenance/index.html">httk.core.provenance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/records/index.html">httk.core.records</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/register/index.html">httk.core.register</a><input aria-label="Toggle navigation of httk.core.register" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/cli/index.html">httk.core.register.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/entries/index.html">httk.core.register.entries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/io/index.html">httk.core.register.io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/members/index.html">httk.core.register.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/schemas/index.html">httk.core.register.schemas</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/report/index.html">httk.core.report</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/saving/index.html">httk.core.saving</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/schema_check/index.html">httk.core.schema_check</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/services/index.html">httk.core.services</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/storage/index.html">httk.core.storage</a><input aria-label="Toggle navigation of httk.core.storage" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/storage/identity/index.html">httk.core.storage.identity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/storage/markers/index.html">httk.core.storage.markers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/storage/rational_text/index.html">httk.core.storage.rational_text</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/storage/stored_properties/index.html">httk.core.storage.stored_properties</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/system/index.html">httk.core.system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/userdirs/index.html">httk.core.userdirs</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/validation/index.html">httk.core.validation</a><input aria-label="Toggle navigation of httk.core.validation" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/validation/iris/index.html">httk.core.validation.iris</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/index.html">httk.core.vectors</a><input aria-label="Toggle navigation of httk.core.vectors" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/fracvector/index.html">httk.core.vectors.fracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/leaf_codecs/index.html">httk.core.vectors.leaf_codecs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/mutablefracvector/index.html">httk.core.vectors.mutablefracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/numeric/index.html">httk.core.vectors.numeric</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/scalar_like/index.html">httk.core.vectors.scalar_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/surdvector/index.html">httk.core.vectors.surdvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_api/index.html">httk.core.vectors.vector_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_backend/index.html">httk.core.vectors.vector_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_frac_view/index.html">httk.core.vectors.vector_frac_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_like/index.html">httk.core.vectors.vector_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_native_backend/index.html">httk.core.vectors.vector_native_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_native_view/index.html">httk.core.vectors.vector_native_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_numpy_backend/index.html">httk.core.vectors.vector_numpy_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_numpy_view/index.html">httk.core.vectors.vector_numpy_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_surd_view/index.html">httk.core.vectors.vector_surd_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_view/index.html">httk.core.vectors.vector_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vectormath/index.html">httk.core.vectors.vectormath</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/views/index.html">httk.core.views</a><input aria-label="Toggle navigation of httk.core.views" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/backend/index.html">httk.core.views.backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/coercion/index.html">httk.core.views.coercion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/unviewing/index.html">httk.core.views.unviewing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/unwrapping/index.html">httk.core.views.unwrapping</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/view/index.html">httk.core.views.view</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../view_backend_pattern.html">Views and Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../registry.html">Module registry</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../datastreams.html">Datastreams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">The extensible command line</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins.html">Plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../crypto.html">Cryptography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../identity.html">Operator identity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../projects.html">Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sealing.html">Sealing and manifests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../property_definitions.html">Property definitions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../vectors.html">Vectors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../exactmath.html">Exact math on rationals and decimals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../credits.html">Citation credits</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Examples</a><input aria-label="Toggle navigation of Examples" checked="" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="datastreams_quickstart.html">Datastreams quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vectors_quickstart.html">Vectors quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exactmath_quickstart.html">Exact math quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="load_and_dataset_loader.html">Getting data into httk: the <code class="docutils literal notranslate"><span class="pre">load</span></code> dispatcher and the <code class="docutils literal notranslate"><span class="pre">DatasetLoader</span></code></a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Building a custom OPTIMADE entry type end to end</a></li>
+<li class="toctree-l2"><a class="reference internal" href="entry_provider.html">Implementing an <code class="docutils literal notranslate"><span class="pre">EntryProvider</span></code>: the contract <em>httk-core</em> owns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimade_filter.html">Parsing OPTIMADE filter strings into an abstract syntax tree</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coerce_quickstart.html">Coercion quickstart</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Details</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../details/view_backend_pattern.html">Views and Backends in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../details/registry.html">Module registry in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../details/datastreams.html">Datastreams in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../details/plugins.html">Plugins in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../details/property_definitions.html">Property definitions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../details/vectors.html">Vectors in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../details/exactmath.html">Exact math in detail</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../reference/autoapi/index.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/index.html">httk.core</a><input aria-label="Toggle navigation of httk.core" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/atomic_write/index.html">httk.core.atomic_write</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/building/index.html">httk.core.building</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/citations/index.html">httk.core.citations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/cli/index.html">httk.core.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/converting/index.html">httk.core.converting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/crypto/index.html">httk.core.crypto</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/data_records/index.html">httk.core.data_records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/dataset_loader/index.html">httk.core.dataset_loader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/datasets/index.html">httk.core.datasets</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/index.html">httk.core.datastream</a><input aria-label="Toggle navigation of httk.core.datastream" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_api/index.html">httk.core.datastream.bytestream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_backend/index.html">httk.core.datastream.bytestream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_bytes/index.html">httk.core.datastream.bytestream_bytes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_bytes_view/index.html">httk.core.datastream.bytestream_bytes_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_common/index.html">httk.core.datastream.bytestream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_file/index.html">httk.core.datastream.bytestream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_file_view/index.html">httk.core.datastream.bytestream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_filename/index.html">httk.core.datastream.bytestream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_filename_view/index.html">httk.core.datastream.bytestream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_like/index.html">httk.core.datastream.bytestream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_request/index.html">httk.core.datastream.bytestream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_request_view/index.html">httk.core.datastream.bytestream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_url/index.html">httk.core.datastream.bytestream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_url_view/index.html">httk.core.datastream.bytestream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_view/index.html">httk.core.datastream.bytestream_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/compression/index.html">httk.core.datastream.compression</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/datastream_url/index.html">httk.core.datastream.datastream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/network_policy/index.html">httk.core.datastream.network_policy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_api/index.html">httk.core.datastream.textstream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_backend/index.html">httk.core.datastream.textstream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_common/index.html">httk.core.datastream.textstream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_file/index.html">httk.core.datastream.textstream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_file_view/index.html">httk.core.datastream.textstream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_filename/index.html">httk.core.datastream.textstream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_filename_view/index.html">httk.core.datastream.textstream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_like/index.html">httk.core.datastream.textstream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_request/index.html">httk.core.datastream.textstream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_request_view/index.html">httk.core.datastream.textstream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_string/index.html">httk.core.datastream.textstream_string</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_string_view/index.html">httk.core.datastream.textstream_string_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_url/index.html">httk.core.datastream.textstream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_url_view/index.html">httk.core.datastream.textstream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_view/index.html">httk.core.datastream.textstream_view</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/digests/index.html">httk.core.digests</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/docs/index.html">httk.core.docs</a><input aria-label="Toggle navigation of httk.core.docs" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/cli/index.html">httk.core.docs.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/config/index.html">httk.core.docs.config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/ecosystem/index.html">httk.core.docs.ecosystem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/gitsite/index.html">httk.core.docs.gitsite</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/inventories/index.html">httk.core.docs.inventories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/lockfile/index.html">httk.core.docs.lockfile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/manifests/index.html">httk.core.docs.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/redirect/index.html">httk.core.docs.redirect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/release/index.html">httk.core.docs.release</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/semver/index.html">httk.core.docs.semver</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/sitetree/index.html">httk.core.docs.sitetree</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/sphinx_ext/index.html">httk.core.docs.sphinx_ext</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/entry_ids/index.html">httk.core.entry_ids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/entry_provider/index.html">httk.core.entry_provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/entry_types/index.html">httk.core.entry_types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/exactmath/index.html">httk.core.exactmath</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/fetching/index.html">httk.core.fetching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/files/index.html">httk.core.files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/identity/index.html">httk.core.identity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/identity_cli/index.html">httk.core.identity_cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/loading/index.html">httk.core.loading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/memguard/index.html">httk.core.memguard</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/index.html">httk.core.optimade</a><input aria-label="Toggle navigation of httk.core.optimade" class="toctree-checkbox" id="toctree-checkbox-19" name="toctree-checkbox-19" role="switch" type="checkbox"/><label for="toctree-checkbox-19"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/entries/index.html">httk.core.optimade.entries</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/filter/index.html">httk.core.optimade.filter</a><input aria-label="Toggle navigation of httk.core.optimade.filter" class="toctree-checkbox" id="toctree-checkbox-20" name="toctree-checkbox-20" role="switch" type="checkbox"/><label for="toctree-checkbox-20"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/filter/parser/index.html">httk.core.optimade.filter.parser</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/resources/index.html">httk.core.optimade.resources</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/index.html">httk.core.plugins</a><input aria-label="Toggle navigation of httk.core.plugins" class="toctree-checkbox" id="toctree-checkbox-21" name="toctree-checkbox-21" role="switch" type="checkbox"/><label for="toctree-checkbox-21"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/cli/index.html">httk.core.plugins.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/install/index.html">httk.core.plugins.install</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/installed/index.html">httk.core.plugins.installed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/manifest/index.html">httk.core.plugins.manifest</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/precision/index.html">httk.core.precision</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/project/index.html">httk.core.project</a><input aria-label="Toggle navigation of httk.core.project" class="toctree-checkbox" id="toctree-checkbox-22" name="toctree-checkbox-22" role="switch" type="checkbox"/><label for="toctree-checkbox-22"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/anchor/index.html">httk.core.project.anchor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/cli/index.html">httk.core.project.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/export/index.html">httk.core.project.export</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/manifests/index.html">httk.core.project.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/members/index.html">httk.core.project.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/sealing/index.html">httk.core.project.sealing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/templates/index.html">httk.core.project.templates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/property_definitions/index.html">httk.core.property_definitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/provenance/index.html">httk.core.provenance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/records/index.html">httk.core.records</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/register/index.html">httk.core.register</a><input aria-label="Toggle navigation of httk.core.register" class="toctree-checkbox" id="toctree-checkbox-23" name="toctree-checkbox-23" role="switch" type="checkbox"/><label for="toctree-checkbox-23"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/cli/index.html">httk.core.register.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/entries/index.html">httk.core.register.entries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/io/index.html">httk.core.register.io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/members/index.html">httk.core.register.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/schemas/index.html">httk.core.register.schemas</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/report/index.html">httk.core.report</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/saving/index.html">httk.core.saving</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/schema_check/index.html">httk.core.schema_check</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/services/index.html">httk.core.services</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/storage/index.html">httk.core.storage</a><input aria-label="Toggle navigation of httk.core.storage" class="toctree-checkbox" id="toctree-checkbox-24" name="toctree-checkbox-24" role="switch" type="checkbox"/><label for="toctree-checkbox-24"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/storage/identity/index.html">httk.core.storage.identity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/storage/markers/index.html">httk.core.storage.markers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/storage/rational_text/index.html">httk.core.storage.rational_text</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/storage/stored_properties/index.html">httk.core.storage.stored_properties</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/system/index.html">httk.core.system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/userdirs/index.html">httk.core.userdirs</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/validation/index.html">httk.core.validation</a><input aria-label="Toggle navigation of httk.core.validation" class="toctree-checkbox" id="toctree-checkbox-25" name="toctree-checkbox-25" role="switch" type="checkbox"/><label for="toctree-checkbox-25"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/validation/iris/index.html">httk.core.validation.iris</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/index.html">httk.core.vectors</a><input aria-label="Toggle navigation of httk.core.vectors" class="toctree-checkbox" id="toctree-checkbox-26" name="toctree-checkbox-26" role="switch" type="checkbox"/><label for="toctree-checkbox-26"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/fracvector/index.html">httk.core.vectors.fracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/leaf_codecs/index.html">httk.core.vectors.leaf_codecs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/mutablefracvector/index.html">httk.core.vectors.mutablefracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/numeric/index.html">httk.core.vectors.numeric</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/scalar_like/index.html">httk.core.vectors.scalar_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/surdvector/index.html">httk.core.vectors.surdvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_api/index.html">httk.core.vectors.vector_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_backend/index.html">httk.core.vectors.vector_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_frac_view/index.html">httk.core.vectors.vector_frac_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_like/index.html">httk.core.vectors.vector_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_native_backend/index.html">httk.core.vectors.vector_native_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_native_view/index.html">httk.core.vectors.vector_native_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_numpy_backend/index.html">httk.core.vectors.vector_numpy_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_numpy_view/index.html">httk.core.vectors.vector_numpy_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_surd_view/index.html">httk.core.vectors.vector_surd_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_view/index.html">httk.core.vectors.vector_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vectormath/index.html">httk.core.vectors.vectormath</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/views/index.html">httk.core.views</a><input aria-label="Toggle navigation of httk.core.views" class="toctree-checkbox" id="toctree-checkbox-27" name="toctree-checkbox-27" role="switch" type="checkbox"/><label for="toctree-checkbox-27"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/backend/index.html">httk.core.views.backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/coercion/index.html">httk.core.views.coercion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/unviewing/index.html">httk.core.views.unviewing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/unwrapping/index.html">httk.core.views.unwrapping</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/view/index.html">httk.core.views.view</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/autoapi/httk/registry/cli/core/index.html">httk.registry.cli.core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/autoapi/httk/registry/entries/core/index.html">httk.registry.entries.core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/autoapi/httk/registry/schemas/core/index.html">httk.registry.schemas.core</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/examples/property_definitions.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section class="tex2jax_ignore mathjax_ignore" id="building-a-custom-optimade-entry-type-end-to-end">
+<h1>Building a custom OPTIMADE entry type end to end<a class="headerlink" href="#building-a-custom-optimade-entry-type-end-to-end" title="Link to this heading">¶</a></h1>
+<p>The OPTIMADE definitions guide walks through the pieces of the definition model
+one at a time. This example does the opposite: it plays out the whole job a
+database faces when it wants to serve properties of its own, start to finish, in
+one runnable script, and prints the actual JSON that comes out at the end.</p>
+<p>The scenario: a fictitious database, <em>Exampledb</em>, serves the standard OPTIMADE
+<code class="docutils literal notranslate"><span class="pre">calculations</span></code> entry type but wants to attach three properties of its own to it
+— a total energy, a lattice-vector array, and a classification string. Serving
+custom properties correctly takes four steps.</p>
+<p><strong>1. Claim a prefix.</strong> OPTIMADE reserves unprefixed property names for the
+standard; a database-specific property must be named <code class="docutils literal notranslate"><span class="pre">_&lt;db&gt;_&lt;property&gt;</span></code>. The
+prefix is what routes the property’s canonical <code class="docutils literal notranslate"><span class="pre">$id</span></code> to a URL the database
+controls, so <code class="docutils literal notranslate"><span class="pre">register_definition_prefix</span></code> pairs the prefix with a base URL. The
+prefix itself must be a lower-case alphanumeric token wrapped in single
+underscores — <code class="docutils literal notranslate"><span class="pre">_exmpl_</span></code> is fine, <code class="docutils literal notranslate"><span class="pre">exmpl</span></code>, <code class="docutils literal notranslate"><span class="pre">_Exmpl_</span></code> and <code class="docutils literal notranslate"><span class="pre">_exmpl</span></code> are not.
+<code class="docutils literal notranslate"><span class="pre">_httk_</span></code> comes pre-registered under httk’s ad-hoc namespace at
+<code class="docutils literal notranslate"><span class="pre">schemas.httk.org/ad-hoc/</span></code>; generated httk custom names use its
+<code class="docutils literal notranslate"><span class="pre">_httk_custom_*</span></code> sub-namespace. This is separate from the
+published definitions at <code class="docutils literal notranslate"><span class="pre">schemas.httk.org/defs/</span></code>: a synthesized <code class="docutils literal notranslate"><span class="pre">$id</span></code> names a
+property that is not published anywhere, and should not pretend otherwise.</p>
+<p><strong>2. Generate the property definitions.</strong> <code class="docutils literal notranslate"><span class="pre">PropertyDefinition.from_simple</span></code>
+builds a full, self-describing definition from a compact description: a name, a
+human-readable <code class="docutils literal notranslate"><span class="pre">description</span></code>, and a <code class="docutils literal notranslate"><span class="pre">fulltype</span></code>. The <code class="docutils literal notranslate"><span class="pre">fulltype</span></code> grammar covers
+<code class="docutils literal notranslate"><span class="pre">string</span></code>, <code class="docutils literal notranslate"><span class="pre">integer</span></code>, <code class="docutils literal notranslate"><span class="pre">float</span></code>, <code class="docutils literal notranslate"><span class="pre">boolean</span></code>, <code class="docutils literal notranslate"><span class="pre">timestamp</span></code>, <code class="docutils literal notranslate"><span class="pre">dict</span></code>, and nested lists
+spelled out in words — <code class="docutils literal notranslate"><span class="pre">list</span> <span class="pre">of</span> <span class="pre">list</span> <span class="pre">of</span> <span class="pre">float</span></code> for a 3x3 array. Array
+properties additionally take <code class="docutils literal notranslate"><span class="pre">dimensions</span></code> (named axes and their sizes) and a
+<code class="docutils literal notranslate"><span class="pre">unit</span></code>; both surface in the generated document, and <code class="docutils literal notranslate"><span class="pre">dimensions</span></code> also causes a
+<code class="docutils literal notranslate"><span class="pre">list_axes</span></code> metadata definition to be generated automatically.</p>
+<p>The result is <em>implementation-neutral</em>: it describes the property,
+not how any one deployment serves it. Per-deployment flags — is this property
+sortable? is it in the response by default? — are layered on separately with
+<code class="docutils literal notranslate"><span class="pre">with_implementation</span></code>, which returns a new definition and leaves the original
+untouched.</p>
+<p><strong>3. Extend the entry type.</strong> <code class="docutils literal notranslate"><span class="pre">EntryTypeDefinition.extended</span></code> merges the custom
+properties into a <em>copy</em> of the standard definition. It refuses a name that
+collides with an existing property, and refuses an unprefixed custom name
+unless you explicitly pass <code class="docutils literal notranslate"><span class="pre">allow_unprefixed=True</span></code> — which is why step 1 has to
+happen first. Both refusals are demonstrated below.</p>
+<p><strong>4. Emit it.</strong> <code class="docutils literal notranslate"><span class="pre">as_optimade()</span></code> renders a definition as the JSON document
+OPTIMADE actually specifies: <code class="docutils literal notranslate"><span class="pre">$schema</span></code>, <code class="docutils literal notranslate"><span class="pre">$id</span></code>, <code class="docutils literal notranslate"><span class="pre">title</span></code>, <code class="docutils literal notranslate"><span class="pre">description</span></code>,
+<code class="docutils literal notranslate"><span class="pre">x-optimade-type</span></code>, the JSON <code class="docutils literal notranslate"><span class="pre">type</span></code> (with <code class="docutils literal notranslate"><span class="pre">null</span></code> included exactly when the
+property is nullable), <code class="docutils literal notranslate"><span class="pre">items</span></code> for lists, <code class="docutils literal notranslate"><span class="pre">x-optimade-unit</span></code>,
+<code class="docutils literal notranslate"><span class="pre">x-optimade-dimensions</span></code>, and the <code class="docutils literal notranslate"><span class="pre">x-optimade-definition</span></code> format stamp. The
+stamp reads <code class="docutils literal notranslate"><span class="pre">&quot;1.2&quot;</span></code> even for a v1.3 entry type such as <code class="docutils literal notranslate"><span class="pre">calculations</span></code>: the
+definition <em>format</em> is versioned separately from the specification, and
+httk-core’s generator only emits features that already exist in format 1.2.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">httk.core</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">EntryTypeDefinition</span><span class="p">,</span>
+    <span class="n">PropertyDefinition</span><span class="p">,</span>
+    <span class="n">known_definition_prefixes</span><span class="p">,</span>
+    <span class="n">register_definition_prefix</span><span class="p">,</span>
+    <span class="n">standard_entry_type</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">PREFIX</span> <span class="o">=</span> <span class="s2">&quot;_exmpl_&quot;</span>
+<span class="n">BASE_URL</span> <span class="o">=</span> <span class="s2">&quot;https://schemas.example.org/ad-hoc/defs/properties&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">claim_prefix</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Step 1: register the database-specific prefix and its base URL.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;== Step 1: claim a definition prefix ==&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;pre-registered prefixes:&quot;</span><span class="p">,</span> <span class="n">known_definition_prefixes</span><span class="p">())</span>
+    <span class="n">register_definition_prefix</span><span class="p">(</span><span class="n">PREFIX</span><span class="p">,</span> <span class="n">BASE_URL</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;after registering:      &quot;</span><span class="p">,</span> <span class="n">known_definition_prefixes</span><span class="p">())</span>
+
+    <span class="k">for</span> <span class="n">bad</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;exmpl&quot;</span><span class="p">,</span> <span class="s2">&quot;_Exmpl_&quot;</span><span class="p">,</span> <span class="s2">&quot;_exmpl&quot;</span><span class="p">,</span> <span class="s2">&quot;exmpl_&quot;</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">register_definition_prefix</span><span class="p">(</span><span class="n">bad</span><span class="p">,</span> <span class="n">BASE_URL</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  rejected malformed prefix </span><span class="si">{</span><span class="n">bad</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">build_properties</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">PropertyDefinition</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Step 2: generate the custom property definitions.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;== Step 2: generate the custom property definitions ==&quot;</span><span class="p">)</span>
+    <span class="n">properties</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;_exmpl_total_energy&quot;</span><span class="p">:</span> <span class="n">PropertyDefinition</span><span class="o">.</span><span class="n">from_simple</span><span class="p">(</span>
+            <span class="s2">&quot;_exmpl_total_energy&quot;</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Total energy of the calculation.&quot;</span><span class="p">,</span>
+            <span class="n">fulltype</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;eV&quot;</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="s2">&quot;_exmpl_lattice_vectors&quot;</span><span class="p">:</span> <span class="n">PropertyDefinition</span><span class="o">.</span><span class="n">from_simple</span><span class="p">(</span>
+            <span class="s2">&quot;_exmpl_lattice_vectors&quot;</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The three lattice vectors of the calculated cell.&quot;</span><span class="p">,</span>
+            <span class="n">fulltype</span><span class="o">=</span><span class="s2">&quot;list of list of float&quot;</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;angstrom&quot;</span><span class="p">,</span>
+            <span class="n">dimensions</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;names&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;dim_lattice&quot;</span><span class="p">,</span> <span class="s2">&quot;dim_spatial&quot;</span><span class="p">],</span> <span class="s2">&quot;sizes&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]},</span>
+        <span class="p">),</span>
+        <span class="s2">&quot;_exmpl_wave_class&quot;</span><span class="p">:</span> <span class="n">PropertyDefinition</span><span class="o">.</span><span class="n">from_simple</span><span class="p">(</span>
+            <span class="s2">&quot;_exmpl_wave_class&quot;</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Altermagnetic wave class of the calculated material.&quot;</span><span class="p">,</span>
+            <span class="n">fulltype</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">definition</span> <span class="ow">in</span> <span class="n">properties</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">definition</span><span class="o">.</span><span class="n">optimade_type</span><span class="si">}</span><span class="s2">, unit=</span><span class="si">{</span><span class="n">definition</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      $id: </span><span class="si">{</span><span class="n">definition</span><span class="o">.</span><span class="n">definition_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Per-deployment flags are an overlay; the neutral definition is unchanged.</span>
+    <span class="n">served</span> <span class="o">=</span> <span class="n">properties</span><span class="p">[</span><span class="s2">&quot;_exmpl_total_energy&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">with_implementation</span><span class="p">(</span><span class="n">sortable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">response_default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  overlay on _exmpl_total_energy:&quot;</span><span class="p">,</span> <span class="n">served</span><span class="o">.</span><span class="n">as_optimade</span><span class="p">()[</span><span class="s2">&quot;x-optimade-implementation&quot;</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s2">&quot;  neutral original still has no overlay:&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;x-optimade-implementation&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">properties</span><span class="p">[</span><span class="s2">&quot;_exmpl_total_energy&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">as_optimade</span><span class="p">(),</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">properties</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">extend_entry_type</span><span class="p">(</span><span class="n">properties</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">PropertyDefinition</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">EntryTypeDefinition</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Step 3: merge the custom properties into a copy of the standard entry type.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;== Step 3: extend the standard &#39;calculations&#39; entry type ==&quot;</span><span class="p">)</span>
+    <span class="n">calculations</span> <span class="o">=</span> <span class="n">standard_entry_type</span><span class="p">(</span><span class="s2">&quot;calculations&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;standard &#39;calculations&#39; describes </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">calculations</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span><span class="si">}</span><span class="s2"> properties:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  &quot;</span><span class="p">,</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">calculations</span><span class="o">.</span><span class="n">properties</span><span class="p">))</span>
+
+    <span class="n">extended</span> <span class="o">=</span> <span class="n">calculations</span><span class="o">.</span><span class="n">extended</span><span class="p">(</span><span class="n">properties</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;extended entry type describes </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">extended</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span><span class="si">}</span><span class="s2"> properties:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  &quot;</span><span class="p">,</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">extended</span><span class="o">.</span><span class="n">properties</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;the standard definition is untouched:&quot;</span><span class="p">,</span> <span class="s2">&quot;_exmpl_total_energy&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">calculations</span><span class="o">.</span><span class="n">properties</span><span class="p">)</span>
+
+    <span class="c1"># A name that collides with an existing property is refused ...</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">calculations</span><span class="o">.</span><span class="n">extended</span><span class="p">({</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">PropertyDefinition</span><span class="o">.</span><span class="n">from_simple</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;dup&quot;</span><span class="p">)})</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  collision refused:&quot;</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
+
+    <span class="c1"># ... and so is an unprefixed custom name, unless explicitly allowed.</span>
+    <span class="n">cogwheels</span> <span class="o">=</span> <span class="n">PropertyDefinition</span><span class="o">.</span><span class="n">from_simple</span><span class="p">(</span><span class="s2">&quot;cogwheels&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Cogwheels.&quot;</span><span class="p">,</span> <span class="n">fulltype</span><span class="o">=</span><span class="s2">&quot;integer&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">calculations</span><span class="o">.</span><span class="n">extended</span><span class="p">({</span><span class="s2">&quot;cogwheels&quot;</span><span class="p">:</span> <span class="n">cogwheels</span><span class="p">})</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  unprefixed name refused:&quot;</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s2">&quot;  allow_unprefixed=True lets it through:&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;cogwheels&quot;</span> <span class="ow">in</span> <span class="n">calculations</span><span class="o">.</span><span class="n">extended</span><span class="p">({</span><span class="s2">&quot;cogwheels&quot;</span><span class="p">:</span> <span class="n">cogwheels</span><span class="p">},</span> <span class="n">allow_unprefixed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">properties</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">extended</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">emit</span><span class="p">(</span><span class="n">extended</span><span class="p">:</span> <span class="n">EntryTypeDefinition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Step 4: render the definitions as OPTIMADE JSON documents.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;== Step 4: as_optimade() ==&quot;</span><span class="p">)</span>
+    <span class="n">lattice_vectors</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">extended</span><span class="o">.</span><span class="n">properties</span><span class="p">[</span><span class="s2">&quot;_exmpl_lattice_vectors&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">as_optimade</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;_exmpl_lattice_vectors as an OPTIMADE property definition:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">lattice_vectors</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+
+    <span class="nb">print</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Whole-entry-type document keys:&quot;</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">extended</span><span class="o">.</span><span class="n">as_optimade</span><span class="p">()))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">claim_prefix</span><span class="p">()</span>
+    <span class="n">properties</span> <span class="o">=</span> <span class="n">build_properties</span><span class="p">()</span>
+    <span class="n">extended</span> <span class="o">=</span> <span class="n">extend_entry_type</span><span class="p">(</span><span class="n">properties</span><span class="p">)</span>
+    <span class="n">emit</span><span class="p">(</span><span class="n">extended</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="entry_provider.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Implementing an <code class="docutils literal notranslate"><span class="pre">EntryProvider</span></code>: the contract <em>httk-core</em> owns</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="load_and_dataset_loader.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Getting data into httk: the <code class="docutils literal notranslate"><span class="pre">load</span></code> dispatcher and the <code class="docutils literal notranslate"><span class="pre">DatasetLoader</span></code></div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2026, The httk-core AUTHORS
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=fe42cd0d"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=fd10adb8"></script>
+    <script src="../_static/selector.js?v=e591e119"></script>
+    <script>window.HTTK_DOCS_VERSIONING = {"channel":"dev","version":"dev:main","versionPathDepth":2};</script>
+    </body>
+</html>

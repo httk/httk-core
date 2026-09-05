@@ -1,0 +1,62 @@
+httk.core.vectors.vector_native_view
+====================================
+
+.. py:module:: httk.core.vectors.vector_native_view
+
+.. autoapi-nested-parse::
+
+   A view presenting any vector backend as nested tuples, with a selectable leaf codec.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.vectors.vector_native_view.VectorNativeView
+
+
+Module Contents
+---------------
+
+.. py:class:: VectorNativeView(obj, **hints)
+
+   Bases: :py:obj:`httk.core.vectors.vector_view.VectorView`, :py:obj:`tuple`
+
+
+   A view presenting an underlying vector backend as nested tuples, with a selectable *leaf codec*.
+
+   The leaf codec is the element-domain axis (see :mod:`httk.core.vectors.leaf_codecs`); it is
+   chosen with the ``leaf=`` hint plus any codec options (``rounding=``, ``digits=``, ...). There
+   are three modes:
+
+   - **preserve-original** (``leaf=None``, and the source is natively-held data): the backend's
+     original nested leaves are presented *verbatim* — the same objects, only containers tuple-ized
+     (``Decimal``\\ s in, the same ``Decimal``\\ s out).
+   - **exact default** (``leaf=None``, source crossing from a frac/numpy backend): the ``"exact"``
+     codec — ``int`` when integral, else :class:`fractions.Fraction`, never a float.
+   - **explicit codec** (``leaf="int"``/``"float"``/``"decimal"``/``"fraction"``/...): every element
+     is converted from the backend's exact ``fractions`` interchange through that codec.
+
+   The codec name and its options are validated eagerly at construction (an unknown codec name or
+   invalid option raises :class:`ValueError`); a codec never raises on the *data* — a value it
+   cannot represent exactly takes the codec's documented default conversion, because the backend
+   keeps the exact original. A scalar source is presented as a single-element tuple.
+
+   :param obj: The source value to present.
+   :param \**hints: Backend-selection, leaf-codec, and codec-option hints.
+
+
+   .. py:method:: unwrap()
+
+      Return the underlying unwrapped vector.
+
+
+
+   .. py:method:: unview()
+
+      Return a plain tuple containing the presented leaves.
+
+
+

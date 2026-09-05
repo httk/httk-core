@@ -1,0 +1,596 @@
+httk.core.optimade
+==================
+
+.. py:module:: httk.core.optimade
+
+.. autoapi-nested-parse::
+
+   OPTIMADE resources, typed entries, and filter parsing.
+
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /reference/autoapi/httk/core/optimade/entries/index
+   /reference/autoapi/httk/core/optimade/filter/index
+   /reference/autoapi/httk/core/optimade/resources/index
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.optimade.FilterAst
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   httk.core.optimade.IncompleteOptimadeResourceError
+   httk.core.optimade.ParserError
+   httk.core.optimade.ParserSyntaxError
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.optimade.CalculationView
+   httk.core.optimade.FileView
+   httk.core.optimade.OptimadeCalculation
+   httk.core.optimade.OptimadeEntryBackend
+   httk.core.optimade.OptimadeEntryView
+   httk.core.optimade.OptimadeFile
+   httk.core.optimade.OptimadeReference
+   httk.core.optimade.ReferenceView
+   httk.core.optimade.OptimadeDocument
+   httk.core.optimade.OptimadeResource
+   httk.core.optimade.OptimadeSchemaSnapshot
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.optimade.decode_optimade_value
+   httk.core.optimade.parse_optimade_filter
+   httk.core.optimade.parse_optimade_filter_raw
+   httk.core.optimade.is_optimade_entry_url
+   httk.core.optimade.optimade_document_root
+   httk.core.optimade.optimade_entry_url_info
+   httk.core.optimade.optimade_resource_from_url
+   httk.core.optimade.redact_optimade_document_text
+   httk.core.optimade.redact_optimade_url
+
+
+Package Contents
+----------------
+
+.. py:class:: CalculationView(backend)
+
+   Bases: :py:obj:`OptimadeEntryView`
+
+
+   Present an :class:`OptimadeCalculation` as a lazy canonical view.
+
+   :param backend: Calculation backend to present, or an existing compatible view.
+
+
+   .. py:attribute:: backend_class
+
+
+   .. py:attribute:: record_class
+
+
+.. py:class:: FileView(backend)
+
+   Bases: :py:obj:`OptimadeEntryView`
+
+
+   Present an :class:`OptimadeFile` as a lazy canonical view.
+
+   :param backend: File backend to present, or an existing compatible view.
+
+
+   .. py:attribute:: backend_class
+
+
+   .. py:attribute:: record_class
+
+
+.. py:exception:: IncompleteOptimadeResourceError
+
+   Bases: :py:obj:`ValueError`
+
+
+   A resource lacks, nulls, or malforms a local record property.
+
+
+.. py:class:: OptimadeCalculation
+
+   Bases: :py:obj:`OptimadeEntryBackend`
+
+
+   Bind an OPTIMADE resource to the standard calculations schema.
+
+   :param resource: Source resource and its schema provenance.
+
+
+   .. py:attribute:: entry_type_name
+      :type:  ClassVar[str]
+      :value: 'calculations'
+
+
+
+   .. py:attribute:: entry_type_definition_id
+      :type:  ClassVar[str]
+      :value: 'https://schemas.optimade.org/defs/v1.3/entrytypes/optimade/calculations'
+
+
+
+.. py:class:: OptimadeEntryBackend
+
+   Store one typed handle around an authoritative OPTIMADE resource.
+
+   :param resource: Source resource and its schema provenance.
+
+
+   .. py:attribute:: resource
+      :type:  httk.core.optimade.resources.OptimadeResource
+
+
+   .. py:attribute:: kind
+      :type:  ClassVar[str]
+      :value: 'optimade'
+
+
+
+   .. py:attribute:: entry_type_name
+      :type:  ClassVar[str]
+
+
+   .. py:attribute:: entry_type_definition_id
+      :type:  ClassVar[str]
+
+
+   .. py:property:: raw
+      :type: collections.abc.Mapping[str, httk.core.optimade.resources.FrozenJson]
+
+
+      The immutable JSON API resource mapping, retaining source provenance.
+
+
+   .. py:method:: unwrap()
+
+      Return the exact source resource, including document and schema provenance.
+
+      :return: The source resource represented by this backend.
+
+
+
+   .. py:property:: local_schema
+      :type: httk.core.property_definitions.EntryTypeDefinition
+
+
+      Return the standard local schema for this backend.
+
+
+   .. py:method:: value_by_definition_id(definition_id, *, default = _MISSING)
+
+      Return a raw value by exact semantic IRI, retaining missing vs. null.
+
+      Values are intentionally undecoded here.  This lets record views name
+      missing/null semantic properties accurately and gives callers access to
+      exact raw JSON before selecting a representation.
+
+      :param definition_id: Semantic property IRI to look up.
+      :param default: Value to return when the property is not present.
+      :return: The raw property value, or ``default`` when it is absent.
+      :raises ValueError: If the resource attributes or schema mapping is malformed.
+
+
+
+   .. py:method:: decode_value(definition, value)
+
+      Decode *value*, applying an exact-IRI binding override when present.
+
+      :param definition: Local property definition for the value.
+      :param value: Raw value to decode.
+      :return: Decoded value from the matching generic or binding-specific decoder.
+      :raises TypeError: If the value does not match the selected property decoder.
+      :raises ValueError: If the property definition or value is invalid.
+
+
+
+   .. py:property:: id
+      :type: str
+
+
+      Return the semantic resource identifier.
+
+
+   .. py:property:: type
+      :type: str
+
+
+      Return the semantic resource type identifier.
+
+
+   .. py:property:: immutable_id
+      :type: str | None
+
+
+      Return the optional immutable semantic identifier.
+
+
+   .. py:property:: last_modified
+      :type: datetime.datetime | None
+
+
+      Return the optional last-modified timestamp.
+
+
+.. py:class:: OptimadeEntryView(backend)
+
+   Present one typed resource backend as a lazy generated record.
+
+   :param backend: Typed backend to present, or an existing compatible view.
+
+
+   .. py:attribute:: backend_class
+      :type:  ClassVar[type[OptimadeEntryBackend]]
+
+
+   .. py:attribute:: record_class
+      :type:  ClassVar[type[httk.core.entry_types.Reference] | type[httk.core.entry_types.File] | type[httk.core.entry_types.Calculation]]
+
+
+   .. py:property:: backend
+      :type: OptimadeEntryBackend
+
+
+      Return the typed backend behind this view.
+
+
+   .. py:method:: unwrap()
+
+      Return the exact source resource behind this view.
+
+
+
+   .. py:property:: id
+      :type: str
+
+
+      Return the resource identifier.
+
+
+   .. py:property:: type
+      :type: str
+
+
+      Return the resource type identifier.
+
+
+   .. py:property:: record
+      :type: httk.core.entry_types.Reference | httk.core.entry_types.File | httk.core.entry_types.Calculation
+
+
+      Return the lazily materialized canonical record.
+
+
+.. py:class:: OptimadeFile
+
+   Bases: :py:obj:`OptimadeEntryBackend`
+
+
+   Bind an OPTIMADE resource to the standard files schema.
+
+   :param resource: Source resource and its schema provenance.
+
+
+   .. py:attribute:: entry_type_name
+      :type:  ClassVar[str]
+      :value: 'files'
+
+
+
+   .. py:attribute:: entry_type_definition_id
+      :type:  ClassVar[str]
+      :value: 'https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files'
+
+
+
+.. py:class:: OptimadeReference
+
+   Bases: :py:obj:`OptimadeEntryBackend`
+
+
+   Bind an OPTIMADE resource to the standard references schema.
+
+   :param resource: Source resource and its schema provenance.
+
+
+   .. py:attribute:: entry_type_name
+      :type:  ClassVar[str]
+      :value: 'references'
+
+
+
+   .. py:attribute:: entry_type_definition_id
+      :type:  ClassVar[str]
+      :value: 'https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/references'
+
+
+
+.. py:class:: ReferenceView(backend)
+
+   Bases: :py:obj:`OptimadeEntryView`
+
+
+   Present an :class:`OptimadeReference` as a lazy canonical view.
+
+   :param backend: Reference backend to present, or an existing compatible view.
+
+
+   .. py:attribute:: backend_class
+
+
+   .. py:attribute:: record_class
+
+
+.. py:function:: decode_optimade_value(definition, value)
+
+   Decode one value exactly from its local property definition.
+
+   Binding-specific decoder callables use the stable signature
+   ``decoder(value, definition)`` and replace this generic decoder for their
+   exact property-definition IRI.  JSON floats are retained as
+   :class:`~decimal.Decimal`; nested lists and dictionaries become tuples and
+   immutable mappings.
+
+   :param definition: Local property definition that describes the value.
+   :param value: Raw value to decode.
+   :return: Decoded value with nested containers made immutable.
+   :raises TypeError: If the value does not match the declared property shape.
+   :raises ValueError: If the property definition is unsupported or malformed.
+
+
+.. py:type:: FilterAst
+   :canonical: tuple[Any, ...]
+
+
+.. py:exception:: ParserError
+
+   Bases: :py:obj:`Exception`
+
+
+   Common base class for all non-exit exceptions.
+
+
+.. py:exception:: ParserSyntaxError(*args)
+
+   Bases: :py:obj:`ParserError`
+
+
+   Common base class for all non-exit exceptions.
+
+
+   .. py:attribute:: info
+
+
+   .. py:attribute:: line
+
+
+   .. py:attribute:: pos
+
+
+   .. py:attribute:: linestr
+
+
+.. py:function:: parse_optimade_filter(filter_string, verbosity = 0)
+
+   Parse an OPTIMADE filter into the public abstract syntax tree format.
+
+   :param filter_string: OPTIMADE filter expression to parse.
+   :param verbosity: Diagnostic verbosity setting passed to the parser.
+   :return: Nested tuple abstract syntax tree in ``ojf`` format.
+   :raises ParserSyntaxError: If the filter cannot be parsed, or is too long or
+       too deeply nested to parse within the interpreter's recursion limit.
+   :raises ParserError: If the filter cannot be parsed.
+
+
+.. py:function:: parse_optimade_filter_raw(filter_string, verbosity = 0)
+
+   Parse an OPTIMADE filter and return its raw grammar parse tree.
+
+   :param filter_string: OPTIMADE filter expression to parse.
+   :param verbosity: Diagnostic verbosity setting passed to the parser.
+   :return: Raw nested tuple parse tree before ``ojf`` conversion.
+   :raises ParserSyntaxError: If the filter cannot be parsed, or is too long or
+       too deeply nested to parse within the interpreter's recursion limit.
+   :raises ParserError: If the filter cannot be parsed.
+
+
+.. py:class:: OptimadeDocument
+
+   Original OPTIMADE response text and the URL from which it was obtained.
+
+   Direct construction performs no sanitization. Use :meth:`from_response` before
+   storing an externally sourced document or URL.
+
+   :param text: Original response text, optionally sanitized by :meth:`from_response`.
+   :param source_url: URL from which the response was obtained.
+
+
+   .. py:attribute:: text
+      :type:  str
+
+
+   .. py:attribute:: source_url
+      :type:  str
+
+
+   .. py:method:: from_response(text, source_url)
+      :classmethod:
+
+
+      Construct a source-exact document with safe pagination provenance.
+
+      :param text: Response text to sanitize and retain.
+      :param source_url: Source URL to sanitize and retain.
+      :return: A source document with safe pagination provenance.
+
+
+
+.. py:class:: OptimadeResource
+
+   Bases: :py:obj:`collections.abc.Mapping`\ [\ :py:obj:`str`\ , :py:obj:`FrozenJson`\ ]
+
+
+   Represent one immutable resource in an OPTIMADE response envelope.
+
+   :param document: Source-exact response document to decode lazily.
+   :param data_index: Index of the resource in the response ``data`` member.
+   :param schema: Schema snapshot applicable to the response.
+
+
+   .. py:attribute:: document
+      :type:  OptimadeDocument
+
+
+   .. py:attribute:: data_index
+      :type:  int
+
+
+   .. py:attribute:: schema
+      :type:  OptimadeSchemaSnapshot
+
+
+   .. py:method:: unwrap()
+
+      Return the immutable resource object at this response's data index.
+
+      :return: Immutable resource mapping selected from the response.
+      :raises TypeError: If ``data_index`` is not an integer.
+      :raises IndexError: If ``data_index`` is outside the response data.
+      :raises ValueError: If the response data is not an object or array of objects.
+
+
+
+   .. py:property:: id
+      :type: str
+
+
+      The protocol-mandated JSON API resource identifier.
+
+      This intentionally reads the JSON API envelope directly.  It is a
+      generic source-resource capability, not semantic recognition of a
+      transport property name.
+
+
+   .. py:property:: type
+      :type: str
+
+
+      The protocol-mandated JSON API resource type identifier.
+
+
+.. py:class:: OptimadeSchemaSnapshot
+
+   Describe the ``/info/<entry_type>`` document for a resource response.
+
+   :param entry_type: Entry type named by the schema endpoint.
+   :param info_document: Source-exact schema response document.
+
+
+   .. py:attribute:: entry_type
+      :type:  str
+
+
+   .. py:attribute:: info_document
+      :type:  OptimadeDocument
+
+
+.. py:function:: is_optimade_entry_url(url)
+
+   Return whether *url* has the shape of an OPTIMADE single-entry URL.
+
+   :param url: Candidate URL to inspect.
+   :return: Whether the URL identifies one OPTIMADE entry.
+
+
+.. py:function:: optimade_document_root(document)
+
+   Return the immutable, Decimal-preserving root of *document* lazily.
+
+   This is intentionally a small public seam for source-model consumers that
+   need to interpret an OPTIMADE envelope or an ``/info`` document without
+   duplicating JSON parsing.  The returned mapping is cached per equal
+   :class:`OptimadeDocument` and must be treated as immutable.
+
+   :param document: Source document to parse lazily.
+   :return: Cached immutable document root.
+   :raises ValueError: If the document is invalid JSON or has a non-object root.
+
+
+.. py:function:: optimade_entry_url_info(url)
+
+   Return an OPTIMADE entry type and its derived info URL, if *url* has that shape.
+
+   :param url: Candidate single-entry URL.
+   :return: Entry type and derived info URL, or ``None`` when the shape is invalid.
+
+
+.. py:function:: optimade_resource_from_url(url, *, timeout = None)
+
+   Fetch one OPTIMADE entry and its schema snapshot from *url*.
+
+   Redirects follow ``urllib`` defaults. Both requests use the datastream
+   layer and honor ``timeout`` (or its configured default when it is ``None``).
+
+   :param url: Single-entry URL to fetch.
+   :param timeout: Optional timeout applied to both requests.
+   :return: Resource backed by the entry and its schema snapshot.
+   :raises ValueError: If the URL or either response is not a valid OPTIMADE resource.
+
+
+.. py:function:: redact_optimade_document_text(text)
+
+   Sanitize only top-level pagination URLs, preserving source authority.
+
+   A direct string ``links.next`` or its JSON:API link-object ``href`` has
+   recognized URL credentials removed. Every other byte remains untouched:
+   in particular URL-like object keys, resource attributes, relationships,
+   extension values, whitespace, and number spelling are semantic source
+   data. Malformed JSON is returned unchanged because its envelope path cannot
+   be identified safely without guessing.
+
+   :param text: JSON document text to sanitize.
+   :return: Text with only recognized pagination credentials removed.
+   :raises TypeError: If *text* is not a string.
+
+
+.. py:function:: redact_optimade_url(url)
+
+   Return *url* without userinfo, recognized sensitive query parameters, or its fragment.
+
+   Non-URL strings are returned unchanged except for fragment removal.
+   Non-sensitive URL spelling is retained byte-for-byte; decoding is used
+   only to recognize query keys. Fragments are not semantically load-bearing
+   for OPTIMADE URLs or file fetches and are never retained in diagnostics.
+
+   :param url: URL or diagnostic string to sanitize.
+   :return: Sanitized URL or unchanged non-URL string.
+   :raises TypeError: If *url* is not a string.
+
+

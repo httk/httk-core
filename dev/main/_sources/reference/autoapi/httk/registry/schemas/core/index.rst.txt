@@ -1,0 +1,31 @@
+httk.registry.schemas.core
+==========================
+
+.. py:module:: httk.registry.schemas.core
+
+.. autoapi-nested-parse::
+
+   Register httk-core's vendored OPTIMADE entry-type schemas.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.registry.schemas.core.register_entry_type_definition
+
+
+Package Contents
+----------------
+
+.. py:function:: register_entry_type_definition(*, definition_id, resource)
+
+   Register one resource for an entry-type definition IRI.
+
+   :param definition_id: The entry-type definition IRI.
+   :param resource: The package resource reference to load.
+   :raises ValueError: If ``definition_id`` is already registered.
+
+

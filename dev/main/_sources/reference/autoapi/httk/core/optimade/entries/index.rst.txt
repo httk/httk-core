@@ -1,0 +1,354 @@
+httk.core.optimade.entries
+==========================
+
+.. py:module:: httk.core.optimade.entries
+
+.. autoapi-nested-parse::
+
+   Typed, exact OPTIMADE resource backends for core standard entry types.
+
+   The resource and its schema snapshot remain the sole source of truth.  A
+   typed backend recognizes values by property-definition IRI from the supplied
+   ``/info/<entry>`` document; a remote transport name is only an address after
+   that IRI match has been established.  The record views deliberately defer all
+   document parsing and generated-record construction until ``.record`` (or a
+   delegated field) is requested.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.optimade.entries.OptimadeValueDecoder
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   httk.core.optimade.entries.IncompleteOptimadeResourceError
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.optimade.entries.OptimadeEntryBackend
+   httk.core.optimade.entries.OptimadeReference
+   httk.core.optimade.entries.OptimadeFile
+   httk.core.optimade.entries.OptimadeCalculation
+   httk.core.optimade.entries.OptimadeEntryView
+   httk.core.optimade.entries.ReferenceView
+   httk.core.optimade.entries.FileView
+   httk.core.optimade.entries.CalculationView
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.optimade.entries.decode_optimade_value
+
+
+Module Contents
+---------------
+
+.. py:type:: OptimadeValueDecoder
+   :canonical: Callable[[object, PropertyDefinition], object]
+
+
+.. py:exception:: IncompleteOptimadeResourceError
+
+   Bases: :py:obj:`ValueError`
+
+
+   A resource lacks, nulls, or malforms a local record property.
+
+
+.. py:function:: decode_optimade_value(definition, value)
+
+   Decode one value exactly from its local property definition.
+
+   Binding-specific decoder callables use the stable signature
+   ``decoder(value, definition)`` and replace this generic decoder for their
+   exact property-definition IRI.  JSON floats are retained as
+   :class:`~decimal.Decimal`; nested lists and dictionaries become tuples and
+   immutable mappings.
+
+   :param definition: Local property definition that describes the value.
+   :param value: Raw value to decode.
+   :return: Decoded value with nested containers made immutable.
+   :raises TypeError: If the value does not match the declared property shape.
+   :raises ValueError: If the property definition is unsupported or malformed.
+
+
+.. py:class:: OptimadeEntryBackend
+
+   Store one typed handle around an authoritative OPTIMADE resource.
+
+   :param resource: Source resource and its schema provenance.
+
+
+   .. py:attribute:: resource
+      :type:  httk.core.optimade.resources.OptimadeResource
+
+
+   .. py:attribute:: kind
+      :type:  ClassVar[str]
+      :value: 'optimade'
+
+
+
+   .. py:attribute:: entry_type_name
+      :type:  ClassVar[str]
+
+
+   .. py:attribute:: entry_type_definition_id
+      :type:  ClassVar[str]
+
+
+   .. py:property:: raw
+      :type: collections.abc.Mapping[str, httk.core.optimade.resources.FrozenJson]
+
+
+      The immutable JSON API resource mapping, retaining source provenance.
+
+
+   .. py:method:: unwrap()
+
+      Return the exact source resource, including document and schema provenance.
+
+      :return: The source resource represented by this backend.
+
+
+
+   .. py:property:: local_schema
+      :type: httk.core.property_definitions.EntryTypeDefinition
+
+
+      Return the standard local schema for this backend.
+
+
+   .. py:method:: value_by_definition_id(definition_id, *, default = _MISSING)
+
+      Return a raw value by exact semantic IRI, retaining missing vs. null.
+
+      Values are intentionally undecoded here.  This lets record views name
+      missing/null semantic properties accurately and gives callers access to
+      exact raw JSON before selecting a representation.
+
+      :param definition_id: Semantic property IRI to look up.
+      :param default: Value to return when the property is not present.
+      :return: The raw property value, or ``default`` when it is absent.
+      :raises ValueError: If the resource attributes or schema mapping is malformed.
+
+
+
+   .. py:method:: decode_value(definition, value)
+
+      Decode *value*, applying an exact-IRI binding override when present.
+
+      :param definition: Local property definition for the value.
+      :param value: Raw value to decode.
+      :return: Decoded value from the matching generic or binding-specific decoder.
+      :raises TypeError: If the value does not match the selected property decoder.
+      :raises ValueError: If the property definition or value is invalid.
+
+
+
+   .. py:property:: id
+      :type: str
+
+
+      Return the semantic resource identifier.
+
+
+   .. py:property:: type
+      :type: str
+
+
+      Return the semantic resource type identifier.
+
+
+   .. py:property:: immutable_id
+      :type: str | None
+
+
+      Return the optional immutable semantic identifier.
+
+
+   .. py:property:: last_modified
+      :type: datetime.datetime | None
+
+
+      Return the optional last-modified timestamp.
+
+
+.. py:class:: OptimadeReference
+
+   Bases: :py:obj:`OptimadeEntryBackend`
+
+
+   Bind an OPTIMADE resource to the standard references schema.
+
+   :param resource: Source resource and its schema provenance.
+
+
+   .. py:attribute:: entry_type_name
+      :type:  ClassVar[str]
+      :value: 'references'
+
+
+
+   .. py:attribute:: entry_type_definition_id
+      :type:  ClassVar[str]
+      :value: 'https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/references'
+
+
+
+.. py:class:: OptimadeFile
+
+   Bases: :py:obj:`OptimadeEntryBackend`
+
+
+   Bind an OPTIMADE resource to the standard files schema.
+
+   :param resource: Source resource and its schema provenance.
+
+
+   .. py:attribute:: entry_type_name
+      :type:  ClassVar[str]
+      :value: 'files'
+
+
+
+   .. py:attribute:: entry_type_definition_id
+      :type:  ClassVar[str]
+      :value: 'https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files'
+
+
+
+.. py:class:: OptimadeCalculation
+
+   Bases: :py:obj:`OptimadeEntryBackend`
+
+
+   Bind an OPTIMADE resource to the standard calculations schema.
+
+   :param resource: Source resource and its schema provenance.
+
+
+   .. py:attribute:: entry_type_name
+      :type:  ClassVar[str]
+      :value: 'calculations'
+
+
+
+   .. py:attribute:: entry_type_definition_id
+      :type:  ClassVar[str]
+      :value: 'https://schemas.optimade.org/defs/v1.3/entrytypes/optimade/calculations'
+
+
+
+.. py:class:: OptimadeEntryView(backend)
+
+   Present one typed resource backend as a lazy generated record.
+
+   :param backend: Typed backend to present, or an existing compatible view.
+
+
+   .. py:attribute:: backend_class
+      :type:  ClassVar[type[OptimadeEntryBackend]]
+
+
+   .. py:attribute:: record_class
+      :type:  ClassVar[type[httk.core.entry_types.Reference] | type[httk.core.entry_types.File] | type[httk.core.entry_types.Calculation]]
+
+
+   .. py:property:: backend
+      :type: OptimadeEntryBackend
+
+
+      Return the typed backend behind this view.
+
+
+   .. py:method:: unwrap()
+
+      Return the exact source resource behind this view.
+
+
+
+   .. py:property:: id
+      :type: str
+
+
+      Return the resource identifier.
+
+
+   .. py:property:: type
+      :type: str
+
+
+      Return the resource type identifier.
+
+
+   .. py:property:: record
+      :type: httk.core.entry_types.Reference | httk.core.entry_types.File | httk.core.entry_types.Calculation
+
+
+      Return the lazily materialized canonical record.
+
+
+.. py:class:: ReferenceView(backend)
+
+   Bases: :py:obj:`OptimadeEntryView`
+
+
+   Present an :class:`OptimadeReference` as a lazy canonical view.
+
+   :param backend: Reference backend to present, or an existing compatible view.
+
+
+   .. py:attribute:: backend_class
+
+
+   .. py:attribute:: record_class
+
+
+.. py:class:: FileView(backend)
+
+   Bases: :py:obj:`OptimadeEntryView`
+
+
+   Present an :class:`OptimadeFile` as a lazy canonical view.
+
+   :param backend: File backend to present, or an existing compatible view.
+
+
+   .. py:attribute:: backend_class
+
+
+   .. py:attribute:: record_class
+
+
+.. py:class:: CalculationView(backend)
+
+   Bases: :py:obj:`OptimadeEntryView`
+
+
+   Present an :class:`OptimadeCalculation` as a lazy canonical view.
+
+   :param backend: Calculation backend to present, or an existing compatible view.
+
+
+   .. py:attribute:: backend_class
+
+
+   .. py:attribute:: record_class
+
+

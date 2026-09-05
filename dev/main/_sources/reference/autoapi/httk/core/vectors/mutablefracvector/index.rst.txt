@@ -1,0 +1,140 @@
+httk.core.vectors.mutablefracvector
+===================================
+
+.. py:module:: httk.core.vectors.mutablefracvector
+
+.. autoapi-nested-parse::
+
+   A mutable, list-backed variant of :class:`~httk.core.vectors.fracvector.FracVector`.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.vectors.mutablefracvector.MutableFracVector
+
+
+Module Contents
+---------------
+
+.. py:class:: MutableFracVector(values, *, denom = None, simplify = False, chain = False, min_accuracy = fractions.Fraction(1, 10000))
+
+   Bases: :py:obj:`httk.core.vectors.fracvector.FracVectorBase`
+
+
+   Same as :class:`~httk.core.vectors.fracvector.FracVector`, only this version allows
+   assignment of elements, e.g.::
+
+       mfracvec[2, 7] = 5
+
+   and, e.g.::
+
+       mfracvec[:, 7] = [1, 2, 3, 4]
+
+   Other than this, the FracVector methods exist and do the same, i.e., they return *copies*
+   of the fracvector, rather than modifying it.
+
+   :param values: A rational value-like to convert, such as nested sequences or scalars.
+   :param denom: An optional additional common denominator.
+   :param simplify: Whether to reduce the resulting denominator.
+   :param chain: Whether to flatten the outermost nested sequence.
+   :param min_accuracy: Minimum accuracy for decimal values, or ``None`` for exact conversion.
+
+   Methods with ``set_*`` prefixes perform mutating operations, e.g.::
+
+      A.set_T()
+
+   replaces A with its own transpose, whereas::
+
+      A.T()
+
+   just returns a new MutableFracVector that is the transpose of A, leaving A unmodified.
+
+
+   .. py:attribute:: nested_map
+      :type:  ClassVar[collections.abc.Callable[Ellipsis, Any]]
+
+
+   .. py:attribute:: nested_inmap
+      :type:  ClassVar[collections.abc.Callable[Ellipsis, Any]]
+
+
+   .. py:attribute:: nested_map_fractions
+      :type:  ClassVar[collections.abc.Callable[Ellipsis, Any]]
+
+
+   .. py:attribute:: noms
+      :type:  Any
+
+
+   .. py:method:: validate()
+
+      Return whether the vector's stored list structure is valid.
+
+
+
+   .. py:method:: invalidate()
+
+      Internal method to call when the MutableFracVector is changed in such a way that cached
+      properties are invalidated (e.g., ``_dim``).
+
+      :return: None.
+
+
+
+   .. py:method:: set_negative()
+
+      Change the MutableFracVector inline into its own negative: ``self -> -self``.
+
+
+
+   .. py:method:: set_T()
+
+      Change the MutableFracVector inline into its own transpose: ``self -> self.T``.
+
+
+
+   .. py:method:: set_inv()
+
+      Change the MutableFracVector inline into its own inverse: ``self -> self^-1``.
+
+      :return: The inverse scalar when ``self`` is scalar; otherwise ``None`` after mutation.
+
+
+
+   .. py:method:: set_simplify()
+
+      Change the MutableFracVector; reduces any common factor between the denominator and all
+      nominators.
+
+
+
+   .. py:method:: set_set_denominator(resolution = 1000000000)
+
+      Change the MutableFracVector; reduces resolution.
+
+      :param resolution: The new denominator; each element becomes the closest numerical
+              approximation using this denominator.
+
+
+
+   .. py:method:: set_normalize()
+
+      Add/remove an integer +/-N to each element to place it in the range [0, 1).
+
+
+
+   .. py:method:: set_normalize_half()
+
+      Add/remove an integer +/-N to each element to place it in the range [-1/2, 1/2).
+
+      This is useful to find the shortest vector C between two points A, B in a space with
+      periodic boundary conditions [0, 1)::
+
+         C = (A - B).normalize_half()
+
+
+

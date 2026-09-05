@@ -1,0 +1,57 @@
+httk.core.cli
+=============
+
+.. py:module:: httk.core.cli
+
+.. autoapi-nested-parse::
+
+   Extensible root command-line interface for httk.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.cli.CLIContext
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.cli.main
+
+
+Module Contents
+---------------
+
+.. py:class:: CLIContext
+
+   Carry invocation context to a registered top-level command.
+
+   :param program: Program name used in command output and help.
+   :param cwd: Working directory selected for the command invocation.
+
+
+   .. py:attribute:: program
+      :type:  str
+
+
+   .. py:attribute:: cwd
+      :type:  pathlib.Path
+
+
+.. py:function:: main(argv = None)
+
+   Dispatch the httk executable.
+
+   The optional -C prefix changes the process working directory before
+   resolving the command, and the returned value is the command's exit code.
+
+   :param argv: Command-line arguments without the executable name, or None to use sys.argv.
+   :return: Exit status for the requested command.
+
+

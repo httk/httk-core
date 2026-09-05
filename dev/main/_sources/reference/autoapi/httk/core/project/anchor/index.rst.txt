@@ -1,0 +1,299 @@
+httk.core.project.anchor
+========================
+
+.. py:module:: httk.core.project.anchor
+
+.. autoapi-nested-parse::
+
+   The httk project anchor: the ``httk_project`` directory and its metadata.
+
+   A *project* is to a campaign what a Git repository is to a source tree: a
+   directory marked, at its root, by a small control directory that every command
+   discovers by walking upward from wherever it is run. Here that directory is
+   ``httk_project`` and its manifest is ``project.json``.
+
+   This module owns the anchor and nothing above it. It creates the control
+   directory, reads and validates ``project.json``, walks upward to discover the
+   nearest project, and manages the project's Ed25519 identity key and the trust
+   anchors a signed manifest is later checked against. It creates no workflow
+   workspace: that is an add-on a workflow installation layers on top of the
+   anchor, so the anchor stays useful to a core-only installation.
+
+   The on-disk format — the ``format`` and ``format_version`` members, the key
+   file names and modes, and the directory layout — is shared with *httk-workflow*
+   so its manifests and repair interoperate with core projects.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.project.anchor.PROJECT_DIRECTORY
+   httk.core.project.anchor.PROJECT_FILE
+   httk.core.project.anchor.PUBLIC_KEY_PREFIX
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   httk.core.project.anchor.LegacyProjectError
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.project.anchor.discover_project
+   httk.core.project.anchor.require_project
+   httk.core.project.anchor.read_project
+   httk.core.project.anchor.read_project_section
+   httk.core.project.anchor.write_project_section
+   httk.core.project.anchor.format_public_key
+   httk.core.project.anchor.parse_public_key
+   httk.core.project.anchor.canonical_public_key
+   httk.core.project.anchor.key_fingerprint
+   httk.core.project.anchor.project_public_key_path
+   httk.core.project.anchor.read_public_key_file
+   httk.core.project.anchor.pinned_project_key
+   httk.core.project.anchor.trusted_project_keys
+   httk.core.project.anchor.pin_project_key
+   httk.core.project.anchor.trust_project_key
+   httk.core.project.anchor.initialize_project
+   httk.core.project.anchor.import_v1_project
+
+
+Module Contents
+---------------
+
+.. py:data:: PROJECT_DIRECTORY
+   :value: 'httk_project'
+
+
+.. py:data:: PROJECT_FILE
+   :value: 'project.json'
+
+
+.. py:data:: PUBLIC_KEY_PREFIX
+   :value: 'ed25519:'
+
+
+.. py:exception:: LegacyProjectError(message, *, root)
+
+   Bases: :py:obj:`ValueError`
+
+
+   Raised when discovery finds an httk v1 ``ht.project`` directory.
+
+   Carries the offending directory as :attr:`root` so a caller that
+   deliberately handles it (for example read-only verification of a v1
+   manifest) does not have to parse the message.
+
+   :param message: Diagnostic explaining the legacy project and its remedy.
+   :param root: Directory containing the legacy project marker.
+
+
+   .. py:attribute:: root
+
+
+.. py:function:: discover_project(start = None)
+
+   Find the nearest project root, or refuse a legacy one, at or above *start*.
+
+   Discovery walks from start and its parents, treating a file start as its
+   containing directory. If it finds a legacy ht.project marker, the exception
+   identifies the required remedy: run httk project import-v1 PATH.
+
+   :param start: Directory or file from which to begin the upward search, or None for the current directory.
+   :return: Nearest project root, or None when no marker is found.
+   :raises httk.core.project.LegacyProjectError: If discovery finds a v1 project marker.
+
+
+.. py:function:: require_project(start = None)
+
+   Return the nearest project root, refusing when there is none.
+
+   :param start: Directory or file from which to begin the upward search, or None for the current directory.
+   :return: Nearest project root.
+   :raises httk.core.project.LegacyProjectError: If discovery finds a v1 project marker.
+   :raises ValueError: If no project marker is found.
+
+
+.. py:function:: read_project(root)
+
+   Read and validate the ``project.json`` of the project rooted at *root*.
+
+   :param root: Project root whose manifest is read.
+   :return: Validated project metadata.
+   :raises ValueError: If the manifest is not an httk project manifest.
+
+
+.. py:function:: read_project_section(root, name)
+
+   Return one named object member of ``project.json``, empty when absent.
+
+   A *section* is a top-level member of the project manifest that some layer
+   above the anchor owns — the workflow workspace registry, a campaign map —
+   and reads and writes as a whole. The anchor does not interpret the member;
+   it only guarantees that what a caller stores under a name comes back as the
+   object it was, and refuses a member that some other writer has left as a
+   non-object so a caller never silently reads a scalar as a mapping.
+
+   :param root: Project root whose manifest is read.
+   :param name: Top-level manifest member to retrieve.
+   :return: A copy of the named object, or an empty object when absent.
+   :raises ValueError: If the named manifest member is not an object.
+
+
+.. py:function:: write_project_section(root, name, value)
+
+   Store one named object member of ``project.json`` and return the metadata.
+
+   The write is an ordinary read-modify-write of the validated manifest, so the
+   members the anchor owns are preserved untouched and only the named section is
+   replaced. The section must be a mapping; the anchor stores its members
+   verbatim without interpreting them.
+
+   :param root: Project root whose manifest is updated.
+   :param name: Top-level manifest member to replace.
+   :param value: Object members to store under the name.
+   :return: Updated project metadata.
+   :raises ValueError: If the named section is not a mapping.
+
+
+.. py:function:: format_public_key(raw)
+
+   Return the recorded representation of one raw Ed25519 public key.
+
+   :param raw: Raw public-key bytes to record.
+   :return: Canonical prefixed public-key text.
+   :raises ValueError: If the key is not 32 bytes long.
+
+
+.. py:function:: parse_public_key(value)
+
+   Decode a recorded public key, accepting the bare base64 spelling too.
+
+   :param value: Public-key text to decode.
+   :return: Raw public-key bytes.
+   :raises ValueError: If the algorithm, encoding, or key length is invalid.
+
+
+.. py:function:: canonical_public_key(value)
+
+   Normalize any accepted public key spelling to the recorded one.
+
+   :param value: Accepted public-key text to normalize.
+   :return: Canonical prefixed public-key text.
+   :raises ValueError: If the public-key text is invalid.
+
+
+.. py:function:: key_fingerprint(value)
+
+   Return the stable display fingerprint of one public key.
+
+   :param value: Public-key text whose fingerprint is calculated.
+   :return: Stable SHA-256 fingerprint text.
+   :raises ValueError: If the public-key text is invalid.
+
+
+.. py:function:: project_public_key_path(root)
+
+   Return where a project keeps its own signing key's public half.
+
+   :param root: Project root containing the anchor.
+   :return: Path to the project's public key file.
+
+
+.. py:function:: read_public_key_file(path)
+
+   Read one public-key file and return its recorded public key.
+
+   :param path: Public-key file to read.
+   :return: Canonical public-key text from the first line.
+   :raises ValueError: If the file cannot be read, is empty, or contains an invalid key.
+
+
+.. py:function:: pinned_project_key(metadata)
+
+   Return the project's own pinned public key, or None when absent.
+
+   :param metadata: Project metadata containing the optional public-key member.
+   :return: Canonical pinned key, or None when the metadata has no key.
+   :raises ValueError: If the pinned key is present but invalid.
+
+
+.. py:function:: trusted_project_keys(metadata)
+
+   Return every key *metadata* pins: the project's own and any adopted one.
+
+   The pinned key of ``project.json`` is the trust anchor a manifest is checked
+   against. ``trusted_keys`` carries the additional anchors an operator has
+   adopted deliberately — most often the legacy identities an imported *httk*
+   v1 project signed its old manifests with.
+
+   :param metadata: Project metadata whose trust anchors are read.
+   :return: Unique canonical project and adopted trust anchors.
+   :raises ValueError: If trusted_keys is not a string array or contains an invalid key.
+
+
+.. py:function:: pin_project_key(root = None)
+
+   Adopt the project's current ``keys/project.pub`` as its trust anchor.
+
+   Pinning is always an explicit act. Verification trusts the key recorded in
+   ``project.json`` and never the key a manifest carries in its own header, so
+   adopting the key that is in the tree right now is exactly the decision an
+   operator has to make consciously for an older project that has no pin.
+
+   :param root: Project root, or None to discover the nearest project.
+   :return: Updated project metadata.
+   :raises ValueError: If no project exists or its public key is invalid.
+
+
+.. py:function:: trust_project_key(root, key)
+
+   Adopt one further public key as a trust anchor of this project.
+
+   :param root: Project root, or None to discover the nearest project.
+   :param key: Public key to add to the project's trusted anchors.
+   :return: Updated project metadata.
+   :raises ValueError: If no project exists, the key is invalid, or trusted_keys is invalid.
+
+
+.. py:function:: initialize_project(root, *, name, description = '', manifest_exclusions = ())
+
+   Initialize the project anchor: its metadata, its key, and its remotes dir.
+
+   This creates only the anchor — ``httk_project`` with ``project.json``, the
+   project's Ed25519 signing key, and the ``remotes`` directory. It creates no
+   workflow workspace; a workflow installation layers that on top of the anchor
+   so that a core-only installation still has a working project.
+
+   :param root: Directory in which to create the project anchor.
+   :param name: Human-readable project name.
+   :param description: Optional project description.
+   :param manifest_exclusions: Relative paths excluded from project manifests.
+   :return: Newly written project metadata.
+   :raises httk.core.project.LegacyProjectError: If root contains a v1 project marker.
+
+
+.. py:function:: import_v1_project(root, *, source = None, name = None)
+
+   Create the project anchor from a legacy ``ht.project`` directory.
+
+   Only the anchor is created: the project's metadata and the adoption of the
+   legacy identities its old manifests were signed with. A workflow
+   installation adds the workspace and any queue import on top of this.
+
+   :param root: Directory in which to create the new project anchor.
+   :param source: Legacy project directory, or root/ht.project when omitted.
+   :param name: Optional replacement project name.
+   :return: Imported project metadata.
+   :raises FileNotFoundError: If the legacy project directory does not exist.
+
+

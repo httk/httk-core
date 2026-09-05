@@ -1,0 +1,33 @@
+httk.core.vectors.vector_view
+=============================
+
+.. py:module:: httk.core.vectors.vector_view
+
+.. autoapi-nested-parse::
+
+   The abstract base class for all vector views.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.vectors.vector_view.VectorView
+
+
+Module Contents
+---------------
+
+.. py:class:: VectorView
+
+   Bases: :py:obj:`httk.core.views.View`\ [\ :py:obj:`httk.core.vectors.vector_backend.VectorBackend`\ ]
+
+
+   Abstract base class for all views of vector (tensor) data.
+
+   Concrete views present a backend through a specific container or leaf domain while retaining
+   access to the underlying backend.
+
+
