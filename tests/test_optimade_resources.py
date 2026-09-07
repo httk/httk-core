@@ -87,7 +87,7 @@ def test_source_models_are_frozen_plain_dataclasses() -> None:
     resource = OptimadeResource(document, 0, snapshot)
     assert [field.name for field in fields(OptimadeDocument)] == ["text", "source_url"]
     assert [field.name for field in fields(OptimadeSchemaSnapshot)] == ["entry_type", "info_document"]
-    assert [field.name for field in fields(OptimadeResource)] == ["document", "data_index", "schema"]
+    assert [field.name for field in fields(OptimadeResource)] == ["document", "data_index", "schema", "member"]
     with pytest.raises(FrozenInstanceError):
         document.text = "changed"  # type: ignore[misc]
     assert hash(document) == hash(OptimadeDocument(document.text, document.source_url))
@@ -138,6 +138,65 @@ def test_resource_rejects_bad_shape_lazily(text: str, error: type[Exception]) ->
     resource = _resource(text)
     with pytest.raises(error):
         resource.unwrap()
+
+
+def test_included_member_addresses_the_included_array_in_place() -> None:
+    document = OptimadeDocument(
+        json.dumps(
+            {
+                "data": [{"id": "primary-1", "type": "structures"}],
+                "included": [
+                    {"id": "included-0", "type": "references"},
+                    {"id": "included-1", "type": "references"},
+                ],
+            }
+        ),
+        "https://example.test/v1/structures",
+    )
+    schema = OptimadeSchemaSnapshot("structures", document)
+    resource = OptimadeResource(document, 1, schema, member="included")
+    assert resource.unwrap() == {"id": "included-1", "type": "references"}
+    assert resource.id == "included-1"
+    assert resource.type == "references"
+
+    default_member_resource = OptimadeResource(document, 0, schema)
+    assert default_member_resource.member == "data"
+    assert default_member_resource.unwrap() == {"id": "primary-1", "type": "structures"}
+
+
+def test_data_and_included_resources_at_same_index_are_never_equal() -> None:
+    document = OptimadeDocument(
+        json.dumps(
+            {
+                "data": [{"id": "x", "type": "structures"}],
+                "included": [{"id": "x", "type": "structures"}],
+            }
+        ),
+        "https://example.test/v1/structures",
+    )
+    schema = OptimadeSchemaSnapshot("structures", document)
+    assert OptimadeResource(document, 0, schema) != OptimadeResource(document, 0, schema, member="included")
+
+
+def test_invalid_member_string_raises_value_error() -> None:
+    document = OptimadeDocument('{"data": []}', "https://example.test")
+    schema = OptimadeSchemaSnapshot("structures", document)
+    with pytest.raises(ValueError, match="member"):
+        OptimadeResource(document, 0, schema, member="relationships")
+
+
+def test_included_member_without_included_array_raises_on_unwrap() -> None:
+    document = OptimadeDocument('{"data": [{"id": "x", "type": "structures"}]}', "https://example.test/v1/structures")
+    schema = OptimadeSchemaSnapshot("structures", document)
+    resource = OptimadeResource(document, 0, schema, member="included")
+    with pytest.raises(ValueError, match="included"):
+        resource.unwrap()
+
+
+def test_resource_member_field_is_frozen() -> None:
+    resource = _resource('{"data": [{"id": "x", "type": "structures"}]}')
+    with pytest.raises(FrozenInstanceError):
+        resource.member = "included"  # type: ignore[misc]
 
 
 @pytest.mark.parametrize(

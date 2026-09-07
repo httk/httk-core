@@ -421,43 +421,54 @@ class OptimadeResource(Mapping[str, FrozenJson]):
     """Represent one immutable resource in an OPTIMADE response envelope.
 
     :param document: Source-exact response document to decode lazily.
-    :param data_index: Index of the resource in the response ``data`` member.
+    :param data_index: Index of the resource in the response ``member`` array.
     :param schema: Schema snapshot applicable to the response.
+    :param member: Response envelope member holding this resource: ``"data"``
+        (the default) for a primary resource, or ``"included"`` for a resource
+        from the response's ``included`` array. This field participates in
+        the resource's identity, so a primary resource and a same-index
+        included resource are never mistaken for the same resource.
     """
 
     document: OptimadeDocument
     data_index: int
     schema: OptimadeSchemaSnapshot
+    member: str = "data"
+
+    def __post_init__(self) -> None:
+        if self.member not in ("data", "included"):
+            raise ValueError(f"OPTIMADE resource member must be 'data' or 'included', not {self.member!r}")
 
     def unwrap(self) -> Mapping[str, FrozenJson]:
-        """Return the immutable resource object at this response's data index.
+        """Return the immutable resource object at this response's member index.
 
         :return: Immutable resource mapping selected from the response.
         :raises TypeError: If ``data_index`` is not an integer.
-        :raises IndexError: If ``data_index`` is outside the response data.
-        :raises ValueError: If the response data is not an object or array of objects.
+        :raises IndexError: If ``data_index`` is outside the response member.
+        :raises ValueError: If the response member is not an object or array of objects.
         """
 
         root = _parsed_root(self.document)
-        data = root.get("data")
+        member_value = root.get(self.member)
         if not isinstance(self.data_index, int) or isinstance(self.data_index, bool):
             raise TypeError("OPTIMADE resource data_index must be an int")
         if self.data_index < 0:
             raise IndexError(f"OPTIMADE resource data index out of range: {self.data_index}")
         resource: FrozenJson
-        if isinstance(data, Mapping):
+        if self.member == "data" and isinstance(member_value, Mapping):
             if self.data_index != 0:
                 raise IndexError(f"OPTIMADE resource data index out of range: {self.data_index}")
-            resource = data
-        elif isinstance(data, tuple):
+            resource = member_value
+        elif isinstance(member_value, tuple):
             try:
-                resource = data[self.data_index]
+                resource = member_value[self.data_index]
             except IndexError as exc:
                 raise IndexError(f"OPTIMADE resource data index out of range: {self.data_index}") from exc
         else:
-            raise ValueError("OPTIMADE document root member 'data' must be a JSON array or object")
+            article = " or object" if self.member == "data" else ""
+            raise ValueError(f"OPTIMADE document root member {self.member!r} must be a JSON array{article}")
         if not isinstance(resource, Mapping):
-            raise ValueError(f"OPTIMADE document data[{self.data_index}] must be a JSON object")
+            raise ValueError(f"OPTIMADE document {self.member}[{self.data_index}] must be a JSON object")
         return resource
 
     @stored_property
