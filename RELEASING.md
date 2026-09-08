@@ -50,8 +50,8 @@ locked installation and strict docs build; this is a network check. The
 resulting package files are written to `dist/`.
 
 Versions on package indexes are immutable. Use a new development or release
-candidate version when repeating an upload, for example `2.0.0rc1` followed by
-`2.0.0`.
+candidate version when repeating an upload, for example `2.1.0rc1` followed by
+`2.1.0`.
 
 ## TestPyPI
 
@@ -66,18 +66,18 @@ in a fresh environment:
 ```console
 python -m venv /tmp/httk-core-test
 /tmp/httk-core-test/bin/python -m pip install \
-  --index-url https://test.pypi.org/simple/ --no-deps httk-core==2.0.0
+  --index-url https://test.pypi.org/simple/ --no-deps httk-core==2.1.0
 /tmp/httk-core-test/bin/python -c "import httk.core"
 ```
 
-Replace `2.0.0` with the version being tested. `--no-deps` is appropriate here
+Replace `2.1.0` with the version being tested. `--no-deps` is appropriate here
 because `httk-core` deliberately has no runtime dependencies.
 
 ## PyPI
 
 1. Confirm that `make release-check` succeeds on the exact commit to release.
 2. Push the commit and create a GitHub release whose tag is `v` followed by the
-   package version, for example `v2.0.0`. The tag push triggers
+   package version, for example `v2.1.0`. The tag push triggers
    `docs-release.yml`, which validates tag/package-version/lock consistency and
    publishes the immutable `vX.Y.Z/` documentation tree.
 3. Publish the GitHub release and approve the protected `pypi` environment.
