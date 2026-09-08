@@ -1,0 +1,48 @@
+httk.core.digests
+=================
+
+.. py:module:: httk.core.digests
+
+.. autoapi-nested-parse::
+
+   Compute deterministic SHA-256 digests for files and directory trees.
+
+   Hash tree paths and entries in sorted order without following symlinks.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.digests.sha256_file
+   httk.core.digests.tree_digest
+
+
+Module Contents
+---------------
+
+.. py:function:: sha256_file(path)
+
+   Return the lowercase SHA-256 digest of one regular file.
+
+   :param path: Regular file to hash.
+   :return: Lowercase SHA-256 digest.
+
+
+.. py:function:: tree_digest(path, *, skip = None, exclude = None)
+
+   Hash a tree without following symlinks.
+
+   *skip* names top-level entries to leave out of the digest entirely.
+   *exclude* names relative POSIX paths to leave out; excluding a directory
+   also leaves out its descendants.
+
+   :param path: Root directory to hash.
+   :param skip: Optional predicate for top-level entries to omit.
+   :param exclude: Optional predicate for relative POSIX paths to omit.
+   :return: Lowercase SHA-256 digest.
+   :raises ValueError: If the tree contains a symlink or special file.
+
+

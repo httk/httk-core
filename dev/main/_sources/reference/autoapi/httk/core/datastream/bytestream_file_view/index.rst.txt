@@ -1,0 +1,148 @@
+httk.core.datastream.bytestream_file_view
+=========================================
+
+.. py:module:: httk.core.datastream.bytestream_file_view
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.datastream.bytestream_file_view.BytestreamFileView
+
+
+Module Contents
+---------------
+
+.. py:class:: BytestreamFileView(obj, **hints)
+
+   Bases: :py:obj:`httk.core.datastream.bytestream_view.BytestreamView`, :py:obj:`io.IOBase`, :py:obj:`httk.core.datastream.bytestream_api.BytestreamAPI`
+
+
+   A view presenting an underlying data streaming backend via an io.IOBase-like API.
+
+   :param obj: Byte-stream source to present through the file API.
+   :param \**hints: Backend-selection and compression hints.
+
+
+   .. py:method:: unwrap()
+
+      Return the raw representation of the wrapped backend.
+
+      :return: The backend's most raw available representation.
+
+
+
+   .. py:property:: name
+      :type: str | None
+
+
+      Return the backend's source name when one exists.
+
+
+   .. py:property:: closed
+      :type: bool
+
+
+      Report whether the backend is closed.
+
+
+   .. py:method:: close()
+
+      Close the underlying backend.
+
+
+
+   .. py:method:: readable()
+
+      Report that the view supports reading.
+
+      :return: Always ``True``.
+
+
+
+   .. py:method:: writable()
+
+      Report that the view does not support writing.
+
+      :return: Always ``False``.
+
+
+
+   .. py:method:: seekable()
+
+      Report whether the backend supports seeking and telling.
+
+      :return: Whether both operations are available.
+
+
+
+   .. py:method:: flush()
+
+      Flush the backend when it provides flushing.
+
+      :raises ValueError: If the view is closed.
+
+
+
+   .. py:method:: read(size = -1)
+
+      Read up to ``size`` bytes, or all remaining bytes when ``size`` is negative.
+
+      :param size: Maximum number of bytes to read; ``None`` also means all remaining bytes.
+      :return: The bytes read from the stream.
+      :raises ValueError: If the view is closed.
+
+
+
+   .. py:method:: readline(size = -1)
+
+      Read one line, optionally limited to ``size`` bytes.
+
+      :param size: Maximum number of bytes to read; ``None`` means no limit.
+      :return: The line read, including its newline when present.
+      :raises ValueError: If the view is closed.
+
+
+
+   .. py:method:: readlines(hint = -1)
+
+      Read lines until EOF or until the accumulated size reaches ``hint``.
+
+      :param hint: Approximate minimum number of bytes to collect, or a negative value for no limit.
+      :return: The lines read from the stream.
+      :raises ValueError: If the view is closed.
+
+
+
+   .. py:method:: seek(offset, whence = io.SEEK_SET)
+
+      Move the stream position and discard buffered line data.
+
+      :param offset: Position adjustment interpreted according to ``whence``.
+      :param whence: Reference point for ``offset``.
+      :return: The resulting absolute stream position.
+      :raises ValueError: If the view is closed.
+      :raises io.UnsupportedOperation: If the backend is not seekable.
+
+
+
+   .. py:method:: tell()
+
+      Return the logical stream position before buffered line data.
+
+      :return: The logical absolute stream position.
+      :raises ValueError: If the view is closed.
+      :raises io.UnsupportedOperation: If the backend does not support telling.
+
+
+
+   .. py:method:: detach()
+
+      Reject detaching because the view owns its backend interface.
+
+      :raises io.UnsupportedOperation: Always, because detaching is unsupported.
+
+
+

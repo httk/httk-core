@@ -1,0 +1,827 @@
+httk.core.storage
+=================
+
+.. py:module:: httk.core.storage
+
+.. autoapi-nested-parse::
+
+   Storage declarations, identity, and stored-property protocols.
+
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /reference/autoapi/httk/core/storage/identity/index
+   /reference/autoapi/httk/core/storage/markers/index
+   /reference/autoapi/httk/core/storage/rational_text/index
+   /reference/autoapi/httk/core/storage/stored_properties/index
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.storage.STORAGE_INFO_ATTRIBUTE
+   httk.core.storage.DedupPolicy
+   httk.core.storage.STORED_PROPERTY_PROJECTIONS_ATTRIBUTE
+   httk.core.storage.StoredPropertyQuery
+   httk.core.storage.StoredPropertyResponse
+   httk.core.storage.StoredPropertySort
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   httk.core.storage.StorageProjectionCycleError
+   httk.core.storage.QueryLiteralError
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.storage.IdentitySkip
+   httk.core.storage.Indexed
+   httk.core.storage.Related
+   httk.core.storage.Shape
+   httk.core.storage.Skip
+   httk.core.storage.StorageInfo
+   httk.core.storage.StrongLink
+   httk.core.storage.Unique
+   httk.core.storage.WeakLink
+   httk.core.storage.stored_property
+   httk.core.storage.QueryContext
+   httk.core.storage.QueryExpression
+   httk.core.storage.QueryField
+   httk.core.storage.QueryScope
+   httk.core.storage.QueryValue
+   httk.core.storage.StoredPropertyProjection
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.storage.canonical_form
+   httk.core.storage.content_id
+   httk.core.storage.project_storage_record
+   httk.core.storage.register_canonical_encoder
+   httk.core.storage.resolve_storage_record
+   httk.core.storage.storage_identity_name
+   httk.core.storage.stored_property_projections
+
+
+Package Contents
+----------------
+
+.. py:exception:: StorageProjectionCycleError(path, record_type)
+
+   Bases: :py:obj:`ValueError`
+
+
+   Raise when a projected record graph contains an active cycle.
+
+   :param path: The canonical field path where the cycle was detected.
+   :param record_type: The record class being projected when the cycle was found.
+
+
+   .. py:attribute:: path
+
+
+   .. py:attribute:: record_type
+
+
+.. py:function:: canonical_form(obj, *, as_record = None, projector = project_storage_record, extras = None)
+
+   Return the versioned, type-tagged canonical JSON for a record value.
+
+   Storage integrations may supply a caching ``projector`` to reuse the exact
+   per-record mappings traversed while computing identity.
+
+   Record fields marked with :class:`~httk.core.storage.IdentitySkip`, or
+   represented by :class:`~httk.core.storage.stored_property`, are outside the
+   content identity. Registered custom encoders apply only to exact leaf types.
+
+   ``extras`` fold additional save-time key/value pairs into the identity of
+   the root record only; child records never receive them. When ``extras`` is
+   ``None`` or empty the output is byte-identical to omitting it.
+
+   :param obj: The record or projected source to encode.
+   :param as_record: An explicit record class override, if supplied.
+   :param projector: The record-level projection function.
+   :param extras: Root-only identity contributions encoded through the value machinery.
+   :return: Versioned, type-tagged canonical JSON.
+   :raises TypeError: If a value or projection cannot be represented.
+   :raises ValueError: If a projection is invalid or contains a cycle.
+
+
+.. py:function:: content_id(obj, *, as_record = None, projector = project_storage_record, extras = None)
+
+   Return the lowercase SHA-256 content identity of ``obj``.
+
+   The digest covers :func:`~httk.core.storage.identity.canonical_form`, including exact-type leaf
+   encodings and excluding fields marked with :class:`~httk.core.storage.markers.IdentitySkip`.
+
+   ``extras`` fold additional save-time key/value pairs into the root record's
+   identity (see :func:`~httk.core.storage.identity.canonical_form`). Extras-bearing calls bypass the
+   trusted per-instance cache entirely, so they never read or poison it.
+
+   :param obj: The record or projected source to identify.
+   :param as_record: An explicit record class override, if supplied.
+   :param projector: The record-level projection function.
+   :param extras: Root-only identity contributions encoded through the value machinery.
+   :return: The lowercase SHA-256 hexadecimal digest.
+   :raises TypeError: If a value or projection cannot be represented.
+   :raises ValueError: If a projection is invalid or contains a cycle.
+
+
+.. py:function:: project_storage_record(record_type, source)
+
+   Project and validate one record level, returning field values by name.
+
+   Projection classes may declare a source class and classmethod projection;
+   otherwise ``source`` must already be an instance of ``record_type``. A
+   projection used by the trusted content-id path must be deterministic for
+   the immutable lifetime of its source: the content-id cache is governed by
+   that immutability contract.
+
+   :param record_type: The frozen dataclass record class to project.
+   :param source: A record instance or declared projection source.
+   :return: Field values present at this record level.
+   :raises TypeError: If the record or projection declaration is invalid.
+   :raises ValueError: If a projection omits a required field or names an unknown one.
+
+
+.. py:function:: register_canonical_encoder(python_type, encoder)
+
+   Register one deterministic encoder for an exact custom Python type.
+
+   Leaf values use exact-type lookup, so a registered encoder for a base class
+   does not apply to subclasses. The encoder must return JSON-compatible data.
+
+   :param python_type: The exact custom class to encode.
+   :param encoder: The deterministic encoder callable.
+   :raises TypeError: If the type or encoder is invalid.
+   :raises ValueError: If an encoder is already registered for the class.
+
+
+.. py:function:: resolve_storage_record(source, *, as_record = None)
+
+   Resolve the exact record target for ``source`` without constructing it.
+
+   :param source: The source value whose storage record target is requested.
+   :param as_record: An explicit record class override, if supplied.
+   :return: The validated frozen dataclass record class.
+   :raises TypeError: If the resolved target is not a frozen dataclass.
+
+
+.. py:function:: storage_identity_name(record_type)
+
+   Return the logical identity name, independent of physical storage naming.
+
+   :param record_type: The record class whose logical identity name is requested.
+   :return: The declared identity name or the fully qualified class name.
+   :raises TypeError: If ``record_type`` is not a class or has an invalid storage declaration.
+
+
+.. py:data:: STORAGE_INFO_ATTRIBUTE
+   :type:  Final
+   :value: '__httk_storage__'
+
+
+   Class attribute name where a storable class may attach its :class:`StorageInfo`.
+
+.. py:type:: DedupPolicy
+   :canonical: Literal['content_id', 'by_value', 'none']
+
+
+   How a storage layer deduplicates saved instances of a class.
+
+   - ``"content_id"``: reuse an existing row whose stored content identity matches
+     (the default; suited to immutable value objects).
+   - ``"by_value"``: reuse an existing row whose stored columns all match (suited
+     to join-objects such as tags and references, whose identity is their value).
+   - ``"none"``: always insert a new row.
+
+   Values equal across ``int`` and ``Fraction`` can hash differently, while
+   ``Decimal`` and ``Fraction`` unify; naive and aware datetimes are distinct.
+   Records combining those sources may therefore not deduplicate.
+
+.. py:class:: IdentitySkip
+
+   Field marker: exclude the field from content identity.
+
+
+.. py:class:: Indexed
+
+   Field marker: request a single-column index on this field's column(s).
+
+
+.. py:class:: Related
+
+   Field marker: relationship metadata for a reference or list-of-storable field.
+
+   Applies to a field holding another storable class (a *reference* field) or
+   a ``list``/``tuple`` of storable classes. When the field's target class is
+   served alongside the declaring class, the storage layer surfaces the field
+   as a relationship; this marker attaches the OPTIMADE per-identifier
+   metadata that flows into each emitted
+   :class:`~httk.core.entry_provider.RelatedEntry` — ``role`` (machine
+   readable, OPTIMADE v1.3 ``meta.role``) and ``description`` (human readable,
+   OPTIMADE v1.2 ``meta.description``). ``serve=False`` suppresses the field
+   as a relationship entirely.
+
+   :param role: The machine-readable relationship role, if any.
+   :param description: The human-readable relationship description, if any.
+   :param serve: Whether the field is served as a relationship at all.
+
+
+   .. py:attribute:: role
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: description
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: serve
+      :type:  bool
+      :value: True
+
+
+
+.. py:class:: Shape
+
+   Field marker: fixed or variable shape for a vector-valued field.
+
+   ``rows >= 1`` declares a fixed-shape value stored inline (flattened
+   row-major into columns). ``rows == 0`` declares a variable number of rows
+   with ``cols`` fixed columns each, stored out-of-line (one row per entry,
+   in insertion order).
+
+   :param rows: Number of rows; ``0`` means variable-length.
+   :param cols: Number of columns per row; must be at least ``1``.
+   :raises ValueError: If ``rows`` is negative or ``cols`` is less than ``1``.
+
+
+   .. py:attribute:: rows
+      :type:  int
+
+
+   .. py:attribute:: cols
+      :type:  int
+      :value: 1
+
+
+
+.. py:class:: Skip
+
+   Field marker: the field exists on the dataclass but is not stored.
+
+
+.. py:class:: StorageInfo
+
+   Optional class-level storage declaration for a storable dataclass.
+
+   Attach as the class attribute named by
+   :data:`~httk.core.storage.markers.STORAGE_INFO_ATTRIBUTE`
+   (``__httk_storage__``), annotated ``ClassVar[StorageInfo]`` so dataclass
+   processing ignores it. A storage layer may also accept an instance as an
+   external override for classes that cannot be modified.
+
+   :param storage_name: The physical storage name; ``None`` derives one from the class name. Relational backends use it as the table name, and document stores use it as the collection name.
+   :param indexes: Composite indexes, each a tuple of field names.
+   :param dedup: The deduplication policy applied when saving; see :data:`~httk.core.storage.markers.DedupPolicy`.
+   :param links: Class-level weak-link declarations; see :class:`~httk.core.storage.markers.WeakLink`.
+   :param identity_name: The logical name included in content identity; ``None`` derives it from the declaring class and its bases.
+   :raises ValueError: If ``dedup`` or an identity name or index declaration is invalid.
+
+
+   .. py:attribute:: storage_name
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: indexes
+      :type:  tuple[tuple[str, Ellipsis], Ellipsis]
+      :value: ()
+
+
+
+   .. py:attribute:: dedup
+      :type:  DedupPolicy
+      :value: 'content_id'
+
+
+
+   .. py:attribute:: links
+      :type:  tuple[WeakLink, Ellipsis]
+      :value: ()
+
+
+
+   .. py:attribute:: identity_name
+      :type:  str | None
+      :value: None
+
+
+
+.. py:class:: StrongLink
+
+   Field marker: a record-content edge collection servable as OPTIMADE relationships.
+
+   Attached via :class:`typing.Annotated` to a child field holding a tuple of
+   edge records whose element class carries the string fields ``label``,
+   ``entry_type``, and ``entry_id``. Unlike :class:`WeakLink` — a store-managed,
+   mutable curation association that lives in a dedicated link table, stays
+   outside content identity, and always resolves to each endpoint's *latest*
+   revision (lineage-live) — a strong link is *record content*: it is part of
+   the declaring record's value, so it participates in content identity and is
+   pinned to that record's revision. Both directions are servable as OPTIMADE
+   relationships.
+
+   Exposure is the declaration: a present ``relationship`` exposes the forward
+   edge under that key; a present ``reverse`` additionally exposes the reverse
+   edge under that key (the reverse view is derived at serving time from the
+   stored forward edges, never stored). The names declared here are INTERNAL
+   and unprefixed; the serving edge applies the provider prefix. This marker is
+   code-only: it is never persisted, is stripped by content-identity
+   canonicalization, and is excluded from the schema fingerprint.
+
+   :param relationship: The internal (unprefixed) forward relationship key; must be a valid Python identifier.
+   :param reverse: The internal (unprefixed) reverse relationship key, or ``None`` to expose no reverse edge; when set, must be a valid Python identifier.
+   :param role: The machine-readable relationship role, if any.
+   :param description: The human-readable relationship description, if any.
+   :raises ValueError: If ``relationship`` (or ``reverse`` when not ``None``) is not a valid Python identifier.
+
+
+   .. py:attribute:: relationship
+      :type:  str
+
+
+   .. py:attribute:: reverse
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: role
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: description
+      :type:  str | None
+      :value: None
+
+
+
+.. py:class:: Unique
+
+   Field marker: request a unique index on this field's column(s).
+
+
+.. py:class:: WeakLink
+
+   Class-level declaration of a store-managed, lineage-level link to another storable class.
+
+   Declared in :attr:`StorageInfo.links` on the *source* class (links are
+   directed). A weak link is a store-managed association living in a dedicated
+   link table, not in any record field: it binds *lineages*, associating this
+   record's logical id with a ``target`` record's logical id, and both
+   endpoints always resolve to the *latest* revision on their respective side
+   (this is what makes the link *weak*, in contrast to sid-pinned reference and
+   child fields). Link rows are themselves append-only lineages — they are
+   revisable, retractable, and ``as_of``-aware — and are set-valued: a source
+   lineage may link many targets under the same declaration. Because links are
+   not part of a record's value, they do **not** participate in content
+   identity; adding or retracting a link never changes the record's
+   ``content_id``.
+
+   Only links declared ``exposed_relationship=True`` are served through the
+   OPTIMADE relationship facility; ``role`` and ``description`` carry the same
+   per-identifier OPTIMADE metadata as :class:`Related` into each served
+   relationship. ``target`` is the storable frozen dataclass this link points
+   at; only that it is a class is checked here, as deep storability validation
+   is performed by the storage layer.
+
+   See :class:`StrongLink` for the contrasting record-content edge marker
+   (inside content identity, revision-pinned) versus this store-managed,
+   lineage-live link (outside content identity).
+
+   :param name: The link name; must be a valid Python identifier. Namespaces the link (e.g. accessed as ``record.links.<name>``).
+   :param target: The storable class this link points at.
+   :param exposed_relationship: Whether the link is served through the OPTIMADE relationship facility.
+   :param role: The machine-readable relationship role, if any.
+   :param description: The human-readable relationship description, if any.
+   :raises ValueError: If ``name`` is not a valid Python identifier.
+   :raises TypeError: If ``target`` is not a class.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: target
+      :type:  type
+
+
+   .. py:attribute:: exposed_relationship
+      :type:  bool
+      :value: False
+
+
+
+   .. py:attribute:: role
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: description
+      :type:  str | None
+      :value: None
+
+
+
+.. py:class:: stored_property(fget = None, fset = None, fdel = None, doc = None)
+
+   Bases: :py:obj:`property`
+
+
+   A derived property that a storage layer stores and makes queryable.
+
+   Use exactly like :class:`property` (getter only). The value type is read
+   from the getter's return annotation. On save, the storage layer evaluates
+   and stores the value alongside the declared fields; on load, the value is
+   recomputed by the property rather than passed to ``__init__``. The getter
+   must declare a return annotation when the property is created.
+
+   :param fget: The getter function whose derived value is stored.
+   :param fset: An optional setter, normally unused by storage declarations.
+   :param fdel: An optional deleter, normally unused by storage declarations.
+   :param doc: An optional property documentation string.
+   :raises TypeError: If ``fget`` has no return annotation.
+
+
+.. py:data:: STORED_PROPERTY_PROJECTIONS_ATTRIBUTE
+   :type:  Final
+   :value: '__httk_stored_properties__'
+
+
+   Exact-class attribute holding a backing's property-projection mapping.
+
+.. py:class:: QueryContext
+
+   Bases: :py:obj:`QueryScope`, :py:obj:`Protocol`
+
+
+   Factory and algebra used by domain-owned property query callbacks.
+
+   ``field`` and ``scope`` start at the backing record.  ``scope`` can be
+   called again on a child/reference scope, so callbacks can express
+   correlated nested predicates without seeing storage tables or joins.
+   ``exact_equal`` requests equality in the property's exact stored domain;
+   it is the operation to use for fractions and other values for which a
+   presentation float would be lossy.
+
+
+   .. py:method:: constant(value)
+
+      Return a query value for an already validated literal constant.
+
+      :param value: The validated literal to place in the query.
+      :return: A query value for the literal.
+
+
+
+   .. py:method:: null()
+
+      Return the explicit null query value.
+
+      :return: A query value representing null.
+
+
+
+   .. py:method:: always_true()
+
+      Return the predicate which matches every backing record.
+
+      :return: A predicate that always matches.
+
+
+
+   .. py:method:: always_false()
+
+      Return the predicate which matches no backing record.
+
+      :return: A predicate that never matches.
+
+
+
+   .. py:method:: compare(left, operator, right)
+
+      Compare values with a backend-supported comparison operator.
+
+      Domain callbacks normally use :meth:`equal`, :meth:`exact_equal`, or
+      explicit operator dispatch for a protocol's filter grammar.  The
+      operator is deliberately a string so this contract does not own an
+      external query language's token enum.
+
+      :param left: The left query value.
+      :param operator: The backend-supported comparison operator.
+      :param right: The right query value.
+      :return: The comparison predicate.
+
+
+
+   .. py:method:: equal(left, right)
+
+      Compare values using the backing's ordinary stored semantics.
+
+      :param left: The left query value.
+      :param right: The right query value.
+      :return: The equality predicate.
+
+
+
+   .. py:method:: exact_equal(left, right)
+
+      Compare values in their exact canonical stored representation.
+
+      :param left: The left query value.
+      :param right: The right query value.
+      :return: The exact equality predicate.
+
+
+
+   .. py:method:: is_null(value)
+
+      Test a value for null; invert this predicate for a known-value test.
+
+      :param value: The query value to test.
+      :return: The null-test predicate.
+
+
+
+   .. py:method:: exists(scope, predicate)
+
+      Test whether a correlated scope contains a row satisfying ``predicate``.
+
+      :param scope: The correlated scope to inspect.
+      :param predicate: The predicate required of a matching row.
+      :return: The existence predicate.
+
+
+
+   .. py:method:: filtered(scope, predicate)
+
+      Return the correlated subset of ``scope`` satisfying ``predicate``.
+
+      The returned scope is usable by aggregate operations.  In particular,
+      it lets a declaration compare a required multiplicity with the exact
+      number of matching child values rather than reusing one ``exists``
+      witness for repeated values.
+
+      :param scope: The correlated scope to filter.
+      :param predicate: The predicate required of retained rows.
+      :return: A correlated scope containing only matching rows.
+
+
+
+   .. py:method:: count(scope)
+
+      Return the number of rows in a correlated child/reference scope.
+
+      :param scope: The correlated scope to count.
+      :return: A query value containing the row count.
+
+
+
+   .. py:method:: distinct_count(scope, value)
+
+      Return the count of distinct ``value`` values in ``scope``.
+
+      :param scope: The correlated scope to count.
+      :param value: The value whose distinct occurrences are counted.
+      :return: A query value containing the distinct count.
+
+
+
+   .. py:method:: scaled_exact_equal(left, left_factor, right, right_factor)
+
+      Compare two exact values after cross multiplication.
+
+      This is the portable, exact form of a proportional comparison.  It
+      avoids requiring a backend to divide fractions or approximate a ratio
+      through a presentation float: it asserts ``left * left_factor ==
+      right * right_factor`` in the backing's canonical exact domain.
+
+      :param left: The first exact value.
+      :param left_factor: The factor applied to the first value.
+      :param right: The second exact value.
+      :param right_factor: The factor applied to the second value.
+      :return: The cross-multiplied equality predicate.
+
+
+
+   .. py:method:: and_(*predicates)
+
+      Conjoin predicates; an empty conjunction is :meth:`always_true`.
+
+      :param \*predicates: The predicates to conjoin.
+      :return: The conjunction predicate.
+
+
+
+   .. py:method:: or_(*predicates)
+
+      Disjoin predicates; an empty disjunction is :meth:`always_false`.
+
+      :param \*predicates: The predicates to disjoin.
+      :return: The disjunction predicate.
+
+
+
+   .. py:method:: not_(predicate)
+
+      Negate a predicate without relying on a backend's Python truthiness.
+
+      :param predicate: The predicate to negate.
+      :return: The negated predicate.
+
+
+
+   .. py:method:: when_known(known, predicate)
+
+      Evaluate ``predicate`` only when ``known`` is true, else return unknown.
+
+      This is the backend-neutral three-valued-logic form of ``CASE WHEN
+      known THEN predicate ELSE NULL END``.  It keeps incomplete nullable
+      domain data unknown under both a predicate and its negation instead
+      of silently treating the missing representation as a non-match.
+
+      :param known: The predicate establishing that the value is available.
+      :param predicate: The predicate evaluated only when ``known`` matches.
+      :return: The conditional three-valued predicate.
+
+
+
+.. py:class:: QueryExpression
+
+   Bases: :py:obj:`Protocol`
+
+
+   One backend-neutral boolean predicate.
+
+   Query callbacks compose predicates with the ordinary boolean operators;
+   the backend decides how to retain SQL's three-valued null semantics (or an
+   equivalent semantics in another storage engine).
+
+
+.. py:class:: QueryField
+
+   Bases: :py:obj:`QueryValue`, :py:obj:`Protocol`
+
+
+   A durable field selected from a :class:`QueryScope`.
+
+
+.. py:exception:: QueryLiteralError
+
+   Bases: :py:obj:`ValueError`
+
+
+   A query literal cannot represent the property value requested.
+
+   This is intentionally distinct from a query expression which simply
+   matches no records.  Protocol layers can translate it into their
+   user-facing invalid-filter-value error without depending on a domain
+   package's parser exception.
+
+
+.. py:class:: QueryScope
+
+   Bases: :py:obj:`Protocol`
+
+
+   A record or correlated child/reference scope.
+
+   ``scope(name)`` follows a durable reference or child relationship while
+   retaining correlation to this scope.  It intentionally does not say
+   whether that relationship is one-to-one or a collection: ``exists`` and
+   the aggregate methods on :class:`QueryContext` give both cases a single,
+   portable vocabulary.  Every ``scope`` call creates a distinct peer scope,
+   even for the same relationship name, so a callback can compare correlated
+   child rows without an accidental self-alias.
+
+
+   .. py:method:: field(name)
+
+      Return the durable scalar field named ``name`` in this scope.
+
+      :param name: The durable field name.
+      :return: A query value representing that field.
+
+
+
+   .. py:method:: scope(name)
+
+      Return the correlated child or reference scope named ``name``.
+
+      :param name: The durable relationship name.
+      :return: A distinct correlated peer scope.
+
+
+
+.. py:class:: QueryValue
+
+   Bases: :py:obj:`Protocol`
+
+
+   A scalar or aggregate value participating in a query expression.
+
+
+.. py:class:: StoredPropertyProjection
+
+   One domain-owned projection of a served property for one backing.
+
+   ``response`` is called with a concrete backing record and returns its
+   protocol-boundary value.  ``query`` receives a backend-neutral context,
+   the protocol comparison operator, and its parsed literal; it returns a
+   predicate or raises :class:`QueryLiteralError` when the literal has no
+   valid representation for this property.  ``None`` means that a property
+   is response-only for this backing.  ``sort`` identifies a direct sortable
+   value and is intentionally separate from filtering because not every
+   predicate has a meaningful total ordering.
+
+   :param response: The operation that extracts the served value from a backing record.
+   :param query: The optional operation that builds filtering predicates.
+   :param sort: The optional operation that selects a value for ordering.
+   :raises TypeError: If a supplied projection operation cannot be invoked.
+
+
+   .. py:attribute:: response
+      :type:  StoredPropertyResponse
+
+
+   .. py:attribute:: query
+      :type:  StoredPropertyQuery | None
+      :value: None
+
+
+
+   .. py:attribute:: sort
+      :type:  StoredPropertySort | None
+      :value: None
+
+
+
+.. py:type:: StoredPropertyQuery
+   :canonical: Callable[[QueryContext, str, object], QueryExpression]
+
+
+   Build one predicate from a context, protocol operator, and parsed literal.
+
+.. py:type:: StoredPropertyResponse
+   :canonical: Callable[[object], object]
+
+
+   Extract one served property value from one concrete backing record.
+
+.. py:type:: StoredPropertySort
+   :canonical: Callable[[QueryContext], QueryValue]
+
+
+   Select one sortable backing value from a query context.
+
+.. py:function:: stored_property_projections(cls)
+
+   Return a validated property's projection map declared *on* ``cls``.
+
+   The lookup deliberately uses :func:`vars` rather than :func:`getattr`.
+   A representation-specific property mapping must be opted into by the
+   exact backing class; subclasses never inherit a parent's mapping by
+   accident.  A class without the declaration serves no stored properties.
+
+   :param cls: The exact frozen dataclass backing class to inspect.
+   :return: Its validated projection map, or an empty map when undeclared.
+   :raises TypeError: If ``cls`` is not a directly declared frozen dataclass or its map is invalid.
+   :raises ValueError: If a projection name is invalid.
+
+

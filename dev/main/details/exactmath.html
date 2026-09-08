@@ -1,0 +1,986 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="API Reference" href="../reference/autoapi/index.html"><link rel="prev" title="Vectors in detail" href="vectors.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Exact math in detail - httk-core dev:main documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/selector.css?v=626bada3" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+<div class="announcement">
+  <aside class="announcement-content">
+     Development documentation (dev:main) — content may differ from any release. 
+  </aside>
+</div>
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">httk-core dev:main documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">httk-core dev:main documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../reference/index.html">Reference</a><input aria-label="Toggle navigation of Reference" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/index.html">httk.core</a><input aria-label="Toggle navigation of httk.core" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/atomic_write/index.html">httk.core.atomic_write</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/building/index.html">httk.core.building</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/citations/index.html">httk.core.citations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/cli/index.html">httk.core.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/converting/index.html">httk.core.converting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/crypto/index.html">httk.core.crypto</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/data_records/index.html">httk.core.data_records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/dataset_loader/index.html">httk.core.dataset_loader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/datasets/index.html">httk.core.datasets</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/index.html">httk.core.datastream</a><input aria-label="Toggle navigation of httk.core.datastream" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_api/index.html">httk.core.datastream.bytestream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_backend/index.html">httk.core.datastream.bytestream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_bytes/index.html">httk.core.datastream.bytestream_bytes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_bytes_view/index.html">httk.core.datastream.bytestream_bytes_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_common/index.html">httk.core.datastream.bytestream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_file/index.html">httk.core.datastream.bytestream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_file_view/index.html">httk.core.datastream.bytestream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_filename/index.html">httk.core.datastream.bytestream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_filename_view/index.html">httk.core.datastream.bytestream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_like/index.html">httk.core.datastream.bytestream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_request/index.html">httk.core.datastream.bytestream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_request_view/index.html">httk.core.datastream.bytestream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_url/index.html">httk.core.datastream.bytestream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_url_view/index.html">httk.core.datastream.bytestream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_view/index.html">httk.core.datastream.bytestream_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/compression/index.html">httk.core.datastream.compression</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/datastream_url/index.html">httk.core.datastream.datastream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/network_policy/index.html">httk.core.datastream.network_policy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_api/index.html">httk.core.datastream.textstream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_backend/index.html">httk.core.datastream.textstream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_common/index.html">httk.core.datastream.textstream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_file/index.html">httk.core.datastream.textstream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_file_view/index.html">httk.core.datastream.textstream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_filename/index.html">httk.core.datastream.textstream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_filename_view/index.html">httk.core.datastream.textstream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_like/index.html">httk.core.datastream.textstream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_request/index.html">httk.core.datastream.textstream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_request_view/index.html">httk.core.datastream.textstream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_string/index.html">httk.core.datastream.textstream_string</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_string_view/index.html">httk.core.datastream.textstream_string_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_url/index.html">httk.core.datastream.textstream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_url_view/index.html">httk.core.datastream.textstream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_view/index.html">httk.core.datastream.textstream_view</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/digests/index.html">httk.core.digests</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/docs/index.html">httk.core.docs</a><input aria-label="Toggle navigation of httk.core.docs" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/cli/index.html">httk.core.docs.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/config/index.html">httk.core.docs.config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/ecosystem/index.html">httk.core.docs.ecosystem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/gitsite/index.html">httk.core.docs.gitsite</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/inventories/index.html">httk.core.docs.inventories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/lockfile/index.html">httk.core.docs.lockfile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/manifests/index.html">httk.core.docs.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/redirect/index.html">httk.core.docs.redirect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/release/index.html">httk.core.docs.release</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/semver/index.html">httk.core.docs.semver</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/sitetree/index.html">httk.core.docs.sitetree</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/sphinx_ext/index.html">httk.core.docs.sphinx_ext</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/entry_ids/index.html">httk.core.entry_ids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/entry_provider/index.html">httk.core.entry_provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/entry_types/index.html">httk.core.entry_types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/exactmath/index.html">httk.core.exactmath</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/fetching/index.html">httk.core.fetching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/files/index.html">httk.core.files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/identity/index.html">httk.core.identity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/identity_cli/index.html">httk.core.identity_cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/loading/index.html">httk.core.loading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/memguard/index.html">httk.core.memguard</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/index.html">httk.core.optimade</a><input aria-label="Toggle navigation of httk.core.optimade" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/entries/index.html">httk.core.optimade.entries</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/filter/index.html">httk.core.optimade.filter</a><input aria-label="Toggle navigation of httk.core.optimade.filter" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/filter/parser/index.html">httk.core.optimade.filter.parser</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/resources/index.html">httk.core.optimade.resources</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/index.html">httk.core.plugins</a><input aria-label="Toggle navigation of httk.core.plugins" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/cli/index.html">httk.core.plugins.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/install/index.html">httk.core.plugins.install</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/installed/index.html">httk.core.plugins.installed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/manifest/index.html">httk.core.plugins.manifest</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/precision/index.html">httk.core.precision</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/project/index.html">httk.core.project</a><input aria-label="Toggle navigation of httk.core.project" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/anchor/index.html">httk.core.project.anchor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/cli/index.html">httk.core.project.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/export/index.html">httk.core.project.export</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/manifests/index.html">httk.core.project.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/members/index.html">httk.core.project.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/sealing/index.html">httk.core.project.sealing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/templates/index.html">httk.core.project.templates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/property_definitions/index.html">httk.core.property_definitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/provenance/index.html">httk.core.provenance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/records/index.html">httk.core.records</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/register/index.html">httk.core.register</a><input aria-label="Toggle navigation of httk.core.register" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/cli/index.html">httk.core.register.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/entries/index.html">httk.core.register.entries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/io/index.html">httk.core.register.io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/members/index.html">httk.core.register.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/schemas/index.html">httk.core.register.schemas</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/report/index.html">httk.core.report</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/saving/index.html">httk.core.saving</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/schema_check/index.html">httk.core.schema_check</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/services/index.html">httk.core.services</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/storage/index.html">httk.core.storage</a><input aria-label="Toggle navigation of httk.core.storage" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/storage/identity/index.html">httk.core.storage.identity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/storage/markers/index.html">httk.core.storage.markers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/storage/rational_text/index.html">httk.core.storage.rational_text</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/storage/stored_properties/index.html">httk.core.storage.stored_properties</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/system/index.html">httk.core.system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/userdirs/index.html">httk.core.userdirs</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/validation/index.html">httk.core.validation</a><input aria-label="Toggle navigation of httk.core.validation" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/validation/iris/index.html">httk.core.validation.iris</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/index.html">httk.core.vectors</a><input aria-label="Toggle navigation of httk.core.vectors" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/fracvector/index.html">httk.core.vectors.fracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/leaf_codecs/index.html">httk.core.vectors.leaf_codecs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/mutablefracvector/index.html">httk.core.vectors.mutablefracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/numeric/index.html">httk.core.vectors.numeric</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/scalar_like/index.html">httk.core.vectors.scalar_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/surdvector/index.html">httk.core.vectors.surdvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_api/index.html">httk.core.vectors.vector_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_backend/index.html">httk.core.vectors.vector_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_frac_view/index.html">httk.core.vectors.vector_frac_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_like/index.html">httk.core.vectors.vector_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_native_backend/index.html">httk.core.vectors.vector_native_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_native_view/index.html">httk.core.vectors.vector_native_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_numpy_backend/index.html">httk.core.vectors.vector_numpy_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_numpy_view/index.html">httk.core.vectors.vector_numpy_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_surd_view/index.html">httk.core.vectors.vector_surd_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_view/index.html">httk.core.vectors.vector_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vectormath/index.html">httk.core.vectors.vectormath</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/views/index.html">httk.core.views</a><input aria-label="Toggle navigation of httk.core.views" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/backend/index.html">httk.core.views.backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/coercion/index.html">httk.core.views.coercion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/unviewing/index.html">httk.core.views.unviewing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/unwrapping/index.html">httk.core.views.unwrapping</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/view/index.html">httk.core.views.view</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../view_backend_pattern.html">Views and Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../registry.html">Module registry</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../datastreams.html">Datastreams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">The extensible command line</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins.html">Plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../crypto.html">Cryptography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../identity.html">Operator identity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../projects.html">Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sealing.html">Sealing and manifests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../property_definitions.html">Property definitions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../vectors.html">Vectors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../exactmath.html">Exact math on rationals and decimals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../credits.html">Citation credits</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><input aria-label="Toggle navigation of Examples" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/datastreams_quickstart.html">Datastreams quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/vectors_quickstart.html">Vectors quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/exactmath_quickstart.html">Exact math quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/load_and_dataset_loader.html">Getting data into httk: the <code class="docutils literal notranslate"><span class="pre">load</span></code> dispatcher and the <code class="docutils literal notranslate"><span class="pre">DatasetLoader</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/property_definitions.html">Building a custom OPTIMADE entry type end to end</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/entry_provider.html">Implementing an <code class="docutils literal notranslate"><span class="pre">EntryProvider</span></code>: the contract <em>httk-core</em> owns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/optimade_filter.html">Parsing OPTIMADE filter strings into an abstract syntax tree</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/coerce_quickstart.html">Coercion quickstart</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Details</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="view_backend_pattern.html">Views and Backends in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="registry.html">Module registry in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datastreams.html">Datastreams in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugins.html">Plugins in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="property_definitions.html">Property definitions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vectors.html">Vectors in detail</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Exact math in detail</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../reference/autoapi/index.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/index.html">httk.core</a><input aria-label="Toggle navigation of httk.core" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/atomic_write/index.html">httk.core.atomic_write</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/building/index.html">httk.core.building</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/citations/index.html">httk.core.citations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/cli/index.html">httk.core.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/converting/index.html">httk.core.converting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/crypto/index.html">httk.core.crypto</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/data_records/index.html">httk.core.data_records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/dataset_loader/index.html">httk.core.dataset_loader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/datasets/index.html">httk.core.datasets</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/index.html">httk.core.datastream</a><input aria-label="Toggle navigation of httk.core.datastream" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_api/index.html">httk.core.datastream.bytestream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_backend/index.html">httk.core.datastream.bytestream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_bytes/index.html">httk.core.datastream.bytestream_bytes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_bytes_view/index.html">httk.core.datastream.bytestream_bytes_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_common/index.html">httk.core.datastream.bytestream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_file/index.html">httk.core.datastream.bytestream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_file_view/index.html">httk.core.datastream.bytestream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_filename/index.html">httk.core.datastream.bytestream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_filename_view/index.html">httk.core.datastream.bytestream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_like/index.html">httk.core.datastream.bytestream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_request/index.html">httk.core.datastream.bytestream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_request_view/index.html">httk.core.datastream.bytestream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_url/index.html">httk.core.datastream.bytestream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_url_view/index.html">httk.core.datastream.bytestream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_view/index.html">httk.core.datastream.bytestream_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/compression/index.html">httk.core.datastream.compression</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/datastream_url/index.html">httk.core.datastream.datastream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/network_policy/index.html">httk.core.datastream.network_policy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_api/index.html">httk.core.datastream.textstream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_backend/index.html">httk.core.datastream.textstream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_common/index.html">httk.core.datastream.textstream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_file/index.html">httk.core.datastream.textstream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_file_view/index.html">httk.core.datastream.textstream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_filename/index.html">httk.core.datastream.textstream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_filename_view/index.html">httk.core.datastream.textstream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_like/index.html">httk.core.datastream.textstream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_request/index.html">httk.core.datastream.textstream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_request_view/index.html">httk.core.datastream.textstream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_string/index.html">httk.core.datastream.textstream_string</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_string_view/index.html">httk.core.datastream.textstream_string_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_url/index.html">httk.core.datastream.textstream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_url_view/index.html">httk.core.datastream.textstream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_view/index.html">httk.core.datastream.textstream_view</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/digests/index.html">httk.core.digests</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/docs/index.html">httk.core.docs</a><input aria-label="Toggle navigation of httk.core.docs" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/cli/index.html">httk.core.docs.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/config/index.html">httk.core.docs.config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/ecosystem/index.html">httk.core.docs.ecosystem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/gitsite/index.html">httk.core.docs.gitsite</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/inventories/index.html">httk.core.docs.inventories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/lockfile/index.html">httk.core.docs.lockfile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/manifests/index.html">httk.core.docs.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/redirect/index.html">httk.core.docs.redirect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/release/index.html">httk.core.docs.release</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/semver/index.html">httk.core.docs.semver</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/sitetree/index.html">httk.core.docs.sitetree</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/sphinx_ext/index.html">httk.core.docs.sphinx_ext</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/entry_ids/index.html">httk.core.entry_ids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/entry_provider/index.html">httk.core.entry_provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/entry_types/index.html">httk.core.entry_types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/exactmath/index.html">httk.core.exactmath</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/fetching/index.html">httk.core.fetching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/files/index.html">httk.core.files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/identity/index.html">httk.core.identity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/identity_cli/index.html">httk.core.identity_cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/loading/index.html">httk.core.loading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/memguard/index.html">httk.core.memguard</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/index.html">httk.core.optimade</a><input aria-label="Toggle navigation of httk.core.optimade" class="toctree-checkbox" id="toctree-checkbox-19" name="toctree-checkbox-19" role="switch" type="checkbox"/><label for="toctree-checkbox-19"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/entries/index.html">httk.core.optimade.entries</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/filter/index.html">httk.core.optimade.filter</a><input aria-label="Toggle navigation of httk.core.optimade.filter" class="toctree-checkbox" id="toctree-checkbox-20" name="toctree-checkbox-20" role="switch" type="checkbox"/><label for="toctree-checkbox-20"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/filter/parser/index.html">httk.core.optimade.filter.parser</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/resources/index.html">httk.core.optimade.resources</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/index.html">httk.core.plugins</a><input aria-label="Toggle navigation of httk.core.plugins" class="toctree-checkbox" id="toctree-checkbox-21" name="toctree-checkbox-21" role="switch" type="checkbox"/><label for="toctree-checkbox-21"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/cli/index.html">httk.core.plugins.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/install/index.html">httk.core.plugins.install</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/installed/index.html">httk.core.plugins.installed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/manifest/index.html">httk.core.plugins.manifest</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/precision/index.html">httk.core.precision</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/project/index.html">httk.core.project</a><input aria-label="Toggle navigation of httk.core.project" class="toctree-checkbox" id="toctree-checkbox-22" name="toctree-checkbox-22" role="switch" type="checkbox"/><label for="toctree-checkbox-22"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/anchor/index.html">httk.core.project.anchor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/cli/index.html">httk.core.project.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/export/index.html">httk.core.project.export</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/manifests/index.html">httk.core.project.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/members/index.html">httk.core.project.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/sealing/index.html">httk.core.project.sealing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/templates/index.html">httk.core.project.templates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/property_definitions/index.html">httk.core.property_definitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/provenance/index.html">httk.core.provenance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/records/index.html">httk.core.records</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/register/index.html">httk.core.register</a><input aria-label="Toggle navigation of httk.core.register" class="toctree-checkbox" id="toctree-checkbox-23" name="toctree-checkbox-23" role="switch" type="checkbox"/><label for="toctree-checkbox-23"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/cli/index.html">httk.core.register.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/entries/index.html">httk.core.register.entries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/io/index.html">httk.core.register.io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/members/index.html">httk.core.register.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/schemas/index.html">httk.core.register.schemas</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/report/index.html">httk.core.report</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/saving/index.html">httk.core.saving</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/schema_check/index.html">httk.core.schema_check</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/services/index.html">httk.core.services</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/storage/index.html">httk.core.storage</a><input aria-label="Toggle navigation of httk.core.storage" class="toctree-checkbox" id="toctree-checkbox-24" name="toctree-checkbox-24" role="switch" type="checkbox"/><label for="toctree-checkbox-24"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/storage/identity/index.html">httk.core.storage.identity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/storage/markers/index.html">httk.core.storage.markers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/storage/rational_text/index.html">httk.core.storage.rational_text</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/storage/stored_properties/index.html">httk.core.storage.stored_properties</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/system/index.html">httk.core.system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/userdirs/index.html">httk.core.userdirs</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/validation/index.html">httk.core.validation</a><input aria-label="Toggle navigation of httk.core.validation" class="toctree-checkbox" id="toctree-checkbox-25" name="toctree-checkbox-25" role="switch" type="checkbox"/><label for="toctree-checkbox-25"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/validation/iris/index.html">httk.core.validation.iris</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/index.html">httk.core.vectors</a><input aria-label="Toggle navigation of httk.core.vectors" class="toctree-checkbox" id="toctree-checkbox-26" name="toctree-checkbox-26" role="switch" type="checkbox"/><label for="toctree-checkbox-26"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/fracvector/index.html">httk.core.vectors.fracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/leaf_codecs/index.html">httk.core.vectors.leaf_codecs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/mutablefracvector/index.html">httk.core.vectors.mutablefracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/numeric/index.html">httk.core.vectors.numeric</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/scalar_like/index.html">httk.core.vectors.scalar_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/surdvector/index.html">httk.core.vectors.surdvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_api/index.html">httk.core.vectors.vector_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_backend/index.html">httk.core.vectors.vector_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_frac_view/index.html">httk.core.vectors.vector_frac_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_like/index.html">httk.core.vectors.vector_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_native_backend/index.html">httk.core.vectors.vector_native_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_native_view/index.html">httk.core.vectors.vector_native_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_numpy_backend/index.html">httk.core.vectors.vector_numpy_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_numpy_view/index.html">httk.core.vectors.vector_numpy_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_surd_view/index.html">httk.core.vectors.vector_surd_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_view/index.html">httk.core.vectors.vector_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vectormath/index.html">httk.core.vectors.vectormath</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/views/index.html">httk.core.views</a><input aria-label="Toggle navigation of httk.core.views" class="toctree-checkbox" id="toctree-checkbox-27" name="toctree-checkbox-27" role="switch" type="checkbox"/><label for="toctree-checkbox-27"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/backend/index.html">httk.core.views.backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/coercion/index.html">httk.core.views.coercion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/unviewing/index.html">httk.core.views.unviewing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/unwrapping/index.html">httk.core.views.unwrapping</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/view/index.html">httk.core.views.view</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/autoapi/httk/registry/cli/core/index.html">httk.registry.cli.core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/autoapi/httk/registry/entries/core/index.html">httk.registry.entries.core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/autoapi/httk/registry/schemas/core/index.html">httk.registry.schemas.core</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/details/exactmath.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section class="tex2jax_ignore mathjax_ignore" id="exact-math-in-detail">
+<h1>Exact math in detail<a class="headerlink" href="#exact-math-in-detail" title="Link to this heading">¶</a></h1>
+<p>The functions in <code class="docutils literal notranslate"><span class="pre">httk.core.exactmath</span></code> provide exact and controlled-precision
+arithmetic on their own: Fraction mode returns exact rationals or controlled rational
+approximations, while Decimal input or <code class="docutils literal notranslate"><span class="pre">digits=</span></code> selects correctly rounded Decimal results.
+Every value is computed with integer/rational arithmetic — there is no floating point anywhere in
+the core computation, so results are platform-independent and deterministic by construction.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fractions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fraction</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">httk.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">exactmath</span>
+</pre></div>
+</div>
+<section id="parsing-values-exactly">
+<h2>Parsing values exactly<a class="headerlink" href="#parsing-values-exactly" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">any_to_fraction</span></code> converts numbers and strings into exact rationals. Decimal
+strings are taken at their written value (unlike <code class="docutils literal notranslate"><span class="pre">float</span></code>s, which carry binary
+rounding):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">exactmath</span><span class="o">.</span><span class="n">any_to_fraction</span><span class="p">(</span><span class="s2">&quot;8.04&quot;</span><span class="p">)</span>        <span class="c1"># Fraction(201, 25)</span>
+<span class="n">exactmath</span><span class="o">.</span><span class="n">any_to_fraction</span><span class="p">(</span><span class="s2">&quot;1/3&quot;</span><span class="p">)</span>         <span class="c1"># Fraction(1, 3)</span>
+</pre></div>
+</div>
+<p>A trailing parenthesized uncertainty (the common experimental notation) makes
+the parser pick the <strong>simplest rational inside the stated interval</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">exactmath</span><span class="o">.</span><span class="n">any_to_fraction</span><span class="p">(</span><span class="s2">&quot;0.33342(10)&quot;</span><span class="p">)</span>  <span class="c1"># Fraction(1, 3)</span>
+<span class="n">exactmath</span><span class="o">.</span><span class="n">string_to_val_and_delta</span><span class="p">(</span><span class="s2">&quot;0.33342(10)&quot;</span><span class="p">)</span>
+<span class="c1"># (Fraction(16671, 50000), Fraction(1, 10000))</span>
+</pre></div>
+</div>
+<p>Here <code class="docutils literal notranslate"><span class="pre">0.33342</span> <span class="pre">±</span> <span class="pre">0.00010</span></code> brackets <code class="docutils literal notranslate"><span class="pre">1/3</span></code>, so <code class="docutils literal notranslate"><span class="pre">1/3</span></code> is returned. Without an
+explicit uncertainty, <code class="docutils literal notranslate"><span class="pre">min_accuracy</span></code> (default <code class="docutils literal notranslate"><span class="pre">1/10000</span></code>) plays the same role;
+pass <code class="docutils literal notranslate"><span class="pre">min_accuracy=None</span></code> to take a value exactly as written — including the
+exact binary rational of a <code class="docutils literal notranslate"><span class="pre">float</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">exactmath</span><span class="o">.</span><span class="n">any_to_fraction</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">min_accuracy</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="c1"># Fraction(3602879701896397, 36028797018963968)</span>
+</pre></div>
+</div>
+</section>
+<section id="best-rationals-and-continued-fractions">
+<h2>Best rationals and continued fractions<a class="headerlink" href="#best-rationals-and-continued-fractions" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">best_rational_in_interval</span></code> returns the rational with the smallest denominator
+in a closed interval — the workhorse behind the uncertainty parsing:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">exactmath</span><span class="o">.</span><span class="n">best_rational_in_interval</span><span class="p">(</span><span class="s2">&quot;3.14&quot;</span><span class="p">,</span> <span class="s2">&quot;3.15&quot;</span><span class="p">)</span>   <span class="c1"># Fraction(22, 7)</span>
+</pre></div>
+</div>
+<p>The continued-fraction helpers round-trip exactly:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">list</span><span class="p">(</span><span class="n">exactmath</span><span class="o">.</span><span class="n">get_continued_fraction</span><span class="p">(</span><span class="mi">355</span><span class="p">,</span> <span class="mi">113</span><span class="p">))</span>      <span class="c1"># [3, 7, 16]</span>
+<span class="n">exactmath</span><span class="o">.</span><span class="n">fraction_from_continued_fraction</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">16</span><span class="p">])</span>  <span class="c1"># Fraction(355, 113)</span>
+</pre></div>
+</div>
+</section>
+<section id="controlled-precision-transcendentals-fraction-domain">
+<h2>Controlled-precision transcendentals (Fraction domain)<a class="headerlink" href="#controlled-precision-transcendentals-fraction-domain" title="Link to this heading">¶</a></h2>
+<p>Given <code class="docutils literal notranslate"><span class="pre">Fraction</span></code>/<code class="docutils literal notranslate"><span class="pre">int</span></code>/<code class="docutils literal notranslate"><span class="pre">str</span></code> input (and no <code class="docutils literal notranslate"><span class="pre">digits=</span></code>), the transcendentals
+return a <code class="docutils literal notranslate"><span class="pre">Fraction</span></code> within <code class="docutils literal notranslate"><span class="pre">prec</span></code> of the true value (default <code class="docutils literal notranslate"><span class="pre">prec</span></code> is very
+fine; pass a <code class="docutils literal notranslate"><span class="pre">Fraction</span></code> to control it). With <code class="docutils literal notranslate"><span class="pre">limit=True</span></code> (the default) the
+result’s denominator is kept near <code class="docutils literal notranslate"><span class="pre">1/prec</span></code> rather than growing unboundedly:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">exactmath</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Fraction</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">prec</span><span class="o">=</span><span class="n">Fraction</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="o">**</span><span class="mi">12</span><span class="p">))</span>
+<span class="c1"># Fraction(1402795082585, 991925915511)   — (value)**2 is within 1e-12 of 2</span>
+</pre></div>
+</div>
+<p>Exact results are returned when they exist:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">exactmath</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Fraction</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>               <span class="c1"># Fraction(3, 2) — exact</span>
+<span class="n">exactmath</span><span class="o">.</span><span class="n">integer_sqrt</span><span class="p">(</span><span class="mi">10</span><span class="o">**</span><span class="mi">20</span><span class="p">)</span>               <span class="c1"># 10000000000 — exact integer sqrt</span>
+</pre></div>
+</div>
+<section id="exact-square-roots-as-surds-exact-true">
+<h3>Exact square roots as surds (<code class="docutils literal notranslate"><span class="pre">exact=True</span></code>)<a class="headerlink" href="#exact-square-roots-as-surds-exact-true" title="Link to this heading">¶</a></h3>
+<p>For an irrational square root, <code class="docutils literal notranslate"><span class="pre">exact=True</span></code> overrides the output-domain rule entirely and returns
+the value <em>symbolically</em> — as a <a class="reference internal" href="../reference/autoapi/httk/core/vectors/surdvector/index.html#httk.core.vectors.surdvector.SurdScalar" title="httk.core.vectors.surdvector.SurdScalar"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurdScalar</span></code></a>, an element of
+the squarefree-radical field, with <strong>no</strong> approximation:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">fractions</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">httk.core.vectors</span><span class="w"> </span><span class="kn">import</span> <span class="n">SurdVector</span>
+
+<span class="n">root2</span> <span class="o">=</span> <span class="n">exactmath</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">fractions</span><span class="o">.</span><span class="n">Fraction</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">exact</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">root2</span> <span class="o">*</span> <span class="n">root2</span> <span class="o">==</span> <span class="n">SurdVector</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>                       <span class="c1"># squares back to exactly 2</span>
+<span class="k">assert</span> <span class="n">exactmath</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">fractions</span><span class="o">.</span><span class="n">Fraction</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">exact</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">==</span> <span class="n">SurdVector</span><span class="p">(</span><span class="n">fractions</span><span class="o">.</span><span class="n">Fraction</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="vectors.html"><span class="doc">Vectors in detail</span></a> (“Exact radicals: <code class="docutils literal notranslate"><span class="pre">SurdVector</span></code>”) for the field itself — exact Cartesian
+crystallographic geometry, exact comparison, and the nested-radical limit.</p>
+</section>
+</section>
+<section id="scalarlike-and-vectorlike-inputs">
+<h2>ScalarLike and VectorLike inputs<a class="headerlink" href="#scalarlike-and-vectorlike-inputs" title="Link to this heading">¶</a></h2>
+<p>The public functions accept <code class="docutils literal notranslate"><span class="pre">ScalarLike</span></code> values (<code class="docutils literal notranslate"><span class="pre">int</span></code>, <code class="docutils literal notranslate"><span class="pre">float</span></code>, <code class="docutils literal notranslate"><span class="pre">str</span></code>, <code class="docutils literal notranslate"><span class="pre">Fraction</span></code>, <code class="docutils literal notranslate"><span class="pre">Decimal</span></code>,
+<code class="docutils literal notranslate"><span class="pre">FracScalar</span></code>, or <code class="docutils literal notranslate"><span class="pre">SurdScalar</span></code>) and <code class="docutils literal notranslate"><span class="pre">VectorLike</span></code> values (vector backends/views, nested lists or
+tuples, and optional NumPy arrays). Vectors are mapped elementwise and retain their shape. In
+Fraction mode the result is a <code class="docutils literal notranslate"><span class="pre">FracVector</span></code>; Decimal mode returns nested tuples of <code class="docutils literal notranslate"><span class="pre">Decimal</span></code> values.
+Decimal mode is promoted across the entire vector when any leaf is a <code class="docutils literal notranslate"><span class="pre">Decimal</span></code>, or when <code class="docutils literal notranslate"><span class="pre">digits=</span></code>
+is supplied, with omitted <code class="docutils literal notranslate"><span class="pre">digits</span></code> using the active Decimal context precision.</p>
+<p>Ordinary Fraction-mode calls on a genuinely irrational <code class="docutils literal notranslate"><span class="pre">SurdScalar</span></code> use its deterministic Fraction
+hub: the value is approximated at the active Decimal context precision plus three guard digits.
+Exact symbolic calls preserve the surd and never use this lossy conversion. Floats are embedded as
+their exact binary <code class="docutils literal notranslate"><span class="pre">Fraction</span></code> value.</p>
+<p><code class="docutils literal notranslate"><span class="pre">exact=True</span></code> is available for <code class="docutils literal notranslate"><span class="pre">sqrt</span></code> and degree-mode <code class="docutils literal notranslate"><span class="pre">cos</span></code>, <code class="docutils literal notranslate"><span class="pre">sin</span></code>, <code class="docutils literal notranslate"><span class="pre">tan</span></code>, <code class="docutils literal notranslate"><span class="pre">asin</span></code>, <code class="docutils literal notranslate"><span class="pre">acos</span></code>, <code class="docutils literal notranslate"><span class="pre">atan</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">atan2</span></code>. Exact trigonometry requires <code class="docutils literal notranslate"><span class="pre">degrees=True</span></code>; cosine and sine values are exact for the
+complete square-root angle set (multiples of 15° and 36°, with the corresponding sine/tangent
+values where defined). Exact inverse functions return degree <code class="docutils literal notranslate"><span class="pre">Fraction</span></code>s. An unsupported angle or
+value raises <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>, rather than silently approximating. Vector exact results are
+<code class="docutils literal notranslate"><span class="pre">SurdVector</span></code>-compatible and exact <code class="docutils literal notranslate"><span class="pre">atan2</span></code> accepts either two same-shaped vectors or scalar
+broadcasting. <code class="docutils literal notranslate"><span class="pre">atan2</span></code> follows the usual quadrant convention.</p>
+<p><code class="docutils literal notranslate"><span class="pre">digits</span></code>, <code class="docutils literal notranslate"><span class="pre">rounding</span></code>, and <code class="docutils literal notranslate"><span class="pre">max_refinements</span></code> retain their Decimal-mode meanings for vectors. In
+exact mode they are ignored, including invalid <code class="docutils literal notranslate"><span class="pre">digits</span></code> values.</p>
+<p>The trigonometric functions accept <code class="docutils literal notranslate"><span class="pre">degrees=True</span></code> to interpret their argument
+in degrees (<code class="docutils literal notranslate"><span class="pre">cos</span></code>, <code class="docutils literal notranslate"><span class="pre">sin</span></code>, …) or to return degrees (<code class="docutils literal notranslate"><span class="pre">asin</span></code>, <code class="docutils literal notranslate"><span class="pre">acos</span></code>, <code class="docutils literal notranslate"><span class="pre">atan</span></code>,
+<code class="docutils literal notranslate"><span class="pre">atan2</span></code>). <code class="docutils literal notranslate"><span class="pre">atan2</span></code> follows the quadrant conventions of <a class="reference external" href="https://docs.python.org/3/library/math.html#math.atan2" title="(in Python v3.14)"><code class="xref py py-func docutils literal notranslate"><span class="pre">math.atan2()</span></code></a>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">exactmath</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">Fraction</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">Fraction</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">degrees</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>   <span class="c1"># Fraction(90, 1)</span>
+<span class="n">exactmath</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">Fraction</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">Fraction</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">degrees</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># Fraction(180, 1)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">pi</span></code> returns a high-precision rational for π; note that for any requested
+<code class="docutils literal notranslate"><span class="pre">prec</span></code> coarser than about 1e-13 it returns its precomputed high-precision
+constant (more precise than asked — use <code class="docutils literal notranslate"><span class="pre">.limit_denominator()</span></code> on the result if
+you want a small rational such as <code class="docutils literal notranslate"><span class="pre">355/113</span></code>):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pi</span> <span class="o">=</span> <span class="n">exactmath</span><span class="o">.</span><span class="n">pi</span><span class="p">()</span>
+<span class="n">pi</span><span class="o">.</span><span class="n">limit_denominator</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>               <span class="c1"># Fraction(355, 113)</span>
+</pre></div>
+</div>
+</section>
+<section id="presentation-and-the-coerce-keyword">
+<h2>Presentation and the <code class="docutils literal notranslate"><span class="pre">coerce=</span></code> keyword<a class="headerlink" href="#presentation-and-the-coerce-keyword" title="Link to this heading">¶</a></h2>
+<p>By default results are presented view-neutrally in the input’s type family (an <code class="docutils literal notranslate"><span class="pre">int</span></code>/<code class="docutils literal notranslate"><span class="pre">Fraction</span></code>
+for int input, a <code class="docutils literal notranslate"><span class="pre">float</span></code> for float input, nested lists for list input, a native tuple view for
+tuple input, a float64 numpy view for numpy input). The keyword-only <code class="docutils literal notranslate"><span class="pre">coerce=</span></code> overrides this,
+following <a class="reference internal" href="../reference/autoapi/httk/core/index.html#httk.core.coerce_view" title="httk.core.coerce_view"><code class="xref py py-func docutils literal notranslate"><span class="pre">httk.core.coerce_view()</span></code></a> semantics: the natural exact result stays recoverable
+behind view presentations via <code class="docutils literal notranslate"><span class="pre">unwrap()</span></code>, and coercion failures propagate. <code class="docutils literal notranslate"><span class="pre">coerce=&quot;natural&quot;</span></code>
+returns the pre-presentation result unchanged. A caller that wants a plain, non-view value
+applies <a class="reference internal" href="../reference/autoapi/httk/core/index.html#httk.core.unview" title="httk.core.unview"><code class="xref py py-func docutils literal notranslate"><span class="pre">httk.core.unview()</span></code></a> to the returned presentation.</p>
+</section>
+<section id="decimal-mode">
+<h2>Decimal mode<a class="headerlink" href="#decimal-mode" title="Link to this heading">¶</a></h2>
+<p>The same functions render a correctly-rounded <a class="reference external" href="https://docs.python.org/3/library/decimal.html#decimal.Decimal" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">decimal.Decimal</span></code></a> when
+asked. The type of the result follows a single documented rule:</p>
+<blockquote>
+<div><p>The result is a <code class="docutils literal notranslate"><span class="pre">Decimal</span></code> iff any numeric input is a <code class="docutils literal notranslate"><span class="pre">Decimal</span></code> <strong>or</strong> <code class="docutils literal notranslate"><span class="pre">digits=</span></code>
+is passed; <code class="docutils literal notranslate"><span class="pre">Fraction</span></code>/<code class="docutils literal notranslate"><span class="pre">int</span></code>/<code class="docutils literal notranslate"><span class="pre">str</span></code> inputs otherwise get the exact <code class="docutils literal notranslate"><span class="pre">Fraction</span></code>
+behavior above.</p>
+</div></blockquote>
+<p>A <code class="docutils literal notranslate"><span class="pre">Decimal</span></code> input therefore yields a <code class="docutils literal notranslate"><span class="pre">Decimal</span></code>, and <code class="docutils literal notranslate"><span class="pre">digits=</span></code> lets a
+<code class="docutils literal notranslate"><span class="pre">Fraction</span></code>/<code class="docutils literal notranslate"><span class="pre">int</span></code> caller (or the argument-less <code class="docutils literal notranslate"><span class="pre">pi</span></code>) request one:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">decimal</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fractions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fraction</span>
+
+<span class="c1"># Decimal input -&gt; Decimal result:</span>
+<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exactmath</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="mi">2</span><span class="p">)),</span> <span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">)</span>
+<span class="c1"># digits= forces Decimal even from a Fraction input:</span>
+<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exactmath</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Fraction</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">digits</span><span class="o">=</span><span class="mi">10</span><span class="p">),</span> <span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">)</span>
+<span class="c1"># any Decimal argument promotes the whole result (mixed-argument promotion):</span>
+<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exactmath</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">Fraction</span><span class="p">(</span><span class="mi">1</span><span class="p">)),</span> <span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">digits=</span></code> is the number of <strong>significant digits</strong> (default: the active
+<a class="reference external" href="https://docs.python.org/3/library/decimal.html#decimal.getcontext" title="(in Python v3.14)"><code class="xref py py-func docutils literal notranslate"><span class="pre">decimal.getcontext()</span></code></a> precision, matching stdlib <code class="docutils literal notranslate"><span class="pre">Decimal</span></code>’s own model),
+and <code class="docutils literal notranslate"><span class="pre">rounding=</span></code> selects <code class="docutils literal notranslate"><span class="pre">&quot;half_even&quot;</span></code> (the default — correctly rounded) or
+<code class="docutils literal notranslate"><span class="pre">&quot;down&quot;</span></code> (correct truncation toward zero). The rendering uses Ziv’s adaptive
+strategy over the exact rational algorithms, so results are <strong>correctly
+rounded</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">decimal</span>
+
+<span class="c1"># sqrt(2) correctly rounded to 30 significant digits, half-even:</span>
+<span class="k">assert</span> <span class="n">exactmath</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">digits</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span> <span class="o">==</span> <span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span>
+    <span class="s2">&quot;1.41421356237309504880168872421&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Exactly-representable results short-circuit through exact arithmetic — including
+exact boundary cases — so, for example, the special-angle cosines/sines and
+perfect-square roots come back exactly:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">decimal</span>
+
+<span class="k">assert</span> <span class="n">exactmath</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;60&quot;</span><span class="p">),</span> <span class="n">degrees</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">==</span> <span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;0.5&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">exactmath</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;30&quot;</span><span class="p">),</span> <span class="n">degrees</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">==</span> <span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;0.5&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">exactmath</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;2.25&quot;</span><span class="p">))</span> <span class="o">==</span> <span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;1.5&quot;</span><span class="p">)</span>   <span class="c1"># perfect square</span>
+</pre></div>
+</div>
+<section id="correct-rounding-vs-correct-truncation">
+<h3>Correct rounding vs correct truncation<a class="headerlink" href="#correct-rounding-vs-correct-truncation" title="Link to this heading">¶</a></h3>
+<p>Truncation is deterministic and gets the same adaptive treatment, so it is
+<em>correct</em> truncation of the true value — it has the same boundary hazard as
+rounding, and the iteration disambiguates both modes identically. Consider a
+value a hair above the 2-significant-digit boundary at <code class="docutils literal notranslate"><span class="pre">1.25</span></code> (constructed
+exactly as <code class="docutils literal notranslate"><span class="pre">(1.25</span> <span class="pre">+</span> <span class="pre">1e-6)**2</span></code> so its square root is exactly <code class="docutils literal notranslate"><span class="pre">1.250001</span></code>):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">decimal</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fractions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fraction</span>
+
+<span class="n">boundary</span> <span class="o">=</span> <span class="p">(</span><span class="n">Fraction</span><span class="p">(</span><span class="mi">125</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span> <span class="o">+</span> <span class="n">Fraction</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="o">**</span><span class="mi">6</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span>   <span class="c1"># exact; sqrt is exactly 1.250001</span>
+<span class="k">assert</span> <span class="n">exactmath</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">boundary</span><span class="p">,</span> <span class="n">digits</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">rounding</span><span class="o">=</span><span class="s2">&quot;half_even&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;1.3&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">exactmath</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">boundary</span><span class="p">,</span> <span class="n">digits</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">rounding</span><span class="o">=</span><span class="s2">&quot;down&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;1.2&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Half-even rounds the value (just above <code class="docutils literal notranslate"><span class="pre">1.25</span></code>) up to <code class="docutils literal notranslate"><span class="pre">1.3</span></code>; truncation toward
+zero gives <code class="docutils literal notranslate"><span class="pre">1.2</span></code>.</p>
+</section>
+<section id="determinism-and-the-context-default">
+<h3>Determinism and the context default<a class="headerlink" href="#determinism-and-the-context-default" title="Link to this heading">¶</a></h3>
+<p>Results are deterministic: the same call twice is identical, and with <code class="docutils literal notranslate"><span class="pre">digits=</span></code>
+given explicitly the result is independent of a changed <code class="docutils literal notranslate"><span class="pre">decimal</span></code> context. Only
+when <code class="docutils literal notranslate"><span class="pre">digits=</span></code> is omitted does the active context precision apply:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">decimal</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fractions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fraction</span>
+
+<span class="c1"># explicit digits= ignores the context precision entirely:</span>
+<span class="n">saved</span> <span class="o">=</span> <span class="n">decimal</span><span class="o">.</span><span class="n">getcontext</span><span class="p">()</span><span class="o">.</span><span class="n">prec</span>
+<span class="n">decimal</span><span class="o">.</span><span class="n">getcontext</span><span class="p">()</span><span class="o">.</span><span class="n">prec</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">exactmath</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">digits</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<span class="n">decimal</span><span class="o">.</span><span class="n">getcontext</span><span class="p">()</span><span class="o">.</span><span class="n">prec</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">exactmath</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">digits</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<span class="n">decimal</span><span class="o">.</span><span class="n">getcontext</span><span class="p">()</span><span class="o">.</span><span class="n">prec</span> <span class="o">=</span> <span class="n">saved</span>
+<span class="k">assert</span> <span class="n">a</span> <span class="o">==</span> <span class="n">b</span>
+
+<span class="c1"># without digits=, the context precision drives the significant-digit count:</span>
+<span class="n">decimal</span><span class="o">.</span><span class="n">getcontext</span><span class="p">()</span><span class="o">.</span><span class="n">prec</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="k">assert</span> <span class="n">exactmath</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span> <span class="o">==</span> <span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;1.414213562&quot;</span><span class="p">)</span>
+<span class="n">decimal</span><span class="o">.</span><span class="n">getcontext</span><span class="p">()</span><span class="o">.</span><span class="n">prec</span> <span class="o">=</span> <span class="n">saved</span>
+</pre></div>
+</div>
+<p>And <code class="docutils literal notranslate"><span class="pre">pi(digits=n)</span></code> gives π as a correctly-rounded <code class="docutils literal notranslate"><span class="pre">Decimal</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">decimal</span>
+
+<span class="k">assert</span> <span class="n">exactmath</span><span class="o">.</span><span class="n">pi</span><span class="p">(</span><span class="n">digits</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span> <span class="o">==</span> <span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span>
+    <span class="s2">&quot;3.1415926535897932384626433832795028841971693993751&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="guaranteed-termination">
+<h2>Guaranteed termination<a class="headerlink" href="#guaranteed-termination" title="Link to this heading">¶</a></h2>
+<p>The adaptive rounding loop provably terminates, with no error
+path. The table-maker’s dilemma only bites when a function value sits <em>exactly on</em> a
+rounding boundary, and boundaries are rational numbers. Classical number theory rules
+that out for every function here once the exact special cases are handled: by the
+Lindemann–Weierstrass theorem, <code class="docutils literal notranslate"><span class="pre">exp</span></code>, <code class="docutils literal notranslate"><span class="pre">log</span></code>, and radian-mode trigonometry take
+transcendental values at nonzero rational arguments; by Niven’s theorem, degree-mode
+trigonometry takes rational values only at the tabulated special angles (all handled
+exactly); square roots of non-perfect-square rationals are irrational (perfect squares
+are detected exactly); and whether <code class="docutils literal notranslate"><span class="pre">log(x,</span> <span class="pre">base)</span></code> is rational is a <em>finite exact
+decision</em> — <code class="docutils literal notranslate"><span class="pre">log_base(x)</span> <span class="pre">=</span> <span class="pre">p/q</span></code> requires <code class="docutils literal notranslate"><span class="pre">x**q</span> <span class="pre">==</span> <span class="pre">base**p</span></code>, and <code class="docutils literal notranslate"><span class="pre">q</span></code> is bounded by the
+largest prime exponent of <code class="docutils literal notranslate"><span class="pre">base</span></code>, so all candidates are checked with exact integer
+arithmetic:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">decimal</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">httk.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">exactmath</span>
+
+<span class="c1"># log_4(8) = 3/2 exactly: at one significant digit this is a perfect rounding tie,</span>
+<span class="c1"># resolved by exact arithmetic — half-even rounds to 2, truncation gives 1.</span>
+<span class="k">assert</span> <span class="n">exactmath</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="mi">8</span><span class="p">),</span> <span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span> <span class="n">digits</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;2&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">exactmath</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="mi">8</span><span class="p">),</span> <span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span> <span class="n">digits</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">rounding</span><span class="o">=</span><span class="s2">&quot;down&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;1&quot;</span><span class="p">)</span>
+
+<span class="c1"># Exact special values survive truncation mode untouched:</span>
+<span class="k">assert</span> <span class="n">exactmath</span><span class="o">.</span><span class="n">asin</span><span class="p">(</span><span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;0.5&quot;</span><span class="p">),</span> <span class="n">degrees</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">digits</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">rounding</span><span class="o">=</span><span class="s2">&quot;down&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;30&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Every remaining value is therefore provably irrational, hence never exactly on a
+boundary, and the interval refinement always disambiguates in finitely many steps —
+deterministically, on every platform.</p>
+<section id="bounded-time-without-losing-determinism">
+<h3>Bounded time without losing determinism<a class="headerlink" href="#bounded-time-without-losing-determinism" title="Link to this heading">¶</a></h3>
+<p>Correct rounding has input-dependent cost: a value constructed to lie extremely close to a
+rounding boundary (e.g. <code class="docutils literal notranslate"><span class="pre">sqrt((1.25</span> <span class="pre">+</span> <span class="pre">1e-40)**2)</span></code> at two digits) forces many refinements
+before the interval clears the boundary. When a hard time bound matters more than
+correctness in that vanishing sliver, pass <code class="docutils literal notranslate"><span class="pre">max_refinements=k</span></code>: at most <code class="docutils literal notranslate"><span class="pre">k</span></code> refinements
+are performed, and if still ambiguous the <em>approximation itself</em> is rounded — the
+<code class="docutils literal notranslate"><span class="pre">StrictMath</span></code> philosophy of letting a frozen, exact algorithm define the function. The
+result is then correctly rounded unless the true value lies within <code class="docutils literal notranslate"><span class="pre">10**-(digits+3+4k)</span></code>
+of a boundary, in which case it is the deterministic rounding of the deterministic
+approximant — off by at most one unit in the last place, and identical on every platform,
+every time:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">decimal</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">fractions</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">httk.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">exactmath</span>
+
+<span class="n">boundary</span> <span class="o">=</span> <span class="n">fractions</span><span class="o">.</span><span class="n">Fraction</span><span class="p">(</span><span class="mi">125</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span> <span class="o">+</span> <span class="n">fractions</span><span class="o">.</span><span class="n">Fraction</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="o">**</span><span class="mi">40</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">boundary</span> <span class="o">*</span> <span class="n">boundary</span>
+<span class="k">assert</span> <span class="n">exactmath</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">digits</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="o">==</span> <span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;1.3&quot;</span><span class="p">)</span>     <span class="c1"># unbounded: correct</span>
+<span class="n">fast</span> <span class="o">=</span> <span class="n">exactmath</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">digits</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_refinements</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>            <span class="c1"># bounded: one pass</span>
+<span class="k">assert</span> <span class="n">fast</span> <span class="o">==</span> <span class="n">exactmath</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">digits</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_refinements</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>    <span class="c1"># ... and repeatable</span>
+</pre></div>
+</div>
+<p>The default (<code class="docutils literal notranslate"><span class="pre">max_refinements=None</span></code>) keeps the guaranteed-correct behavior above.</p>
+</section>
+</section>
+<section id="using-it-with-fracvector">
+<h2>Using it with FracVector<a class="headerlink" href="#using-it-with-fracvector" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">FracVector</span></code>’s element-wise transcendental methods call these functions on each
+element, so everything above applies vector-wide:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">httk.core.vectors</span><span class="w"> </span><span class="kn">import</span> <span class="n">FracVector</span>
+
+<span class="n">v</span> <span class="o">=</span> <span class="n">FracVector</span><span class="p">([[</span><span class="s2">&quot;9/4&quot;</span><span class="p">,</span> <span class="s2">&quot;1/4&quot;</span><span class="p">]])</span>
+<span class="n">v</span><span class="o">.</span><span class="n">sqrt</span><span class="p">()</span><span class="o">.</span><span class="n">to_fractions</span><span class="p">()</span>                  <span class="c1"># [[Fraction(3, 2), Fraction(1, 2)]] — exact</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="vectors.html"><span class="doc">Vectors in detail</span></a> for the vector library itself and the Vector view family.</p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="../reference/autoapi/index.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">API Reference</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="vectors.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Vectors in detail</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2026, The httk-core AUTHORS
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Exact math in detail</a><ul>
+<li><a class="reference internal" href="#parsing-values-exactly">Parsing values exactly</a></li>
+<li><a class="reference internal" href="#best-rationals-and-continued-fractions">Best rationals and continued fractions</a></li>
+<li><a class="reference internal" href="#controlled-precision-transcendentals-fraction-domain">Controlled-precision transcendentals (Fraction domain)</a><ul>
+<li><a class="reference internal" href="#exact-square-roots-as-surds-exact-true">Exact square roots as surds (<code class="docutils literal notranslate"><span class="pre">exact=True</span></code>)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#scalarlike-and-vectorlike-inputs">ScalarLike and VectorLike inputs</a></li>
+<li><a class="reference internal" href="#presentation-and-the-coerce-keyword">Presentation and the <code class="docutils literal notranslate"><span class="pre">coerce=</span></code> keyword</a></li>
+<li><a class="reference internal" href="#decimal-mode">Decimal mode</a><ul>
+<li><a class="reference internal" href="#correct-rounding-vs-correct-truncation">Correct rounding vs correct truncation</a></li>
+<li><a class="reference internal" href="#determinism-and-the-context-default">Determinism and the context default</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#guaranteed-termination">Guaranteed termination</a><ul>
+<li><a class="reference internal" href="#bounded-time-without-losing-determinism">Bounded time without losing determinism</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#using-it-with-fracvector">Using it with FracVector</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=fe42cd0d"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=fd10adb8"></script>
+    <script src="../_static/selector.js?v=e591e119"></script>
+    <script>window.HTTK_DOCS_VERSIONING = {"channel":"dev","version":"dev:main","versionPathDepth":2};</script>
+    </body>
+</html>

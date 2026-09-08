@@ -1,0 +1,263 @@
+httk.core.provenance
+====================
+
+.. py:module:: httk.core.provenance
+
+.. autoapi-nested-parse::
+
+   Stdlib-only OPTIMADE-aligned calculation provenance records.
+
+   Runs carry the internal, unprefixed entry-type name ``runs``; the provider
+   prefix (``_httk_runs``) is applied by the single wire transform at the serving
+   edge, not stored here. Their
+   ``has_input``/``has_artifact``/``has_output`` relationships are represented by
+   loose labeled references rather than object references: inputs are consumed,
+   artifacts are created, and outputs are returned. The single-creator rule for
+   artifacts is a serving concern and is not enforced on an individual record.
+   The definition identity remains the unprefixed ``RUNS_DEFINITION_ID`` IRI.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.provenance.RUNS_DEFINITION_ID
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.provenance.RunEdge
+   httk.core.provenance.Run
+   httk.core.provenance.ProductLink
+   httk.core.provenance.RunEntry
+
+
+Module Contents
+---------------
+
+.. py:data:: RUNS_DEFINITION_ID
+   :value: 'https://schemas.httk.org/defs/v0.1/entrytypes/runs'
+
+
+.. py:class:: RunEdge
+
+   Store one loose labeled reference from a run to another entry.
+
+   Edges deliberately keep the related entry's type and identifier as
+   strings rather than object references. ``entry_type`` is the INTERNAL
+   (unprefixed) entry-type name and ``entry_id`` is the raw store-minted id of
+   an entry in the SAME database; cross-provider linking is not supported. Edges
+   are servable as OPTIMADE semantic relationships — the forward direction under
+   the owning field's :class:`~httk.core.storage.StrongLink` ``relationship``
+   key, the reverse direction derived at serving time — so the composite
+   ``(entry_type, entry_id)`` index exists for those reverse lookups.
+
+   :param label: The relationship label.
+   :param entry_type: The related entry type name (internal, unprefixed).
+   :param entry_id: The related entry identifier (raw store-minted id, same database).
+
+
+   .. py:attribute:: label
+      :type:  str
+
+
+   .. py:attribute:: entry_type
+      :type:  str
+
+
+   .. py:attribute:: entry_id
+      :type:  str
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+      Coerce a mapping or existing edge into a :class:`RunEdge`.
+
+      :param obj: A run edge instance or field mapping.
+      :return: The existing or newly constructed run edge.
+      :raises TypeError: If ``obj`` is neither a run edge nor a mapping.
+      :raises ValueError: If the mapping has unknown or invalid fields.
+
+
+
+.. py:class:: Run
+
+   One workflow execution with loose provenance edges.
+
+   ``inputs`` are ``has_input`` edges to consumed entries, ``artifacts`` are
+   ``has_artifact`` edges to created entries, and ``outputs`` are
+   ``has_output`` edges to returned entries. Artifact single-creator
+   exclusivity across runs is documented here, not enforced per record.
+
+   Every invariant is cheap and total, so there is deliberately no
+   ``__httk_validate__`` hook.
+
+   Edges remain loose string triples by design, never object references: each
+   edge names an entry by its INTERNAL (unprefixed) ``entry_type`` and raw
+   store-minted ``entry_id`` in the SAME database (cross-provider linking is not
+   supported). Labels are unique independently on each of ``inputs``,
+   ``artifacts``, and ``outputs``. The three sides carry
+   :class:`~httk.core.storage.StrongLink` markers declaring their internal
+   (unprefixed) relationship keys, so each side is servable as an OPTIMADE
+   semantic relationship in both directions (forward under the marker's
+   ``relationship`` key, reverse derived at serving time); the provider prefix
+   is applied at the serving edge, not here.
+
+   :param workflow_declaration_uri: The workflow declaration IRI, if declared.
+   :param inputs: The labeled entries consumed by the run.
+   :param artifacts: The labeled entries created by the run.
+   :param outputs: The labeled entries returned by the run.
+   :param source_id: The run's identifier in the system that executed it; part
+       of the content identity so re-collecting the same job deduplicates to
+       one row while distinct jobs stay distinct.
+   :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+   :param immutable_id: The per-revision immutable id; minted by the store when None.
+   :param last_modified: The optional timezone-aware metadata timestamp.
+
+
+   .. py:attribute:: workflow_declaration_uri
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: inputs
+      :type:  Annotated[tuple[RunEdge, Ellipsis], StrongLink('has_input', reverse='is_input', role='input')]
+      :value: ()
+
+
+
+   .. py:attribute:: artifacts
+      :type:  Annotated[tuple[RunEdge, Ellipsis], StrongLink('has_artifact', reverse='is_artifact', role='artifact')]
+      :value: ()
+
+
+
+   .. py:attribute:: outputs
+      :type:  Annotated[tuple[RunEdge, Ellipsis], StrongLink('has_output', reverse='is_output', role='output')]
+      :value: ()
+
+
+
+   .. py:attribute:: source_id
+      :type:  Annotated[str | None, Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: id
+      :type:  Annotated[str | None, IdentitySkip(), Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: immutable_id
+      :type:  Annotated[str | None, IdentitySkip(), Unique()]
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+   .. py:property:: type
+      :type: str
+
+
+      Return the internal (unprefixed) entry type name.
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+      Coerce a mapping or existing run into a :class:`Run`.
+
+      :param obj: A run instance or field mapping.
+      :return: The existing or newly constructed run.
+      :raises TypeError: If ``obj`` is neither a run nor a mapping.
+      :raises ValueError: If the mapping has unknown or invalid fields.
+
+
+
+.. py:class:: ProductLink
+
+   A curation ``has_product``/``is_product`` edge between data entries.
+
+   A label is unique per source entry across links; that constraint is
+   enforced at the serving projection rather than on each record.
+
+   :param source_type: The source entry type name.
+   :param source_id: The source entry identifier.
+   :param target_type: The target entry type name.
+   :param target_id: The target entry identifier.
+   :param label: The relationship label, unique per source entry at serving time.
+   :param workflow_declaration_uri: The workflow declaration IRI, if declared.
+
+
+   .. py:attribute:: source_type
+      :type:  str
+
+
+   .. py:attribute:: source_id
+      :type:  str
+
+
+   .. py:attribute:: target_type
+      :type:  str
+
+
+   .. py:attribute:: target_id
+      :type:  str
+
+
+   .. py:attribute:: label
+      :type:  str
+
+
+   .. py:attribute:: workflow_declaration_uri
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+      Coerce a mapping or existing link into a :class:`ProductLink`.
+
+      :param obj: A product-link instance or field mapping.
+      :return: The existing or newly constructed product link.
+      :raises TypeError: If ``obj`` is neither a product link nor a mapping.
+      :raises ValueError: If the mapping has unknown or invalid fields.
+
+
+
+.. py:class:: RunEntry
+
+   Logical entry family for served :class:`Run` records.
+
+   This family is not itself storable; store a ``Run`` directly.
+
+
+   .. py:attribute:: type
+      :value: 'runs'
+
+
+
+   .. py:attribute:: definition_id
+      :value: 'https://schemas.httk.org/defs/v0.1/entrytypes/runs'
+
+
+

@@ -1,0 +1,572 @@
+httk.core.register
+==================
+
+.. py:module:: httk.core.register
+
+.. autoapi-nested-parse::
+
+   Backward-compatible exports for registry implementations split by type.
+
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /reference/autoapi/httk/core/register/cli/index
+   /reference/autoapi/httk/core/register/entries/index
+   /reference/autoapi/httk/core/register/io/index
+   /reference/autoapi/httk/core/register/members/index
+   /reference/autoapi/httk/core/register/schemas/index
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.register.CLIHandler
+   httk.core.register.entry_providers
+   httk.core.register.format_adapters
+   httk.core.register.format_serializers
+   httk.core.register.reader_filenames
+   httk.core.register.readers
+   httk.core.register.writer_filenames
+   httk.core.register.writer_formats
+   httk.core.register.writers
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.register.PluginRegistry
+   httk.core.register.CLICommand
+   httk.core.register.OptimadeEntryBinding
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.register.resolve_callable
+   httk.core.register.cli_command
+   httk.core.register.register_cli_command
+   httk.core.register.entry_family_info
+   httk.core.register.entry_record_info
+   httk.core.register.known_entry_families
+   httk.core.register.known_entry_providers
+   httk.core.register.known_entry_records
+   httk.core.register.known_optimade_entry_bindings
+   httk.core.register.optimade_entry_binding
+   httk.core.register.register_entry_family
+   httk.core.register.register_entry_provider
+   httk.core.register.register_entry_record
+   httk.core.register.register_optimade_entry_binding
+   httk.core.register.resolve_entry_family
+   httk.core.register.resolve_entry_record
+   httk.core.register.has_reader_for
+   httk.core.register.known_extensions
+   httk.core.register.known_filenames
+   httk.core.register.known_format_adapters
+   httk.core.register.known_writer_formats
+   httk.core.register.known_writers
+   httk.core.register.register_format_adapter
+   httk.core.register.register_format_serializer
+   httk.core.register.register_reader
+   httk.core.register.register_writer
+   httk.core.register.known_project_member_kinds
+   httk.core.register.project_member_handler
+   httk.core.register.register_project_member_kind
+   httk.core.register.known_entry_type_definitions
+   httk.core.register.known_property_definitions
+   httk.core.register.load_entry_type_definition
+   httk.core.register.load_property_definition
+   httk.core.register.register_entry_type_definition
+   httk.core.register.register_property_definition
+
+
+Package Contents
+----------------
+
+.. py:class:: PluginRegistry
+
+   Registry mapping keys -> plugin specs.
+
+   Intended use:
+     - readers: key is file extension ".cif"
+     - savers: key is file extension ".cif" or format name
+     - show/visualization: key is format/backend name
+
+
+   .. py:method:: register(*, key, handler, name = None)
+
+
+   .. py:method:: keys()
+
+
+   .. py:method:: items()
+
+
+   .. py:method:: get(key)
+
+
+   .. py:method:: require(key)
+
+
+   .. py:method:: dispatch(key, *args, **kwargs)
+
+
+.. py:function:: resolve_callable(ref)
+
+   Resolve a callable reference.
+
+   Accepts:
+     - a callable object
+     - a string of form "module.submodule:callable_name"
+
+
+.. py:class:: CLICommand
+
+   Store registration metadata for one top-level :command:`httk` command.
+
+   :param name: The lowercase hyphen-separated command name.
+   :param handler: The command callable or lazy reference.
+   :param summary: The one-line command summary.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: handler
+      :type:  str | collections.abc.Callable[Ellipsis, Any]
+
+
+   .. py:attribute:: summary
+      :type:  str
+
+
+   .. py:method:: resolve()
+
+      Import and return the registered command implementation.
+
+      :return: The resolved command handler.
+
+
+
+.. py:data:: CLIHandler
+
+.. py:function:: cli_command(name)
+
+   Return command metadata without importing its implementation.
+
+   :param name: The command name to look up.
+   :return: Command metadata, or ``None`` if it is not registered.
+
+
+.. py:function:: register_cli_command(name, handler, summary)
+
+   Register a lazy top-level :command:`httk` command.
+
+   A handler is either a callable or a lazy ``"module:callable"`` reference
+   with the contract ``(argv: Sequence[str], context: CLIContext) -> int``.
+   Names use lowercase, hyphen-separated command syntax. Registration is
+   intentionally strict: reserved names and duplicate registrations are
+   errors rather than order-dependent overrides.
+
+   :param name: The lowercase hyphen-separated command name.
+   :param handler: The command callable or lazy ``"module:callable"`` reference.
+   :param summary: The nonempty one-line command summary.
+   :raises TypeError: If ``handler`` is neither callable nor a lazy reference.
+   :raises ValueError: If the name, handler reference, summary, or registration is invalid.
+
+
+.. py:class:: OptimadeEntryBinding
+
+   Describe lazy typed handling for one exact entry-type definition IRI.
+
+   :param name: The binding registry name.
+   :param definition_id: The exact entry-type definition IRI selected by the binding.
+   :param backend: The lazy backend class reference.
+   :param view: The lazy view class reference.
+   :param property_decoders: Property definition IRIs mapped to lazy decoder references.
+   :param query_fields: Property definition IRIs supported for querying, if restricted.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: definition_id
+      :type:  str
+
+
+   .. py:attribute:: backend
+      :type:  str
+
+
+   .. py:attribute:: view
+      :type:  str
+
+
+   .. py:attribute:: property_decoders
+      :type:  collections.abc.Mapping[str, str]
+
+
+   .. py:attribute:: query_fields
+      :type:  tuple[str, Ellipsis] | None
+      :value: None
+
+
+
+   .. py:method:: resolve_backend()
+
+      Import and return this binding's backend class on demand.
+
+      :return: The resolved backend class.
+      :raises TypeError: If the lazy reference does not resolve to a class.
+
+
+
+   .. py:method:: resolve_view()
+
+      Import and return this binding's view class on demand.
+
+      :return: The resolved view class.
+      :raises TypeError: If the lazy reference does not resolve to a class.
+
+
+
+   .. py:method:: resolve_property_decoder(definition_id)
+
+      Resolve one property decoder, or return ``None`` when it is unbound.
+
+      :param definition_id: The property definition IRI to resolve.
+      :return: The decoder callable, or ``None`` when no decoder is registered.
+
+
+
+.. py:function:: entry_family_info(name)
+
+   Return entry-family metadata without importing its class.
+
+   :param name: The registered entry-family name.
+   :return: The lazy family reference and optional definition IRI.
+   :raises ValueError: If ``name`` is not registered.
+
+
+.. py:data:: entry_providers
+
+.. py:function:: entry_record_info(name)
+
+   Return record, family, and definition metadata without importing the record class.
+
+   :param name: The registered record name.
+   :return: The lazy record reference and optional family and definition IRI.
+   :raises ValueError: If ``name`` is not registered.
+
+
+.. py:function:: known_entry_families()
+
+   Return registered entry-family names.
+
+   :return: Registered entry-family names.
+
+
+.. py:function:: known_entry_providers()
+
+   Return registered entry-provider names.
+
+   :return: Registered provider names.
+
+
+.. py:function:: known_entry_records(family = None)
+
+   Return registered record names, optionally limited to a family.
+
+   :param family: An entry-family name to filter by, or ``None`` for all records.
+   :return: Matching record registry names.
+
+
+.. py:function:: known_optimade_entry_bindings()
+
+   Return registered entry-type definition IRIs without resolving imports.
+
+   :return: Exact definition IRIs with registered bindings.
+
+
+.. py:function:: optimade_entry_binding(definition_id)
+
+   Return the exact-IRI binding without importing its backend or view.
+
+   :param definition_id: The exact entry-type definition IRI to look up.
+   :return: The binding, or ``None`` if no exact match is registered.
+
+
+.. py:function:: register_entry_family(*, name, family, definition_id = None)
+
+   Register a lazy entry-family class reference without importing it.
+
+   :param name: The entry-family registry name.
+   :param family: The lazy ``"module:class"`` family reference.
+   :param definition_id: The family's definition IRI, if any.
+   :raises ValueError: If validation fails or ``name`` is already registered.
+
+
+.. py:function:: register_entry_provider(*, name, factory)
+
+   Register an :class:`~httk.core.entry_provider.EntryProvider` factory under ``name``.
+
+   ``factory`` is a lazy ``"module:callable"`` reference to a callable that
+   constructs a provider (providers need data, so applications call the factory
+   themselves; the registry only records how to reach it). This mirrors
+   ``register_reader``.
+
+   :param name: The provider registry name.
+   :param factory: The lazy ``"module:callable"`` factory reference.
+
+
+.. py:function:: register_entry_record(*, name, record, family = None, definition_id = None)
+
+   Register a lazy record-class reference and optional family and definition IRI.
+
+   :param name: The record registry name.
+   :param record: The lazy ``"module:class"`` record reference.
+   :param family: The logical entry-family name, if any.
+   :param definition_id: The record's definition IRI, if any.
+   :raises ValueError: If validation fails or ``name`` is already registered.
+
+
+.. py:function:: register_optimade_entry_binding(*, name, definition_id, backend, view, property_decoders = None, query_fields = None)
+
+   Register one lazy typed binding, selected only by exact definition IRI.
+
+   :param name: The binding registry name.
+   :param definition_id: The exact entry-type definition IRI selected by the binding.
+   :param backend: The lazy backend class reference.
+   :param view: The lazy view class reference.
+   :param property_decoders: Property definition IRIs mapped to lazy decoder references.
+   :param query_fields: Property definition IRIs supported for querying, if restricted.
+   :raises ValueError: If the definition IRI is already registered or input is invalid.
+
+
+.. py:function:: resolve_entry_family(name)
+
+   Import and return a registered entry-family class.
+
+   :param name: The registered entry-family name.
+   :return: The resolved entry-family class.
+   :raises ValueError: If ``name`` is not registered.
+   :raises TypeError: If the reference does not resolve to a class.
+
+
+.. py:function:: resolve_entry_record(name)
+
+   Import and return a registered record class.
+
+   :param name: The registered record name.
+   :return: The resolved frozen dataclass record class.
+   :raises ValueError: If ``name`` is not registered.
+   :raises TypeError: If the reference does not resolve to a frozen dataclass.
+
+
+.. py:data:: format_adapters
+
+.. py:data:: format_serializers
+
+.. py:function:: has_reader_for(name)
+
+   Return whether ``name`` matches a registered reader key.
+
+   :param name: Filename or URL path whose reader registration is checked.
+   :return: Whether the name matches a registered extension or exact basename.
+
+
+.. py:function:: known_extensions()
+
+   Return the registered reader extensions.
+
+   :return: Lower-case reader suffixes.
+
+
+.. py:function:: known_filenames()
+
+   Return the registered reader basenames.
+
+   :return: Lower-case reader basenames.
+
+
+.. py:function:: known_format_adapters()
+
+   Return format tags mapped to their registered adapter names.
+
+   :return: Format tags mapped to registry names.
+
+
+.. py:function:: known_writer_formats()
+
+   Return registered writer format tags.
+
+   :return: Registered neutral payload format tags.
+
+
+.. py:function:: known_writers()
+
+   Return the registered writer extension and basename dispatch keys.
+
+   :return: Writer keys selected by extensions or exact basenames.
+
+
+.. py:data:: reader_filenames
+
+.. py:data:: readers
+
+.. py:function:: register_format_adapter(*, name, adapter, formats)
+
+   Register one lazy adapter for each neutral payload format in ``formats``.
+
+   ``adapter`` may be a callable or a lazy ``"module:callable"`` reference.
+   A format tag has one owner: registering it again raises an error naming both
+   the existing and attempted registrants.
+
+   :param name: The registry name for the adapter.
+   :param adapter: The adapter callable or lazy ``"module:callable"`` reference.
+   :param formats: Neutral payload format tags served by the adapter.
+   :raises ValueError: If a format tag is invalid, duplicated, or already owned.
+
+
+.. py:function:: register_format_serializer(*, format, serializer)
+
+   Register one lazy serializer for a neutral payload format tag.
+
+   :param format: The neutral payload format tag.
+   :param serializer: The serializer callable or lazy reference.
+   :raises ValueError: If ``format`` is invalid or already has another serializer.
+
+
+.. py:function:: register_reader(*, name, reader, extensions = (), filenames = ())
+
+   Register a reader under one or more file ``extensions`` and/or ``filenames``.
+
+   ``extensions`` are matched (case-insensitively) against a file's suffix, e.g.
+   ``".cif"``. ``filenames`` are exact basenames matched (case-insensitively)
+   against a file's name with any recognized compression suffix stripped, e.g.
+   ``"POSCAR"`` matches ``POSCAR``, ``poscar``, and ``POSCAR.bz2``.
+
+   :param name: The registry name for the reader.
+   :param reader: A lazy ``"module:callable"`` reference to the reader.
+   :param extensions: File suffixes that select the reader.
+   :param filenames: Exact basenames that select the reader.
+
+
+.. py:function:: register_writer(*, name, writer, format, extensions = (), filenames = ())
+
+   Register a writer under one or more extensions and/or exact basenames.
+
+   A format can have one writer owner; registering a conflicting writer raises
+   an error. Extension and basename keys are matched case-insensitively.
+
+   :param name: The registry name for the writer.
+   :param writer: The writer callable or lazy ``"module:callable"`` reference.
+   :param format: The neutral payload format emitted by the writer.
+   :param extensions: File suffixes that select the writer.
+   :param filenames: Exact basenames that select the writer.
+   :raises ValueError: If ``format`` is invalid or conflicts with an existing writer.
+
+
+.. py:data:: writer_filenames
+
+.. py:data:: writer_formats
+
+.. py:data:: writers
+
+.. py:function:: known_project_member_kinds()
+
+   Return the registered member-kind names.
+
+   :return: Registered member-kind names in sorted order.
+
+
+.. py:function:: project_member_handler(kind)
+
+   Return the handler object for one project-member *kind*.
+
+   The registered reference is resolved lazily and called with no arguments to
+   build the handler, so a module contributes a kind without core importing it
+   until a member of that kind is actually acted on.
+
+   :param kind: The member kind whose handler to resolve.
+   :return: The handler object implementing the member protocol.
+   :raises LookupError: If no module has registered a handler for the kind.
+
+
+.. py:function:: register_project_member_kind(kind, handler)
+
+   Register the handler that implements one project-member *kind*.
+
+   A *handler* is either a callable or a lazy ``"module:callable"`` reference
+   that takes no arguments and returns an object implementing
+   :class:`~httk.core.project.members.ProjectMemberHandler`. Registering a kind
+   is how an installed module teaches the core seal, manifest, and repair verbs
+   to delegate that member's internals to it. This mirrors
+   :func:`~httk.core.register.entries.register_entry_provider`.
+
+   :param kind: The member kind name to register.
+   :param handler: The handler callable or lazy ``"module:callable"`` reference.
+
+
+.. py:function:: known_entry_type_definitions()
+
+   Return registered entry-type definition IRIs.
+
+   :return: Registered entry-type definition identifiers.
+
+
+.. py:function:: known_property_definitions()
+
+   Return registered property definition IRIs.
+
+   :return: Registered property definition identifiers.
+
+
+.. py:function:: load_entry_type_definition(definition_id)
+
+   Load and verify a registered entry-type definition resource.
+
+   :param definition_id: The registered entry-type definition IRI.
+   :return: The loaded and validated entry-type definition.
+   :raises ValueError: If the IRI is unregistered or disagrees with the document.
+
+
+.. py:function:: load_property_definition(definition_id)
+
+   Load and verify a registered property definition resource.
+
+   :param definition_id: The registered property definition IRI.
+   :return: The loaded and validated property definition.
+   :raises ValueError: If the IRI is unregistered or disagrees with the document.
+
+
+.. py:function:: register_entry_type_definition(*, definition_id, resource)
+
+   Register one resource for an entry-type definition IRI.
+
+   :param definition_id: The entry-type definition IRI.
+   :param resource: The package resource reference to load.
+   :raises ValueError: If ``definition_id`` is already registered.
+
+
+.. py:function:: register_property_definition(*, definition_id, resource)
+
+   Register one resource for a property definition IRI.
+
+   :param definition_id: The property definition IRI.
+   :param resource: The package resource reference to load.
+   :raises ValueError: If ``definition_id`` is already registered.
+
+

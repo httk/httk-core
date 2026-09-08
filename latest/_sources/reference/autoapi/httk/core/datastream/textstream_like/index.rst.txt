@@ -1,0 +1,21 @@
+httk.core.datastream.textstream_like
+====================================
+
+.. py:module:: httk.core.datastream.textstream_like
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.datastream.textstream_like.TextstreamLike
+
+
+Module Contents
+---------------
+
+.. py:type:: TextstreamLike
+   :canonical: textstream_backend.TextstreamBackend | textstream_view.TextstreamView | io.TextIOBase | io.StringIO | str | pathlib.Path | urllib.request.Request
+
+

@@ -1,0 +1,1021 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Plugins in detail" href="plugins.html"><link rel="prev" title="Module registry in detail" href="registry.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Datastreams in detail - httk-core dev:main documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/selector.css?v=626bada3" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+<div class="announcement">
+  <aside class="announcement-content">
+     Development documentation (dev:main) — content may differ from any release. 
+  </aside>
+</div>
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">httk-core dev:main documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">httk-core dev:main documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../reference/index.html">Reference</a><input aria-label="Toggle navigation of Reference" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/index.html">httk.core</a><input aria-label="Toggle navigation of httk.core" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/atomic_write/index.html">httk.core.atomic_write</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/building/index.html">httk.core.building</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/citations/index.html">httk.core.citations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/cli/index.html">httk.core.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/converting/index.html">httk.core.converting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/crypto/index.html">httk.core.crypto</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/data_records/index.html">httk.core.data_records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/dataset_loader/index.html">httk.core.dataset_loader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/datasets/index.html">httk.core.datasets</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/index.html">httk.core.datastream</a><input aria-label="Toggle navigation of httk.core.datastream" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_api/index.html">httk.core.datastream.bytestream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_backend/index.html">httk.core.datastream.bytestream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_bytes/index.html">httk.core.datastream.bytestream_bytes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_bytes_view/index.html">httk.core.datastream.bytestream_bytes_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_common/index.html">httk.core.datastream.bytestream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_file/index.html">httk.core.datastream.bytestream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_file_view/index.html">httk.core.datastream.bytestream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_filename/index.html">httk.core.datastream.bytestream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_filename_view/index.html">httk.core.datastream.bytestream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_like/index.html">httk.core.datastream.bytestream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_request/index.html">httk.core.datastream.bytestream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_request_view/index.html">httk.core.datastream.bytestream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_url/index.html">httk.core.datastream.bytestream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_url_view/index.html">httk.core.datastream.bytestream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_view/index.html">httk.core.datastream.bytestream_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/compression/index.html">httk.core.datastream.compression</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/datastream_url/index.html">httk.core.datastream.datastream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/network_policy/index.html">httk.core.datastream.network_policy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_api/index.html">httk.core.datastream.textstream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_backend/index.html">httk.core.datastream.textstream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_common/index.html">httk.core.datastream.textstream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_file/index.html">httk.core.datastream.textstream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_file_view/index.html">httk.core.datastream.textstream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_filename/index.html">httk.core.datastream.textstream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_filename_view/index.html">httk.core.datastream.textstream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_like/index.html">httk.core.datastream.textstream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_request/index.html">httk.core.datastream.textstream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_request_view/index.html">httk.core.datastream.textstream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_string/index.html">httk.core.datastream.textstream_string</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_string_view/index.html">httk.core.datastream.textstream_string_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_url/index.html">httk.core.datastream.textstream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_url_view/index.html">httk.core.datastream.textstream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_view/index.html">httk.core.datastream.textstream_view</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/digests/index.html">httk.core.digests</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/docs/index.html">httk.core.docs</a><input aria-label="Toggle navigation of httk.core.docs" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/cli/index.html">httk.core.docs.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/config/index.html">httk.core.docs.config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/ecosystem/index.html">httk.core.docs.ecosystem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/gitsite/index.html">httk.core.docs.gitsite</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/inventories/index.html">httk.core.docs.inventories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/lockfile/index.html">httk.core.docs.lockfile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/manifests/index.html">httk.core.docs.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/redirect/index.html">httk.core.docs.redirect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/release/index.html">httk.core.docs.release</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/semver/index.html">httk.core.docs.semver</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/sitetree/index.html">httk.core.docs.sitetree</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/sphinx_ext/index.html">httk.core.docs.sphinx_ext</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/entry_ids/index.html">httk.core.entry_ids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/entry_provider/index.html">httk.core.entry_provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/entry_types/index.html">httk.core.entry_types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/exactmath/index.html">httk.core.exactmath</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/fetching/index.html">httk.core.fetching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/files/index.html">httk.core.files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/identity/index.html">httk.core.identity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/identity_cli/index.html">httk.core.identity_cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/loading/index.html">httk.core.loading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/memguard/index.html">httk.core.memguard</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/index.html">httk.core.optimade</a><input aria-label="Toggle navigation of httk.core.optimade" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/entries/index.html">httk.core.optimade.entries</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/filter/index.html">httk.core.optimade.filter</a><input aria-label="Toggle navigation of httk.core.optimade.filter" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/filter/parser/index.html">httk.core.optimade.filter.parser</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/resources/index.html">httk.core.optimade.resources</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/index.html">httk.core.plugins</a><input aria-label="Toggle navigation of httk.core.plugins" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/cli/index.html">httk.core.plugins.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/install/index.html">httk.core.plugins.install</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/installed/index.html">httk.core.plugins.installed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/manifest/index.html">httk.core.plugins.manifest</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/precision/index.html">httk.core.precision</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/project/index.html">httk.core.project</a><input aria-label="Toggle navigation of httk.core.project" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/anchor/index.html">httk.core.project.anchor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/cli/index.html">httk.core.project.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/export/index.html">httk.core.project.export</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/manifests/index.html">httk.core.project.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/members/index.html">httk.core.project.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/sealing/index.html">httk.core.project.sealing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/templates/index.html">httk.core.project.templates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/property_definitions/index.html">httk.core.property_definitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/provenance/index.html">httk.core.provenance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/records/index.html">httk.core.records</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/register/index.html">httk.core.register</a><input aria-label="Toggle navigation of httk.core.register" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/cli/index.html">httk.core.register.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/entries/index.html">httk.core.register.entries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/io/index.html">httk.core.register.io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/members/index.html">httk.core.register.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/schemas/index.html">httk.core.register.schemas</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/report/index.html">httk.core.report</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/saving/index.html">httk.core.saving</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/schema_check/index.html">httk.core.schema_check</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/services/index.html">httk.core.services</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/storage/index.html">httk.core.storage</a><input aria-label="Toggle navigation of httk.core.storage" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/storage/identity/index.html">httk.core.storage.identity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/storage/markers/index.html">httk.core.storage.markers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/storage/rational_text/index.html">httk.core.storage.rational_text</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/storage/stored_properties/index.html">httk.core.storage.stored_properties</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/system/index.html">httk.core.system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/userdirs/index.html">httk.core.userdirs</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/validation/index.html">httk.core.validation</a><input aria-label="Toggle navigation of httk.core.validation" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/validation/iris/index.html">httk.core.validation.iris</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/index.html">httk.core.vectors</a><input aria-label="Toggle navigation of httk.core.vectors" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/fracvector/index.html">httk.core.vectors.fracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/leaf_codecs/index.html">httk.core.vectors.leaf_codecs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/mutablefracvector/index.html">httk.core.vectors.mutablefracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/numeric/index.html">httk.core.vectors.numeric</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/scalar_like/index.html">httk.core.vectors.scalar_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/surdvector/index.html">httk.core.vectors.surdvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_api/index.html">httk.core.vectors.vector_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_backend/index.html">httk.core.vectors.vector_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_frac_view/index.html">httk.core.vectors.vector_frac_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_like/index.html">httk.core.vectors.vector_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_native_backend/index.html">httk.core.vectors.vector_native_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_native_view/index.html">httk.core.vectors.vector_native_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_numpy_backend/index.html">httk.core.vectors.vector_numpy_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_numpy_view/index.html">httk.core.vectors.vector_numpy_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_surd_view/index.html">httk.core.vectors.vector_surd_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_view/index.html">httk.core.vectors.vector_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vectormath/index.html">httk.core.vectors.vectormath</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/views/index.html">httk.core.views</a><input aria-label="Toggle navigation of httk.core.views" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/backend/index.html">httk.core.views.backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/coercion/index.html">httk.core.views.coercion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/unviewing/index.html">httk.core.views.unviewing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/unwrapping/index.html">httk.core.views.unwrapping</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/view/index.html">httk.core.views.view</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../view_backend_pattern.html">Views and Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../registry.html">Module registry</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../datastreams.html">Datastreams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">The extensible command line</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins.html">Plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../crypto.html">Cryptography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../identity.html">Operator identity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../projects.html">Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sealing.html">Sealing and manifests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../property_definitions.html">Property definitions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../vectors.html">Vectors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../exactmath.html">Exact math on rationals and decimals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../credits.html">Citation credits</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/index.html">Examples</a><input aria-label="Toggle navigation of Examples" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/datastreams_quickstart.html">Datastreams quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/vectors_quickstart.html">Vectors quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/exactmath_quickstart.html">Exact math quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/load_and_dataset_loader.html">Getting data into httk: the <code class="docutils literal notranslate"><span class="pre">load</span></code> dispatcher and the <code class="docutils literal notranslate"><span class="pre">DatasetLoader</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/property_definitions.html">Building a custom OPTIMADE entry type end to end</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/entry_provider.html">Implementing an <code class="docutils literal notranslate"><span class="pre">EntryProvider</span></code>: the contract <em>httk-core</em> owns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/optimade_filter.html">Parsing OPTIMADE filter strings into an abstract syntax tree</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/coerce_quickstart.html">Coercion quickstart</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Details</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="view_backend_pattern.html">Views and Backends in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="registry.html">Module registry in detail</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Datastreams in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugins.html">Plugins in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="property_definitions.html">Property definitions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vectors.html">Vectors in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exactmath.html">Exact math in detail</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../reference/autoapi/index.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/index.html">httk.core</a><input aria-label="Toggle navigation of httk.core" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/atomic_write/index.html">httk.core.atomic_write</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/building/index.html">httk.core.building</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/citations/index.html">httk.core.citations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/cli/index.html">httk.core.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/converting/index.html">httk.core.converting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/crypto/index.html">httk.core.crypto</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/data_records/index.html">httk.core.data_records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/dataset_loader/index.html">httk.core.dataset_loader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/datasets/index.html">httk.core.datasets</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/index.html">httk.core.datastream</a><input aria-label="Toggle navigation of httk.core.datastream" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_api/index.html">httk.core.datastream.bytestream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_backend/index.html">httk.core.datastream.bytestream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_bytes/index.html">httk.core.datastream.bytestream_bytes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_bytes_view/index.html">httk.core.datastream.bytestream_bytes_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_common/index.html">httk.core.datastream.bytestream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_file/index.html">httk.core.datastream.bytestream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_file_view/index.html">httk.core.datastream.bytestream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_filename/index.html">httk.core.datastream.bytestream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_filename_view/index.html">httk.core.datastream.bytestream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_like/index.html">httk.core.datastream.bytestream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_request/index.html">httk.core.datastream.bytestream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_request_view/index.html">httk.core.datastream.bytestream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_url/index.html">httk.core.datastream.bytestream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_url_view/index.html">httk.core.datastream.bytestream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/bytestream_view/index.html">httk.core.datastream.bytestream_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/compression/index.html">httk.core.datastream.compression</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/datastream_url/index.html">httk.core.datastream.datastream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/network_policy/index.html">httk.core.datastream.network_policy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_api/index.html">httk.core.datastream.textstream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_backend/index.html">httk.core.datastream.textstream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_common/index.html">httk.core.datastream.textstream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_file/index.html">httk.core.datastream.textstream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_file_view/index.html">httk.core.datastream.textstream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_filename/index.html">httk.core.datastream.textstream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_filename_view/index.html">httk.core.datastream.textstream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_like/index.html">httk.core.datastream.textstream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_request/index.html">httk.core.datastream.textstream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_request_view/index.html">httk.core.datastream.textstream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_string/index.html">httk.core.datastream.textstream_string</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_string_view/index.html">httk.core.datastream.textstream_string_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_url/index.html">httk.core.datastream.textstream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_url_view/index.html">httk.core.datastream.textstream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/datastream/textstream_view/index.html">httk.core.datastream.textstream_view</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/digests/index.html">httk.core.digests</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/docs/index.html">httk.core.docs</a><input aria-label="Toggle navigation of httk.core.docs" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/cli/index.html">httk.core.docs.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/config/index.html">httk.core.docs.config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/ecosystem/index.html">httk.core.docs.ecosystem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/gitsite/index.html">httk.core.docs.gitsite</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/inventories/index.html">httk.core.docs.inventories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/lockfile/index.html">httk.core.docs.lockfile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/manifests/index.html">httk.core.docs.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/redirect/index.html">httk.core.docs.redirect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/release/index.html">httk.core.docs.release</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/semver/index.html">httk.core.docs.semver</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/sitetree/index.html">httk.core.docs.sitetree</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/docs/sphinx_ext/index.html">httk.core.docs.sphinx_ext</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/entry_ids/index.html">httk.core.entry_ids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/entry_provider/index.html">httk.core.entry_provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/entry_types/index.html">httk.core.entry_types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/exactmath/index.html">httk.core.exactmath</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/fetching/index.html">httk.core.fetching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/files/index.html">httk.core.files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/identity/index.html">httk.core.identity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/identity_cli/index.html">httk.core.identity_cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/loading/index.html">httk.core.loading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/memguard/index.html">httk.core.memguard</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/index.html">httk.core.optimade</a><input aria-label="Toggle navigation of httk.core.optimade" class="toctree-checkbox" id="toctree-checkbox-19" name="toctree-checkbox-19" role="switch" type="checkbox"/><label for="toctree-checkbox-19"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/entries/index.html">httk.core.optimade.entries</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/filter/index.html">httk.core.optimade.filter</a><input aria-label="Toggle navigation of httk.core.optimade.filter" class="toctree-checkbox" id="toctree-checkbox-20" name="toctree-checkbox-20" role="switch" type="checkbox"/><label for="toctree-checkbox-20"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/filter/parser/index.html">httk.core.optimade.filter.parser</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/optimade/resources/index.html">httk.core.optimade.resources</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/index.html">httk.core.plugins</a><input aria-label="Toggle navigation of httk.core.plugins" class="toctree-checkbox" id="toctree-checkbox-21" name="toctree-checkbox-21" role="switch" type="checkbox"/><label for="toctree-checkbox-21"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/cli/index.html">httk.core.plugins.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/install/index.html">httk.core.plugins.install</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/installed/index.html">httk.core.plugins.installed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/plugins/manifest/index.html">httk.core.plugins.manifest</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/precision/index.html">httk.core.precision</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/project/index.html">httk.core.project</a><input aria-label="Toggle navigation of httk.core.project" class="toctree-checkbox" id="toctree-checkbox-22" name="toctree-checkbox-22" role="switch" type="checkbox"/><label for="toctree-checkbox-22"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/anchor/index.html">httk.core.project.anchor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/cli/index.html">httk.core.project.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/export/index.html">httk.core.project.export</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/manifests/index.html">httk.core.project.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/members/index.html">httk.core.project.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/sealing/index.html">httk.core.project.sealing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/project/templates/index.html">httk.core.project.templates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/property_definitions/index.html">httk.core.property_definitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/provenance/index.html">httk.core.provenance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/records/index.html">httk.core.records</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/register/index.html">httk.core.register</a><input aria-label="Toggle navigation of httk.core.register" class="toctree-checkbox" id="toctree-checkbox-23" name="toctree-checkbox-23" role="switch" type="checkbox"/><label for="toctree-checkbox-23"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/cli/index.html">httk.core.register.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/entries/index.html">httk.core.register.entries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/io/index.html">httk.core.register.io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/members/index.html">httk.core.register.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/register/schemas/index.html">httk.core.register.schemas</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/report/index.html">httk.core.report</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/saving/index.html">httk.core.saving</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/schema_check/index.html">httk.core.schema_check</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/services/index.html">httk.core.services</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/storage/index.html">httk.core.storage</a><input aria-label="Toggle navigation of httk.core.storage" class="toctree-checkbox" id="toctree-checkbox-24" name="toctree-checkbox-24" role="switch" type="checkbox"/><label for="toctree-checkbox-24"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/storage/identity/index.html">httk.core.storage.identity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/storage/markers/index.html">httk.core.storage.markers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/storage/rational_text/index.html">httk.core.storage.rational_text</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/storage/stored_properties/index.html">httk.core.storage.stored_properties</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/system/index.html">httk.core.system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/autoapi/httk/core/userdirs/index.html">httk.core.userdirs</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/validation/index.html">httk.core.validation</a><input aria-label="Toggle navigation of httk.core.validation" class="toctree-checkbox" id="toctree-checkbox-25" name="toctree-checkbox-25" role="switch" type="checkbox"/><label for="toctree-checkbox-25"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/validation/iris/index.html">httk.core.validation.iris</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/index.html">httk.core.vectors</a><input aria-label="Toggle navigation of httk.core.vectors" class="toctree-checkbox" id="toctree-checkbox-26" name="toctree-checkbox-26" role="switch" type="checkbox"/><label for="toctree-checkbox-26"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/fracvector/index.html">httk.core.vectors.fracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/leaf_codecs/index.html">httk.core.vectors.leaf_codecs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/mutablefracvector/index.html">httk.core.vectors.mutablefracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/numeric/index.html">httk.core.vectors.numeric</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/scalar_like/index.html">httk.core.vectors.scalar_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/surdvector/index.html">httk.core.vectors.surdvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_api/index.html">httk.core.vectors.vector_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_backend/index.html">httk.core.vectors.vector_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_frac_view/index.html">httk.core.vectors.vector_frac_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_like/index.html">httk.core.vectors.vector_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_native_backend/index.html">httk.core.vectors.vector_native_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_native_view/index.html">httk.core.vectors.vector_native_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_numpy_backend/index.html">httk.core.vectors.vector_numpy_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_numpy_view/index.html">httk.core.vectors.vector_numpy_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_surd_view/index.html">httk.core.vectors.vector_surd_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vector_view/index.html">httk.core.vectors.vector_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/vectors/vectormath/index.html">httk.core.vectors.vectormath</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../reference/autoapi/httk/core/views/index.html">httk.core.views</a><input aria-label="Toggle navigation of httk.core.views" class="toctree-checkbox" id="toctree-checkbox-27" name="toctree-checkbox-27" role="switch" type="checkbox"/><label for="toctree-checkbox-27"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/backend/index.html">httk.core.views.backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/coercion/index.html">httk.core.views.coercion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/unviewing/index.html">httk.core.views.unviewing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/unwrapping/index.html">httk.core.views.unwrapping</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../reference/autoapi/httk/core/views/view/index.html">httk.core.views.view</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/autoapi/httk/registry/cli/core/index.html">httk.registry.cli.core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/autoapi/httk/registry/entries/core/index.html">httk.registry.entries.core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/autoapi/httk/registry/schemas/core/index.html">httk.registry.schemas.core</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/details/datastreams.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section class="tex2jax_ignore mathjax_ignore" id="datastreams-in-detail">
+<h1>Datastreams in detail<a class="headerlink" href="#datastreams-in-detail" title="Link to this heading">¶</a></h1>
+<p>This page documents practical usage of the datastream classes in <code class="docutils literal notranslate"><span class="pre">httk.core.datastream</span></code>.
+It covers both text and byte data and shows how to write functions that accept flexible input types.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>Datastream support is split into two parallel families:</p>
+<ul class="simple">
+<li><p>text:</p>
+<ul>
+<li><p>backends: <code class="docutils literal notranslate"><span class="pre">TextstreamFile</span></code>, <code class="docutils literal notranslate"><span class="pre">TextstreamFilename</span></code>, <code class="docutils literal notranslate"><span class="pre">TextstreamString</span></code>, <code class="docutils literal notranslate"><span class="pre">TextstreamRequest</span></code>, <code class="docutils literal notranslate"><span class="pre">TextstreamURL</span></code></p></li>
+<li><p>views: <code class="docutils literal notranslate"><span class="pre">TextstreamFileView</span></code>, <code class="docutils literal notranslate"><span class="pre">TextstreamFilenameView</span></code>, <code class="docutils literal notranslate"><span class="pre">TextstreamStringView</span></code>, <code class="docutils literal notranslate"><span class="pre">TextstreamRequestView</span></code>, <code class="docutils literal notranslate"><span class="pre">TextstreamURLView</span></code></p></li>
+<li><p>accepted union: <code class="docutils literal notranslate"><span class="pre">TextstreamLike</span></code></p></li>
+</ul>
+</li>
+<li><p>bytes:</p>
+<ul>
+<li><p>backends: <code class="docutils literal notranslate"><span class="pre">BytestreamFile</span></code>, <code class="docutils literal notranslate"><span class="pre">BytestreamFilename</span></code>, <code class="docutils literal notranslate"><span class="pre">BytestreamBytes</span></code>, <code class="docutils literal notranslate"><span class="pre">BytestreamRequest</span></code>, <code class="docutils literal notranslate"><span class="pre">BytestreamURL</span></code></p></li>
+<li><p>views: <code class="docutils literal notranslate"><span class="pre">BytestreamFileView</span></code>, <code class="docutils literal notranslate"><span class="pre">BytestreamFilenameView</span></code>, <code class="docutils literal notranslate"><span class="pre">BytestreamBytesView</span></code>, <code class="docutils literal notranslate"><span class="pre">BytestreamRequestView</span></code>, <code class="docutils literal notranslate"><span class="pre">BytestreamURLView</span></code></p></li>
+<li><p>accepted union: <code class="docutils literal notranslate"><span class="pre">BytestreamLike</span></code></p></li>
+</ul>
+</li>
+</ul>
+<p>In normal user code, you usually accept <code class="docutils literal notranslate"><span class="pre">*Like</span></code> and normalize immediately to one view.</p>
+<section id="network-consent">
+<h3>Network consent<a class="headerlink" href="#network-consent" title="Link to this heading">¶</a></h3>
+<p>Bare URL strings never open the network: they raise <code class="docutils literal notranslate"><span class="pre">PermissionError</span></code> with guidance.
+Explicit consent is provided by the lazy <code class="docutils literal notranslate"><span class="pre">DatastreamURL</span></code> token, eager <code class="docutils literal notranslate"><span class="pre">httk.core.fetch</span></code>,
+<code class="docutils literal notranslate"><span class="pre">urllib.request.Request</span></code>, the <code class="docutils literal notranslate"><span class="pre">*URLView</span></code>s, or <code class="docutils literal notranslate"><span class="pre">kind=&quot;url&quot;</span></code>. The default network timeout
+is 30 seconds. <code class="docutils literal notranslate"><span class="pre">file://</span></code> URLs are local.</p>
+</section>
+</section>
+<section id="textstream">
+<h2>Textstream<a class="headerlink" href="#textstream" title="Link to this heading">¶</a></h2>
+<section id="common-calling-patterns">
+<h3>Common Calling Patterns<a class="headerlink" href="#common-calling-patterns" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">urllib.request</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">httk.core.datastream</span><span class="w"> </span><span class="kn">import</span> <span class="n">TextstreamFileView</span><span class="p">,</span> <span class="n">TextstreamStringView</span>
+
+<span class="c1"># filename (str)</span>
+<span class="n">TextstreamStringView</span><span class="p">(</span><span class="s2">&quot;README.md&quot;</span><span class="p">)</span>
+
+<span class="c1"># filename (Path)</span>
+<span class="n">TextstreamStringView</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;README.md&quot;</span><span class="p">))</span>
+
+<span class="c1"># already-open text file object: mainly useful when other code you do not</span>
+<span class="c1"># control opened the file for you; when starting from a filename, pass it</span>
+<span class="c1"># directly instead (as in the first example)</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;README.md&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">TextstreamStringView</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+<span class="c1"># raw string content (disambiguate with kind=&quot;content&quot;)</span>
+<span class="n">TextstreamStringView</span><span class="p">(</span><span class="s2">&quot;line1</span><span class="se">\n</span><span class="s2">line2</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;content&quot;</span><span class="p">)</span>
+
+<span class="c1"># remote content via a urllib request object</span>
+<span class="n">TextstreamStringView</span><span class="p">(</span><span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="s2">&quot;https://example.com/data.txt&quot;</span><span class="p">))</span>
+
+<span class="c1"># remote content with explicit consent</span>
+<span class="n">TextstreamFileView</span><span class="p">(</span><span class="s2">&quot;https://example.com/data.txt&quot;</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;url&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="example-string-oriented-function">
+<h3>Example: String-Oriented Function<a class="headerlink" href="#example-string-oriented-function" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">httk.core.datastream</span><span class="w"> </span><span class="kn">import</span> <span class="n">TextstreamStringView</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">httk.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">TextstreamLike</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">header_text</span><span class="p">(</span><span class="n">slike</span><span class="p">:</span> <span class="n">TextstreamLike</span><span class="p">,</span> <span class="o">**</span><span class="n">hints</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">TextstreamStringView</span><span class="p">(</span><span class="n">slike</span><span class="p">,</span> <span class="o">**</span><span class="n">hints</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">text</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">text</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+</pre></div>
+</div>
+<p>Use <code class="docutils literal notranslate"><span class="pre">TextstreamStringView</span></code> when the algorithm naturally wants complete in-memory string data.</p>
+</section>
+<section id="example-streaming-function">
+<h3>Example: Streaming Function<a class="headerlink" href="#example-streaming-function" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">httk.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">TextstreamFileView</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">httk.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">TextstreamLike</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">count_nonempty_lines</span><span class="p">(</span><span class="n">slike</span><span class="p">:</span> <span class="n">TextstreamLike</span><span class="p">,</span> <span class="o">**</span><span class="n">hints</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="n">stream</span> <span class="o">=</span> <span class="n">TextstreamFileView</span><span class="p">(</span><span class="n">slike</span><span class="p">,</span> <span class="o">**</span><span class="n">hints</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">stream</span> <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>Use <code class="docutils literal notranslate"><span class="pre">TextstreamFileView</span></code> when line-by-line processing is natural and you do not want eager full materialization.</p>
+</section>
+<section id="textstream-notes">
+<h3>Textstream Notes<a class="headerlink" href="#textstream-notes" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">TextstreamStringView</span></code> is eager: it reads remaining stream content immediately.</p></li>
+<li><p>A bare URL string never opens the network: it raises <code class="docutils literal notranslate"><span class="pre">PermissionError</span></code> with guidance to use an explicit consent object. <code class="docutils literal notranslate"><span class="pre">file://</span></code> is local. Any other <code class="docutils literal notranslate"><span class="pre">str</span></code> defaults to filename resolution.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TextstreamFilenameView</span></code> requires an underlying name; it raises <code class="docutils literal notranslate"><span class="pre">TypeError</span></code> when no filename exists.</p></li>
+<li><p>Remote text is decoded using the <code class="docutils literal notranslate"><span class="pre">encoding</span></code> hint if given, else the HTTP Content-Type charset, else utf-8. <code class="docutils literal notranslate"><span class="pre">TextstreamFilename</span></code> reads local files as utf-8 by default; pass <code class="docutils literal notranslate"><span class="pre">encoding</span></code> to override.</p></li>
+<li><p>See <a class="reference internal" href="#remote-content-request-url"><span class="xref myst">Remote Content (Request / URL)</span></a> for shared remote-fetch behavior and <a class="reference internal" href="#compressed-content">Compressed Content</a> for transparent decompression.</p></li>
+</ul>
+</section>
+</section>
+<section id="bytestream">
+<h2>Bytestream<a class="headerlink" href="#bytestream" title="Link to this heading">¶</a></h2>
+<section id="id1">
+<h3>Common Calling Patterns<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">urllib.request</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">httk.core.datastream</span><span class="w"> </span><span class="kn">import</span> <span class="n">BytestreamBytesView</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">httk.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BytestreamFileView</span>
+
+<span class="c1"># filename (str)</span>
+<span class="n">BytestreamBytesView</span><span class="p">(</span><span class="s2">&quot;payload.bin&quot;</span><span class="p">)</span>
+
+<span class="c1"># filename (Path)</span>
+<span class="n">BytestreamBytesView</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;payload.bin&quot;</span><span class="p">))</span>
+
+<span class="c1"># already-open binary file object: mainly useful when other code you do not</span>
+<span class="c1"># control opened the file for you; when starting from a filename, pass it</span>
+<span class="c1"># directly instead (as in the first example)</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;payload.bin&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">BytestreamBytesView</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+<span class="c1"># raw bytes or bytearray</span>
+<span class="n">BytestreamBytesView</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;</span><span class="se">\x00\x01\x02</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">BytestreamBytesView</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]))</span>
+
+<span class="c1"># remote content via a urllib request object</span>
+<span class="n">BytestreamBytesView</span><span class="p">(</span><span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="s2">&quot;https://example.com/payload.bin&quot;</span><span class="p">))</span>
+
+<span class="c1"># remote content with explicit consent</span>
+<span class="n">BytestreamFileView</span><span class="p">(</span><span class="s2">&quot;https://example.com/payload.bin&quot;</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;url&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="example-bytes-oriented-function">
+<h3>Example: Bytes-Oriented Function<a class="headerlink" href="#example-bytes-oriented-function" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">httk.core.datastream</span><span class="w"> </span><span class="kn">import</span> <span class="n">BytestreamBytesView</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">httk.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BytestreamLike</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">digest_payload</span><span class="p">(</span><span class="n">blike</span><span class="p">:</span> <span class="n">BytestreamLike</span><span class="p">,</span> <span class="o">**</span><span class="n">hints</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="n">BytestreamBytesView</span><span class="p">(</span><span class="n">blike</span><span class="p">,</span> <span class="o">**</span><span class="n">hints</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="example-chunked-streaming-function">
+<h3>Example: Chunked Streaming Function<a class="headerlink" href="#example-chunked-streaming-function" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">httk.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">BytestreamFileView</span><span class="p">,</span> <span class="n">BytestreamLike</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">first_chunk</span><span class="p">(</span><span class="n">blike</span><span class="p">:</span> <span class="n">BytestreamLike</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4096</span><span class="p">,</span> <span class="o">**</span><span class="n">hints</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+    <span class="n">stream</span> <span class="o">=</span> <span class="n">BytestreamFileView</span><span class="p">(</span><span class="n">blike</span><span class="p">,</span> <span class="o">**</span><span class="n">hints</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">stream</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="bytestream-notes">
+<h3>Bytestream Notes<a class="headerlink" href="#bytestream-notes" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">BytestreamBytesView</span></code> is eager: it reads remaining stream content immediately.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BytestreamFilenameView</span></code> requires an underlying name and raises <code class="docutils literal notranslate"><span class="pre">TypeError</span></code> if unavailable.</p></li>
+<li><p>A bare URL string never opens the network and raises <code class="docutils literal notranslate"><span class="pre">PermissionError</span></code> with guidance. <code class="docutils literal notranslate"><span class="pre">file://</span></code> is local. Any other <code class="docutils literal notranslate"><span class="pre">str</span></code> defaults to a filename.</p></li>
+<li><p>For explicit interpretation when needed, pass <code class="docutils literal notranslate"><span class="pre">kind=&quot;filename&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">kind=&quot;file&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">kind=&quot;content&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">kind=&quot;request&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">kind=&quot;url&quot;</span></code>; <code class="docutils literal notranslate"><span class="pre">kind=&quot;url&quot;</span></code> is explicit network consent.</p></li>
+<li><p>See <a class="reference internal" href="#remote-content-request-url"><span class="xref myst">Remote Content (Request / URL)</span></a> for shared remote-fetch behavior and <a class="reference internal" href="#compressed-content">Compressed Content</a> for transparent decompression.</p></li>
+</ul>
+</section>
+</section>
+<section id="remote-content-request-url">
+<h2>Remote Content (Request / URL)<a class="headerlink" href="#remote-content-request-url" title="Link to this heading">¶</a></h2>
+<p>Both families can fetch remote content through Python’s built-in <code class="docutils literal notranslate"><span class="pre">urllib.request</span></code>:</p>
+<ul class="simple">
+<li><p>A <code class="docutils literal notranslate"><span class="pre">urllib.request.Request</span></code> object is unambiguous and is accepted directly anywhere a <code class="docutils literal notranslate"><span class="pre">*Like</span></code> is accepted.
+Use a <code class="docutils literal notranslate"><span class="pre">Request</span></code> when you need headers, a method, or a request body; it is passed to <code class="docutils literal notranslate"><span class="pre">urllib.request.urlopen</span></code> as-is.</p></li>
+<li><p>A bare URL string never opens the network and raises <code class="docutils literal notranslate"><span class="pre">PermissionError</span></code> with guidance. A schemeless string means a
+filename (or, with <code class="docutils literal notranslate"><span class="pre">kind=&quot;content&quot;</span></code>, literal content). Explicit consent is provided by <code class="docutils literal notranslate"><span class="pre">DatastreamURL</span></code>,
+<code class="docutils literal notranslate"><span class="pre">urllib.request.Request</span></code>, a <code class="docutils literal notranslate"><span class="pre">*URLView</span></code>, or <code class="docutils literal notranslate"><span class="pre">kind=&quot;url&quot;</span></code>; <code class="docutils literal notranslate"><span class="pre">file://</span></code> is local.</p></li>
+</ul>
+<p>Remote backends fetch lazily: the connection is opened on first read, not when the backend or view is
+created. Note that <code class="docutils literal notranslate"><span class="pre">unwrap()</span></code> also opens the connection, since it returns the underlying response object.
+An optional <code class="docutils literal notranslate"><span class="pre">timeout</span></code> hint (in seconds) is forwarded to <code class="docutils literal notranslate"><span class="pre">urlopen</span></code>.
+The default network timeout is 30 seconds.</p>
+<p><code class="docutils literal notranslate"><span class="pre">DatastreamURL</span></code> is a lazy consent token: constructing it validates the URL and stores an optional timeout, but performs
+no network I/O. <code class="docutils literal notranslate"><span class="pre">httk.core.fetch(url)</span></code> is the eager alternative. <code class="docutils literal notranslate"><span class="pre">TextstreamRequestView</span></code>/<code class="docutils literal notranslate"><span class="pre">TextstreamURLView</span></code> and their byte counterparts are the URL-facing analogues of
+<code class="docutils literal notranslate"><span class="pre">*FilenameView</span></code>: they present the <em>source location</em> of a backend rather than its data. A <code class="docutils literal notranslate"><span class="pre">*URLView</span></code> is a
+<code class="docutils literal notranslate"><span class="pre">str</span></code> holding the URL; a <code class="docutils literal notranslate"><span class="pre">*RequestView</span></code> is a genuine <code class="docutils literal notranslate"><span class="pre">urllib.request.Request</span></code> (preserving headers/data when
+built from a request backend) and can be passed to any code that expects one. Symmetrically to
+<code class="docutils literal notranslate"><span class="pre">*FilenameView</span></code> raising <code class="docutils literal notranslate"><span class="pre">TypeError</span></code> for backends with no filename, these views raise <code class="docutils literal notranslate"><span class="pre">TypeError</span></code> for
+backends with no underlying URL — and remote backends have no <code class="docutils literal notranslate"><span class="pre">name</span></code>, so <code class="docutils literal notranslate"><span class="pre">*FilenameView</span></code> raises for them.</p>
+<p>The token is intended for lazy consumers that accept <code class="docutils literal notranslate"><span class="pre">DatastreamLike</span></code>-style
+inputs. A plain string remains a path; the token says that this source is a
+URL which the consumer may fetch when its data is first needed.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">httk.atomistic</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnitcellStructureView</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">httk.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">DatastreamURL</span><span class="p">,</span> <span class="n">fetch</span>
+
+<span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://example.org/data.cif&quot;</span>
+<span class="n">consent</span> <span class="o">=</span> <span class="n">DatastreamURL</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>  <span class="c1"># validates; performs no I/O</span>
+<span class="n">structure</span> <span class="o">=</span> <span class="n">UnitcellStructureView</span><span class="p">(</span><span class="n">consent</span><span class="p">)</span>
+<span class="n">cell</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">cell</span>  <span class="c1"># fetches and parses lazily, on first data access</span>
+
+<span class="c1"># fetch() is the eager alternative.</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">fetch</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;load&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">UnitcellStructureView</span></code> accepts the token through the atomistic structure
+input union and resolves it through the existing fetch/reader machinery. Any
+consumer whose input contract declares <code class="docutils literal notranslate"><span class="pre">DatastreamLike</span></code> can participate in
+the same lazy-consent protocol.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">urllib.request</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">httk.core.datastream</span><span class="w"> </span><span class="kn">import</span> <span class="n">TextstreamRequestView</span>
+
+<span class="n">req</span> <span class="o">=</span> <span class="n">TextstreamRequestView</span><span class="p">(</span><span class="s2">&quot;https://example.com/data.txt&quot;</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;url&quot;</span><span class="p">)</span>
+<span class="c1"># req is a urllib.request.Request and can be handed to code that expects one:</span>
+<span class="k">with</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">req</span><span class="p">)</span> <span class="k">as</span> <span class="n">resp</span><span class="p">:</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+</section>
+<section id="compressed-content">
+<h2>Compressed Content<a class="headerlink" href="#compressed-content" title="Link to this heading">¶</a></h2>
+<p>Compression is an orthogonal layer <em>below</em> the backends: it turns a compressed byte stream into
+an uncompressed one (and, for text, before decoding), independently of where the bytes come from.
+The same codecs therefore apply to filenames, open files, raw bytes, and remote responses, so a
+<code class="docutils literal notranslate"><span class="pre">data.json.gz</span></code> filename or a gzipped URL loads with no extra ceremony. The stdlib codecs <code class="docutils literal notranslate"><span class="pre">gzip</span></code>,
+<code class="docutils literal notranslate"><span class="pre">bzip2</span></code>, <code class="docutils literal notranslate"><span class="pre">xz</span></code>, and <code class="docutils literal notranslate"><span class="pre">lzma</span></code> are built in.</p>
+<p>A <code class="docutils literal notranslate"><span class="pre">compression</span></code> hint (parallel to <code class="docutils literal notranslate"><span class="pre">kind</span></code>) selects how a codec is chosen:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code> — use the filename extension if it is a known compression suffix, otherwise sniff the
+leading magic bytes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;detect&quot;</span></code> — always sniff the magic bytes, ignoring the extension.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;extension&quot;</span></code> — decide from the name only; never sniff.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;none&quot;</span></code> — no decompression.</p></li>
+<li><p>a registered codec name (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;gzip&quot;</span></code>) — force that codec; an unknown name raises <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>.</p></li>
+</ul>
+<p>Defaults depend on the source: filename-based backends default to <code class="docutils literal notranslate"><span class="pre">&quot;extension&quot;</span></code> (a <code class="docutils literal notranslate"><span class="pre">data.json.gz</span></code>
+name decompresses, a compressed file with a plain name does not unless you ask); all other
+byte-producing sources — open files, raw bytes, <code class="docutils literal notranslate"><span class="pre">Request</span></code>, and URL strings — default to <code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code>.
+Resolution is lazy: like the rest of the stream layer, the extension check or magic sniff only runs
+on the first read, and sniffing never consumes data. Compression does not apply to text-native
+sources (an already-open text stream or a literal string); for those, only the no-op modes are
+accepted and a codec name or <code class="docutils literal notranslate"><span class="pre">&quot;detect&quot;</span></code> raises <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gzip</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">httk.core.datastream</span><span class="w"> </span><span class="kn">import</span> <span class="n">BytestreamBytesView</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">httk.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">DatasetLoader</span>
+
+<span class="c1"># Transparent: extension recognized, decompressed on read.</span>
+<span class="n">DatasetLoader</span><span class="p">(</span><span class="s2">&quot;symmetry&quot;</span><span class="p">,</span> <span class="s2">&quot;data/spacegroups.json.gz&quot;</span><span class="p">)</span>
+
+<span class="c1"># In-memory gzip is sniffed by default (&quot;auto&quot;).</span>
+<span class="n">BytestreamBytesView</span><span class="p">(</span><span class="n">gzip</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;payload&quot;</span><span class="p">))</span>  <span class="c1"># -&gt; b&quot;payload&quot;</span>
+
+<span class="c1"># Force or disable decompression explicitly.</span>
+<span class="n">BytestreamBytesView</span><span class="p">(</span><span class="s2">&quot;blob.dat&quot;</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s2">&quot;gzip&quot;</span><span class="p">)</span>
+<span class="n">BytestreamBytesView</span><span class="p">(</span><span class="s2">&quot;archive.gz&quot;</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s2">&quot;none&quot;</span><span class="p">)</span>  <span class="c1"># raw compressed bytes</span>
+</pre></div>
+</div>
+<p>Register additional codecs (for example, a third-party <code class="docutils literal notranslate"><span class="pre">zstd</span></code>) with <code class="docutils literal notranslate"><span class="pre">register_compression</span></code>;
+<code class="docutils literal notranslate"><span class="pre">known_compressions()</span></code> lists the registered names.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">httk.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">CompressionCodec</span><span class="p">,</span> <span class="n">register_compression</span>
+
+<span class="n">register_compression</span><span class="p">(</span>
+    <span class="n">CompressionCodec</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;zstd&quot;</span><span class="p">,</span>
+        <span class="n">extensions</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;.zst&quot;</span><span class="p">,),</span>
+        <span class="n">magics</span><span class="o">=</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;</span><span class="se">\x28\xb5\x2f\xfd</span><span class="s2">&quot;</span><span class="p">,),</span>
+        <span class="n">open_stream</span><span class="o">=</span><span class="k">lambda</span> <span class="n">stream</span><span class="p">:</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="o">...</span><span class="p">),</span>  <span class="c1"># return a decompressed binary stream</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Archives (<code class="docutils literal notranslate"><span class="pre">.tar.*</span></code>, <code class="docutils literal notranslate"><span class="pre">.zip</span></code>), write-side compression, and HTTP <code class="docutils literal notranslate"><span class="pre">Content-Encoding</span></code> negotiation are
+out of scope for this layer.</p>
+</section>
+<section id="loading-files-by-type">
+<h2>Loading files by type<a class="headerlink" href="#loading-files-by-type" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">httk.core.load</span></code> and its reader registry are documented in <a class="reference internal" href="registry.html"><span class="doc">Module registry in detail</span></a>;
+see the <a class="reference internal" href="registry.html#readers"><span class="std std-ref">Readers</span></a> section for dispatch details.
+Datastreams supply the reader with local or remote streaming input, including
+transparent decompression.</p>
+</section>
+<section id="embedded-datasets-and-datasetloader">
+<h2>Embedded datasets and <code class="docutils literal notranslate"><span class="pre">DatasetLoader</span></code><a class="headerlink" href="#embedded-datasets-and-datasetloader" title="Link to this heading">¶</a></h2>
+<p>For a module’s own bundled reference data, <code class="docutils literal notranslate"><span class="pre">httk.core.DatasetLoader</span></code> is a
+lazy, declare-time placeholder: constructing it performs no I/O, and the source
+is read on first access to <code class="docutils literal notranslate"><span class="pre">.data</span></code>, <code class="docutils literal notranslate"><span class="pre">.meta</span></code>, or <code class="docutils literal notranslate"><span class="pre">.index</span></code>. It accepts three file
+shapes, resolved from the name after any compression suffix is stripped:</p>
+<ul class="simple">
+<li><p><strong>plain JSON</strong> — any JSON value, returned through <code class="docutils literal notranslate"><span class="pre">.data</span></code>;</p></li>
+<li><p><strong>structured JSON-LD</strong> — <code class="docutils literal notranslate"><span class="pre">&#64;context</span></code>/header/<code class="docutils literal notranslate"><span class="pre">data</span></code>/<code class="docutils literal notranslate"><span class="pre">indicies</span></code>, exposed as a
+<code class="docutils literal notranslate"><span class="pre">DatasetMeta</span></code> plus <code class="docutils literal notranslate"><span class="pre">DatasetLoaderRecord</span></code> views;</p></li>
+<li><p><strong>SQLite Archive (<code class="docutils literal notranslate"><span class="pre">.sqlar</span></code>)</strong> — the same structured content packed into a
+SQLite Archive, whose datasets and records materialize lazily straight from
+the archive. A <code class="docutils literal notranslate"><span class="pre">.sqlar</span></code> source must be a real, uncompressed filename because
+its SQLite connection is retained for the cached load’s lifetime; write one
+with <code class="docutils literal notranslate"><span class="pre">httk.core.dataset_loader.write_dataset_sqlar</span></code>.</p></li>
+</ul>
+<p>The end-to-end walk-through is in <a class="reference internal" href="../examples/load_and_dataset_loader.html"><span class="doc">Getting data into httk: the load dispatcher and the DatasetLoader</span></a>.</p>
+</section>
+<section id="shared-behavior-and-unwrap">
+<h2>Shared Behavior and <code class="docutils literal notranslate"><span class="pre">unwrap</span></code><a class="headerlink" href="#shared-behavior-and-unwrap" title="Link to this heading">¶</a></h2>
+<p>Views and backends for one datastream share the same stream state:</p>
+<ul class="simple">
+<li><p>reads through one view advance the position seen by the others, and closing
+one closes the backend for all views;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unwrap</span></code> on a text or byte backend/view returns its concrete underlying
+<code class="docutils literal notranslate"><span class="pre">io.TextIOBase</span></code> or <code class="docutils literal notranslate"><span class="pre">io.IOBase</span></code>, creating the lazy stream if needed;</p></li>
+<li><p>string and bytes views still unwrap through their backends to those <code class="docutils literal notranslate"><span class="pre">io</span></code>
+objects, while filename and URL views unwrap to the corresponding opened
+stream rather than to their displayed <code class="docutils literal notranslate"><span class="pre">str</span></code> value;</p></li>
+<li><p>raw <code class="docutils literal notranslate"><span class="pre">str</span></code>, <code class="docutils literal notranslate"><span class="pre">bytes</span></code>, and <code class="docutils literal notranslate"><span class="pre">Path</span></code> values passed directly to <code class="docutils literal notranslate"><span class="pre">unwrap</span></code> are
+returned unchanged;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unwrap</span></code> on an object that is not a datastream backend or view returns that
+object unchanged.</p></li>
+</ul>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="plugins.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Plugins in detail</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="registry.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Module registry in detail</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2026, The httk-core AUTHORS
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Datastreams in detail</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a><ul>
+<li><a class="reference internal" href="#network-consent">Network consent</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#textstream">Textstream</a><ul>
+<li><a class="reference internal" href="#common-calling-patterns">Common Calling Patterns</a></li>
+<li><a class="reference internal" href="#example-string-oriented-function">Example: String-Oriented Function</a></li>
+<li><a class="reference internal" href="#example-streaming-function">Example: Streaming Function</a></li>
+<li><a class="reference internal" href="#textstream-notes">Textstream Notes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#bytestream">Bytestream</a><ul>
+<li><a class="reference internal" href="#id1">Common Calling Patterns</a></li>
+<li><a class="reference internal" href="#example-bytes-oriented-function">Example: Bytes-Oriented Function</a></li>
+<li><a class="reference internal" href="#example-chunked-streaming-function">Example: Chunked Streaming Function</a></li>
+<li><a class="reference internal" href="#bytestream-notes">Bytestream Notes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#remote-content-request-url">Remote Content (Request / URL)</a></li>
+<li><a class="reference internal" href="#compressed-content">Compressed Content</a></li>
+<li><a class="reference internal" href="#loading-files-by-type">Loading files by type</a></li>
+<li><a class="reference internal" href="#embedded-datasets-and-datasetloader">Embedded datasets and <code class="docutils literal notranslate"><span class="pre">DatasetLoader</span></code></a></li>
+<li><a class="reference internal" href="#shared-behavior-and-unwrap">Shared Behavior and <code class="docutils literal notranslate"><span class="pre">unwrap</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=fe42cd0d"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=fd10adb8"></script>
+    <script src="../_static/selector.js?v=e591e119"></script>
+    <script>window.HTTK_DOCS_VERSIONING = {"channel":"dev","version":"dev:main","versionPathDepth":2};</script>
+    </body>
+</html>

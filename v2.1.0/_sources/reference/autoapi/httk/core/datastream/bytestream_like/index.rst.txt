@@ -1,0 +1,21 @@
+httk.core.datastream.bytestream_like
+====================================
+
+.. py:module:: httk.core.datastream.bytestream_like
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.datastream.bytestream_like.BytestreamLike
+
+
+Module Contents
+---------------
+
+.. py:type:: BytestreamLike
+   :canonical: bytestream_backend.BytestreamBackend | bytestream_view.BytestreamView | io.IOBase | io.BytesIO | bytes | bytearray | str | pathlib.Path | urllib.request.Request
+
+

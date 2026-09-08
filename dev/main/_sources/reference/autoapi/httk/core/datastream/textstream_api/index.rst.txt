@@ -1,0 +1,70 @@
+httk.core.datastream.textstream_api
+===================================
+
+.. py:module:: httk.core.datastream.textstream_api
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.datastream.textstream_api.TextstreamAPI
+
+
+Module Contents
+---------------
+
+.. py:class:: TextstreamAPI
+
+   Bases: :py:obj:`abc.ABC`
+
+
+   Abstract base class for a bare minimum API for streamable text data.
+
+   Supports:
+   * read, close, name, and closed with the meanings defined by io.IOBase
+
+   Since it is a *minimal* streaming data API it deliberately omits:
+   seek, tell, etc.; there should be no assumption that the underlying
+   data source is seekable. However, many backend implementations
+   may chose to support them.
+
+
+   .. py:method:: read(size = -1)
+      :abstractmethod:
+
+
+      Read up to ``size`` characters, or all remaining characters when ``size`` is negative.
+
+      :param size: Maximum number of characters to read.
+      :return: The text read from the stream.
+
+
+
+   .. py:method:: close()
+      :abstractmethod:
+
+
+      Close the stream.
+
+
+
+   .. py:property:: name
+      :type: str | None
+
+      :abstractmethod:
+
+
+      Expose the source name when one exists.
+
+
+   .. py:property:: closed
+      :type: bool
+
+      :abstractmethod:
+
+
+      Report whether the stream is closed.
+
+

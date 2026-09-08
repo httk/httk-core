@@ -1,0 +1,36 @@
+httk.core.converting
+====================
+
+.. py:module:: httk.core.converting
+
+.. autoapi-nested-parse::
+
+   The core-owned ``httk convert`` command.
+
+   ``httk convert`` loads a file with :func:`httk.core.load` and writes the result
+   with :func:`httk.core.save`, so any loadable file becomes any saveable format
+   when the matching capability modules (for example *httk-atomistic*)
+   are installed.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.converting.command
+
+
+Module Contents
+---------------
+
+.. py:function:: command(argv, context)
+
+   Handle the registered top-level convert command.
+
+   :param argv: Arguments following the convert command name.
+   :param context: Root CLI invocation context.
+   :return: Command exit status.
+
+

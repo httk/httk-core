@@ -1,0 +1,486 @@
+httk.core.entry_types
+=====================
+
+.. py:module:: httk.core.entry_types
+
+.. autoapi-nested-parse::
+
+   Generated data models for httk-core standard OPTIMADE entry types.
+
+   The record classes below are generated from the registered ``references``,
+   ``files``, and ``calculations`` entry-type schemas.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.entry_types.Reference
+   httk.core.entry_types.File
+   httk.core.entry_types.Calculation
+
+
+Module Contents
+---------------
+
+.. py:class:: Reference
+
+   The ``references`` entry type.
+
+   The references entry type describes a reference
+
+   Schema properties:
+
+   :ivar immutable_id: The entry's immutable ID (e.g., a UUID).
+
+       **Requirements/Conventions:**
+
+       - This is important for databases having preferred IDs that point to "the latest version" of a record, but still offer access to older variants.
+       - This ID maps to the version-specific record, in case it changes in the future.
+
+   :ivar last_modified: Date and time representing when the entry was last modified.
+
+   :ivar address: Typically the location of the publisher or institution (the address field in the BibTeX specification).
+
+   :ivar annote: Additional notes or comments on the reference (the annote field in the BibTeX specification).
+
+   :ivar booktitle: The title of a book being cited; for parts of a book, use the title field instead (the booktitle field in the BibTeX specification).
+
+   :ivar chapter: The chapter, section, or similar part number (the chapter field in the BibTeX specification).
+
+   :ivar crossref: The database key of the entry being cross referenced (the crossref field in the BibTeX specification).
+
+   :ivar edition: The edition of a book (the edition field in the BibTeX specification).
+
+   :ivar howpublished: The method of publication (the howpublished field in the BibTeX specification)
+
+   :ivar institution: The sponsoring institution of a technical report (the institution field in the BibTeX specification).
+
+   :ivar journal: The name of a journal (the journal field in the BibTeX specification).
+
+   :ivar key: Used for alphabetizing, cross-referencing, and creating a label (the key field in the BibTeX specification).
+
+   :ivar month: The three-letter abbreviation of the month of publication or writing (the month field in the BibTeX specification).
+
+   :ivar note: Additional information about the reference (the note field in the BibTeX specification).
+
+   :ivar number: The number of a journal, magazine, technical report, or work in a series (the number field in the BibTeX specification).
+
+   :ivar organization: The organization sponsoring a conference or publishing a manual (the organization field in the BibTeX specification)
+
+   :ivar pages: The page number(s) of the reference (the pages field in the BibTeX specification).
+
+   :ivar publisher: The name of the publisher (the publisher field in the BibTeX specification).
+
+   :ivar school: The name of the school where a thesis was written (the school field in the BibTeX specification).
+
+   :ivar series: The name of a series or set of books (the series field in the BibTeX specification).
+
+   :ivar title: The title of the work (the title field in the BibTeX specification).
+
+   :ivar volume: The volume number of a journal or multivolume book (the volume field in the BibTeX specification).
+
+   :ivar year: The year of publication or writing.
+
+   :ivar bib_type: Type of the reference (the type field in the BibTeX specification).
+
+   :ivar authors: A list of dictionaries with names of the authors.
+
+       **Requirements/Conventions**:
+
+       - Each list member MUST be a dictionary with the following keys:
+
+           - **name**: Full name of the person, REQUIRED.
+           - **firstname**, **lastname**: Parts of the person's name, OPTIONAL.
+
+   :ivar editors: A list of dictionaries with names of the editors.
+
+       **Requirements/Conventions**:
+
+       - Each list member MUST be a dictionary with the following keys:
+
+           - **name**: Full name of the person, REQUIRED.
+           - **firstname**, **lastname**: Parts of the person's name, OPTIONAL.
+
+   :ivar doi: The doi identifier of the object being referenced.
+
+   :ivar url: The URL of the object being referenced.
+
+
+   .. py:attribute:: immutable_id
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  datetime.datetime | None
+      :value: None
+
+
+
+   .. py:attribute:: address
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: annote
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: booktitle
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: chapter
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: crossref
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: edition
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: howpublished
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: institution
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: journal
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: key
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: month
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: note
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: number
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: organization
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: pages
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: publisher
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: school
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: series
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: title
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: volume
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: year
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: bib_type
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: authors
+      :type:  tuple[collections.abc.Mapping[str, Any], Ellipsis] | None
+      :value: None
+
+
+
+   .. py:attribute:: editors
+      :type:  tuple[collections.abc.Mapping[str, Any], Ellipsis] | None
+      :value: None
+
+
+
+   .. py:attribute:: doi
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: url
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+
+.. py:class:: File
+
+   The ``files`` entry type.
+
+   The files entry type describes a file with metadata and a URL to retrieve it
+
+   Schema properties:
+
+   :ivar immutable_id: The entry's immutable ID (e.g., a UUID).
+
+       **Requirements/Conventions:**
+
+       - This is important for databases having preferred IDs that point to "the latest version" of a record, but still offer access to older variants.
+       - This ID maps to the version-specific record, in case it changes in the future.
+
+   :ivar last_modified: Date and time representing when the entry was last modified.
+
+   :ivar url: The URL to get the contents of a file.
+
+       **Requirements/Conventions:**
+
+       - The URL MUST point to the actual contents of a file (i.e. byte stream), not an intermediate (preview) representation. For example, if referring to a file on GitHub, a link should point to raw contents.
+
+   :ivar url_stable_until: Point in time until which the URL in `url` is guaranteed to stay stable.
+
+       **Requirements/Conventions:**
+
+       - `null` means that there is no stability guarantee for the URL in `url`.
+         Indefinite support could be communicated by providing a date sufficiently far in the future, for example, 9999-12-31.
+
+   :ivar name: Base name of a file.
+
+       **Requirements/Conventions:**
+
+       - File name extension is an integral part of a file name and, if available, MUST be included.
+
+   :ivar size: Size of a file in bytes.
+
+       **Requirements/Conventions:**
+
+       - If provided, it MUST be guaranteed that either exact size of a file is given or its upper bound.
+         This way if a client reserves a static buffer or truncates the download stream after this many bytes the whole file would be received.
+         Such provision is included to allow the providers to serve on-the-fly compressed files.
+
+   :ivar media_type: Media type identifier (also known as MIME type), for a file as per [RFC 6838 Media Type Specifications and Registration Procedures](https://datatracker.ietf.org/doc/html/rfc6838).
+
+   :ivar version: Version information of a file (e.g., commit, revision, timestamp).
+
+       **Requirements/Conventions:**
+
+       - If provided, it MUST be guaranteed that file contents pertaining to the same combination of id and version are the same.
+
+   :ivar modification_timestamp: Timestamp of the last modification of file contents. A modification is understood as an addition, change or deletion of one or more bytes, resulting in file contents different from the previous.
+
+       **Requirements/Conventions:**
+
+       - Timestamps of subsequent file modifications SHOULD be increasing (not earlier than previous timestamps).
+
+   :ivar description: Free-form description of a file.
+
+   :ivar checksums: Dictionary providing checksums of file contents.
+
+       **Requirements/Conventions:**
+
+       - The keys in the dictionary identify checksum functions and the values are strings containing the corresponding checksum.
+
+       - Supported dictionary keys: `md5`, `sha1`, `sha224`, `sha256`, `sha384`, `sha512`.
+         Checksums outside this list MAY be used, but their names MUST be prefixed by database-provider-specific namespace prefix.
+
+   :ivar atime: Time of last access of a file as per POSIX standard.
+
+   :ivar ctime: Time of last status change of a file as per POSIX standard.
+
+   :ivar mtime: Time of last modification of a file as per POSIX standard.
+
+       **Requirements/Conventions:**
+
+       - It should be noted that the values of `last_modified`, `modification_timestamp` and `mtime` do not necessary match.
+         `last_modified` pertains to the modification of the OPTIMADE metadata, `modification_timestamp` pertains to file contents and `mtime` pertains to the modification of the file (not necessary changing its contents).
+         For example, appending an empty string to a file would result in the change of `mtime` in some operating systems, but this would not be deemed as a modification of its contents.
+
+
+   .. py:attribute:: url
+      :type:  str
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: immutable_id
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  datetime.datetime | None
+      :value: None
+
+
+
+   .. py:attribute:: url_stable_until
+      :type:  datetime.datetime | None
+      :value: None
+
+
+
+   .. py:attribute:: size
+      :type:  int | None
+      :value: None
+
+
+
+   .. py:attribute:: media_type
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: version
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: modification_timestamp
+      :type:  datetime.datetime | None
+      :value: None
+
+
+
+   .. py:attribute:: description
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: checksums
+      :type:  collections.abc.Mapping[str, str] | None
+      :value: None
+
+
+
+   .. py:attribute:: atime
+      :type:  datetime.datetime | None
+      :value: None
+
+
+
+   .. py:attribute:: ctime
+      :type:  datetime.datetime | None
+      :value: None
+
+
+
+   .. py:attribute:: mtime
+      :type:  datetime.datetime | None
+      :value: None
+
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+
+.. py:class:: Calculation
+
+   The ``calculations`` entry type.
+
+   The calculations entry type describes calculations. Related `files` entries specified as relationships list files used or produced by a calculation. They MAY be defined as either input or output files by the `role` field inside the `meta` dictionary of the JSON:API resource identifier object. The allowed values are `input` for input files and `output` for output files. If the `role` field is not provided or the value is set to `null`, a default role SHOULD NOT be assumed. It is RECOMMENDED to order the output files in the list of calculation's relationships in a way that prioritizes the files most likely to contain details which could be used to automatically analyze the performed calculation. Such an approach minimizes the number of calculation output files that need to be analyzed to possibly identify the code, type and parameters of the performed calculation.
+
+   Schema properties:
+
+   :ivar immutable_id: The entry's immutable ID (e.g., a UUID).
+
+       **Requirements/Conventions:**
+
+       - This is important for databases having preferred IDs that point to "the latest version" of a record, but still offer access to older variants.
+       - This ID maps to the version-specific record, in case it changes in the future.
+
+   :ivar last_modified: Date and time representing when the entry was last modified.
+
+
+   .. py:attribute:: immutable_id
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  datetime.datetime | None
+      :value: None
+
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+

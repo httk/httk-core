@@ -1,0 +1,1921 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../../../../../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../../../../../../genindex.html"><link rel="search" title="Search" href="../../../../../../search.html"><link rel="next" title="httk.core.vectors.leaf_codecs" href="../leaf_codecs/index.html"><link rel="prev" title="httk.core.vectors" href="../index.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>httk.core.vectors.fracvector - httk-core dev:main documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/selector.css?v=626bada3" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+<div class="announcement">
+  <aside class="announcement-content">
+     Development documentation (dev:main) — content may differ from any release. 
+  </aside>
+</div>
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../../../../index.html"><div class="brand">httk-core dev:main documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../../../../index.html">
+  
+  <span class="sidebar-brand-text">httk-core dev:main documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../../../../../index.html">Reference</a><input aria-label="Toggle navigation of Reference" checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="../../index.html">httk.core</a><input aria-label="Toggle navigation of httk.core" checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../../atomic_write/index.html">httk.core.atomic_write</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../building/index.html">httk.core.building</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../citations/index.html">httk.core.citations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cli/index.html">httk.core.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../converting/index.html">httk.core.converting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../crypto/index.html">httk.core.crypto</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../data_records/index.html">httk.core.data_records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../dataset_loader/index.html">httk.core.dataset_loader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../datasets/index.html">httk.core.datasets</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../datastream/index.html">httk.core.datastream</a><input aria-label="Toggle navigation of httk.core.datastream" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_api/index.html">httk.core.datastream.bytestream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_backend/index.html">httk.core.datastream.bytestream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_bytes/index.html">httk.core.datastream.bytestream_bytes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_bytes_view/index.html">httk.core.datastream.bytestream_bytes_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_common/index.html">httk.core.datastream.bytestream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_file/index.html">httk.core.datastream.bytestream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_file_view/index.html">httk.core.datastream.bytestream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_filename/index.html">httk.core.datastream.bytestream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_filename_view/index.html">httk.core.datastream.bytestream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_like/index.html">httk.core.datastream.bytestream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_request/index.html">httk.core.datastream.bytestream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_request_view/index.html">httk.core.datastream.bytestream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_url/index.html">httk.core.datastream.bytestream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_url_view/index.html">httk.core.datastream.bytestream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_view/index.html">httk.core.datastream.bytestream_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/compression/index.html">httk.core.datastream.compression</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/datastream_url/index.html">httk.core.datastream.datastream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/network_policy/index.html">httk.core.datastream.network_policy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_api/index.html">httk.core.datastream.textstream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_backend/index.html">httk.core.datastream.textstream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_common/index.html">httk.core.datastream.textstream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_file/index.html">httk.core.datastream.textstream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_file_view/index.html">httk.core.datastream.textstream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_filename/index.html">httk.core.datastream.textstream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_filename_view/index.html">httk.core.datastream.textstream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_like/index.html">httk.core.datastream.textstream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_request/index.html">httk.core.datastream.textstream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_request_view/index.html">httk.core.datastream.textstream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_string/index.html">httk.core.datastream.textstream_string</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_string_view/index.html">httk.core.datastream.textstream_string_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_url/index.html">httk.core.datastream.textstream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_url_view/index.html">httk.core.datastream.textstream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_view/index.html">httk.core.datastream.textstream_view</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../digests/index.html">httk.core.digests</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../docs/index.html">httk.core.docs</a><input aria-label="Toggle navigation of httk.core.docs" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/cli/index.html">httk.core.docs.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/config/index.html">httk.core.docs.config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/ecosystem/index.html">httk.core.docs.ecosystem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/gitsite/index.html">httk.core.docs.gitsite</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/inventories/index.html">httk.core.docs.inventories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/lockfile/index.html">httk.core.docs.lockfile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/manifests/index.html">httk.core.docs.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/redirect/index.html">httk.core.docs.redirect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/release/index.html">httk.core.docs.release</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/semver/index.html">httk.core.docs.semver</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/sitetree/index.html">httk.core.docs.sitetree</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/sphinx_ext/index.html">httk.core.docs.sphinx_ext</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../entry_ids/index.html">httk.core.entry_ids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../entry_provider/index.html">httk.core.entry_provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../entry_types/index.html">httk.core.entry_types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../exactmath/index.html">httk.core.exactmath</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../fetching/index.html">httk.core.fetching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../files/index.html">httk.core.files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../identity/index.html">httk.core.identity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../identity_cli/index.html">httk.core.identity_cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../loading/index.html">httk.core.loading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../memguard/index.html">httk.core.memguard</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../optimade/index.html">httk.core.optimade</a><input aria-label="Toggle navigation of httk.core.optimade" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../optimade/entries/index.html">httk.core.optimade.entries</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../optimade/filter/index.html">httk.core.optimade.filter</a><input aria-label="Toggle navigation of httk.core.optimade.filter" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../optimade/filter/parser/index.html">httk.core.optimade.filter.parser</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../optimade/resources/index.html">httk.core.optimade.resources</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../plugins/index.html">httk.core.plugins</a><input aria-label="Toggle navigation of httk.core.plugins" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../plugins/cli/index.html">httk.core.plugins.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../plugins/install/index.html">httk.core.plugins.install</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../plugins/installed/index.html">httk.core.plugins.installed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../plugins/manifest/index.html">httk.core.plugins.manifest</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../precision/index.html">httk.core.precision</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../project/index.html">httk.core.project</a><input aria-label="Toggle navigation of httk.core.project" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../project/anchor/index.html">httk.core.project.anchor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../project/cli/index.html">httk.core.project.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../project/export/index.html">httk.core.project.export</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../project/manifests/index.html">httk.core.project.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../project/members/index.html">httk.core.project.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../project/sealing/index.html">httk.core.project.sealing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../project/templates/index.html">httk.core.project.templates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../property_definitions/index.html">httk.core.property_definitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../provenance/index.html">httk.core.provenance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../records/index.html">httk.core.records</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../register/index.html">httk.core.register</a><input aria-label="Toggle navigation of httk.core.register" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../register/cli/index.html">httk.core.register.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../register/entries/index.html">httk.core.register.entries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../register/io/index.html">httk.core.register.io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../register/members/index.html">httk.core.register.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../register/schemas/index.html">httk.core.register.schemas</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../report/index.html">httk.core.report</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../saving/index.html">httk.core.saving</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../schema_check/index.html">httk.core.schema_check</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../services/index.html">httk.core.services</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../storage/index.html">httk.core.storage</a><input aria-label="Toggle navigation of httk.core.storage" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../storage/identity/index.html">httk.core.storage.identity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../storage/markers/index.html">httk.core.storage.markers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../storage/rational_text/index.html">httk.core.storage.rational_text</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../storage/stored_properties/index.html">httk.core.storage.stored_properties</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../system/index.html">httk.core.system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../userdirs/index.html">httk.core.userdirs</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../validation/index.html">httk.core.validation</a><input aria-label="Toggle navigation of httk.core.validation" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../validation/iris/index.html">httk.core.validation.iris</a></li>
+</ul>
+</li>
+<li class="toctree-l3 current has-children"><a class="reference internal" href="../index.html">httk.core.vectors</a><input aria-label="Toggle navigation of httk.core.vectors" checked="" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">httk.core.vectors.fracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../leaf_codecs/index.html">httk.core.vectors.leaf_codecs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../mutablefracvector/index.html">httk.core.vectors.mutablefracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../numeric/index.html">httk.core.vectors.numeric</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../scalar_like/index.html">httk.core.vectors.scalar_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../surdvector/index.html">httk.core.vectors.surdvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../vector_api/index.html">httk.core.vectors.vector_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../vector_backend/index.html">httk.core.vectors.vector_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../vector_frac_view/index.html">httk.core.vectors.vector_frac_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../vector_like/index.html">httk.core.vectors.vector_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../vector_native_backend/index.html">httk.core.vectors.vector_native_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../vector_native_view/index.html">httk.core.vectors.vector_native_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../vector_numpy_backend/index.html">httk.core.vectors.vector_numpy_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../vector_numpy_view/index.html">httk.core.vectors.vector_numpy_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../vector_surd_view/index.html">httk.core.vectors.vector_surd_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../vector_view/index.html">httk.core.vectors.vector_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../vectormath/index.html">httk.core.vectors.vectormath</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../views/index.html">httk.core.views</a><input aria-label="Toggle navigation of httk.core.views" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../views/backend/index.html">httk.core.views.backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../views/coercion/index.html">httk.core.views.coercion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../views/unviewing/index.html">httk.core.views.unviewing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../views/unwrapping/index.html">httk.core.views.unwrapping</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../views/view/index.html">httk.core.views.view</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../view_backend_pattern.html">Views and Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../registry.html">Module registry</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../datastreams.html">Datastreams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../cli.html">The extensible command line</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../plugins.html">Plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../crypto.html">Cryptography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../identity.html">Operator identity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../projects.html">Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../sealing.html">Sealing and manifests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../property_definitions.html">Property definitions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../vectors.html">Vectors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../exactmath.html">Exact math on rationals and decimals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../credits.html">Citation credits</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../../../examples/index.html">Examples</a><input aria-label="Toggle navigation of Examples" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../../examples/datastreams_quickstart.html">Datastreams quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../../examples/vectors_quickstart.html">Vectors quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../../examples/exactmath_quickstart.html">Exact math quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../../examples/load_and_dataset_loader.html">Getting data into httk: the <code class="docutils literal notranslate"><span class="pre">load</span></code> dispatcher and the <code class="docutils literal notranslate"><span class="pre">DatasetLoader</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../../examples/property_definitions.html">Building a custom OPTIMADE entry type end to end</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../../examples/entry_provider.html">Implementing an <code class="docutils literal notranslate"><span class="pre">EntryProvider</span></code>: the contract <em>httk-core</em> owns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../../examples/optimade_filter.html">Parsing OPTIMADE filter strings into an abstract syntax tree</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../../examples/coerce_quickstart.html">Coercion quickstart</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Details</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../details/view_backend_pattern.html">Views and Backends in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../details/registry.html">Module registry in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../details/datastreams.html">Datastreams in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../details/plugins.html">Plugins in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../details/property_definitions.html">Property definitions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../details/vectors.html">Vectors in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../details/exactmath.html">Exact math in detail</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../../../../index.html">API Reference</a><input aria-label="Toggle navigation of API Reference" checked="" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="../../index.html">httk.core</a><input aria-label="Toggle navigation of httk.core" checked="" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../../atomic_write/index.html">httk.core.atomic_write</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../building/index.html">httk.core.building</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../citations/index.html">httk.core.citations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cli/index.html">httk.core.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../converting/index.html">httk.core.converting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../crypto/index.html">httk.core.crypto</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../data_records/index.html">httk.core.data_records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../dataset_loader/index.html">httk.core.dataset_loader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../datasets/index.html">httk.core.datasets</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../datastream/index.html">httk.core.datastream</a><input aria-label="Toggle navigation of httk.core.datastream" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_api/index.html">httk.core.datastream.bytestream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_backend/index.html">httk.core.datastream.bytestream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_bytes/index.html">httk.core.datastream.bytestream_bytes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_bytes_view/index.html">httk.core.datastream.bytestream_bytes_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_common/index.html">httk.core.datastream.bytestream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_file/index.html">httk.core.datastream.bytestream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_file_view/index.html">httk.core.datastream.bytestream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_filename/index.html">httk.core.datastream.bytestream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_filename_view/index.html">httk.core.datastream.bytestream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_like/index.html">httk.core.datastream.bytestream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_request/index.html">httk.core.datastream.bytestream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_request_view/index.html">httk.core.datastream.bytestream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_url/index.html">httk.core.datastream.bytestream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_url_view/index.html">httk.core.datastream.bytestream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_view/index.html">httk.core.datastream.bytestream_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/compression/index.html">httk.core.datastream.compression</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/datastream_url/index.html">httk.core.datastream.datastream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/network_policy/index.html">httk.core.datastream.network_policy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_api/index.html">httk.core.datastream.textstream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_backend/index.html">httk.core.datastream.textstream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_common/index.html">httk.core.datastream.textstream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_file/index.html">httk.core.datastream.textstream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_file_view/index.html">httk.core.datastream.textstream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_filename/index.html">httk.core.datastream.textstream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_filename_view/index.html">httk.core.datastream.textstream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_like/index.html">httk.core.datastream.textstream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_request/index.html">httk.core.datastream.textstream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_request_view/index.html">httk.core.datastream.textstream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_string/index.html">httk.core.datastream.textstream_string</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_string_view/index.html">httk.core.datastream.textstream_string_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_url/index.html">httk.core.datastream.textstream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_url_view/index.html">httk.core.datastream.textstream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_view/index.html">httk.core.datastream.textstream_view</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../digests/index.html">httk.core.digests</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../docs/index.html">httk.core.docs</a><input aria-label="Toggle navigation of httk.core.docs" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/cli/index.html">httk.core.docs.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/config/index.html">httk.core.docs.config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/ecosystem/index.html">httk.core.docs.ecosystem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/gitsite/index.html">httk.core.docs.gitsite</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/inventories/index.html">httk.core.docs.inventories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/lockfile/index.html">httk.core.docs.lockfile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/manifests/index.html">httk.core.docs.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/redirect/index.html">httk.core.docs.redirect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/release/index.html">httk.core.docs.release</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/semver/index.html">httk.core.docs.semver</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/sitetree/index.html">httk.core.docs.sitetree</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/sphinx_ext/index.html">httk.core.docs.sphinx_ext</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../entry_ids/index.html">httk.core.entry_ids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../entry_provider/index.html">httk.core.entry_provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../entry_types/index.html">httk.core.entry_types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../exactmath/index.html">httk.core.exactmath</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../fetching/index.html">httk.core.fetching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../files/index.html">httk.core.files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../identity/index.html">httk.core.identity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../identity_cli/index.html">httk.core.identity_cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../loading/index.html">httk.core.loading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../memguard/index.html">httk.core.memguard</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../optimade/index.html">httk.core.optimade</a><input aria-label="Toggle navigation of httk.core.optimade" class="toctree-checkbox" id="toctree-checkbox-19" name="toctree-checkbox-19" role="switch" type="checkbox"/><label for="toctree-checkbox-19"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../optimade/entries/index.html">httk.core.optimade.entries</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../optimade/filter/index.html">httk.core.optimade.filter</a><input aria-label="Toggle navigation of httk.core.optimade.filter" class="toctree-checkbox" id="toctree-checkbox-20" name="toctree-checkbox-20" role="switch" type="checkbox"/><label for="toctree-checkbox-20"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../optimade/filter/parser/index.html">httk.core.optimade.filter.parser</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../optimade/resources/index.html">httk.core.optimade.resources</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../plugins/index.html">httk.core.plugins</a><input aria-label="Toggle navigation of httk.core.plugins" class="toctree-checkbox" id="toctree-checkbox-21" name="toctree-checkbox-21" role="switch" type="checkbox"/><label for="toctree-checkbox-21"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../plugins/cli/index.html">httk.core.plugins.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../plugins/install/index.html">httk.core.plugins.install</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../plugins/installed/index.html">httk.core.plugins.installed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../plugins/manifest/index.html">httk.core.plugins.manifest</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../precision/index.html">httk.core.precision</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../project/index.html">httk.core.project</a><input aria-label="Toggle navigation of httk.core.project" class="toctree-checkbox" id="toctree-checkbox-22" name="toctree-checkbox-22" role="switch" type="checkbox"/><label for="toctree-checkbox-22"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../project/anchor/index.html">httk.core.project.anchor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../project/cli/index.html">httk.core.project.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../project/export/index.html">httk.core.project.export</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../project/manifests/index.html">httk.core.project.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../project/members/index.html">httk.core.project.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../project/sealing/index.html">httk.core.project.sealing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../project/templates/index.html">httk.core.project.templates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../property_definitions/index.html">httk.core.property_definitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../provenance/index.html">httk.core.provenance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../records/index.html">httk.core.records</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../register/index.html">httk.core.register</a><input aria-label="Toggle navigation of httk.core.register" class="toctree-checkbox" id="toctree-checkbox-23" name="toctree-checkbox-23" role="switch" type="checkbox"/><label for="toctree-checkbox-23"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../register/cli/index.html">httk.core.register.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../register/entries/index.html">httk.core.register.entries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../register/io/index.html">httk.core.register.io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../register/members/index.html">httk.core.register.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../register/schemas/index.html">httk.core.register.schemas</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../report/index.html">httk.core.report</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../saving/index.html">httk.core.saving</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../schema_check/index.html">httk.core.schema_check</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../services/index.html">httk.core.services</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../storage/index.html">httk.core.storage</a><input aria-label="Toggle navigation of httk.core.storage" class="toctree-checkbox" id="toctree-checkbox-24" name="toctree-checkbox-24" role="switch" type="checkbox"/><label for="toctree-checkbox-24"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../storage/identity/index.html">httk.core.storage.identity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../storage/markers/index.html">httk.core.storage.markers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../storage/rational_text/index.html">httk.core.storage.rational_text</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../storage/stored_properties/index.html">httk.core.storage.stored_properties</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../system/index.html">httk.core.system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../userdirs/index.html">httk.core.userdirs</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../validation/index.html">httk.core.validation</a><input aria-label="Toggle navigation of httk.core.validation" class="toctree-checkbox" id="toctree-checkbox-25" name="toctree-checkbox-25" role="switch" type="checkbox"/><label for="toctree-checkbox-25"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../validation/iris/index.html">httk.core.validation.iris</a></li>
+</ul>
+</li>
+<li class="toctree-l3 current has-children"><a class="reference internal" href="../index.html">httk.core.vectors</a><input aria-label="Toggle navigation of httk.core.vectors" checked="" class="toctree-checkbox" id="toctree-checkbox-26" name="toctree-checkbox-26" role="switch" type="checkbox"/><label for="toctree-checkbox-26"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l4 current current-page"><a class="current reference internal" href="#">httk.core.vectors.fracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../leaf_codecs/index.html">httk.core.vectors.leaf_codecs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../mutablefracvector/index.html">httk.core.vectors.mutablefracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../numeric/index.html">httk.core.vectors.numeric</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../scalar_like/index.html">httk.core.vectors.scalar_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../surdvector/index.html">httk.core.vectors.surdvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../vector_api/index.html">httk.core.vectors.vector_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../vector_backend/index.html">httk.core.vectors.vector_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../vector_frac_view/index.html">httk.core.vectors.vector_frac_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../vector_like/index.html">httk.core.vectors.vector_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../vector_native_backend/index.html">httk.core.vectors.vector_native_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../vector_native_view/index.html">httk.core.vectors.vector_native_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../vector_numpy_backend/index.html">httk.core.vectors.vector_numpy_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../vector_numpy_view/index.html">httk.core.vectors.vector_numpy_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../vector_surd_view/index.html">httk.core.vectors.vector_surd_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../vector_view/index.html">httk.core.vectors.vector_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../vectormath/index.html">httk.core.vectors.vectormath</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../views/index.html">httk.core.views</a><input aria-label="Toggle navigation of httk.core.views" class="toctree-checkbox" id="toctree-checkbox-27" name="toctree-checkbox-27" role="switch" type="checkbox"/><label for="toctree-checkbox-27"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../views/backend/index.html">httk.core.views.backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../views/coercion/index.html">httk.core.views.coercion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../views/unviewing/index.html">httk.core.views.unviewing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../views/unwrapping/index.html">httk.core.views.unwrapping</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../views/view/index.html">httk.core.views.view</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../registry/cli/core/index.html">httk.registry.cli.core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../registry/entries/core/index.html">httk.registry.entries.core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../registry/schemas/core/index.html">httk.registry.schemas.core</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../../../../../../_sources/reference/autoapi/httk/core/vectors/fracvector/index.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="module-httk.core.vectors.fracvector">
+<span id="httk-core-vectors-fracvector"></span><h1>httk.core.vectors.fracvector<a class="headerlink" href="#module-httk.core.vectors.fracvector" title="Link to this heading">¶</a></h1>
+<p>Exact-rational vector (tensor) algebra: <a class="reference internal" href="#httk.core.vectors.fracvector.FracVector" title="httk.core.vectors.fracvector.FracVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">FracVector</span></code></a> and <a class="reference internal" href="#httk.core.vectors.fracvector.FracScalar" title="httk.core.vectors.fracvector.FracScalar"><code class="xref py py-class docutils literal notranslate"><span class="pre">FracScalar</span></code></a>.</p>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#httk.core.vectors.fracvector.Noms" title="httk.core.vectors.fracvector.Noms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Noms</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase" title="httk.core.vectors.fracvector.FracVectorBase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FracVectorBase</span></code></a></p></td>
+<td><p>Shared implementation for immutable <a class="reference internal" href="#httk.core.vectors.fracvector.FracVector" title="httk.core.vectors.fracvector.FracVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">FracVector</span></code></a> and mutable</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#httk.core.vectors.fracvector.FracVector" title="httk.core.vectors.fracvector.FracVector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FracVector</span></code></a></p></td>
+<td><p>Immutable exact-rational vector that is also its own vector backend.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#httk.core.vectors.fracvector.FracScalar" title="httk.core.vectors.fracvector.FracScalar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FracScalar</span></code></a></p></td>
+<td><p>Represents the fractional number <code class="docutils literal notranslate"><span class="pre">nom/denom</span></code>. This is a subclass of FracVector with the</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">¶</a></h2>
+<dl class="py type">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.Noms">
+<span class="property"><span class="k"><span class="pre">type</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">httk.core.vectors.fracvector.</span></span><span class="sig-name descname"><span class="pre">Noms</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#httk.core.vectors.fracvector.Noms" title="httk.core.vectors.fracvector.Noms"><span class="pre">Noms</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#Noms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.Noms" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">httk.core.vectors.fracvector.</span></span><span class="sig-name descname"><span class="pre">FracVectorBase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">denom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simplify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_accuracy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">fractions.Fraction(1,</span> <span class="pre">10000)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase" title="Link to this definition">¶</a></dt>
+<dd><p>Shared implementation for immutable <a class="reference internal" href="#httk.core.vectors.fracvector.FracVector" title="httk.core.vectors.fracvector.FracVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">FracVector</span></code></a> and mutable
+<a class="reference internal" href="../mutablefracvector/index.html#httk.core.vectors.mutablefracvector.MutableFracVector" title="httk.core.vectors.mutablefracvector.MutableFracVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableFracVector</span></code></a> N-dimensional exact-rational
+tensors.</p>
+<p>A FracVector consists of a multidimensional tuple of integer nominators, and a single
+shared integer denominator.</p>
+<p>Since FracVectors are immutable, every operation on a FracVector returns a new FracVector
+with the result of the operation. A created FracVector never changes. Hence, they are safe
+to use as keys in dictionaries, to use in sets, etc.</p>
+<p>Note: most methods return FracVector results that are not simplified (i.e., the FracVector
+returned does <em>not</em> have the smallest possible integer denominator). To return a FracVector
+with the smallest possible denominator, just call <a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.simplify" title="httk.core.vectors.fracvector.FracVectorBase.simplify"><code class="xref py py-meth docutils literal notranslate"><span class="pre">simplify()</span></code></a> at the last step.</p>
+<p>Create a FracVector from various types of sequences.</p>
+<p>Simplest use:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">FracVector</span><span class="p">(</span><span class="n">some_kind_of_sequence</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">some_kind_of_sequence</span></code> can be any nested list or tuple of objects that can be used
+in the constructor of the Python Fraction class (also works with strings!). If any object
+found while traveling the items has a <code class="docutils literal notranslate"><span class="pre">.to_fractions()</span></code> method, it will be called and is
+expected to return a fraction or list or tuple of fractions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>values</strong> (<em>Any</em>) – A nested sequence of objects accepted by <a class="reference external" href="https://docs.python.org/3/library/fractions.html#fractions.Fraction" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">fractions.Fraction</span></code></a>.</p></li>
+<li><p><strong>denom</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> | </em><em>None</em>) – An optional additional common denominator for all nominators.</p></li>
+<li><p><strong>simplify</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to return a FracVector with the smallest possible denominator.</p></li>
+<li><p><strong>chain</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to remove the outermost dimension and chain the sub-sequences. I.e.,
+if <code class="docutils literal notranslate"><span class="pre">input=[[1,</span> <span class="pre">2,</span> <span class="pre">3],</span> <span class="pre">[4,</span> <span class="pre">5,</span> <span class="pre">6]]</span></code> then <code class="docutils literal notranslate"><span class="pre">FracVector(input,</span> <span class="pre">chain=True)</span></code> gives
+<code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3,</span> <span class="pre">4,</span> <span class="pre">5,</span> <span class="pre">6]</span></code>.</p></li>
+<li><p><strong>min_accuracy</strong> (<a class="reference external" href="https://docs.python.org/3/library/fractions.html#fractions.Fraction" title="(in Python v3.14)"><em>fractions.Fraction</em></a><em> | </em><em>None</em>) – The minimum accuracy assumed in string input. The default is
+<code class="docutils literal notranslate"><span class="pre">1/10000</span></code>, i.e. <code class="docutils literal notranslate"><span class="pre">0.33</span> <span class="pre">=</span> <span class="pre">0.3300</span> <span class="pre">=</span> <span class="pre">33/100</span></code>, whereas <code class="docutils literal notranslate"><span class="pre">0.3333</span> <span class="pre">=</span> <span class="pre">1/3</span></code>. Set it
+to None to assume infinite accuracy, i.e. convert exactly whatever string is
+given (unless a standard deviation is given as a parenthesis after the string).</p></li>
+</ul>
+</dd>
+</dl>
+<p>Note: FracVector itself implements <code class="docutils literal notranslate"><span class="pre">.to_fractions()</span></code>, and hence the same constructor
+allows stacking several FracVector objects like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vertical_fracvector</span> <span class="o">=</span> <span class="n">FracVector</span><span class="p">([[</span><span class="n">fracvector1</span><span class="p">],</span> <span class="p">[</span><span class="n">fracvector2</span><span class="p">]])</span>
+<span class="n">horizontal_fracvector</span> <span class="o">=</span> <span class="n">FracVector</span><span class="p">([</span><span class="n">fracvector1</span><span class="p">,</span> <span class="n">fracvector2</span><span class="p">],</span> <span class="n">chain</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.nested_map">
+<span class="sig-name descname"><span class="pre">nested_map</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><span class="pre">collections.abc.Callable</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Ellipsis</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.nested_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.nested_map" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.nested_map_fractions">
+<span class="sig-name descname"><span class="pre">nested_map_fractions</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><span class="pre">collections.abc.Callable</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Ellipsis</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.nested_map_fractions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.nested_map_fractions" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.noms">
+<span class="sig-name descname"><span class="pre">noms</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#httk.core.vectors.fracvector.Noms" title="httk.core.vectors.fracvector.Noms"><span class="pre">Noms</span></a></span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.noms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.noms" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.denom">
+<span class="sig-name descname"><span class="pre">denom</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.denom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.denom" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.get_append">
+<span class="sig-name descname"><span class="pre">get_append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.get_append"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.get_append" title="Link to this definition">¶</a></dt>
+<dd><p>Return a new vector with <code class="docutils literal notranslate"><span class="pre">other</span></code> appended as one element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> (<em>Any</em>) – The element to append.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The extended vector.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.get_extend">
+<span class="sig-name descname"><span class="pre">get_extend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.get_extend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.get_extend" title="Link to this definition">¶</a></dt>
+<dd><p>Return a new vector with the elements of <code class="docutils literal notranslate"><span class="pre">other</span></code> appended.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> (<em>Any</em>) – The elements to append.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The extended vector.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.get_insert">
+<span class="sig-name descname"><span class="pre">get_insert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.get_insert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.get_insert" title="Link to this definition">¶</a></dt>
+<dd><p>Return a new vector with <code class="docutils literal notranslate"><span class="pre">other</span></code> inserted at <code class="docutils literal notranslate"><span class="pre">pos</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pos</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The insertion position.</p></li>
+<li><p><strong>other</strong> (<em>Any</em>) – The element to insert.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The extended vector.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.get_prepend">
+<span class="sig-name descname"><span class="pre">get_prepend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.get_prepend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.get_prepend" title="Link to this definition">¶</a></dt>
+<dd><p>Return a new vector with <code class="docutils literal notranslate"><span class="pre">other</span></code> prepended as one element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> (<em>Any</em>) – The element to prepend.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The extended vector.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.get_prextend">
+<span class="sig-name descname"><span class="pre">get_prextend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.get_prextend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.get_prextend" title="Link to this definition">¶</a></dt>
+<dd><p>Return a new vector with the elements of <code class="docutils literal notranslate"><span class="pre">other</span></code> prepended.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> (<em>Any</em>) – The elements to prepend.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The extended vector.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.get_stacked">
+<span class="sig-name descname"><span class="pre">get_stacked</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.get_stacked"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.get_stacked" title="Link to this definition">¶</a></dt>
+<dd><p>Return a new FracVector with <code class="docutils literal notranslate"><span class="pre">other</span></code> stacked after <code class="docutils literal notranslate"><span class="pre">self</span></code> along a new leading axis.</p>
+<p><code class="docutils literal notranslate"><span class="pre">self</span></code> and <code class="docutils literal notranslate"><span class="pre">other</span></code> must have the same shape; the result gains one extra outermost
+dimension of size two (numpy <code class="docutils literal notranslate"><span class="pre">stack</span></code>-like). E.g. stacking the row <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3]</span></code> with
+<code class="docutils literal notranslate"><span class="pre">[4,</span> <span class="pre">5,</span> <span class="pre">6]</span></code> gives <code class="docutils literal notranslate"><span class="pre">[[1,</span> <span class="pre">2,</span> <span class="pre">3],</span> <span class="pre">[4,</span> <span class="pre">5,</span> <span class="pre">6]]</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> (<em>Any</em>) – A vector with the same shape as <code class="docutils literal notranslate"><span class="pre">self</span></code>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The stacked vector.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.get_prestacked">
+<span class="sig-name descname"><span class="pre">get_prestacked</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.get_prestacked"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.get_prestacked" title="Link to this definition">¶</a></dt>
+<dd><p>Return a new FracVector with <code class="docutils literal notranslate"><span class="pre">other</span></code> stacked before <code class="docutils literal notranslate"><span class="pre">self</span></code> along a new leading axis.</p>
+<p>The mirror of <a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.get_stacked" title="httk.core.vectors.fracvector.FracVectorBase.get_stacked"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_stacked()</span></code></a>: stacking <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3]</span></code> in front with <code class="docutils literal notranslate"><span class="pre">[4,</span> <span class="pre">5,</span> <span class="pre">6]</span></code>
+gives <code class="docutils literal notranslate"><span class="pre">[[4,</span> <span class="pre">5,</span> <span class="pre">6],</span> <span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3]]</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> (<em>Any</em>) – A vector with the same shape as <code class="docutils literal notranslate"><span class="pre">self</span></code>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The prestacked vector.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.get_stackedinsert">
+<span class="sig-name descname"><span class="pre">get_stackedinsert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.get_stackedinsert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.get_stackedinsert" title="Link to this definition">¶</a></dt>
+<dd><p>Return a new vector with <code class="docutils literal notranslate"><span class="pre">other</span></code> inserted at <code class="docutils literal notranslate"><span class="pre">pos</span></code> along the flattened axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pos</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The insertion position.</p></li>
+<li><p><strong>other</strong> (<em>Any</em>) – The element to insert.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The extended vector.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.chain_vecs">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">chain_vecs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vecs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.chain_vecs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.chain_vecs" title="Link to this definition">¶</a></dt>
+<dd><p>Optimized chaining of FracVectors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>vecs</strong> (<em>Any</em>) – FracVectors that all share the same denominator.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The same thing as <code class="docutils literal notranslate"><span class="pre">FracVector(vecs,</span> <span class="pre">chain=True)</span></code>, i.e., removes the
+outermost dimension and chains the sub-sequences. If <code class="docutils literal notranslate"><span class="pre">input=[[1,</span> <span class="pre">2,</span> <span class="pre">3],</span> <span class="pre">[4,</span> <span class="pre">5,</span> <span class="pre">6]]</span></code>
+then it gives <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3,</span> <span class="pre">4,</span> <span class="pre">5,</span> <span class="pre">6]</span></code>, but this method assumes all vectors share the
+same denominator (it raises an exception if this is not true).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.stack_vecs">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">stack_vecs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vecs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.stack_vecs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.stack_vecs" title="Link to this definition">¶</a></dt>
+<dd><p>Optimized stacking of FracVectors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>vecs</strong> (<em>Any</em>) – FracVectors that all share the same denominator.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The same thing as <code class="docutils literal notranslate"><span class="pre">FracVector(vecs)</span></code>, but only works if all vectors
+share the same denominator (raises an exception if this is not true).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.eye">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">eye</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dims</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.eye"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.eye" title="Link to this definition">¶</a></dt>
+<dd><p>Create a diagonal one-matrix with the given dimensions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dims</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>Ellipsis</em><em>]</em>) – The shape of the diagonal tensor.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The diagonal one-matrix.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.zeros">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">zeros</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dims</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.zeros"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.zeros" title="Link to this definition">¶</a></dt>
+<dd><p>Create a zero matrix with the given dimensions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dims</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>Ellipsis</em><em>]</em>) – The shape of the zero tensor.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The zero matrix.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.random">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">random</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minnom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxnom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">denom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.random"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.random" title="Link to this definition">¶</a></dt>
+<dd><p>Create a matrix with the given dimensions filled with random rational numbers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dims</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>Ellipsis</em><em>]</em>) – The shape of the generated matrix.</p></li>
+<li><p><strong>minnom</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The inclusive lower bound for generated nominators.</p></li>
+<li><p><strong>maxnom</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The inclusive upper bound for generated nominators.</p></li>
+<li><p><strong>denom</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The shared denominator for generated values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The generated matrix.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.from_tuple">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_tuple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.from_tuple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.from_tuple" title="Link to this definition">¶</a></dt>
+<dd><p>Return a FracVector created from the tuple representation <code class="docutils literal notranslate"><span class="pre">(denom,</span> <span class="pre">noms)</span></code>, as returned
+by the <a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.to_tuple" title="httk.core.vectors.fracvector.FracVectorBase.to_tuple"><code class="xref py py-meth docutils literal notranslate"><span class="pre">to_tuple()</span></code></a> method. <code class="docutils literal notranslate"><span class="pre">from_tuple(v.to_tuple())</span></code> reconstructs <code class="docutils literal notranslate"><span class="pre">v</span></code> exactly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>t</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><a class="reference internal" href="#httk.core.vectors.fracvector.Noms" title="httk.core.vectors.fracvector.Noms"><em>Noms</em></a><em>]</em>) – The <code class="docutils literal notranslate"><span class="pre">(denom,</span> <span class="pre">noms)</span></code> representation to reconstruct.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The reconstructed FracVector.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.from_cos">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_cos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degrees</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">find_best_rational</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">fractions.Fraction(1,</span> <span class="pre">1000000)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.from_cos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.from_cos" title="Link to this definition">¶</a></dt>
+<dd><p>Create a FracVector as the cosine of the argument <code class="docutils literal notranslate"><span class="pre">data</span></code>. If <code class="docutils literal notranslate"><span class="pre">data</span></code> is composed of
+strings, the standard deviation of the numbers is taken into account, and the best
+possible fractional approximation to the cosines of the data is returned within the
+standard deviation.</p>
+<p>This is not the same as <code class="docutils literal notranslate"><span class="pre">FracVector(data).cos()</span></code>, which creates the best
+possible fractional approximations of <code class="docutils literal notranslate"><span class="pre">data</span></code> and then takes cos on that.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>Any</em>) – Values to transform elementwise.</p></li>
+<li><p><strong>degrees</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to interpret values in degrees.</p></li>
+<li><p><strong>limit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to bound the resulting denominator by the precision.</p></li>
+<li><p><strong>find_best_rational</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to choose the best rational within each input interval.</p></li>
+<li><p><strong>prec</strong> (<a class="reference external" href="https://docs.python.org/3/library/fractions.html#fractions.Fraction" title="(in Python v3.14)"><em>fractions.Fraction</em></a>) – The requested approximation precision.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The elementwise cosine vector.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.from_sin">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_sin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degrees</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">fractions.Fraction(1,</span> <span class="pre">1000000)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.from_sin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.from_sin" title="Link to this definition">¶</a></dt>
+<dd><p>Create a FracVector as the sine of the argument <code class="docutils literal notranslate"><span class="pre">data</span></code>. If <code class="docutils literal notranslate"><span class="pre">data</span></code> is composed of
+strings, the standard deviation of the numbers is taken into account, and the best
+possible fractional approximation to the sines of the data is returned within the
+standard deviation.</p>
+<p>This is not the same as <code class="docutils literal notranslate"><span class="pre">FracVector(data).sin()</span></code>, which creates the best
+possible fractional approximations of <code class="docutils literal notranslate"><span class="pre">data</span></code> and then takes sin on that.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>Any</em>) – Values to transform elementwise.</p></li>
+<li><p><strong>degrees</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to interpret values in degrees.</p></li>
+<li><p><strong>limit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to bound the resulting denominator by the precision.</p></li>
+<li><p><strong>prec</strong> (<a class="reference external" href="https://docs.python.org/3/library/fractions.html#fractions.Fraction" title="(in Python v3.14)"><em>fractions.Fraction</em></a>) – The requested approximation precision.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The elementwise sine vector.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.from_exp">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_exp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">fractions.Fraction(1,</span> <span class="pre">1000000)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.from_exp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.from_exp" title="Link to this definition">¶</a></dt>
+<dd><p>Create a FracVector as the exponent of the argument <code class="docutils literal notranslate"><span class="pre">data</span></code>. If <code class="docutils literal notranslate"><span class="pre">data</span></code> is composed of
+strings, the standard deviation of the numbers is taken into account, and the best
+possible fractional approximation to the exponents of the data is returned within the
+standard deviation.</p>
+<p>This is not the same as <code class="docutils literal notranslate"><span class="pre">FracVector(data).exp()</span></code>, which creates the best
+possible fractional approximations of <code class="docutils literal notranslate"><span class="pre">data</span></code> and then takes exp on that.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>Any</em>) – Values to transform elementwise.</p></li>
+<li><p><strong>prec</strong> (<a class="reference external" href="https://docs.python.org/3/library/fractions.html#fractions.Fraction" title="(in Python v3.14)"><em>fractions.Fraction</em></a>) – The requested approximation precision.</p></li>
+<li><p><strong>limit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to bound the resulting denominator by the precision.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The elementwise exponential vector.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.pi">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">pi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">fractions.Fraction(1,</span> <span class="pre">1000000)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.pi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.pi" title="Link to this definition">¶</a></dt>
+<dd><p>Create a scalar FracVector with a rational approximation of pi to precision <code class="docutils literal notranslate"><span class="pre">prec</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prec</strong> (<a class="reference external" href="https://docs.python.org/3/library/fractions.html#fractions.Fraction" title="(in Python v3.14)"><em>fractions.Fraction</em></a>) – The requested approximation precision.</p></li>
+<li><p><strong>limit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to bound the denominator by the precision.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A scalar rational approximation of pi.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.dim">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">dim</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Ellipsis</span><span class="p"><span class="pre">]</span></span></span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.dim" title="Link to this definition">¶</a></dt>
+<dd><p>A tuple with the dimensionality of each dimension of the FracVector (the noms are
+assumed to be a nested list of rectangular shape).</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.nom">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nom</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.nom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.nom" title="Link to this definition">¶</a></dt>
+<dd><p>Return the integer nominator of a scalar FracVector.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.validate" title="Link to this definition">¶</a></dt>
+<dd><p>Return whether the vector’s stored structure is valid.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.to_tuple">
+<span class="sig-name descname"><span class="pre">to_tuple</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.to_tuple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.to_tuple" title="Link to this definition">¶</a></dt>
+<dd><p>Return the FracVector on tuple representation <code class="docutils literal notranslate"><span class="pre">(denom,</span> <span class="pre">...noms...)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The denominator and nested nominators.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, <a class="reference internal" href="#httk.core.vectors.fracvector.Noms" title="httk.core.vectors.fracvector.Noms">Noms</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.to_floats">
+<span class="sig-name descname"><span class="pre">to_floats</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.to_floats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.to_floats" title="Link to this definition">¶</a></dt>
+<dd><p>Convert the FracVector to a (nested) list of floats.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The values converted to floats.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Any</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.to_float">
+<span class="sig-name descname"><span class="pre">to_float</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.to_float"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.to_float" title="Link to this definition">¶</a></dt>
+<dd><p>Convert a scalar FracVector to a single float.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The scalar value as a float.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.to_fractions">
+<span class="sig-name descname"><span class="pre">to_fractions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.to_fractions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.to_fractions" title="Link to this definition">¶</a></dt>
+<dd><p>Convert the FracVector to a (nested) list of fractions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The values converted to <a class="reference external" href="https://docs.python.org/3/library/fractions.html#fractions.Fraction" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">fractions.Fraction</span></code></a> instances.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Any</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.to_fraction">
+<span class="sig-name descname"><span class="pre">to_fraction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.to_fraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.to_fraction" title="Link to this definition">¶</a></dt>
+<dd><p>Convert a scalar FracVector to a fraction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The scalar value as a fraction.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/fractions.html#fractions.Fraction" title="(in Python v3.14)">fractions.Fraction</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.flatten">
+<span class="sig-name descname"><span class="pre">flatten</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.flatten"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.flatten" title="Link to this definition">¶</a></dt>
+<dd><p>Return a FracVector that has been flattened out to a single row vector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The flattened vector.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.set_common_denom">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">set_common_denom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.set_common_denom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.set_common_denom" title="Link to this definition">¶</a></dt>
+<dd><p>Used internally to combine two different FracVectors.</p>
+<p>Returns a tuple <code class="docutils literal notranslate"><span class="pre">(A2,</span> <span class="pre">B2,</span> <span class="pre">denom)</span></code> where A2 is numerically equal to A, and B2 is
+numerically equal to B, but A2 and B2 are both set on the same shared denominator
+<code class="docutils literal notranslate"><span class="pre">denom</span></code>, which is the <em>product</em> of the denominators of A and B.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>A</strong> (<em>Any</em>) – The first vector or value.</p></li>
+<li><p><strong>B</strong> (<em>Any</em>) – The second vector or value.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The converted first vector, second vector, and shared denominator.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[Self, Self, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.sign">
+<span class="sig-name descname"><span class="pre">sign</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.sign"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.sign" title="Link to this definition">¶</a></dt>
+<dd><p>Return the sign of the scalar FracVector: -1, 0 or 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">-1</span></code>, <code class="docutils literal notranslate"><span class="pre">0</span></code>, or <code class="docutils literal notranslate"><span class="pre">1</span></code> according to the scalar sign.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.T">
+<span class="sig-name descname"><span class="pre">T</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.T"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.T" title="Link to this definition">¶</a></dt>
+<dd><p>Return the transpose, <code class="docutils literal notranslate"><span class="pre">A^T</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The transposed vector or matrix.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.det">
+<span class="sig-name descname"><span class="pre">det</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.det"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.det" title="Link to this definition">¶</a></dt>
+<dd><p>Return the determinant of the FracVector as a scalar FracVector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The determinant.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.inv">
+<span class="sig-name descname"><span class="pre">inv</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.inv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.inv" title="Link to this definition">¶</a></dt>
+<dd><p>Return the matrix inverse, <code class="docutils literal notranslate"><span class="pre">A^-1</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The inverse scalar or matrix.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.simplify">
+<span class="sig-name descname"><span class="pre">simplify</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.simplify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.simplify" title="Link to this definition">¶</a></dt>
+<dd><p>Return a reduced FracVector. I.e., each element has the same numerical value but the
+new FracVector represents them using the smallest possible shared denominator.</p>
+<p>The result is <em>canonical</em>: two numerically equal FracVectors always simplify to the
+same <code class="docutils literal notranslate"><span class="pre">(denom,</span> <span class="pre">noms)</span></code> pair. That requires normalizing the sign as well as reducing
+by the greatest common divisor, since <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">0,</span> <span class="pre">0)/-2</span></code> and <code class="docutils literal notranslate"><span class="pre">(-1,</span> <span class="pre">0,</span> <span class="pre">0)/2</span></code> are the
+same value and neither is reducible. Canonicality is what <code class="docutils literal notranslate"><span class="pre">__hash__</span></code> relies
+on to stay consistent with <code class="docutils literal notranslate"><span class="pre">__eq__</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The reduced, canonical vector.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.simplify_fast">
+<span class="sig-name descname"><span class="pre">simplify_fast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">depth</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.simplify_fast"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.simplify_fast" title="Link to this definition">¶</a></dt>
+<dd><p>Return a reduced FracVector, taking advantage of a known nesting <code class="docutils literal notranslate"><span class="pre">depth</span></code>. I.e., each
+element has the same numerical value but the new FracVector represents them using the
+smallest possible shared denominator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>depth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The known nesting depth of the nominators.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The reduced vector.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.set_denominator">
+<span class="sig-name descname"><span class="pre">set_denominator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">set_denom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000000000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.set_denominator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.set_denominator" title="Link to this definition">¶</a></dt>
+<dd><p>Return a FracVector of reduced resolution where every element is the closest numerical
+approximation using this denominator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>set_denom</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The denominator to use for the approximation.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The approximated vector.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.limit_denominator">
+<span class="sig-name descname"><span class="pre">limit_denominator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_denom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000000000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.limit_denominator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.limit_denominator" title="Link to this definition">¶</a></dt>
+<dd><p>Return a FracVector of reduced resolution.</p>
+<p>Each element in the returned FracVector is the closest numerical approximation that is
+allowed by a fraction with maximally this denominator. Note: since all elements must be
+put on a common denominator, the result may have a larger denominator than <code class="docutils literal notranslate"><span class="pre">max_denom</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>max_denom</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The largest denominator allowed for each element’s approximation.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The approximated vector.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.floor">
+<span class="sig-name descname"><span class="pre">floor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.floor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.floor" title="Link to this definition">¶</a></dt>
+<dd><p>Return the integer that is equal to or just below the value stored in a scalar FracVector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The floor of the scalar value.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.modf">
+<span class="sig-name descname"><span class="pre">modf</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.modf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.modf" title="Link to this definition">¶</a></dt>
+<dd><p>Return the fractional and integer parts of each element as the pair
+<code class="docutils literal notranslate"><span class="pre">(fractional,</span> <span class="pre">integer)</span></code> of exact FracVectors sharing this vector’s denominator.</p>
+<p>Both parts carry the sign of the element and the integer part truncates toward
+zero, matching the conventions of <a class="reference external" href="https://docs.python.org/3/library/math.html#math.modf" title="(in Python v3.14)"><code class="xref py py-func docutils literal notranslate"><span class="pre">math.modf()</span></code></a> (e.g. the value -5/2 splits
+into -1/2 and -2).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The fractional and integer parts, in that order.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference internal" href="#httk.core.vectors.fracvector.FracVector" title="httk.core.vectors.fracvector.FracVector">FracVector</a>, <a class="reference internal" href="#httk.core.vectors.fracvector.FracVector" title="httk.core.vectors.fracvector.FracVector">FracVector</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.ceil">
+<span class="sig-name descname"><span class="pre">ceil</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.ceil"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.ceil" title="Link to this definition">¶</a></dt>
+<dd><p>Return the integer that is equal to or just above the value stored in a scalar FracVector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The ceiling of the scalar value.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.normalize">
+<span class="sig-name descname"><span class="pre">normalize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.normalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.normalize" title="Link to this definition">¶</a></dt>
+<dd><p>Add/remove an integer +/-N to each element to place it in the range [0, 1).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The normalized vector.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.normalize_half">
+<span class="sig-name descname"><span class="pre">normalize_half</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.normalize_half"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.normalize_half" title="Link to this definition">¶</a></dt>
+<dd><p>Add/remove an integer +/-N to each element to place it in the range [-1/2, 1/2).</p>
+<p>This is useful to find the shortest vector C between two points A, B in a space with
+periodic boundary conditions [0, 1):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">C</span> <span class="o">=</span> <span class="p">(</span><span class="n">A</span> <span class="o">-</span> <span class="n">B</span><span class="p">)</span><span class="o">.</span><span class="n">normalize_half</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The vector normalized into the half-open interval.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.mul">
+<span class="sig-name descname"><span class="pre">mul</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.mul"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.mul" title="Link to this definition">¶</a></dt>
+<dd><p>Return the result of multiplying the vector with <code class="docutils literal notranslate"><span class="pre">other</span></code> using matrix multiplication.</p>
+<p>Note that for two 1D FracVectors, <code class="docutils literal notranslate"><span class="pre">A.dot(B)</span></code> is <em>not</em> the same as <code class="docutils literal notranslate"><span class="pre">A.mul(B)</span></code>, but
+rather <code class="docutils literal notranslate"><span class="pre">A.mul(B.T())</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> (<em>Any</em>) – The vector or scalar to multiply.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The exact matrix product.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.dot">
+<span class="sig-name descname"><span class="pre">dot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.dot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.dot" title="Link to this definition">¶</a></dt>
+<dd><p>Return the vector dot product of the 1D vector with the 1D vector <code class="docutils literal notranslate"><span class="pre">other</span></code>, i.e.,
+<code class="docutils literal notranslate"><span class="pre">A</span> <span class="pre">.</span> <span class="pre">B</span></code>. The same as <code class="docutils literal notranslate"><span class="pre">A</span> <span class="pre">*</span> <span class="pre">B.T()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#httk.core.vectors.fracvector.FracVector" title="httk.core.vectors.fracvector.FracVector"><em>FracVector</em></a>) – The other 1-D vector.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The exact dot product.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.lengthsqr">
+<span class="sig-name descname"><span class="pre">lengthsqr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.lengthsqr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.lengthsqr" title="Link to this definition">¶</a></dt>
+<dd><p>Return the square of the length of the vector. The same as <code class="docutils literal notranslate"><span class="pre">A</span> <span class="pre">*</span> <span class="pre">A.T()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The exact squared length.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.cross">
+<span class="sig-name descname"><span class="pre">cross</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.cross"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.cross" title="Link to this definition">¶</a></dt>
+<dd><p>Return the vector cross product of the 3-element 1D vector with the 3-element 1D vector
+<code class="docutils literal notranslate"><span class="pre">other</span></code>, i.e., <code class="docutils literal notranslate"><span class="pre">A</span> <span class="pre">x</span> <span class="pre">B</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#httk.core.vectors.fracvector.FracVector" title="httk.core.vectors.fracvector.FracVector"><em>FracVector</em></a>) – The other 3-element vector.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The exact cross product.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.reciprocal">
+<span class="sig-name descname"><span class="pre">reciprocal</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.reciprocal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.reciprocal" title="Link to this definition">¶</a></dt>
+<dd><p>Return the reciprocal matrix of a 3x3 matrix (the rows are the reciprocal vectors,
+without the <code class="docutils literal notranslate"><span class="pre">2*pi</span></code> factor).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The reciprocal matrix.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.metric_product">
+<span class="sig-name descname"><span class="pre">metric_product</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vecA</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vecB</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.metric_product"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.metric_product" title="Link to this definition">¶</a></dt>
+<dd><p>Return the result of the metric product using the present square FracVector as the
+metric matrix. The same as <code class="docutils literal notranslate"><span class="pre">vecA</span> <span class="pre">*</span> <span class="pre">self</span> <span class="pre">*</span> <span class="pre">vecB.T()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vecA</strong> (<a class="reference internal" href="#httk.core.vectors.fracvector.FracVector" title="httk.core.vectors.fracvector.FracVector"><em>FracVector</em></a>) – The first vector or matrix operand.</p></li>
+<li><p><strong>vecB</strong> (<a class="reference internal" href="#httk.core.vectors.fracvector.FracVector" title="httk.core.vectors.fracvector.FracVector"><em>FracVector</em></a>) – The second vector or matrix operand.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The metric product.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.cos">
+<span class="sig-name descname"><span class="pre">cos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degrees</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.cos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.cos" title="Link to this definition">¶</a></dt>
+<dd><p>Return a FracVector where every element is the cosine of the element in the source FracVector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prec</strong> (<a class="reference external" href="https://docs.python.org/3/library/fractions.html#fractions.Fraction" title="(in Python v3.14)"><em>fractions.Fraction</em></a><em> | </em><em>None</em>) – The requested approximation precision.</p></li>
+<li><p><strong>degrees</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to interpret the elements in degrees.</p></li>
+<li><p><strong>limit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to limit the denominator to at most <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">prec</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The elementwise cosine vector.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.sin">
+<span class="sig-name descname"><span class="pre">sin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degrees</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.sin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.sin" title="Link to this definition">¶</a></dt>
+<dd><p>Return a FracVector where every element is the sine of the element in the source FracVector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prec</strong> (<a class="reference external" href="https://docs.python.org/3/library/fractions.html#fractions.Fraction" title="(in Python v3.14)"><em>fractions.Fraction</em></a><em> | </em><em>None</em>) – The requested approximation precision.</p></li>
+<li><p><strong>degrees</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to interpret the elements in degrees.</p></li>
+<li><p><strong>limit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to limit the denominator to at most <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">prec</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The elementwise sine vector.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.acos">
+<span class="sig-name descname"><span class="pre">acos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degrees</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.acos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.acos" title="Link to this definition">¶</a></dt>
+<dd><p>Return a FracVector where every element is the arccos of the element in the source FracVector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prec</strong> (<a class="reference external" href="https://docs.python.org/3/library/fractions.html#fractions.Fraction" title="(in Python v3.14)"><em>fractions.Fraction</em></a><em> | </em><em>None</em>) – The requested approximation precision.</p></li>
+<li><p><strong>degrees</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to return the result in degrees.</p></li>
+<li><p><strong>limit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to limit the denominator to at most <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">prec</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The elementwise arccosine vector.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.asin">
+<span class="sig-name descname"><span class="pre">asin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degrees</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.asin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.asin" title="Link to this definition">¶</a></dt>
+<dd><p>Return a FracVector where every element is the arcsin of the element in the source FracVector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prec</strong> (<a class="reference external" href="https://docs.python.org/3/library/fractions.html#fractions.Fraction" title="(in Python v3.14)"><em>fractions.Fraction</em></a><em> | </em><em>None</em>) – The requested approximation precision.</p></li>
+<li><p><strong>degrees</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to return the result in degrees.</p></li>
+<li><p><strong>limit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to limit the denominator to at most <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">prec</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The elementwise arcsine vector.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.exp">
+<span class="sig-name descname"><span class="pre">exp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.exp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.exp" title="Link to this definition">¶</a></dt>
+<dd><p>Return a FracVector where every element is the exponent of the element in the source FracVector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prec</strong> (<a class="reference external" href="https://docs.python.org/3/library/fractions.html#fractions.Fraction" title="(in Python v3.14)"><em>fractions.Fraction</em></a><em> | </em><em>None</em>) – The requested approximation precision.</p></li>
+<li><p><strong>limit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to limit the denominator to at most <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">prec</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The elementwise exponential vector.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.sqrt">
+<span class="sig-name descname"><span class="pre">sqrt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.sqrt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.sqrt" title="Link to this definition">¶</a></dt>
+<dd><p>Return a FracVector where every element is the sqrt of the element in the source FracVector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prec</strong> (<a class="reference external" href="https://docs.python.org/3/library/fractions.html#fractions.Fraction" title="(in Python v3.14)"><em>fractions.Fraction</em></a><em> | </em><em>None</em>) – The requested approximation precision.</p></li>
+<li><p><strong>limit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to limit the denominator to at most <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">prec</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The elementwise square-root vector.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.max">
+<span class="sig-name descname"><span class="pre">max</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.max"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.max" title="Link to this definition">¶</a></dt>
+<dd><p>Return the maximum element across all dimensions in the FracVector. <code class="docutils literal notranslate"><span class="pre">max(fracvector)</span></code>
+works for a 1D vector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The maximum scalar element.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.nargmax">
+<span class="sig-name descname"><span class="pre">nargmax</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.nargmax"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.nargmax" title="Link to this definition">¶</a></dt>
+<dd><p>Return a list of indices of all maximum elements across all dimensions in the FracVector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The indices of all maximum elements.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.argmax">
+<span class="sig-name descname"><span class="pre">argmax</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.argmax"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.argmax" title="Link to this definition">¶</a></dt>
+<dd><p>Return the index of the maximum element across all dimensions in the FracVector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The index of one maximum element.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Any</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.min">
+<span class="sig-name descname"><span class="pre">min</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.min"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.min" title="Link to this definition">¶</a></dt>
+<dd><p>Return the minimum element across all dimensions in the FracVector. <code class="docutils literal notranslate"><span class="pre">min(fracvector)</span></code>
+works for a 1D vector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The minimum scalar element.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Self</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.nargmin">
+<span class="sig-name descname"><span class="pre">nargmin</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.nargmin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.nargmin" title="Link to this definition">¶</a></dt>
+<dd><p>Return a list of indices for all minimum elements across all dimensions in the FracVector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The indices of all minimum elements.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVectorBase.argmin">
+<span class="sig-name descname"><span class="pre">argmin</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVectorBase.argmin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVectorBase.argmin" title="Link to this definition">¶</a></dt>
+<dd><p>Return the index of the minimum element across all dimensions in the FracVector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The index of one minimum element.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Any</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVector">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">httk.core.vectors.fracvector.</span></span><span class="sig-name descname"><span class="pre">FracVector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">denom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simplify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_accuracy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">fractions.Fraction(1,</span> <span class="pre">10000)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVector" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase" title="httk.core.vectors.fracvector.FracVectorBase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FracVectorBase</span></code></a>, <a class="reference internal" href="../vector_backend/index.html#httk.core.vectors.vector_backend.VectorBackend" title="httk.core.vectors.vector_backend.VectorBackend"><code class="xref py py-obj docutils literal notranslate"><span class="pre">httk.core.vectors.vector_backend.VectorBackend</span></code></a></p>
+<p>Immutable exact-rational vector that is also its own vector backend.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracVector.fractions">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">fractions</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../vector_api/index.html#httk.core.vectors.vector_api.Fractions" title="httk.core.vectors.vector_api.Fractions"><span class="pre">httk.core.vectors.vector_api.Fractions</span></a></span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracVector.fractions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracVector.fractions" title="Link to this definition">¶</a></dt>
+<dd><p>Return this vector in the exact nested Fraction interchange format.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="httk.core.vectors.fracvector.FracScalar">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">httk.core.vectors.fracvector.</span></span><span class="sig-name descname"><span class="pre">FracScalar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">denom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simplify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_accuracy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">fractions.Fraction(1,</span> <span class="pre">10000)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/vectors/fracvector.html#FracScalar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.vectors.fracvector.FracScalar" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#httk.core.vectors.fracvector.FracVector" title="httk.core.vectors.fracvector.FracVector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FracVector</span></code></a></p>
+<p>Represents the fractional number <code class="docutils literal notranslate"><span class="pre">nom/denom</span></code>. This is a subclass of FracVector with the
+purpose of making it clear when a scalar fracvector is needed/used.</p>
+<p>Convert a value into a FracScalar.</p>
+<p><code class="docutils literal notranslate"><span class="pre">FracScalar(something)</span></code> where <code class="docutils literal notranslate"><span class="pre">something</span></code> may be any object that can be used
+in the constructor of the Python Fraction class (also works with strings!).</p>
+<p>For signature compatibility with the <a class="reference internal" href="#httk.core.vectors.fracvector.FracVector" title="httk.core.vectors.fracvector.FracVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">FracVector</span></code></a> constructor, this accepts but ignores
+<code class="docutils literal notranslate"><span class="pre">chain</span></code> and <code class="docutils literal notranslate"><span class="pre">min_accuracy</span></code>, and converts strings exactly via the Fraction constructor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> (<em>Any</em>) – The scalar value or values to convert.</p></li>
+<li><p><strong>denom</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> | </em><em>None</em>) – An optional additional denominator.</p></li>
+<li><p><strong>simplify</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to reduce the resulting denominator.</p></li>
+<li><p><strong>chain</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – An accepted compatibility parameter; it does not affect scalar creation.</p></li>
+<li><p><strong>min_accuracy</strong> (<a class="reference external" href="https://docs.python.org/3/library/fractions.html#fractions.Fraction" title="(in Python v3.14)"><em>fractions.Fraction</em></a><em> | </em><em>None</em>) – An accepted compatibility parameter; scalar strings are exact.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="../leaf_codecs/index.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">httk.core.vectors.leaf_codecs</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="../index.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">httk.core.vectors</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2026, The httk-core AUTHORS
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">httk.core.vectors.fracvector</a><ul>
+<li><a class="reference internal" href="#attributes">Attributes</a></li>
+<li><a class="reference internal" href="#classes">Classes</a></li>
+<li><a class="reference internal" href="#module-contents">Module Contents</a><ul>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.Noms"><code class="docutils literal notranslate"><span class="pre">Noms</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase"><code class="docutils literal notranslate"><span class="pre">FracVectorBase</span></code></a><ul>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.nested_map"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.nested_map</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.nested_map_fractions"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.nested_map_fractions</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.noms"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.noms</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.denom"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.denom</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.get_append"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.get_append()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.get_extend"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.get_extend()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.get_insert"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.get_insert()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.get_prepend"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.get_prepend()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.get_prextend"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.get_prextend()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.get_stacked"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.get_stacked()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.get_prestacked"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.get_prestacked()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.get_stackedinsert"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.get_stackedinsert()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.chain_vecs"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.chain_vecs()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.stack_vecs"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.stack_vecs()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.eye"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.eye()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.zeros"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.zeros()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.random"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.random()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.from_tuple"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.from_tuple()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.from_cos"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.from_cos()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.from_sin"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.from_sin()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.from_exp"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.from_exp()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.pi"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.pi()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.dim"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.dim</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.nom"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.nom</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.validate"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.validate()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.to_tuple"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.to_tuple()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.to_floats"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.to_floats()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.to_float"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.to_float()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.to_fractions"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.to_fractions()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.to_fraction"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.to_fraction()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.flatten"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.flatten()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.set_common_denom"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.set_common_denom()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.sign"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.sign()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.T"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.T()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.det"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.det()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.inv"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.inv()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.simplify"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.simplify()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.simplify_fast"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.simplify_fast()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.set_denominator"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.set_denominator()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.limit_denominator"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.limit_denominator()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.floor"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.floor()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.modf"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.modf()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.ceil"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.ceil()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.normalize"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.normalize()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.normalize_half"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.normalize_half()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.mul"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.mul()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.dot"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.dot()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.lengthsqr"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.lengthsqr()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.cross"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.cross()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.reciprocal"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.reciprocal()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.metric_product"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.metric_product()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.cos"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.cos()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.sin"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.sin()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.acos"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.acos()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.asin"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.asin()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.exp"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.exp()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.sqrt"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.sqrt()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.max"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.max()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.nargmax"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.nargmax()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.argmax"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.argmax()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.min"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.min()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.nargmin"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.nargmin()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVectorBase.argmin"><code class="docutils literal notranslate"><span class="pre">FracVectorBase.argmin()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVector"><code class="docutils literal notranslate"><span class="pre">FracVector</span></code></a><ul>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracVector.fractions"><code class="docutils literal notranslate"><span class="pre">FracVector.fractions</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#httk.core.vectors.fracvector.FracScalar"><code class="docutils literal notranslate"><span class="pre">FracScalar</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../../../../../../_static/documentation_options.js?v=fe42cd0d"></script>
+    <script src="../../../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../../../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../../../_static/copybutton.js?v=fd10adb8"></script>
+    <script src="../../../../../../_static/selector.js?v=e591e119"></script>
+    <script>window.HTTK_DOCS_VERSIONING = {"channel":"dev","version":"dev:main","versionPathDepth":2};</script>
+    </body>
+</html>

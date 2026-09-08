@@ -1,0 +1,47 @@
+httk.core.datastream.textstream_string_view
+===========================================
+
+.. py:module:: httk.core.datastream.textstream_string_view
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.datastream.textstream_string_view.TextstreamStringView
+
+
+Module Contents
+---------------
+
+.. py:class:: TextstreamStringView(obj, **hints)
+
+   Bases: :py:obj:`httk.core.datastream.textstream_view.TextstreamView`, :py:obj:`str`
+
+
+   A view presenting an underlying data streaming as a string.
+   This view can be used both to pass a string in place of streaming data, and for reading streaming data into a string.
+   Note: this view is not lazy (this is impossible for views inherting str, since str is immutable), hence all the streaming data
+   is read immedately upon creating this view.
+
+   :param obj: Text-stream source to present or consume.
+   :param \**hints: Backend-selection and compression hints.
+
+
+   .. py:method:: unwrap()
+
+      Return the raw representation of the wrapped backend.
+
+      :return: The backend's most raw available representation.
+
+
+
+   .. py:method:: unview()
+
+      Return the presented text as a plain string.
+
+      :return: A plain string containing the presented text.
+
+
+

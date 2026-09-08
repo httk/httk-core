@@ -1,0 +1,59 @@
+httk.core.datastream.network_policy
+===================================
+
+.. py:module:: httk.core.datastream.network_policy
+
+.. autoapi-nested-parse::
+
+   Policy and timeout helpers for network-backed datastream opens.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.datastream.network_policy.DEFAULT_NETWORK_TIMEOUT
+   httk.core.datastream.network_policy.NETWORK_SCHEMES
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.datastream.network_policy.require_network_consent
+   httk.core.datastream.network_policy.resolve_timeout
+
+
+Module Contents
+---------------
+
+.. py:data:: DEFAULT_NETWORK_TIMEOUT
+   :type:  float | None
+   :value: 30.0
+
+
+   Default timeout for each network open; read freshly for every open, or ``None`` to disable.
+
+.. py:data:: NETWORK_SCHEMES
+
+   Schemes treated as network access; ``file`` is local I/O and deliberately absent.
+
+.. py:function:: require_network_consent(url)
+
+   Future seam for an opt-in network policy; currently all implicit access is refused.
+
+   :param url: URL whose implicit access was requested.
+   :raises PermissionError: Always for implicit network access.
+
+
+.. py:function:: resolve_timeout(hint)
+
+   Return an explicit timeout or the current module default.
+
+   :param hint: Explicit timeout, or ``None`` to use the module default.
+   :return: The timeout to pass to the network opener.
+
+

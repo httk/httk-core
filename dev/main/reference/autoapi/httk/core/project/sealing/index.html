@@ -1,0 +1,1444 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../../../../../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../../../../../../genindex.html"><link rel="search" title="Search" href="../../../../../../search.html"><link rel="next" title="httk.core.project.templates" href="../templates/index.html"><link rel="prev" title="httk.core.project.members" href="../members/index.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>httk.core.project.sealing - httk-core dev:main documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/selector.css?v=626bada3" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+<div class="announcement">
+  <aside class="announcement-content">
+     Development documentation (dev:main) — content may differ from any release. 
+  </aside>
+</div>
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../../../../index.html"><div class="brand">httk-core dev:main documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../../../../index.html">
+  
+  <span class="sidebar-brand-text">httk-core dev:main documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../../../../../index.html">Reference</a><input aria-label="Toggle navigation of Reference" checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="../../index.html">httk.core</a><input aria-label="Toggle navigation of httk.core" checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../../atomic_write/index.html">httk.core.atomic_write</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../building/index.html">httk.core.building</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../citations/index.html">httk.core.citations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cli/index.html">httk.core.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../converting/index.html">httk.core.converting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../crypto/index.html">httk.core.crypto</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../data_records/index.html">httk.core.data_records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../dataset_loader/index.html">httk.core.dataset_loader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../datasets/index.html">httk.core.datasets</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../datastream/index.html">httk.core.datastream</a><input aria-label="Toggle navigation of httk.core.datastream" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_api/index.html">httk.core.datastream.bytestream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_backend/index.html">httk.core.datastream.bytestream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_bytes/index.html">httk.core.datastream.bytestream_bytes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_bytes_view/index.html">httk.core.datastream.bytestream_bytes_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_common/index.html">httk.core.datastream.bytestream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_file/index.html">httk.core.datastream.bytestream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_file_view/index.html">httk.core.datastream.bytestream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_filename/index.html">httk.core.datastream.bytestream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_filename_view/index.html">httk.core.datastream.bytestream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_like/index.html">httk.core.datastream.bytestream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_request/index.html">httk.core.datastream.bytestream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_request_view/index.html">httk.core.datastream.bytestream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_url/index.html">httk.core.datastream.bytestream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_url_view/index.html">httk.core.datastream.bytestream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_view/index.html">httk.core.datastream.bytestream_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/compression/index.html">httk.core.datastream.compression</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/datastream_url/index.html">httk.core.datastream.datastream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/network_policy/index.html">httk.core.datastream.network_policy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_api/index.html">httk.core.datastream.textstream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_backend/index.html">httk.core.datastream.textstream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_common/index.html">httk.core.datastream.textstream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_file/index.html">httk.core.datastream.textstream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_file_view/index.html">httk.core.datastream.textstream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_filename/index.html">httk.core.datastream.textstream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_filename_view/index.html">httk.core.datastream.textstream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_like/index.html">httk.core.datastream.textstream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_request/index.html">httk.core.datastream.textstream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_request_view/index.html">httk.core.datastream.textstream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_string/index.html">httk.core.datastream.textstream_string</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_string_view/index.html">httk.core.datastream.textstream_string_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_url/index.html">httk.core.datastream.textstream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_url_view/index.html">httk.core.datastream.textstream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_view/index.html">httk.core.datastream.textstream_view</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../digests/index.html">httk.core.digests</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../docs/index.html">httk.core.docs</a><input aria-label="Toggle navigation of httk.core.docs" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/cli/index.html">httk.core.docs.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/config/index.html">httk.core.docs.config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/ecosystem/index.html">httk.core.docs.ecosystem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/gitsite/index.html">httk.core.docs.gitsite</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/inventories/index.html">httk.core.docs.inventories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/lockfile/index.html">httk.core.docs.lockfile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/manifests/index.html">httk.core.docs.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/redirect/index.html">httk.core.docs.redirect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/release/index.html">httk.core.docs.release</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/semver/index.html">httk.core.docs.semver</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/sitetree/index.html">httk.core.docs.sitetree</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/sphinx_ext/index.html">httk.core.docs.sphinx_ext</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../entry_ids/index.html">httk.core.entry_ids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../entry_provider/index.html">httk.core.entry_provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../entry_types/index.html">httk.core.entry_types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../exactmath/index.html">httk.core.exactmath</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../fetching/index.html">httk.core.fetching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../files/index.html">httk.core.files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../identity/index.html">httk.core.identity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../identity_cli/index.html">httk.core.identity_cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../loading/index.html">httk.core.loading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../memguard/index.html">httk.core.memguard</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../optimade/index.html">httk.core.optimade</a><input aria-label="Toggle navigation of httk.core.optimade" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../optimade/entries/index.html">httk.core.optimade.entries</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../optimade/filter/index.html">httk.core.optimade.filter</a><input aria-label="Toggle navigation of httk.core.optimade.filter" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../optimade/filter/parser/index.html">httk.core.optimade.filter.parser</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../optimade/resources/index.html">httk.core.optimade.resources</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../plugins/index.html">httk.core.plugins</a><input aria-label="Toggle navigation of httk.core.plugins" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../plugins/cli/index.html">httk.core.plugins.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../plugins/install/index.html">httk.core.plugins.install</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../plugins/installed/index.html">httk.core.plugins.installed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../plugins/manifest/index.html">httk.core.plugins.manifest</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../precision/index.html">httk.core.precision</a></li>
+<li class="toctree-l3 current has-children"><a class="reference internal" href="../index.html">httk.core.project</a><input aria-label="Toggle navigation of httk.core.project" checked="" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../anchor/index.html">httk.core.project.anchor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../cli/index.html">httk.core.project.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../export/index.html">httk.core.project.export</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manifests/index.html">httk.core.project.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../members/index.html">httk.core.project.members</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">httk.core.project.sealing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../templates/index.html">httk.core.project.templates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../property_definitions/index.html">httk.core.property_definitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../provenance/index.html">httk.core.provenance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../records/index.html">httk.core.records</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../register/index.html">httk.core.register</a><input aria-label="Toggle navigation of httk.core.register" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../register/cli/index.html">httk.core.register.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../register/entries/index.html">httk.core.register.entries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../register/io/index.html">httk.core.register.io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../register/members/index.html">httk.core.register.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../register/schemas/index.html">httk.core.register.schemas</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../report/index.html">httk.core.report</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../saving/index.html">httk.core.saving</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../schema_check/index.html">httk.core.schema_check</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../services/index.html">httk.core.services</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../storage/index.html">httk.core.storage</a><input aria-label="Toggle navigation of httk.core.storage" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../storage/identity/index.html">httk.core.storage.identity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../storage/markers/index.html">httk.core.storage.markers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../storage/rational_text/index.html">httk.core.storage.rational_text</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../storage/stored_properties/index.html">httk.core.storage.stored_properties</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../system/index.html">httk.core.system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../userdirs/index.html">httk.core.userdirs</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../validation/index.html">httk.core.validation</a><input aria-label="Toggle navigation of httk.core.validation" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../validation/iris/index.html">httk.core.validation.iris</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../vectors/index.html">httk.core.vectors</a><input aria-label="Toggle navigation of httk.core.vectors" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/fracvector/index.html">httk.core.vectors.fracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/leaf_codecs/index.html">httk.core.vectors.leaf_codecs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/mutablefracvector/index.html">httk.core.vectors.mutablefracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/numeric/index.html">httk.core.vectors.numeric</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/scalar_like/index.html">httk.core.vectors.scalar_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/surdvector/index.html">httk.core.vectors.surdvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/vector_api/index.html">httk.core.vectors.vector_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/vector_backend/index.html">httk.core.vectors.vector_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/vector_frac_view/index.html">httk.core.vectors.vector_frac_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/vector_like/index.html">httk.core.vectors.vector_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/vector_native_backend/index.html">httk.core.vectors.vector_native_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/vector_native_view/index.html">httk.core.vectors.vector_native_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/vector_numpy_backend/index.html">httk.core.vectors.vector_numpy_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/vector_numpy_view/index.html">httk.core.vectors.vector_numpy_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/vector_surd_view/index.html">httk.core.vectors.vector_surd_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/vector_view/index.html">httk.core.vectors.vector_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/vectormath/index.html">httk.core.vectors.vectormath</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../views/index.html">httk.core.views</a><input aria-label="Toggle navigation of httk.core.views" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../views/backend/index.html">httk.core.views.backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../views/coercion/index.html">httk.core.views.coercion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../views/unviewing/index.html">httk.core.views.unviewing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../views/unwrapping/index.html">httk.core.views.unwrapping</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../views/view/index.html">httk.core.views.view</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../view_backend_pattern.html">Views and Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../registry.html">Module registry</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../datastreams.html">Datastreams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../cli.html">The extensible command line</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../plugins.html">Plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../crypto.html">Cryptography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../identity.html">Operator identity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../projects.html">Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../sealing.html">Sealing and manifests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../property_definitions.html">Property definitions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../vectors.html">Vectors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../exactmath.html">Exact math on rationals and decimals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../credits.html">Citation credits</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../../../../examples/index.html">Examples</a><input aria-label="Toggle navigation of Examples" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../../examples/datastreams_quickstart.html">Datastreams quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../../examples/vectors_quickstart.html">Vectors quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../../examples/exactmath_quickstart.html">Exact math quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../../examples/load_and_dataset_loader.html">Getting data into httk: the <code class="docutils literal notranslate"><span class="pre">load</span></code> dispatcher and the <code class="docutils literal notranslate"><span class="pre">DatasetLoader</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../../examples/property_definitions.html">Building a custom OPTIMADE entry type end to end</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../../examples/entry_provider.html">Implementing an <code class="docutils literal notranslate"><span class="pre">EntryProvider</span></code>: the contract <em>httk-core</em> owns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../../examples/optimade_filter.html">Parsing OPTIMADE filter strings into an abstract syntax tree</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../../examples/coerce_quickstart.html">Coercion quickstart</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Details</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../details/view_backend_pattern.html">Views and Backends in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../details/registry.html">Module registry in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../details/datastreams.html">Datastreams in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../details/plugins.html">Plugins in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../details/property_definitions.html">Property definitions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../details/vectors.html">Vectors in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../details/exactmath.html">Exact math in detail</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../../../../index.html">API Reference</a><input aria-label="Toggle navigation of API Reference" checked="" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="../../index.html">httk.core</a><input aria-label="Toggle navigation of httk.core" checked="" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../../atomic_write/index.html">httk.core.atomic_write</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../building/index.html">httk.core.building</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../citations/index.html">httk.core.citations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../cli/index.html">httk.core.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../converting/index.html">httk.core.converting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../crypto/index.html">httk.core.crypto</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../data_records/index.html">httk.core.data_records</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../dataset_loader/index.html">httk.core.dataset_loader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../datasets/index.html">httk.core.datasets</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../datastream/index.html">httk.core.datastream</a><input aria-label="Toggle navigation of httk.core.datastream" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_api/index.html">httk.core.datastream.bytestream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_backend/index.html">httk.core.datastream.bytestream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_bytes/index.html">httk.core.datastream.bytestream_bytes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_bytes_view/index.html">httk.core.datastream.bytestream_bytes_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_common/index.html">httk.core.datastream.bytestream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_file/index.html">httk.core.datastream.bytestream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_file_view/index.html">httk.core.datastream.bytestream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_filename/index.html">httk.core.datastream.bytestream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_filename_view/index.html">httk.core.datastream.bytestream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_like/index.html">httk.core.datastream.bytestream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_request/index.html">httk.core.datastream.bytestream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_request_view/index.html">httk.core.datastream.bytestream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_url/index.html">httk.core.datastream.bytestream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_url_view/index.html">httk.core.datastream.bytestream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/bytestream_view/index.html">httk.core.datastream.bytestream_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/compression/index.html">httk.core.datastream.compression</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/datastream_url/index.html">httk.core.datastream.datastream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/network_policy/index.html">httk.core.datastream.network_policy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_api/index.html">httk.core.datastream.textstream_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_backend/index.html">httk.core.datastream.textstream_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_common/index.html">httk.core.datastream.textstream_common</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_file/index.html">httk.core.datastream.textstream_file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_file_view/index.html">httk.core.datastream.textstream_file_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_filename/index.html">httk.core.datastream.textstream_filename</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_filename_view/index.html">httk.core.datastream.textstream_filename_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_like/index.html">httk.core.datastream.textstream_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_request/index.html">httk.core.datastream.textstream_request</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_request_view/index.html">httk.core.datastream.textstream_request_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_string/index.html">httk.core.datastream.textstream_string</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_string_view/index.html">httk.core.datastream.textstream_string_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_url/index.html">httk.core.datastream.textstream_url</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_url_view/index.html">httk.core.datastream.textstream_url_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../datastream/textstream_view/index.html">httk.core.datastream.textstream_view</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../digests/index.html">httk.core.digests</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../docs/index.html">httk.core.docs</a><input aria-label="Toggle navigation of httk.core.docs" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/cli/index.html">httk.core.docs.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/config/index.html">httk.core.docs.config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/ecosystem/index.html">httk.core.docs.ecosystem</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/gitsite/index.html">httk.core.docs.gitsite</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/inventories/index.html">httk.core.docs.inventories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/lockfile/index.html">httk.core.docs.lockfile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/manifests/index.html">httk.core.docs.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/redirect/index.html">httk.core.docs.redirect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/release/index.html">httk.core.docs.release</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/semver/index.html">httk.core.docs.semver</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/sitetree/index.html">httk.core.docs.sitetree</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../docs/sphinx_ext/index.html">httk.core.docs.sphinx_ext</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../entry_ids/index.html">httk.core.entry_ids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../entry_provider/index.html">httk.core.entry_provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../entry_types/index.html">httk.core.entry_types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../exactmath/index.html">httk.core.exactmath</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../fetching/index.html">httk.core.fetching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../files/index.html">httk.core.files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../identity/index.html">httk.core.identity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../identity_cli/index.html">httk.core.identity_cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../loading/index.html">httk.core.loading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../memguard/index.html">httk.core.memguard</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../optimade/index.html">httk.core.optimade</a><input aria-label="Toggle navigation of httk.core.optimade" class="toctree-checkbox" id="toctree-checkbox-19" name="toctree-checkbox-19" role="switch" type="checkbox"/><label for="toctree-checkbox-19"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../optimade/entries/index.html">httk.core.optimade.entries</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../optimade/filter/index.html">httk.core.optimade.filter</a><input aria-label="Toggle navigation of httk.core.optimade.filter" class="toctree-checkbox" id="toctree-checkbox-20" name="toctree-checkbox-20" role="switch" type="checkbox"/><label for="toctree-checkbox-20"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../optimade/filter/parser/index.html">httk.core.optimade.filter.parser</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../optimade/resources/index.html">httk.core.optimade.resources</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../plugins/index.html">httk.core.plugins</a><input aria-label="Toggle navigation of httk.core.plugins" class="toctree-checkbox" id="toctree-checkbox-21" name="toctree-checkbox-21" role="switch" type="checkbox"/><label for="toctree-checkbox-21"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../plugins/cli/index.html">httk.core.plugins.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../plugins/install/index.html">httk.core.plugins.install</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../plugins/installed/index.html">httk.core.plugins.installed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../plugins/manifest/index.html">httk.core.plugins.manifest</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../precision/index.html">httk.core.precision</a></li>
+<li class="toctree-l3 current has-children"><a class="reference internal" href="../index.html">httk.core.project</a><input aria-label="Toggle navigation of httk.core.project" checked="" class="toctree-checkbox" id="toctree-checkbox-22" name="toctree-checkbox-22" role="switch" type="checkbox"/><label for="toctree-checkbox-22"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../anchor/index.html">httk.core.project.anchor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../cli/index.html">httk.core.project.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../export/index.html">httk.core.project.export</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manifests/index.html">httk.core.project.manifests</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../members/index.html">httk.core.project.members</a></li>
+<li class="toctree-l4 current current-page"><a class="current reference internal" href="#">httk.core.project.sealing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../templates/index.html">httk.core.project.templates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../property_definitions/index.html">httk.core.property_definitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../provenance/index.html">httk.core.provenance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../records/index.html">httk.core.records</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../register/index.html">httk.core.register</a><input aria-label="Toggle navigation of httk.core.register" class="toctree-checkbox" id="toctree-checkbox-23" name="toctree-checkbox-23" role="switch" type="checkbox"/><label for="toctree-checkbox-23"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../register/cli/index.html">httk.core.register.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../register/entries/index.html">httk.core.register.entries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../register/io/index.html">httk.core.register.io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../register/members/index.html">httk.core.register.members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../register/schemas/index.html">httk.core.register.schemas</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../report/index.html">httk.core.report</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../saving/index.html">httk.core.saving</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../schema_check/index.html">httk.core.schema_check</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../services/index.html">httk.core.services</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../storage/index.html">httk.core.storage</a><input aria-label="Toggle navigation of httk.core.storage" class="toctree-checkbox" id="toctree-checkbox-24" name="toctree-checkbox-24" role="switch" type="checkbox"/><label for="toctree-checkbox-24"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../storage/identity/index.html">httk.core.storage.identity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../storage/markers/index.html">httk.core.storage.markers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../storage/rational_text/index.html">httk.core.storage.rational_text</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../storage/stored_properties/index.html">httk.core.storage.stored_properties</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../system/index.html">httk.core.system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../userdirs/index.html">httk.core.userdirs</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../validation/index.html">httk.core.validation</a><input aria-label="Toggle navigation of httk.core.validation" class="toctree-checkbox" id="toctree-checkbox-25" name="toctree-checkbox-25" role="switch" type="checkbox"/><label for="toctree-checkbox-25"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../validation/iris/index.html">httk.core.validation.iris</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../vectors/index.html">httk.core.vectors</a><input aria-label="Toggle navigation of httk.core.vectors" class="toctree-checkbox" id="toctree-checkbox-26" name="toctree-checkbox-26" role="switch" type="checkbox"/><label for="toctree-checkbox-26"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/fracvector/index.html">httk.core.vectors.fracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/leaf_codecs/index.html">httk.core.vectors.leaf_codecs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/mutablefracvector/index.html">httk.core.vectors.mutablefracvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/numeric/index.html">httk.core.vectors.numeric</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/scalar_like/index.html">httk.core.vectors.scalar_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/surdvector/index.html">httk.core.vectors.surdvector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/vector_api/index.html">httk.core.vectors.vector_api</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/vector_backend/index.html">httk.core.vectors.vector_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/vector_frac_view/index.html">httk.core.vectors.vector_frac_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/vector_like/index.html">httk.core.vectors.vector_like</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/vector_native_backend/index.html">httk.core.vectors.vector_native_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/vector_native_view/index.html">httk.core.vectors.vector_native_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/vector_numpy_backend/index.html">httk.core.vectors.vector_numpy_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/vector_numpy_view/index.html">httk.core.vectors.vector_numpy_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/vector_surd_view/index.html">httk.core.vectors.vector_surd_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/vector_view/index.html">httk.core.vectors.vector_view</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../vectors/vectormath/index.html">httk.core.vectors.vectormath</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../views/index.html">httk.core.views</a><input aria-label="Toggle navigation of httk.core.views" class="toctree-checkbox" id="toctree-checkbox-27" name="toctree-checkbox-27" role="switch" type="checkbox"/><label for="toctree-checkbox-27"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../views/backend/index.html">httk.core.views.backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../views/coercion/index.html">httk.core.views.coercion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../views/unviewing/index.html">httk.core.views.unviewing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../views/unwrapping/index.html">httk.core.views.unwrapping</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../views/view/index.html">httk.core.views.view</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../registry/cli/core/index.html">httk.registry.cli.core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../registry/entries/core/index.html">httk.registry.entries.core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../registry/schemas/core/index.html">httk.registry.schemas.core</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../../../../../../_sources/reference/autoapi/httk/core/project/sealing/index.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="module-httk.core.project.sealing">
+<span id="httk-core-project-sealing"></span><h1>httk.core.project.sealing<a class="headerlink" href="#module-httk.core.project.sealing" title="Link to this heading">¶</a></h1>
+<p>Write, read, sign, and verify project seal documents.</p>
+<p>A <em>seal</em> is a signed statement of what a subject contained at one moment. A
+project seal records the project’s loose files and, for every registered member,
+the digest of that member’s own seal, so a project seal transitively pins whole
+member subtrees without re-hashing them: a change to any covered byte becomes a
+discrepancy the moment the seal is verified.</p>
+<p>The signature is over a domain-separated digest of the document body, exactly as
+a signed project manifest is signed, so a digest signed as a seal can never be
+replayed as anything else. Verification answers the two independent questions a
+signature always raises separately — does the seal still describe this subject,
+and was it made by a key this project trusts — and reports both.</p>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#httk.core.project.sealing.VALID_TRUSTED" title="httk.core.project.sealing.VALID_TRUSTED"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VALID_TRUSTED</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#httk.core.project.sealing.VALID_UNKNOWN_KEY" title="httk.core.project.sealing.VALID_UNKNOWN_KEY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VALID_UNKNOWN_KEY</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#httk.core.project.sealing.INVALID" title="httk.core.project.sealing.INVALID"><code class="xref py py-obj docutils literal notranslate"><span class="pre">INVALID</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#httk.core.project.sealing.SealKey" title="httk.core.project.sealing.SealKey"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SealKey</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="exceptions">
+<h2>Exceptions<a class="headerlink" href="#exceptions" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#httk.core.project.sealing.SealError" title="httk.core.project.sealing.SealError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SealError</span></code></a></p></td>
+<td><p>A seal cannot be written or verified.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#httk.core.project.sealing.SealedError" title="httk.core.project.sealing.SealedError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SealedError</span></code></a></p></td>
+<td><p>An action was refused because the subject, or its enclosure, is sealed.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#httk.core.project.sealing.SealKeys" title="httk.core.project.sealing.SealKeys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SealKeys</span></code></a></p></td>
+<td><p>The signing keys resolved for one seal, and the roles that were missing.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#httk.core.project.sealing.Discrepancy" title="httk.core.project.sealing.Discrepancy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Discrepancy</span></code></a></p></td>
+<td><p>One way a sealed subject no longer matches its seal.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#httk.core.project.sealing.Seal" title="httk.core.project.sealing.Seal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Seal</span></code></a></p></td>
+<td><p>One parsed seal document.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#httk.core.project.sealing.SealVerification" title="httk.core.project.sealing.SealVerification"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SealVerification</span></code></a></p></td>
+<td><p>What verifying one seal established.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#httk.core.project.sealing.SealReport" title="httk.core.project.sealing.SealReport"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SealReport</span></code></a></p></td>
+<td><p>The verdicts of verifying a seal and, when deep, every seal below it.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#httk.core.project.sealing.project_seal_path" title="httk.core.project.sealing.project_seal_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">project_seal_path</span></code></a>(project_root)</p></td>
+<td><p>Return where one project's seal lives.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#httk.core.project.sealing.is_project_sealed" title="httk.core.project.sealing.is_project_sealed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_project_sealed</span></code></a>(project_root)</p></td>
+<td><p>Return whether one project carries a seal.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#httk.core.project.sealing.resolve_seal_keys" title="httk.core.project.sealing.resolve_seal_keys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_seal_keys</span></code></a>(refs, *, project_root)</p></td>
+<td><p>Resolve seal-key refs to the signing keys that are actually available.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#httk.core.project.sealing.default_project_keys" title="httk.core.project.sealing.default_project_keys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_project_keys</span></code></a>(root[, refs])</p></td>
+<td><p>Resolve a project's signing keys from its <code class="docutils literal notranslate"><span class="pre">seal_keys</span></code> member or <em>refs</em>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#httk.core.project.sealing.build_seal_body" title="httk.core.project.sealing.build_seal_body"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_seal_body</span></code></a>(kind, subject, records)</p></td>
+<td><p>Assemble the signed body of one seal document.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#httk.core.project.sealing.sign_seal_body" title="httk.core.project.sealing.sign_seal_body"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sign_seal_body</span></code></a>(body, keys)</p></td>
+<td><p>Digest a seal body and produce one detached signature per key.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#httk.core.project.sealing.write_seal" title="httk.core.project.sealing.write_seal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_seal</span></code></a>(path, body, keys)</p></td>
+<td><p>Sign a seal body and write the seal document atomically.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#httk.core.project.sealing.read_seal" title="httk.core.project.sealing.read_seal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_seal</span></code></a>(path)</p></td>
+<td><p>Read and structurally validate one seal document.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#httk.core.project.sealing.normalize_trusted_keys" title="httk.core.project.sealing.normalize_trusted_keys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_trusted_keys</span></code></a>(trusted_keys)</p></td>
+<td><p>Return trust anchors as canonical keys and fingerprints, skipping junk.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#httk.core.project.sealing.verify_signed_body" title="httk.core.project.sealing.verify_signed_body"><code class="xref py py-obj docutils literal notranslate"><span class="pre">verify_signed_body</span></code></a>(body_bytes, body_sha256, signatures, *)</p></td>
+<td><p>Verify one signed body's digest and signatures, and classify the signers.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#httk.core.project.sealing.verify_seal" title="httk.core.project.sealing.verify_seal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">verify_seal</span></code></a>(path, *[, trusted_keys, expected_roles])</p></td>
+<td><p>Verify one seal's body digest and signatures, and classify the signers.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#httk.core.project.sealing.diff_records" title="httk.core.project.sealing.diff_records"><code class="xref py py-obj docutils literal notranslate"><span class="pre">diff_records</span></code></a>(recorded, actual)</p></td>
+<td><p>Diff two path-keyed record lists into discrepancies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#httk.core.project.sealing.seal_project" title="httk.core.project.sealing.seal_project"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seal_project</span></code></a>(project_root, *[, keys])</p></td>
+<td><p>Seal a project's loose files and every member's seal digest.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#httk.core.project.sealing.unseal_project" title="httk.core.project.sealing.unseal_project"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unseal_project</span></code></a>(project_root)</p></td>
+<td><p>Remove a project's seal.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#httk.core.project.sealing.verify_project" title="httk.core.project.sealing.verify_project"><code class="xref py py-obj docutils literal notranslate"><span class="pre">verify_project</span></code></a>(project_root, *[, trusted_keys, deep])</p></td>
+<td><p>Verify a project's seal and, when deep, every member seal it references.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">¶</a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="httk.core.project.sealing.VALID_TRUSTED">
+<span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">VALID_TRUSTED</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'valid_trusted'</span></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#VALID_TRUSTED"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.VALID_TRUSTED" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="httk.core.project.sealing.VALID_UNKNOWN_KEY">
+<span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">VALID_UNKNOWN_KEY</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'valid_unknown_key'</span></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#VALID_UNKNOWN_KEY"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.VALID_UNKNOWN_KEY" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="httk.core.project.sealing.INVALID">
+<span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">INVALID</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'invalid'</span></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#INVALID"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.INVALID" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="httk.core.project.sealing.SealKey">
+<span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">SealKey</span></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#SealKey"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.SealKey" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="httk.core.project.sealing.SealError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">SealError</span></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#SealError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.SealError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
+<p>A seal cannot be written or verified.</p>
+<p>This is the <em>cannot proceed</em> failure: no signing key is available, or a
+member a project seal must cover is itself unsealed or has no handler. It
+never means an action was refused because something was already sealed; that
+is <a class="reference internal" href="#httk.core.project.sealing.SealedError" title="httk.core.project.sealing.SealedError"><code class="xref py py-class docutils literal notranslate"><span class="pre">SealedError</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="httk.core.project.sealing.SealedError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">SealedError</span></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#SealedError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.SealedError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
+<p>An action was refused because the subject, or its enclosure, is sealed.</p>
+<p>Changing a project’s members while the project is sealed is refused rather
+than silently allowed: a seal a project commits to must not change beneath
+it.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="httk.core.project.sealing.SealKeys">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">SealKeys</span></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#SealKeys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.SealKeys" title="Link to this definition">¶</a></dt>
+<dd><p>The signing keys resolved for one seal, and the roles that were missing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>keys</strong> – The available signing keys, in the order their refs resolved.</p></li>
+<li><p><strong>missing_roles</strong> – The roles requested but which could not be resolved.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="httk.core.project.sealing.SealKeys.keys">
+<span class="sig-name descname"><span class="pre">keys</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#httk.core.project.sealing.SealKey" title="httk.core.project.sealing.SealKey"><span class="pre">SealKey</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Ellipsis</span><span class="p"><span class="pre">]</span></span></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#SealKeys.keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.SealKeys.keys" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="httk.core.project.sealing.SealKeys.missing_roles">
+<span class="sig-name descname"><span class="pre">missing_roles</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Ellipsis</span><span class="p"><span class="pre">]</span></span></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#SealKeys.missing_roles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.SealKeys.missing_roles" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="httk.core.project.sealing.Discrepancy">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">Discrepancy</span></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#Discrepancy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.Discrepancy" title="Link to this definition">¶</a></dt>
+<dd><p>One way a sealed subject no longer matches its seal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> – The record path or member relpath that disagrees.</p></li>
+<li><p><strong>kind</strong> – The disagreement: <code class="docutils literal notranslate"><span class="pre">missing</span></code>, <code class="docutils literal notranslate"><span class="pre">extra</span></code>, <code class="docutils literal notranslate"><span class="pre">mismatch</span></code>,
+<code class="docutils literal notranslate"><span class="pre">unsealed</span></code> (present but not recorded), or <code class="docutils literal notranslate"><span class="pre">missing_job</span></code> (recorded but
+absent).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="httk.core.project.sealing.Discrepancy.path">
+<span class="sig-name descname"><span class="pre">path</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#Discrepancy.path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.Discrepancy.path" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="httk.core.project.sealing.Discrepancy.kind">
+<span class="sig-name descname"><span class="pre">kind</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#Discrepancy.kind"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.Discrepancy.kind" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="httk.core.project.sealing.Seal">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">Seal</span></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#Seal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.Seal" title="Link to this definition">¶</a></dt>
+<dd><p>One parsed seal document.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>kind</strong> – The sealed level (<code class="docutils literal notranslate"><span class="pre">project</span></code> for a project seal).</p></li>
+<li><p><strong>subject</strong> – The identifiers of the sealed subject.</p></li>
+<li><p><strong>created_at</strong> – When the seal was written.</p></li>
+<li><p><strong>records</strong> – The recorded contents of the sealed subject.</p></li>
+<li><p><strong>body_sha256</strong> – The recorded digest of the signed body.</p></li>
+<li><p><strong>signatures</strong> – The detached signatures over the body digest.</p></li>
+<li><p><strong>body_bytes</strong> – The canonical bytes the recorded digest is taken over.</p></li>
+<li><p><strong>path</strong> – Where the seal was read from.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="httk.core.project.sealing.Seal.kind">
+<span class="sig-name descname"><span class="pre">kind</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#Seal.kind"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.Seal.kind" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="httk.core.project.sealing.Seal.subject">
+<span class="sig-name descname"><span class="pre">subject</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><span class="pre">object</span></a><span class="p"><span class="pre">]</span></span></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#Seal.subject"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.Seal.subject" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="httk.core.project.sealing.Seal.created_at">
+<span class="sig-name descname"><span class="pre">created_at</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#Seal.created_at"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.Seal.created_at" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="httk.core.project.sealing.Seal.records">
+<span class="sig-name descname"><span class="pre">records</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><span class="pre">object</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Ellipsis</span><span class="p"><span class="pre">]</span></span></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#Seal.records"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.Seal.records" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="httk.core.project.sealing.Seal.body_sha256">
+<span class="sig-name descname"><span class="pre">body_sha256</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#Seal.body_sha256"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.Seal.body_sha256" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="httk.core.project.sealing.Seal.signatures">
+<span class="sig-name descname"><span class="pre">signatures</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><span class="pre">object</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Ellipsis</span><span class="p"><span class="pre">]</span></span></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#Seal.signatures"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.Seal.signatures" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="httk.core.project.sealing.Seal.body_bytes">
+<span class="sig-name descname"><span class="pre">body_bytes</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><span class="pre">bytes</span></a></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#Seal.body_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.Seal.body_bytes" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="httk.core.project.sealing.Seal.path">
+<span class="sig-name descname"><span class="pre">path</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">pathlib.Path</span></a></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#Seal.path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.Seal.path" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="httk.core.project.sealing.SealVerification">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">SealVerification</span></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#SealVerification"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.SealVerification" title="Link to this definition">¶</a></dt>
+<dd><p>What verifying one seal established.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>valid</strong> – Whether the seal describes its subject and a signature verified.</p></li>
+<li><p><strong>verdict</strong> – One of <code class="docutils literal notranslate"><span class="pre">VALID_TRUSTED</span></code>, <code class="docutils literal notranslate"><span class="pre">VALID_UNKNOWN_KEY</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">INVALID</span></code>.</p></li>
+<li><p><strong>reason</strong> – A human-readable explanation of the verdict.</p></li>
+<li><p><strong>signers</strong> – The fingerprints of the signatures that verified.</p></li>
+<li><p><strong>missing_signers</strong> – The expected roles that the seal did not carry.</p></li>
+<li><p><strong>discrepancies</strong> – How the subject diverges from the seal, if at all.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="httk.core.project.sealing.SealVerification.valid">
+<span class="sig-name descname"><span class="pre">valid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#SealVerification.valid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.SealVerification.valid" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="httk.core.project.sealing.SealVerification.verdict">
+<span class="sig-name descname"><span class="pre">verdict</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#SealVerification.verdict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.SealVerification.verdict" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="httk.core.project.sealing.SealVerification.reason">
+<span class="sig-name descname"><span class="pre">reason</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#SealVerification.reason"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.SealVerification.reason" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="httk.core.project.sealing.SealVerification.signers">
+<span class="sig-name descname"><span class="pre">signers</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Ellipsis</span><span class="p"><span class="pre">]</span></span></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#SealVerification.signers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.SealVerification.signers" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="httk.core.project.sealing.SealVerification.missing_signers">
+<span class="sig-name descname"><span class="pre">missing_signers</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Ellipsis</span><span class="p"><span class="pre">]</span></span></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#SealVerification.missing_signers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.SealVerification.missing_signers" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="httk.core.project.sealing.SealVerification.discrepancies">
+<span class="sig-name descname"><span class="pre">discrepancies</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#httk.core.project.sealing.Discrepancy" title="httk.core.project.sealing.Discrepancy"><span class="pre">Discrepancy</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Ellipsis</span><span class="p"><span class="pre">]</span></span></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#SealVerification.discrepancies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.SealVerification.discrepancies" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="httk.core.project.sealing.SealVerification.as_entry">
+<span class="sig-name descname"><span class="pre">as_entry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subject</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#SealVerification.as_entry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.SealVerification.as_entry" title="Link to this definition">¶</a></dt>
+<dd><p>Return this verdict as one whole-tree report entry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>level</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The subject level this verdict is for.</p></li>
+<li><p><strong>subject</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The subject identifier this verdict is for.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The JSON-compatible report entry.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)">object</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="httk.core.project.sealing.SealReport">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">SealReport</span></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#SealReport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.SealReport" title="Link to this definition">¶</a></dt>
+<dd><p>The verdicts of verifying a seal and, when deep, every seal below it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>entries</strong> – A flat sequence of report-entry mappings, parent before
+child, each in the shape <a class="reference internal" href="#httk.core.project.sealing.SealVerification.as_entry" title="httk.core.project.sealing.SealVerification.as_entry"><code class="xref py py-meth docutils literal notranslate"><span class="pre">SealVerification.as_entry()</span></code></a> produces.</p></li>
+<li><p><strong>ok</strong> – Whether every entry is valid and at least one entry exists.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="httk.core.project.sealing.SealReport.entries">
+<span class="sig-name descname"><span class="pre">entries</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><span class="pre">object</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Ellipsis</span><span class="p"><span class="pre">]</span></span></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#SealReport.entries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.SealReport.entries" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="httk.core.project.sealing.SealReport.ok">
+<span class="sig-name descname"><span class="pre">ok</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#SealReport.ok"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.SealReport.ok" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="httk.core.project.sealing.project_seal_path">
+<span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">project_seal_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_root</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#project_seal_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.project_seal_path" title="Link to this definition">¶</a></dt>
+<dd><p>Return where one project’s seal lives.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>project_root</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.14)"><em>os.PathLike</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em>) – The project root whose seal path to build.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The project seal path.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)">pathlib.Path</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="httk.core.project.sealing.is_project_sealed">
+<span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">is_project_sealed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_root</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#is_project_sealed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.is_project_sealed" title="Link to this definition">¶</a></dt>
+<dd><p>Return whether one project carries a seal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>project_root</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.14)"><em>os.PathLike</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em>) – The project root to check.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Whether the project seal file exists.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="httk.core.project.sealing.resolve_seal_keys">
+<span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">resolve_seal_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refs</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_root</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#resolve_seal_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.resolve_seal_keys" title="Link to this definition">¶</a></dt>
+<dd><p>Resolve seal-key refs to the signing keys that are actually available.</p>
+<p>A ref is <code class="docutils literal notranslate"><span class="pre">project</span></code> (the project’s own signing seed, discovered from
+<em>project_root</em>), <code class="docutils literal notranslate"><span class="pre">identity</span></code> (the default operator identity),
+<code class="docutils literal notranslate"><span class="pre">identity:&lt;short&gt;</span></code> (a named identity), or the path of a base64 Ed25519 seed
+file. An unavailable ref is skipped and logged rather than fatal; only
+resolving no key at all is an error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>refs</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><em>collections.abc.Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em>) – The key refs to resolve, in order.</p></li>
+<li><p><strong>project_root</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.14)"><em>os.PathLike</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em>) – The tree the <code class="docutils literal notranslate"><span class="pre">project</span></code> ref is discovered from.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The resolved keys and the roles that could not be resolved.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#httk.core.project.sealing.SealError" title="httk.core.project.sealing.SealError"><strong>SealError</strong></a> – If no key at all could be resolved.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#httk.core.project.sealing.SealKeys" title="httk.core.project.sealing.SealKeys">SealKeys</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="httk.core.project.sealing.default_project_keys">
+<span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">default_project_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#default_project_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.default_project_keys" title="Link to this definition">¶</a></dt>
+<dd><p>Resolve a project’s signing keys from its <code class="docutils literal notranslate"><span class="pre">seal_keys</span></code> member or <em>refs</em>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>root</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.14)"><em>os.PathLike</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em>) – The project root whose <code class="docutils literal notranslate"><span class="pre">seal_keys</span></code> member is read.</p></li>
+<li><p><strong>refs</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><em>collections.abc.Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>] </em><em>| </em><em>None</em>) – Key refs to use instead of the project member, when given.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The resolved signing keys and the roles that could not be resolved.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#httk.core.project.sealing.SealError" title="httk.core.project.sealing.SealError"><strong>SealError</strong></a> – If the member is malformed or no key resolves.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#httk.core.project.sealing.SealKeys" title="httk.core.project.sealing.SealKeys">SealKeys</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="httk.core.project.sealing.build_seal_body">
+<span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">build_seal_body</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kind</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subject</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">records</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#build_seal_body"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.build_seal_body" title="Link to this definition">¶</a></dt>
+<dd><p>Assemble the signed body of one seal document.</p>
+<p>The returned mapping is the exact, canonical body a signature is taken over
+— its <code class="docutils literal notranslate"><span class="pre">created_at</span></code> is stamped now — so a caller signs and writes it with
+<a class="reference internal" href="#httk.core.project.sealing.sign_seal_body" title="httk.core.project.sealing.sign_seal_body"><code class="xref py py-func docutils literal notranslate"><span class="pre">sign_seal_body()</span></code></a> and <a class="reference internal" href="#httk.core.project.sealing.write_seal" title="httk.core.project.sealing.write_seal"><code class="xref py py-func docutils literal notranslate"><span class="pre">write_seal()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>kind</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The sealed level, such as <code class="docutils literal notranslate"><span class="pre">project</span></code> or a member kind.</p></li>
+<li><p><strong>subject</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping" title="(in Python v3.14)"><em>collections.abc.Mapping</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><em>object</em></a><em>]</em>) – The identifiers of the sealed subject.</p></li>
+<li><p><strong>records</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><em>collections.abc.Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><em>object</em></a><em>]</em><em>]</em>) – The recorded contents of the sealed subject.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The unsigned seal body.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)">object</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="httk.core.project.sealing.sign_seal_body">
+<span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">sign_seal_body</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#sign_seal_body"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.sign_seal_body" title="Link to this definition">¶</a></dt>
+<dd><p>Digest a seal body and produce one detached signature per key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>body</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><em>object</em></a><em>]</em>) – The seal body from <a class="reference internal" href="#httk.core.project.sealing.build_seal_body" title="httk.core.project.sealing.build_seal_body"><code class="xref py py-func docutils literal notranslate"><span class="pre">build_seal_body()</span></code></a>.</p></li>
+<li><p><strong>keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><em>collections.abc.Sequence</em></a><em>[</em><a class="reference internal" href="#httk.core.project.sealing.SealKey" title="httk.core.project.sealing.SealKey"><em>SealKey</em></a><em>]</em>) – The signing keys, each a <code class="docutils literal notranslate"><span class="pre">(role,</span> <span class="pre">seed)</span></code> pair.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The hex body digest and the detached signatures.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)">dict</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)">object</a>]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="httk.core.project.sealing.write_seal">
+<span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">write_seal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#write_seal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.write_seal" title="Link to this definition">¶</a></dt>
+<dd><p>Sign a seal body and write the seal document atomically.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><em>pathlib.Path</em></a>) – Where to write the seal document.</p></li>
+<li><p><strong>body</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><em>object</em></a><em>]</em>) – The seal body from <a class="reference internal" href="#httk.core.project.sealing.build_seal_body" title="httk.core.project.sealing.build_seal_body"><code class="xref py py-func docutils literal notranslate"><span class="pre">build_seal_body()</span></code></a>.</p></li>
+<li><p><strong>keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><em>collections.abc.Sequence</em></a><em>[</em><a class="reference internal" href="#httk.core.project.sealing.SealKey" title="httk.core.project.sealing.SealKey"><em>SealKey</em></a><em>]</em>) – The signing keys, each a <code class="docutils literal notranslate"><span class="pre">(role,</span> <span class="pre">seed)</span></code> pair.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The written seal path.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#httk.core.project.sealing.SealError" title="httk.core.project.sealing.SealError"><strong>SealError</strong></a> – If no signing key is available.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)">pathlib.Path</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="httk.core.project.sealing.read_seal">
+<span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">read_seal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#read_seal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.read_seal" title="Link to this definition">¶</a></dt>
+<dd><p>Read and structurally validate one seal document.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.14)"><em>os.PathLike</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em>) – The seal file to read.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The parsed seal.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If the file is not a valid seal document.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#OSError" title="(in Python v3.14)"><strong>OSError</strong></a> – If the file cannot be read.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#httk.core.project.sealing.Seal" title="httk.core.project.sealing.Seal">Seal</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="httk.core.project.sealing.normalize_trusted_keys">
+<span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">normalize_trusted_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trusted_keys</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#normalize_trusted_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.normalize_trusted_keys" title="Link to this definition">¶</a></dt>
+<dd><p>Return trust anchors as canonical keys and fingerprints, skipping junk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>trusted_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><em>collections.abc.Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em>) – Trust anchors as <code class="docutils literal notranslate"><span class="pre">ed25519:</span></code> keys or <code class="docutils literal notranslate"><span class="pre">sha256:</span></code> fingerprints.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The canonical keys and fingerprints, with unparseable entries dropped.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#set" title="(in Python v3.14)">set</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="httk.core.project.sealing.verify_signed_body">
+<span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">verify_signed_body</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body_bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body_sha256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signatures</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">trusted_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_roles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#verify_signed_body"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.verify_signed_body" title="Link to this definition">¶</a></dt>
+<dd><p>Verify one signed body’s digest and signatures, and classify the signers.</p>
+<p>This is the signature core shared by <a class="reference internal" href="#httk.core.project.sealing.verify_seal" title="httk.core.project.sealing.verify_seal"><code class="xref py py-func docutils literal notranslate"><span class="pre">verify_seal()</span></code></a> and any other
+caller signing a body with <a class="reference internal" href="#httk.core.project.sealing.sign_seal_body" title="httk.core.project.sealing.sign_seal_body"><code class="xref py py-func docutils literal notranslate"><span class="pre">sign_seal_body()</span></code></a>: the recorded digest must
+match the canonical <code class="docutils literal notranslate"><span class="pre">body_bytes</span></code>, at least one signature must verify, any
+signature that does not makes the body invalid, and the body is trusted when
+a verifying signer is a pinned key or fingerprint.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>body_bytes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><em>bytes</em></a>) – The canonical bytes the recorded digest is taken over.</p></li>
+<li><p><strong>body_sha256</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The recorded hex digest of the signed body.</p></li>
+<li><p><strong>signatures</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><em>collections.abc.Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping" title="(in Python v3.14)"><em>collections.abc.Mapping</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><em>object</em></a><em>]</em><em>]</em>) – The detached signatures over the body digest.</p></li>
+<li><p><strong>trusted_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><em>collections.abc.Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em>) – Trust anchors as <code class="docutils literal notranslate"><span class="pre">ed25519:</span></code> keys or <code class="docutils literal notranslate"><span class="pre">sha256:</span></code> fingerprints.</p></li>
+<li><p><strong>expected_roles</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><em>collections.abc.Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em>) – Signing roles the body is expected to carry.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The signature verdict.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#httk.core.project.sealing.SealVerification" title="httk.core.project.sealing.SealVerification">SealVerification</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="httk.core.project.sealing.verify_seal">
+<span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">verify_seal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">trusted_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_roles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#verify_seal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.verify_seal" title="Link to this definition">¶</a></dt>
+<dd><p>Verify one seal’s body digest and signatures, and classify the signers.</p>
+<p>This checks the seal against itself, not against the subject: at least one
+signature must verify, any signature that does not makes the seal invalid,
+and the seal is trusted when a verifying signer is a pinned key or
+fingerprint. Subject-level checks are done by <a class="reference internal" href="#httk.core.project.sealing.verify_project" title="httk.core.project.sealing.verify_project"><code class="xref py py-func docutils literal notranslate"><span class="pre">verify_project()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.14)"><em>os.PathLike</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em>) – The seal file to verify.</p></li>
+<li><p><strong>trusted_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><em>collections.abc.Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em>) – Trust anchors as <code class="docutils literal notranslate"><span class="pre">ed25519:</span></code> keys or <code class="docutils literal notranslate"><span class="pre">sha256:</span></code> fingerprints.</p></li>
+<li><p><strong>expected_roles</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><em>collections.abc.Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em>) – Signing roles the seal is expected to carry.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The signature verdict.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If the file is not a valid seal document.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#OSError" title="(in Python v3.14)"><strong>OSError</strong></a> – If the file cannot be read.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#httk.core.project.sealing.SealVerification" title="httk.core.project.sealing.SealVerification">SealVerification</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="httk.core.project.sealing.diff_records">
+<span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">diff_records</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">recorded</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actual</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#diff_records"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.diff_records" title="Link to this definition">¶</a></dt>
+<dd><p>Diff two path-keyed record lists into discrepancies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>recorded</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><em>collections.abc.Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><em>object</em></a><em>]</em><em>]</em>) – The records a seal recorded.</p></li>
+<li><p><strong>actual</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><em>collections.abc.Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><em>object</em></a><em>]</em><em>]</em>) – The records the tree holds now.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The per-path discrepancies, sorted by path.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[<a class="reference internal" href="#httk.core.project.sealing.Discrepancy" title="httk.core.project.sealing.Discrepancy">Discrepancy</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="httk.core.project.sealing.seal_project">
+<span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">seal_project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_root</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#seal_project"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.seal_project" title="Link to this definition">¶</a></dt>
+<dd><p>Seal a project’s loose files and every member’s seal digest.</p>
+<p>Every registered member must already be sealed, and every member kind must
+have a registered handler; otherwise the project cannot be sealed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>project_root</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.14)"><em>os.PathLike</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em>) – The project root to seal.</p></li>
+<li><p><strong>keys</strong> (<a class="reference internal" href="#httk.core.project.sealing.SealKeys" title="httk.core.project.sealing.SealKeys"><em>SealKeys</em></a><em> | </em><em>None</em>) – The signing keys, or <code class="docutils literal notranslate"><span class="pre">None</span></code> to use the project default.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The project seal path.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#httk.core.project.sealing.SealError" title="httk.core.project.sealing.SealError"><strong>SealError</strong></a> – If a member is unsealed, a kind has no handler, or no key resolves.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)">pathlib.Path</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="httk.core.project.sealing.unseal_project">
+<span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">unseal_project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_root</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#unseal_project"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.unseal_project" title="Link to this definition">¶</a></dt>
+<dd><p>Remove a project’s seal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>project_root</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.14)"><em>os.PathLike</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em>) – The project root to unseal.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="httk.core.project.sealing.verify_project">
+<span class="sig-prename descclassname"><span class="pre">httk.core.project.sealing.</span></span><span class="sig-name descname"><span class="pre">verify_project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_root</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">trusted_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/httk/core/project/sealing.html#verify_project"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#httk.core.project.sealing.verify_project" title="Link to this definition">¶</a></dt>
+<dd><p>Verify a project’s seal and, when deep, every member seal it references.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>project_root</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.14)"><em>os.PathLike</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em>) – The project root to verify.</p></li>
+<li><p><strong>trusted_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><em>collections.abc.Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>]</em>) – Trust anchors to classify the signers against.</p></li>
+<li><p><strong>deep</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to delegate to each member handler’s own verification.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The flat report of every verdict, with an overall <code class="docutils literal notranslate"><span class="pre">ok</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#httk.core.project.sealing.SealReport" title="httk.core.project.sealing.SealReport">SealReport</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="../templates/index.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">httk.core.project.templates</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="../members/index.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">httk.core.project.members</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2026, The httk-core AUTHORS
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">httk.core.project.sealing</a><ul>
+<li><a class="reference internal" href="#attributes">Attributes</a></li>
+<li><a class="reference internal" href="#exceptions">Exceptions</a></li>
+<li><a class="reference internal" href="#classes">Classes</a></li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#module-contents">Module Contents</a><ul>
+<li><a class="reference internal" href="#httk.core.project.sealing.VALID_TRUSTED"><code class="docutils literal notranslate"><span class="pre">VALID_TRUSTED</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.VALID_UNKNOWN_KEY"><code class="docutils literal notranslate"><span class="pre">VALID_UNKNOWN_KEY</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.INVALID"><code class="docutils literal notranslate"><span class="pre">INVALID</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.SealKey"><code class="docutils literal notranslate"><span class="pre">SealKey</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.SealError"><code class="docutils literal notranslate"><span class="pre">SealError</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.SealedError"><code class="docutils literal notranslate"><span class="pre">SealedError</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.SealKeys"><code class="docutils literal notranslate"><span class="pre">SealKeys</span></code></a><ul>
+<li><a class="reference internal" href="#httk.core.project.sealing.SealKeys.keys"><code class="docutils literal notranslate"><span class="pre">SealKeys.keys</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.SealKeys.missing_roles"><code class="docutils literal notranslate"><span class="pre">SealKeys.missing_roles</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#httk.core.project.sealing.Discrepancy"><code class="docutils literal notranslate"><span class="pre">Discrepancy</span></code></a><ul>
+<li><a class="reference internal" href="#httk.core.project.sealing.Discrepancy.path"><code class="docutils literal notranslate"><span class="pre">Discrepancy.path</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.Discrepancy.kind"><code class="docutils literal notranslate"><span class="pre">Discrepancy.kind</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#httk.core.project.sealing.Seal"><code class="docutils literal notranslate"><span class="pre">Seal</span></code></a><ul>
+<li><a class="reference internal" href="#httk.core.project.sealing.Seal.kind"><code class="docutils literal notranslate"><span class="pre">Seal.kind</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.Seal.subject"><code class="docutils literal notranslate"><span class="pre">Seal.subject</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.Seal.created_at"><code class="docutils literal notranslate"><span class="pre">Seal.created_at</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.Seal.records"><code class="docutils literal notranslate"><span class="pre">Seal.records</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.Seal.body_sha256"><code class="docutils literal notranslate"><span class="pre">Seal.body_sha256</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.Seal.signatures"><code class="docutils literal notranslate"><span class="pre">Seal.signatures</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.Seal.body_bytes"><code class="docutils literal notranslate"><span class="pre">Seal.body_bytes</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.Seal.path"><code class="docutils literal notranslate"><span class="pre">Seal.path</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#httk.core.project.sealing.SealVerification"><code class="docutils literal notranslate"><span class="pre">SealVerification</span></code></a><ul>
+<li><a class="reference internal" href="#httk.core.project.sealing.SealVerification.valid"><code class="docutils literal notranslate"><span class="pre">SealVerification.valid</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.SealVerification.verdict"><code class="docutils literal notranslate"><span class="pre">SealVerification.verdict</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.SealVerification.reason"><code class="docutils literal notranslate"><span class="pre">SealVerification.reason</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.SealVerification.signers"><code class="docutils literal notranslate"><span class="pre">SealVerification.signers</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.SealVerification.missing_signers"><code class="docutils literal notranslate"><span class="pre">SealVerification.missing_signers</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.SealVerification.discrepancies"><code class="docutils literal notranslate"><span class="pre">SealVerification.discrepancies</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.SealVerification.as_entry"><code class="docutils literal notranslate"><span class="pre">SealVerification.as_entry()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#httk.core.project.sealing.SealReport"><code class="docutils literal notranslate"><span class="pre">SealReport</span></code></a><ul>
+<li><a class="reference internal" href="#httk.core.project.sealing.SealReport.entries"><code class="docutils literal notranslate"><span class="pre">SealReport.entries</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.SealReport.ok"><code class="docutils literal notranslate"><span class="pre">SealReport.ok</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#httk.core.project.sealing.project_seal_path"><code class="docutils literal notranslate"><span class="pre">project_seal_path()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.is_project_sealed"><code class="docutils literal notranslate"><span class="pre">is_project_sealed()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.resolve_seal_keys"><code class="docutils literal notranslate"><span class="pre">resolve_seal_keys()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.default_project_keys"><code class="docutils literal notranslate"><span class="pre">default_project_keys()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.build_seal_body"><code class="docutils literal notranslate"><span class="pre">build_seal_body()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.sign_seal_body"><code class="docutils literal notranslate"><span class="pre">sign_seal_body()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.write_seal"><code class="docutils literal notranslate"><span class="pre">write_seal()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.read_seal"><code class="docutils literal notranslate"><span class="pre">read_seal()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.normalize_trusted_keys"><code class="docutils literal notranslate"><span class="pre">normalize_trusted_keys()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.verify_signed_body"><code class="docutils literal notranslate"><span class="pre">verify_signed_body()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.verify_seal"><code class="docutils literal notranslate"><span class="pre">verify_seal()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.diff_records"><code class="docutils literal notranslate"><span class="pre">diff_records()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.seal_project"><code class="docutils literal notranslate"><span class="pre">seal_project()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.unseal_project"><code class="docutils literal notranslate"><span class="pre">unseal_project()</span></code></a></li>
+<li><a class="reference internal" href="#httk.core.project.sealing.verify_project"><code class="docutils literal notranslate"><span class="pre">verify_project()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../../../../../../_static/documentation_options.js?v=fe42cd0d"></script>
+    <script src="../../../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../../../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../../../_static/copybutton.js?v=fd10adb8"></script>
+    <script src="../../../../../../_static/selector.js?v=e591e119"></script>
+    <script>window.HTTK_DOCS_VERSIONING = {"channel":"dev","version":"dev:main","versionPathDepth":2};</script>
+    </body>
+</html>

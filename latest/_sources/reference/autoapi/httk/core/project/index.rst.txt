@@ -1,0 +1,1045 @@
+httk.core.project
+=================
+
+.. py:module:: httk.core.project
+
+.. autoapi-nested-parse::
+
+   The httk project anchor and the core-owned ``httk project`` command.
+
+   A *project* is a directory marked at its root by a ``httk_project`` control
+   directory, discovered by walking upward exactly as ``git`` finds a ``.git``.
+   This package owns that anchor — creating it, reading and validating its
+   ``project.json``, and managing its Ed25519 identity and trust anchors — and the
+   core-only :command:`httk project` command that operates on it. It creates no
+   workflow workspace; that is layered on by a workflow installation.
+
+   The anchor API is re-exported here for convenience; the command and its
+   implementation live in :mod:`httk.core.project.cli`.
+
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /reference/autoapi/httk/core/project/anchor/index
+   /reference/autoapi/httk/core/project/cli/index
+   /reference/autoapi/httk/core/project/export/index
+   /reference/autoapi/httk/core/project/manifests/index
+   /reference/autoapi/httk/core/project/members/index
+   /reference/autoapi/httk/core/project/sealing/index
+   /reference/autoapi/httk/core/project/templates/index
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.project.PROJECT_DIRECTORY
+   httk.core.project.PROJECT_FILE
+   httk.core.project.PUBLIC_KEY_PREFIX
+   httk.core.project.PROJECT_PRIVATE_KEY_RELATIVE_PATH
+   httk.core.project.DEFAULT_MANIFEST_EXCLUSIONS
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   httk.core.project.LegacyProjectError
+   httk.core.project.SealedError
+   httk.core.project.SealError
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.project.ManifestVerification
+   httk.core.project.ProjectMember
+   httk.core.project.ProjectMemberHandler
+   httk.core.project.Discrepancy
+   httk.core.project.Seal
+   httk.core.project.SealKeys
+   httk.core.project.SealReport
+   httk.core.project.SealVerification
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.project.canonical_public_key
+   httk.core.project.discover_project
+   httk.core.project.format_public_key
+   httk.core.project.import_v1_project
+   httk.core.project.initialize_project
+   httk.core.project.key_fingerprint
+   httk.core.project.parse_public_key
+   httk.core.project.pin_project_key
+   httk.core.project.pinned_project_key
+   httk.core.project.project_public_key_path
+   httk.core.project.read_project
+   httk.core.project.read_project_section
+   httk.core.project.read_public_key_file
+   httk.core.project.require_project
+   httk.core.project.trust_project_key
+   httk.core.project.trusted_project_keys
+   httk.core.project.write_project_section
+   httk.core.project.export_project
+   httk.core.project.verify_export
+   httk.core.project.create_manifest
+   httk.core.project.project_exclusions
+   httk.core.project.resolve_trusted_keys
+   httk.core.project.verify_manifest
+   httk.core.project.members_path
+   httk.core.project.project_members
+   httk.core.project.register_project_member
+   httk.core.project.set_project_member_name
+   httk.core.project.unregister_project_member
+   httk.core.project.update_project_member_path
+   httk.core.project.build_seal_body
+   httk.core.project.default_project_keys
+   httk.core.project.diff_records
+   httk.core.project.is_project_sealed
+   httk.core.project.normalize_trusted_keys
+   httk.core.project.project_seal_path
+   httk.core.project.read_seal
+   httk.core.project.resolve_seal_keys
+   httk.core.project.seal_project
+   httk.core.project.sign_seal_body
+   httk.core.project.unseal_project
+   httk.core.project.verify_project
+   httk.core.project.verify_seal
+   httk.core.project.write_seal
+
+
+Package Contents
+----------------
+
+.. py:data:: PROJECT_DIRECTORY
+   :value: 'httk_project'
+
+
+.. py:data:: PROJECT_FILE
+   :value: 'project.json'
+
+
+.. py:data:: PUBLIC_KEY_PREFIX
+   :value: 'ed25519:'
+
+
+.. py:exception:: LegacyProjectError(message, *, root)
+
+   Bases: :py:obj:`ValueError`
+
+
+   Raised when discovery finds an httk v1 ``ht.project`` directory.
+
+   Carries the offending directory as :attr:`root` so a caller that
+   deliberately handles it (for example read-only verification of a v1
+   manifest) does not have to parse the message.
+
+   :param message: Diagnostic explaining the legacy project and its remedy.
+   :param root: Directory containing the legacy project marker.
+
+
+   .. py:attribute:: root
+
+
+.. py:function:: canonical_public_key(value)
+
+   Normalize any accepted public key spelling to the recorded one.
+
+   :param value: Accepted public-key text to normalize.
+   :return: Canonical prefixed public-key text.
+   :raises ValueError: If the public-key text is invalid.
+
+
+.. py:function:: discover_project(start = None)
+
+   Find the nearest project root, or refuse a legacy one, at or above *start*.
+
+   Discovery walks from start and its parents, treating a file start as its
+   containing directory. If it finds a legacy ht.project marker, the exception
+   identifies the required remedy: run httk project import-v1 PATH.
+
+   :param start: Directory or file from which to begin the upward search, or None for the current directory.
+   :return: Nearest project root, or None when no marker is found.
+   :raises httk.core.project.LegacyProjectError: If discovery finds a v1 project marker.
+
+
+.. py:function:: format_public_key(raw)
+
+   Return the recorded representation of one raw Ed25519 public key.
+
+   :param raw: Raw public-key bytes to record.
+   :return: Canonical prefixed public-key text.
+   :raises ValueError: If the key is not 32 bytes long.
+
+
+.. py:function:: import_v1_project(root, *, source = None, name = None)
+
+   Create the project anchor from a legacy ``ht.project`` directory.
+
+   Only the anchor is created: the project's metadata and the adoption of the
+   legacy identities its old manifests were signed with. A workflow
+   installation adds the workspace and any queue import on top of this.
+
+   :param root: Directory in which to create the new project anchor.
+   :param source: Legacy project directory, or root/ht.project when omitted.
+   :param name: Optional replacement project name.
+   :return: Imported project metadata.
+   :raises FileNotFoundError: If the legacy project directory does not exist.
+
+
+.. py:function:: initialize_project(root, *, name, description = '', manifest_exclusions = ())
+
+   Initialize the project anchor: its metadata, its key, and its remotes dir.
+
+   This creates only the anchor — ``httk_project`` with ``project.json``, the
+   project's Ed25519 signing key, and the ``remotes`` directory. It creates no
+   workflow workspace; a workflow installation layers that on top of the anchor
+   so that a core-only installation still has a working project.
+
+   :param root: Directory in which to create the project anchor.
+   :param name: Human-readable project name.
+   :param description: Optional project description.
+   :param manifest_exclusions: Relative paths excluded from project manifests.
+   :return: Newly written project metadata.
+   :raises httk.core.project.LegacyProjectError: If root contains a v1 project marker.
+
+
+.. py:function:: key_fingerprint(value)
+
+   Return the stable display fingerprint of one public key.
+
+   :param value: Public-key text whose fingerprint is calculated.
+   :return: Stable SHA-256 fingerprint text.
+   :raises ValueError: If the public-key text is invalid.
+
+
+.. py:function:: parse_public_key(value)
+
+   Decode a recorded public key, accepting the bare base64 spelling too.
+
+   :param value: Public-key text to decode.
+   :return: Raw public-key bytes.
+   :raises ValueError: If the algorithm, encoding, or key length is invalid.
+
+
+.. py:function:: pin_project_key(root = None)
+
+   Adopt the project's current ``keys/project.pub`` as its trust anchor.
+
+   Pinning is always an explicit act. Verification trusts the key recorded in
+   ``project.json`` and never the key a manifest carries in its own header, so
+   adopting the key that is in the tree right now is exactly the decision an
+   operator has to make consciously for an older project that has no pin.
+
+   :param root: Project root, or None to discover the nearest project.
+   :return: Updated project metadata.
+   :raises ValueError: If no project exists or its public key is invalid.
+
+
+.. py:function:: pinned_project_key(metadata)
+
+   Return the project's own pinned public key, or None when absent.
+
+   :param metadata: Project metadata containing the optional public-key member.
+   :return: Canonical pinned key, or None when the metadata has no key.
+   :raises ValueError: If the pinned key is present but invalid.
+
+
+.. py:function:: project_public_key_path(root)
+
+   Return where a project keeps its own signing key's public half.
+
+   :param root: Project root containing the anchor.
+   :return: Path to the project's public key file.
+
+
+.. py:function:: read_project(root)
+
+   Read and validate the ``project.json`` of the project rooted at *root*.
+
+   :param root: Project root whose manifest is read.
+   :return: Validated project metadata.
+   :raises ValueError: If the manifest is not an httk project manifest.
+
+
+.. py:function:: read_project_section(root, name)
+
+   Return one named object member of ``project.json``, empty when absent.
+
+   A *section* is a top-level member of the project manifest that some layer
+   above the anchor owns — the workflow workspace registry, a campaign map —
+   and reads and writes as a whole. The anchor does not interpret the member;
+   it only guarantees that what a caller stores under a name comes back as the
+   object it was, and refuses a member that some other writer has left as a
+   non-object so a caller never silently reads a scalar as a mapping.
+
+   :param root: Project root whose manifest is read.
+   :param name: Top-level manifest member to retrieve.
+   :return: A copy of the named object, or an empty object when absent.
+   :raises ValueError: If the named manifest member is not an object.
+
+
+.. py:function:: read_public_key_file(path)
+
+   Read one public-key file and return its recorded public key.
+
+   :param path: Public-key file to read.
+   :return: Canonical public-key text from the first line.
+   :raises ValueError: If the file cannot be read, is empty, or contains an invalid key.
+
+
+.. py:function:: require_project(start = None)
+
+   Return the nearest project root, refusing when there is none.
+
+   :param start: Directory or file from which to begin the upward search, or None for the current directory.
+   :return: Nearest project root.
+   :raises httk.core.project.LegacyProjectError: If discovery finds a v1 project marker.
+   :raises ValueError: If no project marker is found.
+
+
+.. py:function:: trust_project_key(root, key)
+
+   Adopt one further public key as a trust anchor of this project.
+
+   :param root: Project root, or None to discover the nearest project.
+   :param key: Public key to add to the project's trusted anchors.
+   :return: Updated project metadata.
+   :raises ValueError: If no project exists, the key is invalid, or trusted_keys is invalid.
+
+
+.. py:function:: trusted_project_keys(metadata)
+
+   Return every key *metadata* pins: the project's own and any adopted one.
+
+   The pinned key of ``project.json`` is the trust anchor a manifest is checked
+   against. ``trusted_keys`` carries the additional anchors an operator has
+   adopted deliberately — most often the legacy identities an imported *httk*
+   v1 project signed its old manifests with.
+
+   :param metadata: Project metadata whose trust anchors are read.
+   :return: Unique canonical project and adopted trust anchors.
+   :raises ValueError: If trusted_keys is not a string array or contains an invalid key.
+
+
+.. py:function:: write_project_section(root, name, value)
+
+   Store one named object member of ``project.json`` and return the metadata.
+
+   The write is an ordinary read-modify-write of the validated manifest, so the
+   members the anchor owns are preserved untouched and only the named section is
+   replaced. The section must be a mapping; the anchor stores its members
+   verbatim without interpreting them.
+
+   :param root: Project root whose manifest is updated.
+   :param name: Top-level manifest member to replace.
+   :param value: Object members to store under the name.
+   :return: Updated project metadata.
+   :raises ValueError: If the named section is not a mapping.
+
+
+.. py:data:: PROJECT_PRIVATE_KEY_RELATIVE_PATH
+   :value: 'httk_project/keys/project.seed'
+
+
+   The exact private-key path created by the project identity implementation.
+
+.. py:function:: export_project(out_path, project_path = None)
+
+   Create a signed ZIP containing a project without private keys.
+
+   The path and suffix exclusions are primary.  The content guard catches
+   exact and re-encoded copies of known private material; transformed or
+   truncated secrets are outside that guard's scope.
+
+   :param out_path: Destination ZIP path.
+   :param project_path: Project root, or None to discover the nearest project.
+   :return: The destination path.
+   :raises ValueError: If the project is unsafe to export or its identity is invalid.
+
+
+.. py:function:: verify_export(zip_path, *, expect_key = None, trusted_keys = ())
+
+   Verify an exported project ZIP and return signer information.
+
+   :param zip_path: Export ZIP to verify.
+   :param expect_key: Expected signer fingerprint or public key.
+   :param trusted_keys: Trusted signer fingerprints or public keys.
+   :return: A JSON-ready verification report.
+   :raises ValueError: If the ZIP, manifest, files, tree digest, or signature is invalid.
+
+
+.. py:data:: DEFAULT_MANIFEST_EXCLUSIONS
+
+.. py:class:: ManifestVerification
+
+   What verifying one manifest against one tree established.
+
+   A signature check answers two separate questions. *Does this manifest
+   describe this tree, unaltered?* is answered by the digests and the signature.
+   *Was it made by somebody this project trusts?* is answered only by comparing
+   the signing key with a trust anchor that did not come from the manifest.
+
+   :param verdict: Classify the verification result.
+   :param reason: Explain the classification.
+   :param manifest: Identify the verified manifest.
+   :param manifest_format: Identify the manifest format used.
+   :param public_key: Record the signing key, when readable.
+   :param trusted_keys: Record the trust anchors consulted.
+
+
+   .. py:attribute:: verdict
+      :type:  str
+
+
+   .. py:attribute:: reason
+      :type:  str
+
+
+   .. py:attribute:: manifest
+      :type:  pathlib.Path
+
+
+   .. py:attribute:: manifest_format
+      :type:  str
+
+
+   .. py:attribute:: public_key
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: trusted_keys
+      :type:  tuple[str, Ellipsis]
+      :value: ()
+
+
+
+   .. py:property:: valid
+      :type: bool
+
+
+      Whether the manifest describes this tree and its signature verified.
+
+
+   .. py:property:: trusted
+      :type: bool
+
+
+      Whether the verified signature was made by a pinned key.
+
+
+   .. py:property:: exit_code
+      :type: int
+
+
+      The command-line status this verdict reports.
+
+
+   .. py:method:: as_mapping()
+
+      Return the JSON representation of this verdict.
+
+      :return: JSON-compatible verification members.
+
+
+
+.. py:function:: create_manifest(project = None, *, output = None)
+
+   Create and atomically publish the signed v2 project manifest.
+
+   :param project: Locate the project to snapshot, or use discovery when unset.
+   :param output: Publish the manifest at this path, or use the project default.
+   :return: The published manifest path.
+   :raises ValueError: If the project is invalid or cannot be snapshotted.
+
+
+.. py:function:: project_exclusions(metadata)
+
+   Return the default manifest exclusions plus the project's configured ones.
+
+   :param metadata: Project metadata carrying the optional exclusion member.
+   :return: The exclusion patterns applied before members contribute their own.
+   :raises ValueError: If ``manifest_exclusions`` is not an array of strings.
+
+
+.. py:function:: resolve_trusted_keys(project = None, *, trusted_keys = None)
+
+   Return the trust anchors of *project* plus every explicitly named key.
+
+   An entry of *trusted_keys* is either a recorded key — ``ed25519:BASE64`` or
+   the bare base64 — or the path of a ``*.pub`` file holding one.
+
+   :param project: Locate the project whose pinned keys to include.
+   :param trusted_keys: Add explicit recorded keys or public-key files.
+   :return: Unique canonical trust-anchor values in stable order.
+   :raises ValueError: If an explicit key cannot be canonicalized.
+
+
+.. py:function:: verify_manifest(project = None, *, manifest = None, trusted_keys = None)
+
+   Verify a project's v2 manifest against the tree and its trust anchors.
+
+   The trust anchor is the key pinned in ``project.json`` — never the key the
+   manifest names in its own header — plus any key passed in *trusted_keys*, as
+   a recorded value or the path of a ``*.pub`` file.
+
+   :param project: Locate the project to discover and verify.
+   :param manifest: Select a manifest path instead of the project default.
+   :param trusted_keys: Add explicit trust anchors to the project keys.
+   :return: The detailed verification verdict.
+   :raises ValueError: If no project or usable manifest exists.
+   :raises FileNotFoundError: If the selected manifest file is absent.
+
+
+.. py:class:: ProjectMember
+
+   One member a project holds: a subtree of a given kind.
+
+   :param path: The member's posix relpath below the project root (``"."`` is
+       the project root itself).
+   :param kind: The member kind, whose handler owns the member's internals.
+   :param name: The member's recorded name, or ``None`` when it has none.
+
+
+   .. py:attribute:: path
+      :type:  str
+
+
+   .. py:attribute:: kind
+      :type:  str
+
+
+   .. py:attribute:: name
+      :type:  str | None
+      :value: None
+
+
+
+.. py:class:: ProjectMemberHandler
+
+   Bases: :py:obj:`Protocol`
+
+
+   What core needs from the module that owns one member kind.
+
+   Every method takes the member's own root — ``project_root / member.path`` —
+   rather than the project, so a handler never has to rediscover where it lives.
+   The manifest, repair, and verify verbs core owns call exactly these; a member
+   seals through its own module, and core only records the resulting digest.
+
+
+   .. py:method:: manifest_exclusions(project_root, member_relpath)
+
+      Return the manifest exclusions this member contributes.
+
+      These are ``fnmatch`` patterns on posix relpaths *below the project
+      root* (not the member root): the member decides which of its own
+      internals — control directories, working scratch — the project manifest
+      must leave out, while its payload files stay covered.
+
+      :param project_root: The project root the patterns are relative to.
+      :param member_relpath: This member's relpath below the project root.
+      :return: The exclusion patterns this member contributes.
+
+
+
+   .. py:method:: seal_digest(member_root)
+
+      Return this member's identifier and the SHA-256 of its seal bytes.
+
+      The digest is what a project seal records for the member, so a project
+      seal transitively pins the member without re-hashing its payload.
+
+      :param member_root: This member's root directory.
+      :return: The member identifier and the hex SHA-256 of its seal file.
+      :raises httk.core.project.sealing.SealError: If the member is unsealed.
+
+
+
+   .. py:method:: verify(member_root, *, trusted_keys, deep)
+
+      Verify this member and return its report entries.
+
+      Each entry is a mapping in the whole-tree verification shape — ``level``,
+      ``subject``, ``valid``, ``verdict``, ``reason``, ``signers``,
+      ``missing_signers``, and ``discrepancies`` (a list of ``{kind, path}``) —
+      so the project report concatenates a member's entries with its own.
+
+      :param member_root: This member's root directory.
+      :param trusted_keys: Trust anchors to classify the signers against.
+      :param deep: Whether to recurse into every seal the member references.
+      :return: The member's verification entries.
+
+
+
+   .. py:method:: repair(member_root, *, apply)
+
+      Repair this member, or report only, returning its findings.
+
+      Each finding is a mapping in the repair shape — ``check``, ``status``,
+      ``message``, ``repairable``, ``repaired``, ``action``, ``details`` — so
+      they concatenate with core's own anchor findings. Repairs are applied by
+      default; ``apply=False`` is a dry run that mutates nothing.
+
+      :param member_root: This member's root directory.
+      :param apply: Whether to apply repairs; ``False`` reports only.
+      :return: The member's repair findings.
+
+
+
+   .. py:method:: scan_project(project_root, *, apply, adopt)
+
+      Optionally scan the whole project for members of this kind.
+
+      Core calls this once per registered kind at project scope, whether or not
+      any member of the kind is registered, so a handler can surface members
+      present on disk but missing from ``members.json`` — the exact rescue an
+      empty registry needs. Repairs are applied by default; ``apply=False`` is a
+      dry run that mutates nothing, and *adopt* tells the scan whether to also
+      (re)establish members' machine-local links on this machine. It is
+      optional: core invokes it only when the handler defines it. Findings use
+      the same mapping shape as :meth:`repair`.
+
+      :param project_root: The project root to scan.
+      :param apply: Whether to apply repairs; ``False`` reports only.
+      :param adopt: Whether to adopt members of this kind on this machine.
+      :return: The project-scope findings for this kind.
+
+
+
+   .. py:method:: adopt(member_root, *, name)
+
+      Optionally (re)establish this member's local links on this machine.
+
+      Adoption is the act of rebuilding whatever per-user or machine-local
+      links a member needs to be usable *here* — for example, httk-workflow
+      registers the member's workspace in the per-user name registry under its
+      recorded *name*. It is idempotent and never mutates sealed state. Core
+      invokes it only when the handler defines it, passing the member's
+      recorded name; findings use the same mapping shape as :meth:`repair`.
+
+      :param member_root: This member's root directory.
+      :param name: The member's recorded name, or ``None`` when it has none.
+      :return: The adoption findings for this member.
+
+
+
+   .. py:method:: guard(member_root)
+
+      Return a context manager fencing the member while it is snapshotted.
+
+      A member that must be quiescent to be described faithfully — a workspace
+      with running jobs — returns a guard that acquires that quiescence and
+      raises if it cannot. A member with nothing to fence returns
+      :func:`contextlib.nullcontext`.
+
+      :param member_root: This member's root directory.
+      :return: A context manager held around the snapshot.
+
+
+
+.. py:function:: members_path(project_root)
+
+   Return where a project's member registry lives.
+
+   :param project_root: The project root whose member registry path to build.
+   :return: The ``httk_project/members.json`` path.
+
+
+.. py:function:: project_members(project_root)
+
+   Return the members registered in a project, in recorded order.
+
+   A missing registry is an empty project, not an error.
+
+   :param project_root: The project root whose members to read.
+   :return: The registered members.
+   :raises ValueError: If the registry file is malformed.
+
+
+.. py:function:: register_project_member(project_root, path, kind, *, name = None)
+
+   Record that a member of *kind* lives at *path*, idempotently.
+
+   The path is normalized to a posix relpath below the project root and a path
+   outside the project is refused. Registering the same path again replaces its
+   kind and name.
+
+   :param project_root: The project root whose registry to update.
+   :param path: The member's path, absolute or relative to the project root.
+   :param kind: The member kind whose handler owns the member.
+   :param name: The member's recorded name, or ``None`` for none.
+   :return: The members after the update.
+   :raises httk.core.project.sealing.SealedError: If the project is sealed.
+   :raises ValueError: If the path is outside the project or the name duplicates another member's.
+
+
+.. py:function:: set_project_member_name(project_root, path, name)
+
+   Set (or clear) the recorded name of the member at *path*.
+
+   :param project_root: The project root whose registry to update.
+   :param path: The member's path, absolute or relative to the project root.
+   :param name: The name to record, or ``None`` to clear it.
+   :return: The members after the update.
+   :raises httk.core.project.sealing.SealedError: If the project is sealed.
+   :raises ValueError: If no member is at *path* or the name duplicates another member's.
+
+
+.. py:function:: unregister_project_member(project_root, path)
+
+   Remove the member recorded at *path*.
+
+   :param project_root: The project root whose registry to update.
+   :param path: The member's path, absolute or relative to the project root.
+   :return: The members after the removal.
+   :raises httk.core.project.sealing.SealedError: If the project is sealed.
+   :raises ValueError: If the path is outside the project or no member is recorded there.
+
+
+.. py:function:: update_project_member_path(project_root, old, new)
+
+   Move the member recorded at *old* to *new*, keeping its kind.
+
+   :param project_root: The project root whose registry to update.
+   :param old: The member's current path, absolute or relative to the root.
+   :param new: The member's new path, absolute or relative to the root.
+   :return: The members after the move.
+   :raises httk.core.project.sealing.SealedError: If the project is sealed.
+   :raises ValueError: If a path is outside the project or no member is at *old*.
+
+
+.. py:class:: Discrepancy
+
+   One way a sealed subject no longer matches its seal.
+
+   :param path: The record path or member relpath that disagrees.
+   :param kind: The disagreement: ``missing``, ``extra``, ``mismatch``,
+       ``unsealed`` (present but not recorded), or ``missing_job`` (recorded but
+       absent).
+
+
+   .. py:attribute:: path
+      :type:  str
+
+
+   .. py:attribute:: kind
+      :type:  str
+
+
+.. py:class:: Seal
+
+   One parsed seal document.
+
+   :param kind: The sealed level (``project`` for a project seal).
+   :param subject: The identifiers of the sealed subject.
+   :param created_at: When the seal was written.
+   :param records: The recorded contents of the sealed subject.
+   :param body_sha256: The recorded digest of the signed body.
+   :param signatures: The detached signatures over the body digest.
+   :param body_bytes: The canonical bytes the recorded digest is taken over.
+   :param path: Where the seal was read from.
+
+
+   .. py:attribute:: kind
+      :type:  str
+
+
+   .. py:attribute:: subject
+      :type:  dict[str, object]
+
+
+   .. py:attribute:: created_at
+      :type:  str
+
+
+   .. py:attribute:: records
+      :type:  tuple[dict[str, object], Ellipsis]
+
+
+   .. py:attribute:: body_sha256
+      :type:  str
+
+
+   .. py:attribute:: signatures
+      :type:  tuple[dict[str, object], Ellipsis]
+
+
+   .. py:attribute:: body_bytes
+      :type:  bytes
+
+
+   .. py:attribute:: path
+      :type:  pathlib.Path
+
+
+.. py:exception:: SealedError
+
+   Bases: :py:obj:`RuntimeError`
+
+
+   An action was refused because the subject, or its enclosure, is sealed.
+
+   Changing a project's members while the project is sealed is refused rather
+   than silently allowed: a seal a project commits to must not change beneath
+   it.
+
+
+.. py:exception:: SealError
+
+   Bases: :py:obj:`RuntimeError`
+
+
+   A seal cannot be written or verified.
+
+   This is the *cannot proceed* failure: no signing key is available, or a
+   member a project seal must cover is itself unsealed or has no handler. It
+   never means an action was refused because something was already sealed; that
+   is :class:`SealedError`.
+
+
+.. py:class:: SealKeys
+
+   The signing keys resolved for one seal, and the roles that were missing.
+
+   :param keys: The available signing keys, in the order their refs resolved.
+   :param missing_roles: The roles requested but which could not be resolved.
+
+
+   .. py:attribute:: keys
+      :type:  tuple[SealKey, Ellipsis]
+
+
+   .. py:attribute:: missing_roles
+      :type:  tuple[str, Ellipsis]
+
+
+.. py:class:: SealReport
+
+   The verdicts of verifying a seal and, when deep, every seal below it.
+
+   :param entries: A flat sequence of report-entry mappings, parent before
+       child, each in the shape :meth:`SealVerification.as_entry` produces.
+   :param ok: Whether every entry is valid and at least one entry exists.
+
+
+   .. py:attribute:: entries
+      :type:  tuple[dict[str, object], Ellipsis]
+
+
+   .. py:attribute:: ok
+      :type:  bool
+
+
+.. py:class:: SealVerification
+
+   What verifying one seal established.
+
+   :param valid: Whether the seal describes its subject and a signature verified.
+   :param verdict: One of ``VALID_TRUSTED``, ``VALID_UNKNOWN_KEY``, or
+       ``INVALID``.
+   :param reason: A human-readable explanation of the verdict.
+   :param signers: The fingerprints of the signatures that verified.
+   :param missing_signers: The expected roles that the seal did not carry.
+   :param discrepancies: How the subject diverges from the seal, if at all.
+
+
+   .. py:attribute:: valid
+      :type:  bool
+
+
+   .. py:attribute:: verdict
+      :type:  str
+
+
+   .. py:attribute:: reason
+      :type:  str
+
+
+   .. py:attribute:: signers
+      :type:  tuple[str, Ellipsis]
+
+
+   .. py:attribute:: missing_signers
+      :type:  tuple[str, Ellipsis]
+
+
+   .. py:attribute:: discrepancies
+      :type:  tuple[Discrepancy, Ellipsis]
+
+
+   .. py:method:: as_entry(level, subject)
+
+      Return this verdict as one whole-tree report entry.
+
+      :param level: The subject level this verdict is for.
+      :param subject: The subject identifier this verdict is for.
+      :return: The JSON-compatible report entry.
+
+
+
+.. py:function:: build_seal_body(kind, subject, records)
+
+   Assemble the signed body of one seal document.
+
+   The returned mapping is the exact, canonical body a signature is taken over
+   — its ``created_at`` is stamped now — so a caller signs and writes it with
+   :func:`sign_seal_body` and :func:`write_seal`.
+
+   :param kind: The sealed level, such as ``project`` or a member kind.
+   :param subject: The identifiers of the sealed subject.
+   :param records: The recorded contents of the sealed subject.
+   :return: The unsigned seal body.
+
+
+.. py:function:: default_project_keys(root, refs = None)
+
+   Resolve a project's signing keys from its ``seal_keys`` member or *refs*.
+
+   :param root: The project root whose ``seal_keys`` member is read.
+   :param refs: Key refs to use instead of the project member, when given.
+   :return: The resolved signing keys and the roles that could not be resolved.
+   :raises SealError: If the member is malformed or no key resolves.
+
+
+.. py:function:: diff_records(recorded, actual)
+
+   Diff two path-keyed record lists into discrepancies.
+
+   :param recorded: The records a seal recorded.
+   :param actual: The records the tree holds now.
+   :return: The per-path discrepancies, sorted by path.
+
+
+.. py:function:: is_project_sealed(project_root)
+
+   Return whether one project carries a seal.
+
+   :param project_root: The project root to check.
+   :return: Whether the project seal file exists.
+
+
+.. py:function:: normalize_trusted_keys(trusted_keys)
+
+   Return trust anchors as canonical keys and fingerprints, skipping junk.
+
+   :param trusted_keys: Trust anchors as ``ed25519:`` keys or ``sha256:`` fingerprints.
+   :return: The canonical keys and fingerprints, with unparseable entries dropped.
+
+
+.. py:function:: project_seal_path(project_root)
+
+   Return where one project's seal lives.
+
+   :param project_root: The project root whose seal path to build.
+   :return: The project seal path.
+
+
+.. py:function:: read_seal(path)
+
+   Read and structurally validate one seal document.
+
+   :param path: The seal file to read.
+   :return: The parsed seal.
+   :raises ValueError: If the file is not a valid seal document.
+   :raises OSError: If the file cannot be read.
+
+
+.. py:function:: resolve_seal_keys(refs, *, project_root)
+
+   Resolve seal-key refs to the signing keys that are actually available.
+
+   A ref is ``project`` (the project's own signing seed, discovered from
+   *project_root*), ``identity`` (the default operator identity),
+   ``identity:<short>`` (a named identity), or the path of a base64 Ed25519 seed
+   file. An unavailable ref is skipped and logged rather than fatal; only
+   resolving no key at all is an error.
+
+   :param refs: The key refs to resolve, in order.
+   :param project_root: The tree the ``project`` ref is discovered from.
+   :return: The resolved keys and the roles that could not be resolved.
+   :raises SealError: If no key at all could be resolved.
+
+
+.. py:function:: seal_project(project_root, *, keys = None)
+
+   Seal a project's loose files and every member's seal digest.
+
+   Every registered member must already be sealed, and every member kind must
+   have a registered handler; otherwise the project cannot be sealed.
+
+   :param project_root: The project root to seal.
+   :param keys: The signing keys, or ``None`` to use the project default.
+   :return: The project seal path.
+   :raises SealError: If a member is unsealed, a kind has no handler, or no key resolves.
+
+
+.. py:function:: sign_seal_body(body, keys)
+
+   Digest a seal body and produce one detached signature per key.
+
+   :param body: The seal body from :func:`build_seal_body`.
+   :param keys: The signing keys, each a ``(role, seed)`` pair.
+   :return: The hex body digest and the detached signatures.
+
+
+.. py:function:: unseal_project(project_root)
+
+   Remove a project's seal.
+
+   :param project_root: The project root to unseal.
+
+
+.. py:function:: verify_project(project_root, *, trusted_keys = (), deep = True)
+
+   Verify a project's seal and, when deep, every member seal it references.
+
+   :param project_root: The project root to verify.
+   :param trusted_keys: Trust anchors to classify the signers against.
+   :param deep: Whether to delegate to each member handler's own verification.
+   :return: The flat report of every verdict, with an overall ``ok``.
+
+
+.. py:function:: verify_seal(path, *, trusted_keys = (), expected_roles = ())
+
+   Verify one seal's body digest and signatures, and classify the signers.
+
+   This checks the seal against itself, not against the subject: at least one
+   signature must verify, any signature that does not makes the seal invalid,
+   and the seal is trusted when a verifying signer is a pinned key or
+   fingerprint. Subject-level checks are done by :func:`verify_project`.
+
+   :param path: The seal file to verify.
+   :param trusted_keys: Trust anchors as ``ed25519:`` keys or ``sha256:`` fingerprints.
+   :param expected_roles: Signing roles the seal is expected to carry.
+   :return: The signature verdict.
+   :raises ValueError: If the file is not a valid seal document.
+   :raises OSError: If the file cannot be read.
+
+
+.. py:function:: write_seal(path, body, keys)
+
+   Sign a seal body and write the seal document atomically.
+
+   :param path: Where to write the seal document.
+   :param body: The seal body from :func:`build_seal_body`.
+   :param keys: The signing keys, each a ``(role, seed)`` pair.
+   :return: The written seal path.
+   :raises SealError: If no signing key is available.
+
+

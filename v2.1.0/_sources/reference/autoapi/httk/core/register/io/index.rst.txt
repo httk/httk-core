@@ -1,0 +1,155 @@
+httk.core.register.io
+=====================
+
+.. py:module:: httk.core.register.io
+
+.. autoapi-nested-parse::
+
+   Reader, writer, adapter, and serializer registries.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.register.io.readers
+   httk.core.register.io.reader_filenames
+   httk.core.register.io.format_adapters
+   httk.core.register.io.writers
+   httk.core.register.io.writer_filenames
+   httk.core.register.io.writer_formats
+   httk.core.register.io.format_serializers
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.register.io.has_reader_for
+   httk.core.register.io.register_reader
+   httk.core.register.io.known_extensions
+   httk.core.register.io.known_filenames
+   httk.core.register.io.register_format_adapter
+   httk.core.register.io.known_format_adapters
+   httk.core.register.io.register_writer
+   httk.core.register.io.known_writers
+   httk.core.register.io.known_writer_formats
+   httk.core.register.io.register_format_serializer
+
+
+Module Contents
+---------------
+
+.. py:function:: has_reader_for(name)
+
+   Return whether ``name`` matches a registered reader key.
+
+   :param name: Filename or URL path whose reader registration is checked.
+   :return: Whether the name matches a registered extension or exact basename.
+
+
+.. py:data:: readers
+
+.. py:data:: reader_filenames
+
+.. py:data:: format_adapters
+
+.. py:data:: writers
+
+.. py:data:: writer_filenames
+
+.. py:data:: writer_formats
+
+.. py:data:: format_serializers
+
+.. py:function:: register_reader(*, name, reader, extensions = (), filenames = ())
+
+   Register a reader under one or more file ``extensions`` and/or ``filenames``.
+
+   ``extensions`` are matched (case-insensitively) against a file's suffix, e.g.
+   ``".cif"``. ``filenames`` are exact basenames matched (case-insensitively)
+   against a file's name with any recognized compression suffix stripped, e.g.
+   ``"POSCAR"`` matches ``POSCAR``, ``poscar``, and ``POSCAR.bz2``.
+
+   :param name: The registry name for the reader.
+   :param reader: A lazy ``"module:callable"`` reference to the reader.
+   :param extensions: File suffixes that select the reader.
+   :param filenames: Exact basenames that select the reader.
+
+
+.. py:function:: known_extensions()
+
+   Return the registered reader extensions.
+
+   :return: Lower-case reader suffixes.
+
+
+.. py:function:: known_filenames()
+
+   Return the registered reader basenames.
+
+   :return: Lower-case reader basenames.
+
+
+.. py:function:: register_format_adapter(*, name, adapter, formats)
+
+   Register one lazy adapter for each neutral payload format in ``formats``.
+
+   ``adapter`` may be a callable or a lazy ``"module:callable"`` reference.
+   A format tag has one owner: registering it again raises an error naming both
+   the existing and attempted registrants.
+
+   :param name: The registry name for the adapter.
+   :param adapter: The adapter callable or lazy ``"module:callable"`` reference.
+   :param formats: Neutral payload format tags served by the adapter.
+   :raises ValueError: If a format tag is invalid, duplicated, or already owned.
+
+
+.. py:function:: known_format_adapters()
+
+   Return format tags mapped to their registered adapter names.
+
+   :return: Format tags mapped to registry names.
+
+
+.. py:function:: register_writer(*, name, writer, format, extensions = (), filenames = ())
+
+   Register a writer under one or more extensions and/or exact basenames.
+
+   A format can have one writer owner; registering a conflicting writer raises
+   an error. Extension and basename keys are matched case-insensitively.
+
+   :param name: The registry name for the writer.
+   :param writer: The writer callable or lazy ``"module:callable"`` reference.
+   :param format: The neutral payload format emitted by the writer.
+   :param extensions: File suffixes that select the writer.
+   :param filenames: Exact basenames that select the writer.
+   :raises ValueError: If ``format`` is invalid or conflicts with an existing writer.
+
+
+.. py:function:: known_writers()
+
+   Return the registered writer extension and basename dispatch keys.
+
+   :return: Writer keys selected by extensions or exact basenames.
+
+
+.. py:function:: known_writer_formats()
+
+   Return registered writer format tags.
+
+   :return: Registered neutral payload format tags.
+
+
+.. py:function:: register_format_serializer(*, format, serializer)
+
+   Register one lazy serializer for a neutral payload format tag.
+
+   :param format: The neutral payload format tag.
+   :param serializer: The serializer callable or lazy reference.
+   :raises ValueError: If ``format`` is invalid or already has another serializer.
+
+

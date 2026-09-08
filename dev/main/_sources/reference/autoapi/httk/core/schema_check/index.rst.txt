@@ -1,0 +1,47 @@
+httk.core.schema_check
+======================
+
+.. py:module:: httk.core.schema_check
+
+.. autoapi-nested-parse::
+
+   Structural compatibility checks for record dataclasses and entry schemas.
+
+   This is a *structural compatibility* check: it compares property/field names,
+   nullability, and shallow Python type shape.  It deliberately does not check
+   units, requirements or sortable flags, dictionary value schemas, nested
+   required keys, enums or patterns, or cross-field constraints.  A passing check
+   therefore does not mean that two models are semantically equivalent.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.schema_check.check_record_matches_definition
+
+
+Module Contents
+---------------
+
+.. py:function:: check_record_matches_definition(record, definition, *, property_keys = None, internal_fields = (), ignore_properties = ('id', 'type'))
+
+   Return structural mismatches between a dataclass and an entry definition.
+
+   ``property_keys`` maps dataclass field names to served property names; it is
+   the inverse of :meth:`~httk.core.entry_provider.EntryProvider.property_keys`, which maps served
+   property names to record keys.  An omitted mapping uses identity for every
+   field.  ``internal_fields`` are skipped on the dataclass side, and
+   ``ignore_properties`` are skipped on the definition side.  Messages are
+   sorted for stable output.
+
+   :param record: Dataclass whose fields are checked.
+   :param definition: Entry definition whose properties are checked.
+   :param property_keys: Optional mapping from record field names to served property names.
+   :param internal_fields: Record fields to exclude from compatibility checks.
+   :param ignore_properties: Definition properties to exclude from compatibility checks.
+   :return: Sorted descriptions of structural mismatches, or an empty list when compatible.
+
+

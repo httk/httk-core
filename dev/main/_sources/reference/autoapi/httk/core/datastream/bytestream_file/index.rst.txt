@@ -1,0 +1,44 @@
+httk.core.datastream.bytestream_file
+====================================
+
+.. py:module:: httk.core.datastream.bytestream_file
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.datastream.bytestream_file.BytestreamFile
+
+
+Module Contents
+---------------
+
+.. py:class:: BytestreamFile(obj, **hints)
+
+   Bases: :py:obj:`httk.core.datastream.bytestream_common.BytestreamCommon`, :py:obj:`httk.core.datastream.bytestream_backend.BytestreamBackend`
+
+
+   Backend for file-based (io.IOBase-conforming) streaming byte data.
+   Compressed content is transparently decompressed according to the compression hint.
+
+   :param obj: Open binary stream to adopt and close with this backend.
+   :param \**hints: Backend-selection and compression hints.
+   :raises ValueError: If the compression hint is unknown.
+
+
+   .. py:property:: name
+      :type: str | None
+
+
+      Return the adopted stream's name when it provides one.
+
+
+   .. py:property:: closed
+      :type: bool
+
+
+      Report whether the adopted stream is closed.
+
+
