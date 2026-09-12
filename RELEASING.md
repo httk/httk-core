@@ -49,6 +49,17 @@ tagging, run `make docs-lock-check` for the required full clean-environment
 locked installation and strict docs build; this is a network check. The
 resulting package files are written to `dist/`.
 
+The final pre-tag check must also use a clean committed source snapshot and
+declared dependencies, so workspace packages cannot hide missing requirements:
+
+```console
+python tools/check_release.py . --tag v2.1.0
+```
+
+Commit the intended release files first. This runs dev-only CI, isolated
+release checks, locked docs, and fresh-wheel imports, retaining logs and the
+verified commit in its report. See [the checker instructions](tools/README.md).
+
 Versions on package indexes are immutable. Use a new development or release
 candidate version when repeating an upload, for example `2.1.0rc1` followed by
 `2.1.0`.
@@ -75,7 +86,7 @@ because `httk-core` deliberately has no runtime dependencies.
 
 ## PyPI
 
-1. Confirm that `make release-check` succeeds on the exact commit to release.
+1. Confirm that `tools/check_release.py` succeeds on the exact source commit to release.
 2. Push the commit and create a GitHub release whose tag is `v` followed by the
    package version, for example `v2.1.0`. The tag push triggers
    `docs-release.yml`, which validates tag/package-version/lock consistency and

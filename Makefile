@@ -63,14 +63,14 @@ clean: docs-clean dist-clean
 	find . -name "__pycache__" -print0 | xargs -0 rm -rf
 
 format:
-	$(PYTHON) -m ruff check src examples --fix
-	$(PYTHON) -m ruff format src examples
+	$(PYTHON) -m ruff check src examples tools --fix
+	$(PYTHON) -m ruff format src examples tools
 
 format-check: lint
-	$(PYTHON) -m ruff format --check src examples
+	$(PYTHON) -m ruff format --check src examples tools
 
 lint:
-	$(PYTHON) -m ruff check src examples
+	$(PYTHON) -m ruff check src examples tools
 	pydoclint --quiet src
 
 typecheck_pyright:
