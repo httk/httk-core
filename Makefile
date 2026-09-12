@@ -5,7 +5,7 @@ DIST_DIR ?= dist
 # between httk repositories (read by docs/conf.py via HTTK_DOCS_BASE_URL).
 DOCS_BASE_URL ?= https://docs.httk.org
 
-.PHONY: docs docs-live docs-clean docs-inventories docs-lock docs-lock-check optimade-defs clean dist-clean dist dist-check release-check format format-check typecheck typecheck_pyright lint test test_fastfail test-extended test-extended-fastfail audit
+.PHONY: docs docs-live docs-clean docs-inventories docs-lock docs-lock-check optimade-defs clean dist-clean dist dist-check release-prepare release-check format format-check typecheck typecheck_pyright lint test test_fastfail test-extended test-extended-fastfail audit
 
 docs: docs-clean
 	HTTK_DOCS_BASE_URL=$(DOCS_BASE_URL) $(PYTHON) -m sphinx -E -a -b html -W --keep-going docs docs/_build/html
@@ -103,5 +103,10 @@ dist: dist-clean
 dist-check: dist
 	$(PYTHON) -m twine check --strict $(DIST_DIR)/*
 
+release-prepare: export HTTK_RELEASE_VERSION := $(VERSION)
+release-prepare:
+	@$(PYTHON) tools/check_release.py . --prepare
+
 release-check: ci docs dist-check
 	$(PYTHON) -m httk.core.docs lock-check
+	@$(PYTHON) tools/check_release.py . --next-steps

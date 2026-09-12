@@ -27,38 +27,36 @@ reserve the project name before then.
 
 ## Prepare and check a release
 
-Update `project.version` in `pyproject.toml`. After making dependency changes,
-regenerate and commit the documentation lock before tagging:
+Set `project.version` in `pyproject.toml` to the intended release version, then
+run the complete preparation from a Python 3.12+ environment:
 
 ```console
-make docs-lock
+make release-prepare VERSION=v2.1.0
 ```
 
-From a Python 3.12 environment, install the development tools and run the
-complete local check:
+`VERSION` is required and must equal `v` followed by `project.version`; a mismatch stops
+before preparation changes anything. The repository carries its own
+`tools/check_release.py`, so this command needs no sibling checkout or newly
+published core tooling release. Git, make, network access and the tools
+listed in [the checker instructions](tools/README.md) are required.
 
-```console
-python -m pip install -e ".[dev,docs,release]"
-make release-check
-```
+Preparation snapshots the current candidate, including uncommitted source
+changes, and checks it in disposable environments with published dependencies.
+It refreshes the documentation lock and inventories, runs development-only CI,
+the full release checks, a separate locked documentation build, and a fresh
+wheel installation without extras. Logs, dependency versions and artifacts
+remain in the reported output directory.
 
-`make release-check` includes the cheap offline documentation lock-freshness
-check, in addition to formatting, static analysis, tests, strict documentation,
-an isolated sdist/wheel build, and strict package-metadata checks. Before
-tagging, run `make docs-lock-check` for the required full clean-environment
-locked installation and strict docs build; this is a network check. The
-resulting package files are written to `dist/`.
+After all gates pass, review the refreshed documentation inputs and the
+verified candidate, then commit the intended release files. Sign and tag that
+commit, push it and the tag, and create the GitHub release. Preparation does
+not perform those publication steps. Repeat preparation if the candidate
+changes after verification.
 
-The final pre-tag check must also use a clean committed source snapshot and
-declared dependencies, so workspace packages cannot hide missing requirements:
-
-```console
-python tools/check_release.py . --tag v2.1.0
-```
-
-Commit the intended release files first. This runs dev-only CI, isolated
-release checks, locked docs, and fresh-wheel imports, retaining logs and the
-verified commit in its report. See [the checker instructions](tools/README.md).
+`make release-check` remains available for the local CI, strict documentation
+and distribution checks. It prints the remaining preparation and publication
+steps on success; that local check alone does not establish isolated release
+readiness.
 
 Versions on package indexes are immutable. Use a new development or release
 candidate version when repeating an upload, for example `2.1.0rc1` followed by
@@ -86,7 +84,8 @@ because `httk-core` deliberately has no runtime dependencies.
 
 ## PyPI
 
-1. Confirm that `tools/check_release.py` succeeds on the exact source commit to release.
+1. Complete `make release-prepare VERSION=v2.1.0` and commit the verified candidate,
+   including the refreshed documentation inputs.
 2. Push the commit and create a GitHub release whose tag is `v` followed by the
    package version, for example `v2.1.0`. The tag push triggers
    `docs-release.yml`, which validates tag/package-version/lock consistency and

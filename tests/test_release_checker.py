@@ -100,6 +100,9 @@ def test_environment_removes_workspace_and_gate_overrides(tmp_path: Path, monkey
         "PIP_FIND_LINKS": "/workspace/wheels",
         "PIP_CONSTRAINT": "/workspace/constraints.txt",
         "PIP_NO_DEPS": "1",
+        "UV_INDEX_URL": "https://example.invalid/simple",
+        "UV_EXTRA_INDEX_URL": "https://extra.example.invalid/simple",
+        "UV_FIND_LINKS": "/workspace/wheels",
         "MAKEFLAGS": "--just-print",
         "MFLAGS": "-n",
         "MAKEFILES": "/workspace/override.mk",
@@ -115,6 +118,9 @@ def test_environment_removes_workspace_and_gate_overrides(tmp_path: Path, monkey
     monkeypatch.setenv("HTTPS_PROXY", "http://proxy.example.invalid:3128")
     monkeypatch.setenv("PIP_CONFIG_FILE", "/workspace/pip.conf")
     monkeypatch.setenv("PIP_INDEX_URL", "https://example.invalid/simple")
+    monkeypatch.setenv("UV_CONFIG_FILE", "/workspace/uv.toml")
+    monkeypatch.setenv("UV_DEFAULT_INDEX", "https://example.invalid/simple")
+    monkeypatch.setenv("UV_CACHE_DIR", "/workspace/shared-cache")
     work = tmp_path / "verification"
 
     env = CHECKER["_environment"](work)
@@ -123,6 +129,9 @@ def test_environment_removes_workspace_and_gate_overrides(tmp_path: Path, monkey
     assert env["PIP_CONFIG_FILE"] == os.devnull
     assert env["PIP_INDEX_URL"] == "https://pypi.org/simple"
     assert env["PIP_CACHE_DIR"].startswith(str(work) + os.sep)
+    assert env["UV_CONFIG_FILE"] == os.devnull
+    assert env["UV_DEFAULT_INDEX"] == "https://pypi.org/simple"
+    assert env["UV_CACHE_DIR"] == str(work / "cache/uv")
     assert env["PYTHONNOUSERSITE"] == "1"
     assert env["PATH"].split(os.pathsep) == [str(work / ".venv/bin"), "/usr/bin"]
     assert env["HTTPS_PROXY"] == "http://proxy.example.invalid:3128"
