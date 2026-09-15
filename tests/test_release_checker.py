@@ -132,9 +132,25 @@ def test_environment_removes_workspace_and_gate_overrides(tmp_path: Path, monkey
     assert env["UV_CONFIG_FILE"] == os.devnull
     assert env["UV_DEFAULT_INDEX"] == "https://pypi.org/simple"
     assert env["UV_CACHE_DIR"] == str(work / "cache/uv")
+    assert env["UV_PYTHON_INSTALL_DIR"] == str(work / "python")
     assert env["PYTHONNOUSERSITE"] == "1"
     assert env["PATH"].split(os.pathsep) == [str(work / ".venv/bin"), "/usr/bin"]
     assert env["HTTPS_PROXY"] == "http://proxy.example.invalid:3128"
+
+
+def test_supported_python_versions_use_normal_tests() -> None:
+    assert CHECKER["_SUPPORTED_PYTHON_VERSIONS"] == ("3.12", "3.13", "3.14")
+    assert CHECKER["_normal_test_command"]("3.14") == [
+        "uv",
+        "run",
+        "--isolated",
+        "--python",
+        "3.14",
+        "--extra",
+        "dev",
+        "make",
+        "test",
+    ]
 
 
 def test_run_retains_output_and_propagates_failure(tmp_path: Path) -> None:

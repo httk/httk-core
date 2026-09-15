@@ -43,9 +43,10 @@ listed in [the checker instructions](tools/README.md) are required.
 Preparation snapshots the current candidate, including uncommitted source
 changes, and checks it in disposable environments with published dependencies.
 It refreshes the documentation lock and inventories, runs development-only CI,
-the full release checks, a separate locked documentation build, and a fresh
-wheel installation without extras. Logs, dependency versions and artifacts
-remain in the reported output directory.
+the normal test suite on Python 3.12, 3.13, and 3.14, the full release checks,
+a separate locked documentation build, and a fresh wheel installation without
+extras. Logs, dependency versions and artifacts remain in the reported output
+directory.
 
 After all gates pass, review the refreshed documentation inputs and the
 verified candidate, then commit the intended release files. Sign and tag that
