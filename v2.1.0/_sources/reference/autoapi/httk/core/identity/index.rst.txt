@@ -1,0 +1,369 @@
+httk.core.identity
+==================
+
+.. py:module:: httk.core.identity
+
+.. autoapi-nested-parse::
+
+   Per-user operator identity: signing keys, named identities, and signatures.
+
+   An *operator identity* is the attribution recorded on a document a user
+   publishes — a name, an email, and an Ed25519 signing key. It says *who*
+   published something and never *what they may do*: a signature is attribution,
+   never authorization.
+
+   Identity keys live under ``config_home()/"keys"`` and the named-identity
+   configuration lives in ``config_home()/"identity.json"``. Both honour
+   ``HTTK_CONFIG_HOME`` through :func:`httk.core.userdirs.config_home`, so a test
+   or an isolated run redirects the whole per-user identity store with one
+   environment variable.
+
+   Signing is optional by construction: a caller with no identity key returns the
+   document unchanged, and a verifier accepts an unsigned document. That is what
+   keeps a mixed deployment — some installations with keys, some without — working.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.identity.IDENTITY_CONFIG_FORMAT
+   httk.core.identity.IDENTITY_CONFIG_FORMAT_VERSION
+   httk.core.identity.IDENTITY_SIGNATURE_DOMAIN
+   httk.core.identity.IDENTITY_KEY_MEMBER
+   httk.core.identity.IDENTITY_SIGNATURE_MEMBER
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.identity.OperatorIdentity
+   httk.core.identity.DocumentSignature
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.identity.keys_home
+   httk.core.identity.identity_config_path
+   httk.core.identity.read_identity_config
+   httk.core.identity.write_identity_config
+   httk.core.identity.identity_key_paths
+   httk.core.identity.ensure_identity_key
+   httk.core.identity.configured_operator_identity
+   httk.core.identity.resolve_operator_identity
+   httk.core.identity.initialize_identity
+   httk.core.identity.import_v1_identity
+   httk.core.identity.add_identity
+   httk.core.identity.set_default_identity
+   httk.core.identity.remove_identity
+   httk.core.identity.identity_seed
+   httk.core.identity.identity_public_key
+   httk.core.identity.local_public_keys
+   httk.core.identity.signature_digest
+   httk.core.identity.sign_document
+   httk.core.identity.verify_document
+
+
+Module Contents
+---------------
+
+.. py:data:: IDENTITY_CONFIG_FORMAT
+   :value: 'httk-identity'
+
+
+.. py:data:: IDENTITY_CONFIG_FORMAT_VERSION
+   :value: 1
+
+
+.. py:data:: IDENTITY_SIGNATURE_DOMAIN
+   :value: b'httk-identity-v2\x00'
+
+
+.. py:data:: IDENTITY_KEY_MEMBER
+   :value: 'operator_key'
+
+
+.. py:data:: IDENTITY_SIGNATURE_MEMBER
+   :value: 'signature'
+
+
+.. py:function:: keys_home()
+
+   Return where this user's identity keys live.
+
+   :return: Per-user identity key directory.
+
+
+.. py:function:: identity_config_path()
+
+   Return the path of this user's identity configuration file.
+
+   :return: Per-user identity configuration path.
+
+
+.. py:function:: read_identity_config()
+
+   Read the identity configuration, returning an empty mapping if absent.
+
+   A document of an unrecognized format or version is refused by name rather
+   than read as if its members meant what this implementation means by them.
+
+   :return: Identity configuration members, or an empty mapping when no file exists.
+   :raises ValueError: If the file is not a supported identity configuration document.
+
+
+.. py:function:: write_identity_config(values)
+
+   Write a versioned identity configuration atomically and durably.
+
+   :param values: Identity configuration members to write.
+   :return: Path of the written configuration file.
+
+
+.. py:function:: identity_key_paths(short)
+
+   Return the paths of the local identity seed and public key.
+
+   :param short: Named identity short name.
+   :return: Seed path followed by public-key path.
+   :raises ValueError: If ``short`` is not a valid identity short name.
+
+
+.. py:function:: ensure_identity_key(short)
+
+   Create the user's standard Ed25519 identity key if it is absent.
+
+   :param short: Named identity short name.
+   :return: Seed path followed by public-key path.
+   :raises ValueError: If an existing seed is not a standard Ed25519 seed.
+
+
+.. py:class:: OperatorIdentity
+
+   One configured operator attribution identity.
+
+   :param short: Named identity short name, or ``None`` for the default identity.
+   :param name: Operator name.
+   :param email: Operator email address.
+   :param seed_path: Path of the signing seed, or ``None`` when none exists yet.
+
+
+   .. py:attribute:: short
+      :type:  str | None
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: email
+      :type:  str
+
+
+   .. py:attribute:: seed_path
+      :type:  pathlib.Path | None
+
+
+   .. py:property:: label
+      :type: str
+
+
+      Return the ``Name <email>`` attribution label.
+
+      :return: The operator's attribution label.
+
+
+.. py:function:: configured_operator_identity()
+
+   Resolve the configured default operator identity, if one exists.
+
+   :return: The resolved default identity, or ``None`` when no identity is configured.
+   :raises ValueError: If the configured identities are malformed or ambiguous.
+
+
+.. py:function:: resolve_operator_identity(selector)
+
+   Resolve a configured identity or a literal ``Name <email>`` label.
+
+   :param selector: A configured short name, a literal ``Name <email>`` label, or ``None`` for the default.
+   :return: The resolved operator identity.
+   :raises ValueError: If the selector is malformed, unknown, or the default is unresolvable.
+
+
+.. py:function:: initialize_identity(name, email)
+
+   Establish the per-user operator identity when it is not configured.
+
+   If a default identity already resolves, this function leaves the identity
+   store untouched and reports that identity. If identities exist but no
+   default can resolve, it refuses because choosing one is an operator action.
+   Otherwise it derives a short name from *email* and creates the first named
+   identity, which becomes the default.
+
+   :param name: Operator name to record.
+   :param email: Operator email address to record.
+   :return: Whether an identity was created, and the configured identity.
+   :raises ValueError: If identities are ambiguous or the name/email are invalid.
+
+
+.. py:function:: import_v1_identity(source = None)
+
+   Import name, email, and public identity from a legacy ``~/.httk`` tree.
+
+   When no named identity is configured, a legacy name and email create the
+   first named identity. If an identity already exists, legacy name and email
+   are skipped rather than recorded. Legacy 64-byte private key material is
+   deliberately left untouched.
+
+   :param source: Legacy configuration root, or the default legacy home.
+   :return: The created identity's ``short``, ``name``, and ``email`` when one
+       was created, plus ``legacy_public_key`` when a legacy public key was found.
+   :raises FileNotFoundError: If the legacy configuration file is absent.
+
+
+.. py:function:: add_identity(short, name, email, *, make_default = False)
+
+   Create and configure one named operator identity and its signing key.
+
+   The first identity added becomes the default; a later identity becomes the
+   default only when ``make_default`` is set. When a default is already
+   configured it is left in place unless overridden.
+
+   :param short: Short identity name matching ``[a-z0-9][a-z0-9_-]*``.
+   :param name: Operator name.
+   :param email: Operator email address.
+   :param make_default: Whether to make this identity the default.
+   :return: The resulting identity configuration members.
+   :raises ValueError: If the short name is taken or the name/email are unforwardable.
+
+
+.. py:function:: set_default_identity(short)
+
+   Select the default named operator identity.
+
+   :param short: Short name of a configured identity.
+   :return: The resulting identity configuration members.
+   :raises ValueError: If ``short`` is not a configured identity.
+
+
+.. py:function:: remove_identity(short)
+
+   Remove one named identity, leaving its key files untouched.
+
+   The key files are deliberately kept: removing an identity forgets its
+   attribution, but a signature it already produced must stay verifiable.
+
+   :param short: Short name of a configured identity.
+   :return: The resulting identity configuration members.
+   :raises ValueError: If ``short`` is not configured, or is the default while others remain.
+
+
+.. py:function:: identity_seed(seed_path = None)
+
+   Return the local identity seed, or ``None`` when no key was created.
+
+   Nothing here creates a key. An installation that never configured an
+   identity simply has none, and every caller treats that as *unsigned* rather
+   than as an error, which is what keeps a mixed deployment working.
+
+   :param seed_path: Explicit seed path, or ``None`` to resolve the default.
+   :return: The local seed, or no value when no valid key exists.
+   :raises ValueError: If the default is unresolvable or a present seed is unreadable.
+
+
+.. py:function:: identity_public_key(seed_path = None)
+
+   Return the recorded local identity public key, or ``None``.
+
+   :param seed_path: Explicit seed path, or ``None`` to resolve the default.
+   :return: Encoded public key, or ``None`` when no identity exists.
+
+
+.. py:function:: local_public_keys()
+
+   Return the keys configured identities can actually sign with.
+
+   The seed is authoritative; a configured identity with no seed is omitted,
+   while a seed refusal remains an error rather than silently narrowing trust.
+
+   :return: Canonical encoded public keys for the local operator identities.
+   :raises ValueError: If a configured identity seed is unreadable or malformed.
+
+
+.. py:function:: signature_digest(document)
+
+   Return the domain-separated digest one identity signature covers.
+
+   The digest covers the whole document except the signature itself, in the
+   same canonical JSON every other httk document is hashed as, so the signing
+   key and the signed members travel together and neither can be swapped.
+
+   :param document: Document whose detached signature is being calculated.
+   :return: Domain-separated digest of the unsigned document.
+
+
+.. py:function:: sign_document(document, *, seed_path = None)
+
+   Return *document* with a detached identity signature, when one is possible.
+
+   Signing is optional by construction: a caller with no identity key returns
+   the document unchanged, and a verifier accepts an unsigned document. The
+   signature is attribution — it says which identity published this — and never
+   authorization: nothing is permitted because a document is signed.
+
+   :param document: Document to copy and optionally sign.
+   :param seed_path: Explicit seed path, or ``None`` to resolve the default.
+   :return: Document with identity members when a local key exists.
+   :raises ValueError: If the default is unresolvable or a present seed is unreadable.
+
+
+.. py:class:: DocumentSignature
+
+   Report what checking one document's optional identity signature established.
+
+   :param present: Whether the document carried a signature block.
+   :param valid: Whether the carried signature verified.
+   :param operator_key: Encoded key from the signature, when present.
+   :param reason: Explanation when the signature is absent or invalid.
+
+
+   .. py:attribute:: present
+      :type:  bool
+
+
+   .. py:attribute:: valid
+      :type:  bool
+
+
+   .. py:attribute:: operator_key
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: reason
+      :type:  str | None
+      :value: None
+
+
+
+.. py:function:: verify_document(document)
+
+   Check the optional identity signature of *document*.
+
+   An absent signature is reported as absent rather than as a failure, so a
+   document published by an installation without an identity key stays usable.
+   A signature that is present and does not verify is a failure: it is either
+   damaged or forged, and neither is something to act on.
+
+   :param document: Document whose optional signature is checked.
+   :return: Signature presence and verification result.
+
+

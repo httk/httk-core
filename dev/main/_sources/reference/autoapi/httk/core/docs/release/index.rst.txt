@@ -1,0 +1,95 @@
+httk.core.docs.release
+======================
+
+.. py:module:: httk.core.docs.release
+
+.. autoapi-nested-parse::
+
+   Release-tag checks, lock validation, and deterministic documentation URLs.
+
+   When ``docs/versioning.toml`` is present, release checks assume each internal
+   repository's Sphinx project name equals its configured documentation slug and
+   validate the corresponding committed ``docs/_inventories/<slug>.inv`` header.
+
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   httk.core.docs.release.ReleaseError
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.docs.release.ReleaseCheck
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.docs.release.check_release
+   httk.core.docs.release.dependency_doc_targets
+
+
+Module Contents
+---------------
+
+.. py:exception:: ReleaseError
+
+   Bases: :py:obj:`RuntimeError`
+
+
+   Raised when a release tag, project version, or documentation lock is invalid.
+
+
+.. py:class:: ReleaseCheck
+
+   Summarize a successful release preflight.
+
+   :param tag: Release tag validated by the preflight.
+   :param version: Parsed release version.
+   :param lock_path: Documentation lock checked by the preflight.
+
+
+   .. py:attribute:: tag
+      :type:  str
+
+
+   .. py:attribute:: version
+      :type:  httk.core.docs.semver.Version
+
+
+   .. py:attribute:: lock_path
+      :type:  pathlib.Path
+
+
+.. py:function:: check_release(project_dir, tag)
+
+   Validate a release tag against ``pyproject.toml`` and its docs lock.
+
+   :param project_dir: Project directory containing release metadata.
+   :param tag: Release tag to validate.
+   :return: Summary of the successful release preflight.
+   :raises ReleaseError: If project metadata, the release tag, lock, or inventories are invalid.
+
+
+.. py:function:: dependency_doc_targets(config, pins, base_url, channel)
+
+   Derive exact release or ``dev/main`` inventory URLs for internal dependencies.
+
+   :param config: Documentation-site configuration declaring the dependencies.
+   :param pins: Locked distribution versions used for release URLs.
+   :param base_url: Base URL containing the dependency documentation sites.
+   :param channel: Documentation channel, either ``release`` or ``dev``.
+   :return: Mapping of dependency distributions to inventory base URLs.
+   :raises ReleaseError: If a release dependency has no valid locked version.
+   :raises ValueError: If *channel* or a locked dependency version is invalid.
+
+

@@ -1,0 +1,112 @@
+httk.core.vectors.vector_api
+============================
+
+.. py:module:: httk.core.vectors.vector_api
+
+.. autoapi-nested-parse::
+
+   The minimal canonical vector interface shared by all vector backends and views.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.vectors.vector_api.Fractions
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.vectors.vector_api.VectorAPI
+
+
+Module Contents
+---------------
+
+.. py:type:: Fractions
+   :canonical: fractions.Fraction | tuple[Fractions, ...]
+
+
+.. py:class:: VectorAPI
+
+   Bases: :py:obj:`abc.ABC`
+
+
+   Abstract base class for the canonical vector interface.
+
+   It declares the ``fractions`` accessor (a nested tuple of :class:`fractions.Fraction`, or a
+   bare Fraction for a scalar) that every vector backend produces from its own native
+   representation and every vector view builds its presentation from, together with the ``dim``
+   shape tuple. The interchange is exact when :attr:`fractions_exact` is True; members such as
+   irrational surds whose hub is a deterministic approximation report False, and exact
+   construction paths refuse them. This is the single interchange format; there is no pairwise
+   conversion between backends.
+
+   On top of the two abstract accessors it provides the guaranteed float renderings
+   :meth:`to_floats` and :meth:`to_float`, derived from the ``fractions`` hub — so *whatever*
+   object the family hands you, ``.to_floats()`` works. (The exact value types
+   :class:`~httk.core.vectors.fracvector.FracVector` and
+   :class:`~httk.core.vectors.surdvector.SurdVector` honor the same contract with their own
+   implementations, while the numpy backend adds a dtype-guarded fast path with the hub as
+   fallback. Surd values render floats at fixed high precision independent of the decimal context,
+   unlike the hub's context-precision reduction.
+
+
+   .. py:property:: fractions
+      :type: Fractions
+
+      :abstractmethod:
+
+
+      Return the Fraction interchange representation.
+
+
+   .. py:property:: fractions_exact
+      :type: bool
+
+
+      Return whether ``fractions`` reproduces this value exactly.
+
+      Members whose Fraction interchange may be a deterministic approximation override this
+      property with ``False``; exact construction paths must refuse those members.
+
+
+   .. py:property:: dim
+      :type: tuple[int, Ellipsis]
+
+      :abstractmethod:
+
+
+      Return the tensor shape as a tuple of dimensions.
+
+
+   .. py:method:: to_floats()
+
+      Return the value as nested lists of floats.
+
+      The value as (possibly nested) plain lists of ``float`` — a bare ``float`` for a scalar.
+
+      Derived from the ``fractions`` hub; when :attr:`fractions_exact` is False, the result is
+      the member's deterministic approximation. Nested lists match the ``numpy.ndarray.tolist()``
+      convention and are directly JSON-serializable.
+
+      :return: The rendered value.
+
+
+
+   .. py:method:: to_float()
+
+      Return the scalar value as a plain ``float``.
+
+      Raises :class:`TypeError` on a non-scalar.
+
+      :return: The rendered scalar value.
+      :raises TypeError: If the value is not scalar.
+
+
+

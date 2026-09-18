@@ -1,0 +1,27 @@
+httk.core.datastream.bytestream_view
+====================================
+
+.. py:module:: httk.core.datastream.bytestream_view
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.datastream.bytestream_view.BytestreamView
+
+
+Module Contents
+---------------
+
+.. py:class:: BytestreamView
+
+   Bases: :py:obj:`httk.core.views.View`\ [\ :py:obj:`httk.core.datastream.bytestream_backend.BytestreamBackend`\ ]
+
+
+   Abstract base class for all views of streaming byte data.
+
+   Views retain the backend and expose it through a byte-stream interface.
+
+

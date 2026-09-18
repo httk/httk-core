@@ -1,0 +1,190 @@
+httk.core.dataset_loader
+========================
+
+.. py:module:: httk.core.dataset_loader
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.dataset_loader.DecodeObjectCallback
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.dataset_loader.DatasetLoaderRecord
+   httk.core.dataset_loader.DatasetMeta
+   httk.core.dataset_loader.DatasetLoader
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.dataset_loader.write_dataset_sqlar
+
+
+Module Contents
+---------------
+
+.. py:type:: DecodeObjectCallback
+   :canonical: Callable[[dict[str, Any], str], Any]
+
+
+   Callback invoked as ``(dict_obj, jsonld_url)`` that returns the value to use in place of
+   ``dict_obj`` (return the input unchanged to decline).
+
+.. py:class:: DatasetLoaderRecord(data)
+
+   Bases: :py:obj:`collections.abc.Mapping`\ [\ :py:obj:`str`\ , :py:obj:`Any`\ ]
+
+
+   Read-only attribute and mapping view over a ``Mapping[str, Any]``.
+
+   Top-level keys are reachable both as attributes (``record.name``) and as items
+   (``record["name"]``); the wrapped values are the plain parsed JSON and are not
+   themselves wrapped. Supports iteration over keys, ``len()``, ``in``, and ``keys()``.
+
+   :param data: The parsed top-level object exposed by this view.
+
+
+   .. py:method:: keys()
+
+      Return a dynamic view of the record's top-level keys.
+
+      :return: The wrapped mapping's keys view.
+
+
+
+.. py:class:: DatasetMeta
+
+   Describe header metadata extracted from a structured JSON-LD document.
+
+   :param context: The raw document context.
+   :param id: The document identifier, if present.
+   :param type_: The document type, if present.
+   :param header: Remaining top-level header fields.
+   :param dataset_ids: Dataset names mapped to their identifiers.
+   :param fields: Dataset names mapped to their field property URLs.
+
+
+   .. py:attribute:: context
+      :type:  dict[str, Any]
+
+      The raw ``@context`` object.
+
+
+   .. py:attribute:: id
+      :type:  str | None
+
+      The document ``@id``, or ``None`` if absent.
+
+
+   .. py:attribute:: type_
+      :type:  str | None
+
+      The document ``@type``, or ``None`` if absent (trailing underscore avoids the builtin ``type``).
+
+
+   .. py:attribute:: header
+      :type:  dict[str, Any]
+
+      All remaining top-level keys except ``data``, ``indicies``, and ``@``-keys (titles, creator, license, provenance, ...).
+
+
+   .. py:attribute:: dataset_ids
+      :type:  dict[str, str]
+
+      Mapping of dataset name to its ``@id``.
+
+
+   .. py:attribute:: fields
+      :type:  dict[str, dict[str, str]]
+
+      Mapping of dataset name to a mapping of field name to its property URL.
+
+
+.. py:function:: write_dataset_sqlar(document, destination)
+
+   Write a structured JSON-LD dataset document as a deterministic sqlar archive.
+
+   Empty list datasets and empty dictionary records are unsupported because the sqlar member
+   grammar has no representation for them; this function raises instead of losing data.
+
+   :param document: Structured JSON-LD dataset document to archive.
+   :param destination: Destination filename ending in ``.sqlar``.
+   :raises ValueError: If the destination or document cannot be represented by the sqlar format.
+
+
+.. py:class:: DatasetLoader(identifier, source, decode_object = None, **hints)
+
+   Lazy loader for httk dataset files, resolved only when data is first accessed.
+
+   A ``DatasetLoader`` is a declare-time placeholder: constructing it records its arguments
+   and performs no I/O. The source is read the first time ``data``, ``meta``, or ``index``
+   is accessed. Files are either plain JSON (any JSON value is exposed as ``data`` with
+   ``meta``/``index`` set to ``None``) or a structured JSON-LD document (with ``@context``,
+   header fields, ``data``, and optional ``indicies``) whose header is exposed via ``meta``,
+   datasets via ``data.<name>``, and lookup indices via ``index.<name>``.
+
+   Loaders that share an ``identifier`` deduplicate through a class-level registry: the
+   first load wins, and later loaders reusing that identifier return the same result while
+   their ``source`` and ``decode_object`` arguments are ignored. Keeping identifiers unique
+   is the caller's responsibility. Not thread-safe.
+
+   Format is resolved from the source name after stripping any compression suffix: a ``.json``
+   name (e.g. ``data.json`` or ``data.json.gz``) is parsed as JSON; any other recognizable
+   suffix raises ``ValueError``; a source with no determinable name is treated as JSON.
+   Compression is handled transparently by the stream layer, so ``.json.gz`` and similar load
+   directly. A plain ``.sqlar`` file is an alternative structured JSON-LD representation. It
+   contains ``header.json``, optional ``indicies.json``, scalar ``data/{D}.json`` members, and
+   list members at ``data/{D}/{i:05d}.json`` or ``data/{D}/{i:05d}/{field}.json``. Sqlar sources
+   require a real filename because their immutable SQLite connection is retained for the
+   lifetime of the cached load; they cannot be compressed, streamed, or loaded from content.
+   Empty list datasets and empty dictionary records cannot be represented and are rejected by
+   the writer; individual members are limited to 256 MiB. Sqlar-backed record/sequence/data
+   views (and ``DatasetLoaderRecord``) pickle by
+   materializing to plain containers; live iterators over them are not picklable.
+   A ``str``/``Path`` source is interpreted as a filename unless its scheme marks it
+   as a URL (``http``, ``https``, ``ftp``, ``file``); bare network URLs are refused at read time,
+   so pass ``kind="url"`` or a ``urllib.request.Request``. Pass ``kind="content"`` for literal
+   content or ``kind="filename"`` to force a filename interpretation.
+
+   .. rubric:: Example
+
+   symmetry_basics = DatasetLoader("symmetry_basics", "data/spacegroup_symbols.json")
+   spacegroups = symmetry_basics.data.spacegroups  # first access triggers the load
+
+   :param identifier: The deduplication key for this load.
+   :param source: The filename, URL-like stream, request, or literal content to read.
+   :param decode_object: An optional callback for JSON-LD objects identified by context URLs.
+   :param \**hints: Stream interpretation hints such as ``kind``.
+
+
+   .. py:property:: data
+      :type: Any
+
+
+      Return the lazily loaded dataset value.
+
+
+   .. py:property:: meta
+      :type: DatasetMeta | None
+
+
+      Return structured-document metadata, or ``None`` for plain JSON.
+
+
+   .. py:property:: index
+      :type: DatasetLoaderRecord | None
+
+
+      Return structured-document lookup indices, or ``None`` when absent.
+
+

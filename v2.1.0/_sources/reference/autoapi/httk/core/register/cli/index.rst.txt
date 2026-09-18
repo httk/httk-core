@@ -1,0 +1,103 @@
+httk.core.register.cli
+======================
+
+.. py:module:: httk.core.register.cli
+
+.. autoapi-nested-parse::
+
+   Command-line registry and command metadata.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.register.cli.CLIHandler
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.register.cli.CLICommand
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.register.cli.register_cli_command
+   httk.core.register.cli.known_cli_commands
+   httk.core.register.cli.cli_command
+
+
+Module Contents
+---------------
+
+.. py:data:: CLIHandler
+
+.. py:class:: CLICommand
+
+   Store registration metadata for one top-level :command:`httk` command.
+
+   :param name: The lowercase hyphen-separated command name.
+   :param handler: The command callable or lazy reference.
+   :param summary: The one-line command summary.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: handler
+      :type:  str | collections.abc.Callable[Ellipsis, Any]
+
+
+   .. py:attribute:: summary
+      :type:  str
+
+
+   .. py:method:: resolve()
+
+      Import and return the registered command implementation.
+
+      :return: The resolved command handler.
+
+
+
+.. py:function:: register_cli_command(name, handler, summary)
+
+   Register a lazy top-level :command:`httk` command.
+
+   A handler is either a callable or a lazy ``"module:callable"`` reference
+   with the contract ``(argv: Sequence[str], context: CLIContext) -> int``.
+   Names use lowercase, hyphen-separated command syntax. Registration is
+   intentionally strict: reserved names and duplicate registrations are
+   errors rather than order-dependent overrides.
+
+   :param name: The lowercase hyphen-separated command name.
+   :param handler: The command callable or lazy ``"module:callable"`` reference.
+   :param summary: The nonempty one-line command summary.
+   :raises TypeError: If ``handler`` is neither callable nor a lazy reference.
+   :raises ValueError: If the name, handler reference, summary, or registration is invalid.
+
+
+.. py:function:: known_cli_commands()
+
+   Return registered top-level command names without resolving handlers.
+
+   :return: Registered command names in sorted order.
+
+
+.. py:function:: cli_command(name)
+
+   Return command metadata without importing its implementation.
+
+   :param name: The command name to look up.
+   :return: Command metadata, or ``None`` if it is not registered.
+
+

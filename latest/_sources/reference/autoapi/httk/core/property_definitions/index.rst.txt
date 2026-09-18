@@ -1,0 +1,457 @@
+httk.core.property_definitions
+==============================
+
+.. py:module:: httk.core.property_definitions
+
+.. autoapi-nested-parse::
+
+   First-class OPTIMADE property and entry-type definitions.
+
+   An OPTIMADE *property definition* is a self-describing JSON document giving a
+   property's canonical identifier, type, unit, requirements, and human-readable
+   description. An *entry-type definition* bundles the property definitions of one
+   entry type (``structures``, ``references``, ...) together with the entry type's
+   own description.
+
+   This module models both as immutable Python objects:
+
+   - :class:`PropertyDefinition` wraps one full property-definition document. It can
+     be built from a vendored OPTIMADE definition (:meth:`PropertyDefinition.from_optimade`)
+     or generated from a compact description (:meth:`PropertyDefinition.from_simple`).
+   - :class:`EntryTypeDefinition` wraps an entry type's description and the ordered
+     mapping of its property definitions, and can be
+     :meth:`~EntryTypeDefinition.extended` with database-specific custom properties.
+
+   The vendored OPTIMADE standard definitions shipped with httk-core (the
+   ``references``, ``files``, and ``calculations`` entry types) are loaded through
+   the IRI schema registry by :func:`standard_entry_type` and
+   :func:`~httk.core.register.load_entry_type_definition`.
+
+   **On the "1.2" definition-format stamp:** :meth:`PropertyDefinition.from_simple`
+   generates only property-definition features that already exist in format
+   ``"1.2"`` of the OPTIMADE property-definition schema, so every generated
+   definition is stamped ``x-optimade-definition.format == "1.2"``. The definition
+   *format* is versioned in lockstep with the OPTIMADE specification and is only
+   bumped when a definition actually uses features introduced by a newer format;
+   custom generated definitions therefore keep the ``"1.2"`` stamp even for
+   entry types (such as ``calculations``) whose specification version is newer.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.property_definitions.PROPERTY_DEFINITION_META_SCHEMA
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.property_definitions.PropertyDefinition
+   httk.core.property_definitions.EntryTypeDefinition
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.property_definitions.register_definition_prefix
+   httk.core.property_definitions.known_definition_prefixes
+   httk.core.property_definitions.apply_definition_prefix
+   httk.core.property_definitions.standard_entry_type
+
+
+Module Contents
+---------------
+
+.. py:data:: PROPERTY_DEFINITION_META_SCHEMA
+   :value: 'https://schemas.optimade.org/meta/v1.2/optimade/property_definition.json'
+
+
+.. py:function:: register_definition_prefix(prefix, id_base)
+
+   Register a database-specific OPTIMADE property-name ``prefix``.
+
+   A custom property served by a database MUST use such a prefix (see the
+   OPTIMADE specification, "Database-Specific Properties"). Once registered, a
+   property name carrying ``prefix`` gets its ``$id`` synthesized under
+   ``id_base`` by :meth:`PropertyDefinition.from_simple`, and
+   :meth:`EntryTypeDefinition.extended` accepts it as a custom property.
+
+   ``prefix`` must be a lower-case alphanumeric token wrapped in single
+   underscores (matching ``_[a-z0-9]+_``); anything else raises a clear
+   :class:`ValueError`. The first ``id_base`` registered for a prefix is the
+   one under which :meth:`PropertyDefinition.from_simple` synthesizes ``$id``
+   values; re-registering the same prefix with a different ``id_base`` adds it
+   as another recognized base (used only to classify definition ``$id`` values)
+   without changing that synthesis base.
+
+   :param prefix: The database-specific property-name prefix to register.
+   :param id_base: The IRI base used for synthesized property definition IDs.
+   :raises ValueError: If ``prefix`` does not match ``_[a-z0-9]+_``.
+
+
+.. py:function:: known_definition_prefixes()
+
+   Return the registered database-specific property-name prefixes.
+
+   The tuple reflects the current state of the prefix registry (see
+   :func:`register_definition_prefix`); ``_httk_`` is pre-registered.
+
+   :return: The registered prefixes in registration order.
+
+
+.. py:function:: apply_definition_prefix(name, definition_id)
+
+   Return ``name`` carrying the registered prefix of a definition's IRI.
+
+   The public serving-edge transform: it looks up the database-specific prefix
+   registered for ``definition_id`` (see :func:`register_definition_prefix` /
+   :func:`known_definition_prefixes`) and applies it to ``name`` idempotently,
+   exactly as :meth:`EntryTypeDefinition.served_form` prefixes names. A
+   ``definition_id`` of ``None`` (or one under no registered prefix) leaves
+   ``name`` unchanged, and an already-prefixed ``name`` is never re-prefixed.
+
+   :param name: The internal (unprefixed) name to transform.
+   :param definition_id: The definition IRI whose registered prefix is applied, or ``None``.
+   :return: The name carrying the definition's registered prefix, or unchanged.
+
+
+.. py:class:: PropertyDefinition(name, payload)
+
+   An immutable wrapper around one full OPTIMADE property definition.
+
+   Instances are constructed from a vendored definition document
+   (:meth:`from_optimade`) or generated from a compact description
+   (:meth:`from_simple`). The wrapped document is always deep-copied on the way
+   in and out, so an instance never shares mutable state with its inputs or its
+   callers.
+
+   :param name: The canonical property name.
+   :param payload: The complete property-definition document.
+
+
+   .. py:method:: from_optimade(name, definition)
+      :classmethod:
+
+
+      Wrap a full vendored OPTIMADE property definition.
+
+      ``definition`` must at least carry ``$id``, ``description``,
+      ``x-optimade-type``, and ``type``; a clear :class:`ValueError` is raised
+      otherwise. The document is deep-copied.
+
+      :param name: The canonical property name.
+      :param definition: The full property-definition document to wrap.
+      :return: A validated property definition.
+      :raises ValueError: If a required property-definition field is missing.
+
+
+
+   .. py:method:: from_simple(name, *, description, fulltype = 'string', unit = None, dimensions = None, dict_properties = None, metadata_definition = None, required_response = False, definition_id = None)
+      :classmethod:
+
+
+      Generate a property definition from a compact description.
+
+      This mirrors the OPTIMADE property-definition generator: it emits the
+      ``$schema`` meta-schema reference, a synthesized ``$id`` (under the base
+      registered for a matching prefix via
+      :func:`register_definition_prefix` — e.g. ``httk.org`` for ``_httk_`` —
+      under ``schemas.optimade.org`` otherwise, unless
+      ``definition_id`` overrides it), a title, the ``description``, the OPTIMADE type derived
+      from ``fulltype`` (``"string"``, ``"integer"``, ``"float"``,
+      ``"boolean"``, ``"timestamp"``, ``"dict"``, or ``"list of ..."``), the
+      ``x-optimade-unit`` (with an ångström unit definition when
+      ``unit == "angstrom"``), the ``x-optimade-definition`` stamp (format
+      ``"1.2"``; see the module docstring), the JSON ``type`` with nullability
+      derived from ``required_response``, ``items`` for lists, a ``date-time``
+      format for timestamps, inner ``properties`` for dicts (from
+      ``dict_properties``), ``x-optimade-dimensions`` from ``dimensions``, and
+      an ``x-optimade-metadata-definition`` (explicit, or a generated
+      ``list_axes`` definition when ``dimensions`` is given).
+
+      The result is implementation-neutral: per-deployment ``sortable`` and
+      ``response-default`` flags are layered on later via
+      :meth:`with_implementation`.
+
+      :param name: The canonical property name.
+      :param description: The human-readable property description.
+      :param fulltype: The OPTIMADE property type description.
+      :param unit: The unit associated with numeric or list values.
+      :param dimensions: Dimension names and sizes for list values.
+      :param dict_properties: Inner property names and type descriptions for dictionaries.
+      :param metadata_definition: An explicit metadata definition for the property.
+      :param required_response: Whether responses must contain a non-null value.
+      :param definition_id: An explicit property-definition IRI.
+      :return: A generated property definition.
+
+
+
+   .. py:property:: name
+      :type: str
+
+
+      Return the canonical property name.
+
+
+   .. py:property:: definition_id
+      :type: str
+
+
+      Return the property's definition IRI.
+
+
+   .. py:property:: title
+      :type: str | None
+
+
+      Return the property's title, if declared.
+
+
+   .. py:property:: description
+      :type: str
+
+
+      Return the property's human-readable description.
+
+
+   .. py:property:: optimade_type
+      :type: str
+
+
+      Return the property's OPTIMADE type name.
+
+
+   .. py:property:: json_type
+      :type: Any
+
+
+      Return the property's JSON Schema type declaration.
+
+
+   .. py:property:: nullable
+      :type: bool
+
+
+      Return whether the property's JSON type permits null.
+
+
+   .. py:property:: unit
+      :type: str | None
+
+
+      Return the property's declared unit, if any.
+
+
+   .. py:property:: format_version
+      :type: str | None
+
+
+      Return the property's definition-format version, if declared.
+
+
+   .. py:property:: requirements
+      :type: collections.abc.Mapping[str, Any]
+
+
+      Return the property's OPTIMADE requirements mapping.
+
+
+   .. py:property:: dimensions
+      :type: collections.abc.Mapping[str, Any] | None
+
+
+      Return the property's dimensions declaration, if any.
+
+
+   .. py:property:: metadata_definition
+      :type: collections.abc.Mapping[str, Any] | None
+
+
+      Return the property's metadata definition, if any.
+
+
+   .. py:method:: with_implementation(*, sortable = None, response_default = None)
+
+      Return a copy carrying this deployment's implementation flags.
+
+      Adds an ``x-optimade-implementation`` object with the ``sortable`` and
+      ``response-default`` keys that are provided (a ``None`` argument leaves
+      that key unset), and — when ``sortable`` is given — mirrors it in a
+      top-level ``sortable`` field. The original instance is untouched. The
+      original ``$id`` and ``x-optimade-definition`` are retained because
+      the vendored v1.2 ``Property Definitions`` meta-schema says definitions
+      "SHOULD be regarded as the same if they only differ by" changes to
+      ``x-optimade-implementation``; the specification says a redefinition
+      "MUST change the $id". Top-level ``sortable`` is the additional field
+      required by the ``Entry Listing Info Endpoints`` section.
+
+      :param sortable: Whether the property can be sorted by the deployment.
+      :param response_default: Whether the property is included by default in responses.
+      :return: A copy with the requested implementation flags.
+
+
+
+   .. py:method:: as_optimade()
+
+      Return a deep copy of the wrapped property-definition document.
+
+      :return: The wrapped document, independent of the instance's state.
+
+
+
+.. py:class:: EntryTypeDefinition(name, description, properties, definition_id = None, extends_id = None)
+
+   An immutable OPTIMADE entry-type definition.
+
+   Bundles the entry type's ``name`` and ``description`` with an
+   insertion-ordered mapping of :class:`PropertyDefinition` objects (one per
+   described property). A standard definition typically describes more
+   properties than any given deployment serves; the served subset is chosen
+   separately (an :class:`~httk.core.EntryProvider` names it through its
+   :meth:`~httk.core.EntryProvider.property_keys`).
+
+   ``definition_id`` identifies the source document when present. An extended
+   definition is a new document, so it clears that identity and retains the
+   original standard IRI in ``extends_id`` instead.
+
+   :param name: The entry type name.
+   :param description: The human-readable entry type description.
+   :param properties: Property definitions keyed by property name.
+   :param definition_id: The source document IRI, if one exists.
+   :param extends_id: The standard document IRI extended by this definition, if any.
+
+
+   .. py:method:: from_optimade(name, entrytype)
+      :classmethod:
+
+
+      Build an entry-type definition from a vendored OPTIMADE entry type.
+
+      ``entrytype`` is the vendored document shape: a ``description`` string,
+      an optional top-level ``$id``, and a ``properties`` mapping of property
+      name to full property definition. A clear :class:`ValueError` is raised
+      when either required field is missing. The optional ID identifies the
+      source document; ad-hoc definitions remain valid without one.
+
+      :param name: The entry type name.
+      :param entrytype: The vendored entry-type definition document.
+      :return: An entry-type definition built from the document.
+      :raises ValueError: If ``description`` or ``properties`` is missing.
+
+
+
+   .. py:property:: name
+      :type: str
+
+
+      Return the entry type name.
+
+
+   .. py:property:: description
+      :type: str
+
+
+      Return the entry type description.
+
+
+   .. py:property:: definition_id
+      :type: str | None
+
+
+      Return this definition's document IRI, if it has a standard one.
+
+
+   .. py:property:: extends_id
+      :type: str | None
+
+
+      Return the original standard IRI extended to make this definition, if any.
+
+
+   .. py:property:: properties
+      :type: collections.abc.Mapping[str, PropertyDefinition]
+
+
+      Return a copy of the property definitions keyed by name.
+
+
+   .. py:method:: extended(extra, *, allow_unprefixed = False)
+
+      Return a copy with ``extra`` custom property definitions merged in.
+
+      Each name in ``extra`` MUST be new (a collision with an existing
+      property raises :class:`ValueError` naming it) and, unless
+      ``allow_unprefixed`` is set, MUST carry a registered database-specific
+      prefix (see :func:`register_definition_prefix` /
+      :func:`known_definition_prefixes`); a custom property that does not is
+      rejected with a :class:`ValueError` explaining the OPTIMADE prefix rule.
+      The result deliberately has no ``definition_id``: it is a new document,
+      not the standard resource. Its ``extends_id`` records the original
+      standard ID so repeated extensions retain that provenance.
+
+      :param extra: New custom property definitions to add.
+      :param allow_unprefixed: Whether to allow custom names without a registered prefix.
+      :return: A new definition containing the original and extra properties.
+      :raises ValueError: If a property collides or violates the prefix rule.
+
+
+
+   .. py:method:: served_form()
+
+      Return the OPTIMADE wire form of this definition.
+
+      This is the single authority for provider wire-naming. Internally every
+      entry type and property carries its bare, unprefixed name; the prefix is
+      applied only here, at the serving edge:
+
+      - The entry-type name gets a registered prefix when this definition's
+        identity IRI (``definition_id`` or, failing that, ``extends_id``) lies
+        under one of that prefix's registered ``id_base`` values (see
+        :func:`register_definition_prefix`); a standard definition, whose IRI
+        matches no registered base, keeps its bare name.
+      - Each property whose own ``$id`` lies under a registered base gets that
+        prefix; standard-``$id`` properties and the OPTIMADE intrinsics
+        (``id``, ``type``, ``immutable_id``, ``last_modified``) stay bare.
+
+      A renamed result is a new document, so — like :meth:`extended` — it
+      clears ``definition_id`` and records the internal IRI in ``extends_id``,
+      honouring the meta-schema rule that a redefinition MUST change ``$id``.
+
+      The transform is pure (it mutates no registry state and returns a new
+      definition) and idempotent: an already-prefixed name is never
+      re-prefixed, so an already-served or fully-standard definition compares
+      equal to its :meth:`served_form` (and the same object is returned when
+      nothing changes).
+
+      :return: The wire-named entry-type definition.
+
+
+
+   .. py:method:: as_optimade()
+
+      Return the entry type as a vendored-shape OPTIMADE document.
+
+      :return: The entry-type document with independent property payloads.
+
+
+
+.. py:function:: standard_entry_type(name)
+
+   Return one of httk-core's vendored standard OPTIMADE entry types.
+
+   Supported names are ``"references"``, ``"files"``, and ``"calculations"``;
+   an unknown name raises a :class:`ValueError` listing the known ones. The
+   ``structures`` standard is vendored by *httk-atomistic*, not httk-core.
+
+   :param name: The standard entry type name to load.
+   :return: The vendored entry-type definition.
+   :raises ValueError: If ``name`` is not vendored by httk-core.
+
+
