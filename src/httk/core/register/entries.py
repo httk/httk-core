@@ -206,6 +206,12 @@ class OptimadeEntryBinding:
     :param view: The lazy view class reference.
     :param property_decoders: Property definition IRIs mapped to lazy decoder references.
     :param query_fields: Property definition IRIs supported for querying, if restricted.
+    :param standard_property_versions: Standard property names of this entry type
+        mapped to the earliest OPTIMADE specification version in which each name
+        is a standard property of the type. Declared by the entry-type owner, it
+        is the table that gates name-based inference of unprefixed properties
+        that carry no ``$id`` (see
+        :func:`~httk.core.optimade.standard_names.complete_standard_schema`).
     """
 
     name: str
@@ -214,6 +220,7 @@ class OptimadeEntryBinding:
     view: str
     property_decoders: Mapping[str, str] = field(default_factory=dict)
     query_fields: tuple[str, ...] | None = None
+    standard_property_versions: Mapping[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         _validate_nonempty_optimade_string(self.name, label="binding name")
@@ -236,7 +243,20 @@ class OptimadeEntryBinding:
                 if definition_id in seen:
                     raise ValueError(f"query field is listed more than once: {definition_id!r}")
                 seen.add(definition_id)
+        if not isinstance(self.standard_property_versions, Mapping):
+            raise TypeError("standard_property_versions must be a mapping of property names to spec versions")
+        from httk.core.optimade.standard_names import parse_optimade_api_version
+
+        versions: dict[str, str] = {}
+        for property_name, version in self.standard_property_versions.items():
+            _validate_nonempty_optimade_string(property_name, label="standard property name")
+            if not isinstance(version, str) or parse_optimade_api_version(version) is None:
+                raise ValueError(
+                    f"standard property version for {property_name!r} must be a major-1 OPTIMADE version string"
+                )
+            versions[property_name] = version
         object.__setattr__(self, "property_decoders", MappingProxyType(decoders))
+        object.__setattr__(self, "standard_property_versions", MappingProxyType(versions))
 
     def resolve_backend(self) -> type:
         """Import and return this binding's backend class on demand.
@@ -287,6 +307,7 @@ def register_optimade_entry_binding(
     view: str,
     property_decoders: Mapping[str, str] | None = None,
     query_fields: tuple[str, ...] | None = None,
+    standard_property_versions: Mapping[str, str] | None = None,
 ) -> None:
     """Register one lazy typed binding, selected only by exact definition IRI.
 
@@ -296,6 +317,11 @@ def register_optimade_entry_binding(
     :param view: The lazy view class reference.
     :param property_decoders: Property definition IRIs mapped to lazy decoder references.
     :param query_fields: Property definition IRIs supported for querying, if restricted.
+    :param standard_property_versions: Standard property names of this entry type
+        mapped to the earliest OPTIMADE specification version in which each name
+        is a standard property of the type. This table gates name-based
+        inference of unprefixed properties that a service advertises without a
+        ``$id`` definition.
     :raises ValueError: If the definition IRI is already registered or input is invalid.
     """
 
@@ -306,6 +332,7 @@ def register_optimade_entry_binding(
         view=view,
         property_decoders={} if property_decoders is None else property_decoders,
         query_fields=query_fields,
+        standard_property_versions={} if standard_property_versions is None else standard_property_versions,
     )
     if definition_id in _optimade_entry_bindings:
         raise ValueError(f"OPTIMADE entry binding is already registered: {definition_id!r}")

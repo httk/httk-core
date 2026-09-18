@@ -30,5 +30,6 @@ extended = standard_entry_type("calculations").extended({"_httk_custom_energy": 
 
 The full guide, {doc}`details/property_definitions`, covers the vendoring
 policy and provenance, canonical `$id`s and the definition-format stamp,
-registering your own definition prefix, entry-type extension rules, and the
-generated record models.
+registering your own definition prefix, entry-type extension rules, how remote
+schemas that publish no `$id` are completed to standard-property identities, and
+the generated record models.

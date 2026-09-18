@@ -24,8 +24,16 @@ from .resources import (
     redact_optimade_document_text,
     redact_optimade_url,
 )
+from .standard_names import (
+    STANDARD_NAME_EVIDENCE,
+    StandardSchemaCompletion,
+    complete_standard_schema,
+    infer_standard_names,
+    parse_optimade_api_version,
+)
 
 __all__ = [
+    "STANDARD_NAME_EVIDENCE",
     "CalculationView",
     "FileView",
     "FilterAst",
@@ -41,11 +49,15 @@ __all__ = [
     "ParserError",
     "ParserSyntaxError",
     "ReferenceView",
+    "StandardSchemaCompletion",
+    "complete_standard_schema",
     "decode_optimade_value",
+    "infer_standard_names",
     "is_optimade_entry_url",
     "optimade_document_root",
     "optimade_entry_url_info",
     "optimade_resource_from_url",
+    "parse_optimade_api_version",
     "parse_optimade_filter",
     "parse_optimade_filter_raw",
     "redact_optimade_document_text",

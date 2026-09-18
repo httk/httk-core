@@ -178,6 +178,61 @@ changes, not to these deployment annotations.
 For authors: if a definition's meaning changes, give it a new IRI and never
 re-serve the modified definition under the standard `$id`.
 
+## Standard-name completion of remote schemas
+
+A definition IRI remains the *only* semantic identity a property carries. When
+*httk₂* reads a remote OPTIMADE service, it recognises a property through the
+`$id` its `/info/<entry_type>` document assigns — never by spelling. In
+practice, though, almost no public provider publishes property `$id`s, so a
+strict IRI-only reading recognises nothing served by them.
+
+The OPTIMADE specification closes this gap on its own terms. On a standard
+entry endpoint (`structures`, `references`, `files`, `calculations`), an
+advertised property name *without* a database-provider prefix (`_<prefix>_`) is
+the standard property of that name as of the specification version the service
+declares in its `/info` `meta.api_version`. The specification reserves the
+unprefixed namespace for exactly this. *httk₂* therefore *completes* a remote
+schema snapshot: an unprefixed advertised name is filled in with the definition
+IRI of the standard property the declared version fixes for it. The rules are
+deliberately narrow:
+
+- A declared `$id` always wins. Completion only fills names that carry no valid
+  `$id`, and never remaps an IRI a declared `$id` already claims.
+- A provider-prefixed name (and any other name beginning with `_` that is not a
+  well-formed prefix) carries no standard semantics and stays unknown.
+- A name is completed only if the declared version already defines it. A name
+  that became standard in a *later* version than the service declares stays
+  unknown, and a missing or non–major-1 `meta.api_version` disables completion
+  entirely.
+
+The per-version table that gates this — a standard property name mapped to the
+earliest specification version in which it is a standard property of the entry
+type — is declared by the entry type's *owner* on its registered OPTIMADE entry
+binding, through `register_optimade_entry_binding`'s
+`standard_property_versions` parameter. *httk-core* owns `references`, `files`,
+and `calculations`; the `structures` table is declared by *httk-atomistic*,
+which vendors that entry type.
+
+```python
+from httk.core.register import register_optimade_entry_binding
+
+register_optimade_entry_binding(
+    name="example-widgets",
+    definition_id="https://schemas.example.org/defs/v1.2/entrytypes/widgets",
+    backend="example.optimade:WidgetBackend",
+    view="example.optimade:WidgetView",
+    standard_property_versions={"nelements": "1.0", "widget_features": "1.2"},
+)
+```
+
+The mechanism itself is `httk.core.optimade.complete_standard_schema`, which the
+typed entry backends consult automatically: constructing an entry backend
+directly over a raw `OptimadeResource` always applies the standard-name rule.
+Auditing that wants only declared `$id` definitions turns the rule off one level
+up, at the store client — `OptimadeStore(infer_standard_definitions=False)` (in
+the *httk-store* module) governs discovery, entry-type binding, and typed query
+fields for a whole federation.
+
 ## Entry-type record models
 
 `httk.core.entry_types` provides one frozen dataclass per standard entry type

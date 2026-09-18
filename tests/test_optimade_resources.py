@@ -621,10 +621,17 @@ def test_info_document_shape_and_duplicate_iris_are_rejected() -> None:
 
 def test_typed_view_is_parse_and_materialization_lazy(monkeypatch: pytest.MonkeyPatch) -> None:
     # Local vendored-schema loading is unrelated to remote document parsing;
-    # warm it before counting the latter.
-    from httk.core import standard_entry_type
+    # warm it before counting the latter. Standard-name completion resolves the
+    # endpoint by loading EVERY registered binding's entry-type definition, so
+    # warm all of them (skipping any not vendored in this environment), not just
+    # the files schema, or the first typed access would parse them here.
+    from httk.core.register import load_entry_type_definition
 
-    standard_entry_type("files")
+    for definition_id in known_optimade_entry_bindings():
+        try:
+            load_entry_type_definition(definition_id)
+        except ValueError:
+            pass
     resource = _typed_resource(
         "files",
         {

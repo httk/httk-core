@@ -159,7 +159,12 @@ class OptimadeEntryBackend:
 
     @property
     def _remote_names_by_definition_id(self) -> Mapping[str, str]:
-        """Map semantic property IRIs to remote names from the frozen info document."""
+        """Map semantic property IRIs to remote names from the frozen info document.
+
+        Declared ``$id`` definitions are authoritative. Any remaining standard
+        namespace names that the declared specification version identifies are
+        then filled in, for IRIs the declared map does not already contain.
+        """
 
         root = optimade_document_root(self.resource.schema.info_document)
         data = root.get("data")
@@ -186,6 +191,12 @@ class OptimadeEntryBackend:
                     f"{definition_id!r} to both {names[definition_id]!r} and {remote_name!r}"
                 )
             names[definition_id] = remote_name
+        from .standard_names import complete_standard_schema
+
+        completion = complete_standard_schema(self.resource.schema)
+        for remote_name, inferred_id in completion.definitions_by_name.items():
+            if inferred_id not in names:
+                names[inferred_id] = remote_name
         return MappingProxyType(names)
 
     def value_by_definition_id(self, definition_id: str, *, default: object = _MISSING) -> object:
