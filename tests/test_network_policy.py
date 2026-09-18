@@ -124,7 +124,7 @@ def test_bare_file_url_is_exempt(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(urllib.request, "urlopen", _urlopen_fake(calls))
 
     assert TextstreamFileView("file:///tmp/local.json").read() == "body"
-    assert calls == [("file:///tmp/local.json", 30.0)]
+    assert calls == [("file:///tmp/local.json", 120.0)]
 
 
 def test_network_timeout_default_hint_and_module_override(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -136,7 +136,7 @@ def test_network_timeout_default_hint_and_module_override(monkeypatch: pytest.Mo
     monkeypatch.setattr(network_policy, "DEFAULT_NETWORK_TIMEOUT", 4.25)
     TextstreamFileView("https://example.test/override", kind="url").read()
 
-    assert [timeout for _, timeout in calls] == [30.0, 7.5, 4.25]
+    assert [timeout for _, timeout in calls] == [120.0, 7.5, 4.25]
 
 
 def test_dataloader_forwards_url_hint(monkeypatch: pytest.MonkeyPatch) -> None:

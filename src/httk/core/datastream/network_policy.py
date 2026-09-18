@@ -1,6 +1,6 @@
 """Policy and timeout helpers for network-backed datastream opens."""
 
-DEFAULT_NETWORK_TIMEOUT: float | None = 30.0
+DEFAULT_NETWORK_TIMEOUT: float | None = 120.0
 """Default timeout for each network open; read freshly for every open, or ``None`` to disable."""
 
 NETWORK_SCHEMES = frozenset({"http", "https", "ftp"})

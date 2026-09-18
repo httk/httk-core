@@ -246,7 +246,7 @@ def test_optimade_resource_from_url_rejects_non_single_entry(monkeypatch: pytest
 
     with pytest.raises(ValueError, match="example\\.test"):
         optimade_resource_from_url(url)
-    assert calls == [(url, 30.0)]
+    assert calls == [(url, 120.0)]
 
 
 def test_optimade_resource_from_url_names_derived_info_failure(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -261,7 +261,7 @@ def test_optimade_resource_from_url_names_derived_info_failure(monkeypatch: pyte
 
     with pytest.raises(ValueError, match="v1/info/structures"):
         optimade_resource_from_url(url)
-    assert calls == [(url, 30.0), (info_url, 30.0)]
+    assert calls == [(url, 120.0), (info_url, 120.0)]
 
 
 @pytest.mark.parametrize("endpoint", ["info", "links", "versions", "extensions"])

@@ -23,7 +23,7 @@ In normal user code, you usually accept `*Like` and normalize immediately to one
 Bare URL strings never open the network: they raise `PermissionError` with guidance.
 Explicit consent is provided by the lazy `DatastreamURL` token, eager `httk.core.fetch`,
 `urllib.request.Request`, the `*URLView`s, or `kind="url"`. The default network timeout
-is 30 seconds. `file://` URLs are local.
+is 120 seconds. `file://` URLs are local.
 
 ## Textstream
 
@@ -173,7 +173,7 @@ Both families can fetch remote content through Python's built-in `urllib.request
 Remote backends fetch lazily: the connection is opened on first read, not when the backend or view is
 created. Note that `unwrap()` also opens the connection, since it returns the underlying response object.
 An optional `timeout` hint (in seconds) is forwarded to `urlopen`.
-The default network timeout is 30 seconds.
+The default network timeout is 120 seconds.
 
 `DatastreamURL` is a lazy consent token: constructing it validates the URL and stores an optional timeout, but performs
 no network I/O. `httk.core.fetch(url)` is the eager alternative. `TextstreamRequestView`/`TextstreamURLView` and their byte counterparts are the URL-facing analogues of
