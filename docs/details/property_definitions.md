@@ -233,6 +233,16 @@ up, at the store client — `OptimadeStore(infer_standard_definitions=False)` (i
 the *httk-store* module) governs discovery, entry-type binding, and typed query
 fields for a whole federation.
 
+Some public providers serve the optional `last_modified` metadata timestamp
+without a UTC offset (for example `2023-02-11T01:06:23.403000`), which violates
+RFC 3339 and leaves the instant undefined. Rather than silently assume UTC,
+`httk.core.optimade.decode_optional_timestamp` — which the typed backends use
+for `last_modified` — decodes such a value to `None` and reports the deviation
+once per service origin through the report channel (`extra={"context":
+"optimade"}`); the raw string stays untouched in the source document. A
+`last_modified` that is present but not a parseable timestamp still raises, and
+a *required* timestamp keeps raising unconditionally.
+
 ## Entry-type record models
 
 `httk.core.entry_types` provides one frozen dataclass per standard entry type

@@ -9,6 +9,8 @@ delegated field) is requested.
 """
 
 import datetime
+import logging
+import re
 from collections.abc import Callable, Mapping
 from dataclasses import MISSING, dataclass, field, fields
 from decimal import Decimal
@@ -118,6 +120,66 @@ def decode_optimade_value(definition: PropertyDefinition, value: object) -> obje
     """
 
     return _decode_by_payload(cast(Mapping[str, object], definition.as_optimade()), value)
+
+
+# Service origins already reported for serving an offset-less optional timestamp.
+# Bounded by the number of distinct service origins encountered in a process.
+_naive_timestamp_origins_warned: set[str] = set()
+
+# A full RFC 3339 local date-time: a calendar date, a ``T`` or space separator,
+# and a time to at least the second with an optional fraction, carrying no
+# offset. ``datetime.fromisoformat`` also accepts forms that are not RFC 3339
+# timestamps (a bare date, a week date, an hour-minute time); only this shape is
+# tolerated as an offset-less timestamp.
+_RFC3339_NAIVE_DATETIME = re.compile(r"\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?")
+
+
+def decode_optional_timestamp(value: object, *, source_url: str) -> datetime.datetime | None:
+    """Decode an optional RFC 3339 timestamp, treating an offset-less value as unknown.
+
+    A string with a full RFC 3339 date-time shape (a ``YYYY-MM-DD`` date, a ``T``
+    or space separator, and a time to at least the second with an optional
+    fraction) but no UTC offset violates RFC 3339 and has no defined meaning, so it
+    is reported once per service origin through the report channel and decodes to
+    ``None`` rather than being interpreted as UTC. ``None`` decodes to ``None`` and
+    an offset-bearing value (including a ``Z`` suffix) decodes to the aware
+    timestamp. Every other value -- a non-string, an unparseable string, or a
+    partial form such as a bare date or an hour-minute time -- raises.
+
+    :param value: Raw value to decode; ``None`` decodes to ``None``.
+    :param source_url: Redacted source URL of the serving document, used to derive
+        the service origin that scopes the once-per-origin deviation warning.
+    :return: The decoded offset-aware timestamp, or ``None`` when the value is
+        absent or is a full offset-less RFC 3339 date-time.
+    :raises ValueError: If the value is not ``None`` and is not a parseable,
+        full-shape RFC 3339 timestamp string.
+    """
+
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ValueError("expected an RFC3339 timestamp string")
+    try:
+        decoded = datetime.datetime.fromisoformat(value)
+    except ValueError as exc:
+        raise ValueError(f"invalid RFC3339 timestamp {value!r}") from exc
+    if decoded.utcoffset() is not None:
+        return decoded
+    if _RFC3339_NAIVE_DATETIME.fullmatch(value) is not None:
+        split = urlsplit(source_url)
+        host = split.hostname or ""
+        if split.port is not None:
+            host = f"{host}:{split.port}"
+        origin = f"{split.scheme}://{host}" if split.scheme else source_url
+        if origin not in _naive_timestamp_origins_warned:
+            _naive_timestamp_origins_warned.add(origin)
+            logging.getLogger(__name__).warning(
+                "OPTIMADE service %s serves 'last_modified' without a UTC offset; the timestamp is treated as unknown",
+                origin,
+                extra={"context": "optimade"},
+            )
+        return None
+    raise ValueError(f"invalid RFC3339 timestamp {value!r}")
 
 
 @dataclass(frozen=True)
@@ -267,9 +329,23 @@ class OptimadeEntryBackend:
 
     @stored_property
     def last_modified(self) -> datetime.datetime | None:
-        """Return the optional last-modified timestamp."""
+        """Return the optional last-modified timestamp.
 
-        return cast(datetime.datetime | None, self._portable_value("last_modified", datetime.datetime))
+        A value without a UTC offset violates RFC 3339 and has no defined meaning,
+        so it is treated as unknown (decoded to ``None`` with a once-per-origin
+        deviation warning) rather than being interpreted as UTC.
+        """
+
+        definition = self.local_schema.properties["last_modified"]
+        raw = self.value_by_definition_id(definition.definition_id)
+        if raw is _MISSING or raw is None:
+            return None
+        try:
+            return decode_optional_timestamp(raw, source_url=self.resource.document.source_url)
+        except ValueError as exc:
+            raise IncompleteOptimadeResourceError(
+                f"OPTIMADE semantic property 'last_modified' is invalid: {exc}"
+            ) from exc
 
     def _portable_value(self, name: str, expected_class: object) -> object:
         definition = self.local_schema.properties[name]
@@ -396,7 +472,15 @@ class OptimadeEntryView:
                 values[record_field.name] = None
                 continue
             try:
-                values[record_field.name] = self._backend.decode_value(definition, raw)
+                if record_field.name == "last_modified":
+                    # An optional timestamp without a UTC offset has no defined
+                    # meaning; decode it as unknown rather than assuming UTC,
+                    # exactly as the backend's typed accessor does.
+                    values[record_field.name] = decode_optional_timestamp(
+                        raw, source_url=self._backend.resource.document.source_url
+                    )
+                else:
+                    values[record_field.name] = self._backend.decode_value(definition, raw)
             except (TypeError, ValueError) as exc:
                 raise IncompleteOptimadeResourceError(
                     f"invalid semantic property {record_field.name!r}: {exc}"

@@ -11,6 +11,7 @@ from .entries import (
     OptimadeReference,
     ReferenceView,
     decode_optimade_value,
+    decode_optional_timestamp,
 )
 from .filter import FilterAst, ParserError, ParserSyntaxError, parse_optimade_filter, parse_optimade_filter_raw
 from .resources import (
@@ -52,6 +53,7 @@ __all__ = [
     "StandardSchemaCompletion",
     "complete_standard_schema",
     "decode_optimade_value",
+    "decode_optional_timestamp",
     "infer_standard_names",
     "is_optimade_entry_url",
     "optimade_document_root",
