@@ -677,7 +677,8 @@ class FracVectorBase:
 
         Returns a tuple ``(A2, B2, denom)`` where A2 is numerically equal to A, and B2 is
         numerically equal to B, but A2 and B2 are both set on the same shared denominator
-        ``denom``, which is the *product* of the denominators of A and B.
+        ``denom``: the one they already share when equal, otherwise the *product* of the
+        denominators of A and B (no reduction; see :meth:`simplify`).
 
         :param A: The first vector or value.
         :param B: The second vector or value.
@@ -689,6 +690,10 @@ class FracVectorBase:
 
         if not isinstance(B, FracVectorBase):
             B = cls._of(B, 1)
+
+        if A.denom == B.denom:
+            # Already on a common denominator: skip the rescale and the denominator growth.
+            return cls._of(A.noms, A.denom), cls._of(B.noms, B.denom), A.denom
 
         denom = A.denom * B.denom
         mA = B.denom

@@ -631,3 +631,14 @@ def test_to_floats_huge_integers_no_float_overflow() -> None:
     # A genuinely huge numerator/denominator whose ratio is order 1 renders finitely.
     ratio = FracVector([[7 * 10**350]], denom=2 * 10**350)
     assert ratio.to_floats()[0][0] == 3.5
+
+
+def test_add_same_denominator_keeps_denominator():
+    v = FracVector((1, 2, 3), denom=10)
+    w = v + v
+    assert (w.noms, w.denom) == ((2, 4, 6), 10)
+    d = v - FracVector((1, 1, 1), denom=10)
+    assert (d.noms, d.denom) == ((0, 1, 2), 10)
+    # Different denominators still take the unsimplified product.
+    p = v + FracVector((1, 1, 1), denom=4)
+    assert (p.noms, p.denom) == ((14, 18, 22), 40)
