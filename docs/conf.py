@@ -111,6 +111,7 @@ nitpick_ignore = [
     # PEP 695 type parameters have no documentation target; typehints-in-description
     # mode injects them as parameter types (precedent: httk-store's `T` entry).
     ("py:class", "BackendT"),
+    ("py:class", "T"),  # entry_record's scoped class-preserving decorator parameter.
     ("py:class", "typing.Any"),
     ("py:class", "typing.Optional"),
     ("py:class", "typing.Union"),

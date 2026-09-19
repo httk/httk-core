@@ -60,6 +60,7 @@ from .entry_ids import (
     parse_immutable_id,
 )
 from .entry_provider import EntryProvider, RelatedEntry
+from .entry_records import DataEntryRecord, EntryRecord, Property, entry_record
 from .entry_types import Calculation, File, Reference
 from .fetching import fetch
 from .files import FileEntry, FileRecord
@@ -144,6 +145,7 @@ __all__ = [
     "CLIContext",
     "Calculation",
     "CompressionCodec",
+    "DataEntryRecord",
     "DataRecord",
     "DataRecordEntry",
     "Dataset",
@@ -155,6 +157,7 @@ __all__ = [
     "DatastreamLike",
     "DatastreamURL",
     "EntryProvider",
+    "EntryRecord",
     "EntryTypeDefinition",
     "File",
     "FileEntry",
@@ -167,6 +170,7 @@ __all__ = [
     "MutableFracVector",
     "NumericVector",
     "ProductLink",
+    "Property",
     "PropertyDefinition",
     "Reference",
     "Related",
@@ -199,6 +203,7 @@ __all__ = [
     "content_id",
     "credits",
     "decimal_precision",
+    "entry_record",
     "fetch",
     "format_alternative_id",
     "format_entry_id",
