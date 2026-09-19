@@ -3,11 +3,12 @@
 import datetime
 import json
 import math
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field, fields
 from typing import Annotated, Any, ClassVar, Self
 
-from .storage import IdentitySkip, Indexed, StorageInfo, Unique, stored_property
+from .provenance import RunEdge, _edges
+from .storage import IdentitySkip, Indexed, StorageInfo, StrongLink, Unique, stored_property
 
 RECORDS_DEFINITION_ID = "https://schemas.httk.org/defs/v0.1/entrytypes/records"
 _CANONICAL_JSON_ERROR = "value_json must be canonical JSON — use DataRecord.from_value."
@@ -60,9 +61,19 @@ class DataRecord:
     The human-readable and immutable identifiers and timestamp metadata are
     excluded from content identity.
 
+    ``product_of`` names the entries this value describes, as
+    :class:`~httk.core.storage.StrongLink` edges with the same
+    :class:`~httk.core.provenance.RunEdge` scheme a :class:`~httk.core.Run` uses:
+    string ``(label, entry_type, entry_id)`` triples, part of the record's content
+    and therefore pinned to the exact entry revision. It is served forward as the
+    ``product_of`` relationship and in reverse as ``has_product`` on the target,
+    and is searchable through ``record.links.product_of`` and
+    ``target.links.has_product``.
+
     :param definition_id: The property definition IRI for the value.
     :param name: The property name.
     :param value_json: The canonical JSON representation of the value.
+    :param product_of: The entries this value is a product of, as labeled edges.
     :param id: The human-readable entry id shared by all revisions; minted by the store when None.
     :param immutable_id: The per-revision immutable id; minted by the store when None.
     :param last_modified: The optional timezone-aware metadata timestamp.
@@ -77,6 +88,7 @@ class DataRecord:
     definition_id: str
     name: str
     value_json: str
+    product_of: Annotated[tuple[RunEdge, ...], StrongLink("product_of", reverse="has_product", role="subject")] = ()
     id: Annotated[str | None, IdentitySkip(), Indexed()] = field(default=None, compare=False)
     immutable_id: Annotated[str | None, IdentitySkip(), Unique()] = field(default=None, compare=False)
     last_modified: Annotated[datetime.datetime | None, IdentitySkip()] = field(default=None, compare=False)
@@ -115,6 +127,13 @@ class DataRecord:
             raise ValueError(_CANONICAL_JSON_ERROR) from exc
         if canonical != self.value_json:
             raise ValueError(_CANONICAL_JSON_ERROR)
+        edges = _edges(self.product_of)
+        labels: set[str] = set()
+        for edge in edges:
+            if edge.label in labels:
+                raise ValueError(f"Duplicate label {edge.label!r} on DataRecord product_of.")
+            labels.add(edge.label)
+        object.__setattr__(self, "product_of", edges)
         _validate_timestamp(self.last_modified, "last_modified")
 
     @classmethod
@@ -124,6 +143,7 @@ class DataRecord:
         name: str,
         value: Any,
         *,
+        product_of: Iterable[RunEdge | Mapping[str, Any]] = (),
         id: str | None = None,
         immutable_id: str | None = None,
         last_modified: datetime.datetime | None = None,
@@ -133,6 +153,7 @@ class DataRecord:
         :param definition_id: The property definition IRI for the value.
         :param name: The property name.
         :param value: The JSON value to encode.
+        :param product_of: The entries this value is a product of, as labeled edges.
         :param id: The human-readable entry id shared by all revisions; minted by the store when None.
         :param immutable_id: The per-revision immutable id; minted by the store when None.
         :param last_modified: The optional timezone-aware metadata timestamp.
@@ -144,6 +165,7 @@ class DataRecord:
             definition_id,
             name,
             json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False),
+            product_of=_edges(product_of),
             id=id,
             immutable_id=immutable_id,
             last_modified=last_modified,

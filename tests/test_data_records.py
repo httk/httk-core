@@ -5,7 +5,7 @@ from dataclasses import replace
 
 import pytest
 
-from httk.core import DataRecord, DataRecordEntry
+from httk.core import DataRecord, DataRecordEntry, RunEdge
 from httk.core.storage import content_id, project_storage_record
 
 
@@ -76,7 +76,9 @@ def test_data_record_content_id_pin() -> None:
         last_modified=datetime.datetime(2026, 1, 2, 3, 4, 5, tzinfo=datetime.UTC),
     )
     # A changed value means a storage-identity break; metadata is excluded.
-    assert content_id(record) == "04e3a194913be8367d0df153a98cc07a6eb34640268c26580ad253ae740be140"
+    # Repinned Sep 19 2026: ``product_of`` joined the record content (identity-bearing StrongLink
+    # edges), so every DataRecord content id changed; stores holding records must be rebuilt.
+    assert content_id(record) == "825aab9e417bc726b1874f40b2ec61b6ba670409e0f087a6ccb2319b335764cc"
     identified = replace(record, id="logical", immutable_id="other-immutable")
     assert record.id is None
     assert identified.id == "logical"
@@ -84,3 +86,22 @@ def test_data_record_content_id_pin() -> None:
     projected = DataRecord(**project_storage_record(DataRecord, identified))
     assert projected.id == "logical"
     assert projected.immutable_id == "other-immutable"
+
+
+def test_product_of_edges_are_content_and_follow_the_run_edge_scheme() -> None:
+    plain = DataRecord.from_value("https://schemas.httk.org/defs/v0.1/properties/total-energy", "e", -1.5)
+    edge = RunEdge("subject", "structures", "httk.demo:1:s1")
+    linked = DataRecord.from_value(plain.definition_id, "e", -1.5, product_of=[edge])
+    assert plain.product_of == () and linked.product_of == (edge,)
+    assert content_id(linked) != content_id(plain)  # the subject is part of the value's identity
+    mapped = DataRecord.from_obj(
+        {
+            "definition_id": plain.definition_id,
+            "name": "e",
+            "value_json": plain.value_json,
+            "product_of": [{"label": "subject", "entry_type": "structures", "entry_id": "httk.demo:1:s1"}],
+        }
+    )
+    assert mapped == linked
+    with pytest.raises(ValueError, match="Duplicate label"):
+        DataRecord.from_value(plain.definition_id, "e", 1, product_of=[edge, RunEdge("subject", "runs", "r")])
