@@ -5,6 +5,7 @@ import hashlib
 import types
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field, fields, replace
+from inspect import get_annotations
 from typing import Annotated, Any, ClassVar, Union, dataclass_transform, get_args, get_origin, get_type_hints
 
 from .data_records import RECORDS_DEFINITION_ID
@@ -154,7 +155,8 @@ def entry_record[T: EntryRecord](name: str) -> Callable[[type[T]], type[T]]:
             raise TypeError("entry_record requires an EntryRecord subclass")
         if "__dataclass_fields__" in vars(cls):
             raise TypeError("entry_record replaces @dataclass; do not apply both decorators")
-        if any(key in vars(cls).get("__annotations__", {}) for key in ("id", "immutable_id", "last_modified")):
+        # Resolve this class's own annotations, including deferred ones on Python 3.14.
+        if any(key in get_annotations(cls) for key in ("id", "immutable_id", "last_modified")):
             raise TypeError("entry_record metadata fields must retain the EntryRecord declarations")
         if "__httk_stored_properties__" in vars(cls) or "__httk_property_definitions__" in vars(cls):
             raise TypeError(

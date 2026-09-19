@@ -99,6 +99,22 @@ def test_lossy_or_non_scalar_properties_require_explicit_projections(annotation)
         entry_record("tests.unsupported")(Unsupported)
 
 
+def test_metadata_overrides_fail_before_dataclass_conversion():
+    class OverrideId(DataEntryRecord):
+        id: str
+
+    class OverrideImmutableId(DataEntryRecord):
+        immutable_id: str
+
+    class OverrideLastModified(DataEntryRecord):
+        last_modified: str
+
+    for record in (OverrideId, OverrideImmutableId, OverrideLastModified):
+        with pytest.raises(TypeError, match="metadata fields"):
+            entry_record("tests.override")(record)
+        assert "__dataclass_fields__" not in vars(record)
+
+
 def test_bad_or_conflicting_declarations_fail_early():
     with pytest.raises(ValueError, match="stable name"):
         entry_record(" ")
@@ -108,12 +124,6 @@ def test_bad_or_conflicting_declarations_fail_early():
 
     with pytest.raises(TypeError, match="replaces @dataclass"):
         entry_record("tests.twice")(Measurement)
-
-    class Override(DataEntryRecord):
-        id: str
-
-    with pytest.raises(TypeError, match="metadata fields"):
-        entry_record("tests.override")(Override)
 
     class Duplicate(DataEntryRecord):
         a: Annotated[float, Property(name="_httk_custom_same", description="First.")]
