@@ -479,3 +479,14 @@ def test_surdscalar_supports_float() -> None:
     assert float(SurdVector.sqrt_of(4)) == 2.0
     assert float(SurdVector.sqrt_of(2)) == SurdVector.sqrt_of(2).to_float()
     assert float(SurdVector(F(-3, 2))._as_scalar()) == -1.5
+
+
+def test_scalar_surd_mixes_with_float_like_fraction_does() -> None:
+    root3 = SurdVector.sqrt_of(3)
+    approx = 3**0.5
+    assert root3 * 1.5 == approx * 1.5 and 1.5 * root3 == approx * 1.5
+    assert root3 + 0.5 == approx + 0.5 and 0.5 - root3 == 0.5 - approx
+    assert root3 / 2.0 == approx / 2.0 and 2.0 / root3 == 2.0 / approx
+    assert root3 < 1.8 and root3 > 1.7 and root3 == approx
+    assert round(root3, 3) == 1.732 and round(root3) == 2
+    assert 2 / root3 == 2 * root3 / 3  # reflected exact division stays exact

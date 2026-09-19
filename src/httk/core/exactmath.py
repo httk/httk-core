@@ -23,7 +23,9 @@ This module provides the transcendental and helper functions used by
 integer/rational arithmetic, so results are platform-independent and deterministic by
 construction — no floating point is used anywhere in the computation.
 
-Two output domains are supported, selected by a single documented rule. All scalar functions also
+Two approximation domains are supported, selected by a single documented rule: the result is a
+``Decimal`` iff any numeric input is a ``Decimal`` or ``digits=`` is passed, otherwise a
+``Fraction``. All scalar functions also
 accept ``ScalarLike`` and ``VectorLike`` inputs. Vectors are mapped elementwise and retain their
 shape. The optional keyword-only ``coerce=`` presents the natural result through a requested view
 or value type following :func:`httk.core.coerce_view` semantics — the exact backend is retained
@@ -31,8 +33,8 @@ behind view presentations (use :func:`httk.core.unview` on the result for a plai
 ``coerce="natural"`` returns the pre-presentation result unchanged. By default, presentation is
 view-neutral and best-effort: ordinary inputs are presented in the input type family, while
 strings, bools, and ``Backend`` inputs retain the natural result. Explicit coercion propagates
-coercion failures. ``exact=True`` keeps its exact SurdScalar/SurdVector result unless an explicit
-``coerce=`` is supplied.
+coercion failures. A SurdScalar/SurdVector result is kept as such unless an explicit ``coerce=``
+is supplied.
 
 The default presentation therefore returns an ``int`` for an integral integer result, an exact
 ``Fraction`` for non-integral integer results, a ``float`` for float inputs (and explicit
@@ -42,11 +44,27 @@ recoverable with ``unwrap()``. Decimal inputs or ``digits=`` select the Decimal 
 inputs remain Fractions. Surd inputs are embedded back into the Surd family
 when the natural result is rational.
 
-The exact-symbolic domain is selected by ``exact=True`` on ``sqrt`` and degree-mode trigonometric
-functions. It returns exact squarefree-radical values (or exact inverse angles), with no
-approximation. Exact trigonometry is available only for the complete surd-cosine angle set:
-multiples of 15 and 36 degrees; unsupported values raise ``ValueError``. Exact inverse
-trigonometry accepts surd values and returns exact degree Fractions.
+**Contract.** The default behavior is a best effort to return a symbolically exact value when one
+exists within reasonable computational effort, and otherwise a deterministic Fraction or Decimal
+approximation. Concretely, ``sqrt`` and the degree-mode trigonometric functions take
+``exact=None`` (default), ``True`` or ``False``:
+
+- ``exact=None``: for exact-domain input (``int``, ``str``, ``Fraction``, ``FracVector``, rational
+  surds, and nested lists/tuples of these; never ``float``, ``Decimal``, numpy or ``digits=``), an
+  irrational result is returned as an exact squarefree-radical
+  :class:`~httk.core.vectors.surdvector.SurdScalar`/:class:`~httk.core.vectors.surdvector.SurdVector`
+  and a rational result (perfect squares, ``cos(60°)``, ``acos(1/2)`` in degrees) is returned
+  exactly in the ordinary presentation. Where no exact form exists (``cos(17°)``, radians, nested
+  radicals) or the square-root radicand exceeds ``2**32`` (squarefree factoring is trial division
+  to the cube root), the approximation below is returned instead.
+- ``exact=True``: the exact surd or exact degree angle regardless of cost; unsupported values raise
+  ``ValueError``. Exact trigonometry requires ``degrees=True`` and is available for the complete
+  surd-cosine angle set: multiples of 15 and 36 degrees. Exact inverse trigonometry accepts surd
+  values and returns exact degree Fractions.
+- ``exact=False``: always the Fraction/Decimal approximation of the input's domain.
+
+``exp``, ``log``, ``log10`` and ``pi`` have no surd form and take no ``exact`` flag; ``log`` still
+returns the exact rational whenever ``log(x, base)`` is rational (``log(8, 2) == 3``).
 
 When a genuinely irrational ``SurdScalar`` is used by ordinary Fraction-mode functions, it is
 reduced to the deterministic Fraction hub at the active Decimal context precision plus three guard
@@ -248,6 +266,8 @@ def _frac_sqrt(
     """
     Return a rational approximation of the square root of ``x`` to precision ``prec``.
     """
+    if x < 0:
+        raise ValueError(f"sqrt: cannot take the square root of the negative value {x}")
     # Check if there is an exact solution, in that case, make sure to return it
     sqrtnom = integer_sqrt(x.numerator)
     sqrtdenom = integer_sqrt(x.denominator)
@@ -1209,6 +1229,12 @@ def _map_nested(value: Any, function: Callable[[Any], Any]) -> Any:
     return function(value)
 
 
+def _nested_any(value: Any, predicate: Callable[[Any], bool]) -> bool:
+    if isinstance(value, list):
+        return any(_nested_any(item, predicate) for item in value)
+    return predicate(value)
+
+
 def _map_binary_nested(left: Any, right: Any, function: Callable[[Any, Any], Any]) -> Any:
     if isinstance(left, list) and isinstance(right, list):
         if len(left) != len(right):
@@ -1227,11 +1253,11 @@ def _tuple_nested(value: Any) -> Any:
     return value
 
 
-def _map_vector(value: Any, function: Callable[[Any], Any], *, decimal_mode: bool, exact: bool) -> Any:
+def _map_vector(value: Any, function: Callable[[Any], Any], *, decimal_mode: bool, exact: bool | None) -> Any:
     """Apply a scalar operation to a vector and construct the documented output domain."""
     data, dim = _vector_data(value)
     mapped = _map_nested(data, function)
-    if exact:
+    if exact or (exact is None and _nested_any(mapped, _is_irrational_surd)):
         from .vectors.surdvector import SurdVector
 
         return SurdVector._from_scalar_grid(_map_nested(mapped, _as_surd_scalar), dim)
@@ -1239,7 +1265,7 @@ def _map_vector(value: Any, function: Callable[[Any], Any], *, decimal_mode: boo
         return _tuple_nested(mapped)
     from .vectors.fracvector import FracVector
 
-    return FracVector(mapped)
+    return FracVector(_map_nested(mapped, _rationalize))
 
 
 def _map_binary_vector(
@@ -1248,7 +1274,7 @@ def _map_binary_vector(
     function: Callable[[Any, Any], Any],
     *,
     decimal_mode: bool,
-    exact: bool,
+    exact: bool | None,
 ) -> Any:
     left_data, left_dim = _vector_data(left) if _is_vector_input(left) else (left, ())
     right_data, right_dim = _vector_data(right) if _is_vector_input(right) else (right, ())
@@ -1256,7 +1282,7 @@ def _map_binary_vector(
         raise ValueError(f"vector shapes do not match: {left_dim} vs {right_dim}")
     dim = left_dim if left_dim != () else right_dim
     mapped = _map_binary_nested(left_data, right_data, function)
-    if exact:
+    if exact or (exact is None and _nested_any(mapped, _is_irrational_surd)):
         from .vectors.surdvector import SurdVector
 
         return SurdVector._from_scalar_grid(_map_nested(mapped, _as_surd_scalar), dim)
@@ -1264,10 +1290,10 @@ def _map_binary_vector(
         return _tuple_nested(mapped)
     from .vectors.fracvector import FracVector
 
-    return FracVector(mapped)
+    return FracVector(_map_nested(mapped, _rationalize))
 
 
-def _effective_digits(digits: int | None, decimal_mode: bool, exact: bool) -> int | None:
+def _effective_digits(digits: int | None, decimal_mode: bool, exact: bool | None) -> int | None:
     if exact or not decimal_mode:
         return digits
     return decimal.getcontext().prec if digits is None else digits
@@ -1371,7 +1397,67 @@ def _is_decimal(*args: Any) -> bool:
     return any(isinstance(a, decimal.Decimal) for a in args)
 
 
-def _present(result: Any, x: Any, coerce: Any, exact: bool) -> Any:
+# Radicand bound for best-effort symbolic square roots: ``square_part`` trial-divides up to the
+# cube root of the radicand, so 2**32 keeps the worst case a few hundred microseconds. Beyond it
+# the default falls back to the rational approximation; ``exact=True`` ignores the bound.
+_SYMBOLIC_RADICAND_LIMIT = 1 << 32
+
+
+def _exact_domain(*values: Any) -> bool:
+    """Return whether every input is exact-domain (int/str/Fraction/FracVector/Surd, nested)."""
+    from .vectors.fracvector import FracVectorBase
+    from .vectors.surdvector import SurdVector
+
+    for value in values:
+        if hasattr(value, "unwrap") and getattr(value, "dim", None) is not None:
+            raw = value.unwrap()
+            if raw is not value:
+                if not _exact_domain(raw):
+                    return False
+                continue
+        if isinstance(value, (FracVectorBase, SurdVector)):
+            continue
+        if isinstance(value, (list, tuple)):
+            if not _exact_domain(*value):
+                return False
+            continue
+        if isinstance(value, bool) or not isinstance(value, (int, str, fractions.Fraction)):
+            return False
+    return True
+
+
+def _try_symbolic(compute: Callable[[], Any]) -> Any:
+    """Run a symbolic computation, returning ``None`` where no exact result exists."""
+    try:
+        return compute()
+    except ValueError:
+        return None
+
+
+def _exact_sqrt(x: Any, xf: fractions.Fraction, *, bounded: bool) -> Any:
+    from .vectors.surdvector import SurdVector
+
+    _reject_genuine_surd(x)
+    if bounded and xf.numerator * xf.denominator > _SYMBOLIC_RADICAND_LIMIT:
+        raise ValueError("radicand exceeds the best-effort symbolic bound")
+    return SurdVector.sqrt_of(xf)
+
+
+def _is_irrational_surd(value: Any) -> bool:
+    from .vectors.surdvector import SurdVector
+
+    return isinstance(value, SurdVector) and not value.is_rational
+
+
+def _rationalize(value: Any) -> Any:
+    from .vectors.surdvector import SurdVector
+
+    if isinstance(value, SurdVector) and value.is_rational:
+        return value._rational_fraction()
+    return value
+
+
+def _present(result: Any, x: Any, coerce: Any, exact: bool | None) -> Any:
     """Apply the public presentation policy to a naturally computed result."""
     from .vectors.fracvector import FracVectorBase
     from .vectors.surdvector import SurdVector
@@ -1382,6 +1468,10 @@ def _present(result: Any, x: Any, coerce: Any, exact: bool) -> Any:
         return _view_coerce(result, coerce)
     if exact:
         return result
+    if exact is None:
+        if _is_irrational_surd(result):
+            return result
+        result = _rationalize(result)
     if isinstance(result, decimal.Decimal):
         return result
     if isinstance(x, (str, bool, Backend)) and not isinstance(x, (FracVectorBase, SurdVector)):
@@ -1401,7 +1491,7 @@ def sqrt(
     digits: int | None = None,
     rounding: str = "half_even",
     max_refinements: int | None = None,
-    exact: bool = False,
+    exact: bool | None = None,
     *,
     coerce: Any = None,
 ) -> Any:
@@ -1412,12 +1502,13 @@ def sqrt(
     (Decimal input or ``digits=`` given): the correctly-rounded Decimal to ``digits`` significant
     digits under ``rounding``.
 
-    With ``exact=True`` the output-domain rule is overridden: scalar input yields an exact
-    :class:`~httk.core.vectors.surdvector.SurdScalar`, while vector input yields a
-    :class:`~httk.core.vectors.surdvector.SurdVector`. Both are squarefree-radical results with no
-    approximation at all (``sqrt(2, exact=True)`` squares back to exactly ``2``,
-    ``sqrt(9/4, exact=True)`` is the rational ``3/2``). ``x`` must be a nonnegative rational;
-    ``prec``/``limit``/``digits``/``rounding`` are ignored in this mode.
+    By default (``exact=None``) an exact-domain input (int/str/Fraction/FracVector/rational surd)
+    whose root is irrational yields an exact :class:`~httk.core.vectors.surdvector.SurdScalar`
+    (or :class:`~httk.core.vectors.surdvector.SurdVector` for vectors) when the radicand is within
+    the best-effort bound, e.g. ``sqrt(3)`` squares back to exactly ``3``; rational roots such as
+    ``sqrt(9/4) == 3/2`` present as before. With ``exact=True`` the surd is returned regardless of
+    cost, ``x`` must be a nonnegative rational, and ``prec``/``limit``/``digits``/``rounding`` are
+    ignored. With ``exact=False`` the domain approximation is always returned.
 
     :param x: Scalar or vector value whose square root is required.
     :param prec: Maximum absolute error requested for Fraction-mode approximation.
@@ -1425,7 +1516,7 @@ def sqrt(
     :param digits: Significant digits for Decimal mode, or ``None`` for Fraction mode unless ``x`` is Decimal.
     :param rounding: Decimal rounding mode: ``"half_even"`` or ``"down"``.
     :param max_refinements: Maximum Decimal refinements, or ``None`` for the normal adaptive limit.
-    :param exact: Whether to return an exact squarefree-radical result.
+    :param exact: ``None`` (default) returns an exact squarefree-radical result when the input is exact-domain and the radicand is within the best-effort bound, otherwise the domain approximation; ``True`` always returns the exact surd or raises; ``False`` always approximates.
     :param coerce: Optional output view or value type; ``"natural"`` disables presentation coercion.
     :return: The square root in the selected output domain, preserving vector shape.
     :raises ValueError: If the input is negative, exact input is not rational, or Decimal-mode parameters are invalid.
@@ -1435,6 +1526,8 @@ def sqrt(
     if _is_vector_input(x):
         data, _ = _vector_data(x)
         decimal_mode = digits is not None or _contains_decimal(data)
+        if exact is None and (decimal_mode or not _exact_domain(x)):
+            exact = False
         vector_digits = _effective_digits(digits, decimal_mode, exact)
         if not exact and decimal_mode:
             _validate_decimal_params(digits, rounding, max_refinements)
@@ -1459,12 +1552,14 @@ def sqrt(
             exact,
         )
     xf, decimal_input = _coerce(x)
+    if exact is None and (digits is not None or decimal_input or not _exact_domain(x)):
+        exact = False
     if exact:
-        # Lazy import to avoid an import cycle (surdvector imports from exactmath).
-        from httk.core.vectors.surdvector import SurdVector
-
-        _reject_genuine_surd(x)
-        return _present(SurdVector.sqrt_of(xf), x, coerce, exact)
+        return _present(_exact_sqrt(x, xf, bounded=False), x, coerce, exact)
+    if exact is None:
+        symbolic = _try_symbolic(lambda: _exact_sqrt(x, xf, bounded=True))
+        if symbolic is not None:
+            return _present(symbolic, x, coerce, exact)
     if digits is None and not decimal_input:
         return _present(_frac_sqrt(xf, prec=prec, limit=limit), x, coerce, exact)
     _validate_decimal_params(digits, rounding, max_refinements)
@@ -1479,7 +1574,7 @@ def cos(
     digits: int | None = None,
     rounding: str = "half_even",
     max_refinements: int | None = None,
-    exact: bool = False,
+    exact: bool | None = None,
     *,
     coerce: Any = None,
 ) -> Any:
@@ -1494,7 +1589,7 @@ def cos(
     :param digits: Significant digits for Decimal mode, or ``None`` for Fraction mode unless ``x`` is Decimal.
     :param rounding: Decimal rounding mode: ``"half_even"`` or ``"down"``.
     :param max_refinements: Maximum Decimal refinements, or ``None`` for the normal adaptive limit.
-    :param exact: Whether to return the exact supported degree-mode surd result.
+    :param exact: ``None`` (default) returns the exact degree-mode surd for supported angles of exact-domain input, otherwise the domain approximation; ``True`` requires it or raises; ``False`` always approximates.
     :param coerce: Optional output view or value type; ``"natural"`` disables presentation coercion.
     :return: The cosine in the selected output domain, preserving vector shape.
     :raises ValueError: If exact mode is not degree mode, the angle is unsupported, or Decimal-mode parameters are invalid.
@@ -1506,6 +1601,8 @@ def cos(
     if _is_vector_input(x):
         data, _ = _vector_data(x)
         decimal_mode = digits is not None or _contains_decimal(data)
+        if exact is None and (decimal_mode or not _exact_domain(x)):
+            exact = False
         vector_digits = _effective_digits(digits, decimal_mode, exact)
         if not exact and decimal_mode:
             _validate_decimal_params(digits, rounding, max_refinements)
@@ -1531,8 +1628,14 @@ def cos(
             exact,
         )
     xf, decimal_input = _coerce(x)
+    if exact is None and (digits is not None or decimal_input or not (degrees and _exact_domain(x))):
+        exact = False
     if exact:
         return _present(_exact_cos(x), x, coerce, exact)
+    if exact is None:
+        symbolic = _try_symbolic(lambda: _exact_cos(x))
+        if symbolic is not None:
+            return _present(symbolic, x, coerce, exact)
     if digits is None and not decimal_input:
         return _present(_frac_cos(xf, prec=prec, limit=limit, degrees=degrees), x, coerce, exact)
     _validate_decimal_params(digits, rounding, max_refinements)
@@ -1549,7 +1652,7 @@ def sin(
     digits: int | None = None,
     rounding: str = "half_even",
     max_refinements: int | None = None,
-    exact: bool = False,
+    exact: bool | None = None,
     *,
     coerce: Any = None,
 ) -> Any:
@@ -1563,7 +1666,7 @@ def sin(
     :param digits: Significant digits for Decimal mode, or ``None`` for Fraction mode unless ``x`` is Decimal.
     :param rounding: Decimal rounding mode: ``"half_even"`` or ``"down"``.
     :param max_refinements: Maximum Decimal refinements, or ``None`` for the normal adaptive limit.
-    :param exact: Whether to return the exact supported degree-mode surd result.
+    :param exact: ``None`` (default) returns the exact degree-mode surd for supported angles of exact-domain input, otherwise the domain approximation; ``True`` requires it or raises; ``False`` always approximates.
     :param coerce: Optional output view or value type; ``"natural"`` disables presentation coercion.
     :return: The sine in the selected output domain, preserving vector shape.
     :raises ValueError: If exact mode is not degree mode, the angle is unsupported, or Decimal-mode parameters are invalid.
@@ -1575,6 +1678,8 @@ def sin(
     if _is_vector_input(x):
         data, _ = _vector_data(x)
         decimal_mode = digits is not None or _contains_decimal(data)
+        if exact is None and (decimal_mode or not _exact_domain(x)):
+            exact = False
         vector_digits = _effective_digits(digits, decimal_mode, exact)
         if not exact and decimal_mode:
             _validate_decimal_params(digits, rounding, max_refinements)
@@ -1600,8 +1705,14 @@ def sin(
             exact,
         )
     xf, decimal_input = _coerce(x)
+    if exact is None and (digits is not None or decimal_input or not (degrees and _exact_domain(x))):
+        exact = False
     if exact:
         return _present(_exact_sin(x), x, coerce, exact)
+    if exact is None:
+        symbolic = _try_symbolic(lambda: _exact_sin(x))
+        if symbolic is not None:
+            return _present(symbolic, x, coerce, exact)
     if digits is None and not decimal_input:
         return _present(_frac_sin(xf, prec=prec, limit=limit, degrees=degrees), x, coerce, exact)
     _validate_decimal_params(digits, rounding, max_refinements)
@@ -1618,7 +1729,7 @@ def tan(
     digits: int | None = None,
     rounding: str = "half_even",
     max_refinements: int | None = None,
-    exact: bool = False,
+    exact: bool | None = None,
     *,
     coerce: Any = None,
 ) -> Any:
@@ -1631,7 +1742,7 @@ def tan(
     :param digits: Significant digits for Decimal mode, or ``None`` for Fraction mode unless ``x`` is Decimal.
     :param rounding: Decimal rounding mode: ``"half_even"`` or ``"down"``.
     :param max_refinements: Maximum Decimal refinements, or ``None`` for the normal adaptive limit.
-    :param exact: Whether to return the exact supported degree-mode surd result.
+    :param exact: ``None`` (default) returns the exact degree-mode surd for supported angles of exact-domain input, otherwise the domain approximation; ``True`` requires it or raises; ``False`` always approximates.
     :param coerce: Optional output view or value type; ``"natural"`` disables presentation coercion.
     :return: The tangent in the selected output domain, preserving vector shape.
     :raises ValueError: If exact mode is not degree mode, the angle is unsupported, tangent is undefined, or Decimal-mode parameters are invalid.
@@ -1643,6 +1754,8 @@ def tan(
     if _is_vector_input(x):
         data, _ = _vector_data(x)
         decimal_mode = digits is not None or _contains_decimal(data)
+        if exact is None and (decimal_mode or not _exact_domain(x)):
+            exact = False
         vector_digits = _effective_digits(digits, decimal_mode, exact)
         if not exact and decimal_mode:
             _validate_decimal_params(digits, rounding, max_refinements)
@@ -1668,8 +1781,14 @@ def tan(
             exact,
         )
     xf, decimal_input = _coerce(x)
+    if exact is None and (digits is not None or decimal_input or not (degrees and _exact_domain(x))):
+        exact = False
     if exact:
         return _present(_exact_tan(x), x, coerce, exact)
+    if exact is None:
+        symbolic = _try_symbolic(lambda: _exact_tan(x))
+        if symbolic is not None:
+            return _present(symbolic, x, coerce, exact)
     if digits is None and not decimal_input:
         return _present(_frac_tan(xf, degrees=degrees, prec=prec, limit=limit), x, coerce, exact)
     _validate_decimal_params(digits, rounding, max_refinements)
@@ -1786,7 +1905,10 @@ def log(
     xf, decimal_input = _coerce(x)
     basef, base_decimal = (None, False) if base is None else _coerce(base)
     if digits is None and not (decimal_input or base_decimal):
-        return _present(_frac_log(xf, base=None if base is None else basef, prec=prec, limit=limit), x, coerce, False)
+        rational = None if basef is None else _rational_log(xf, basef)
+        if rational is None:
+            rational = _frac_log(xf, base=basef, prec=prec, limit=limit)
+        return _present(rational, x, coerce, False)
     _validate_decimal_params(digits, rounding, max_refinements)
     return _present(_to_decimal(lambda p: _log_core(xf, basef, p), digits, rounding, max_refinements), x, coerce, False)
 
@@ -1839,7 +1961,7 @@ def asin(
     digits: int | None = None,
     rounding: str = "half_even",
     max_refinements: int | None = None,
-    exact: bool = False,
+    exact: bool | None = None,
     *,
     coerce: Any = None,
 ) -> Any:
@@ -1853,7 +1975,7 @@ def asin(
     :param digits: Significant digits for Decimal mode, or ``None`` for Fraction mode unless ``x`` is Decimal.
     :param rounding: Decimal rounding mode: ``"half_even"`` or ``"down"``.
     :param max_refinements: Maximum Decimal refinements, or ``None`` for the normal adaptive limit.
-    :param exact: Whether to return the exact supported degree-mode angle.
+    :param exact: ``None`` (default) returns the exact degree angle for supported exact-domain values, otherwise the domain approximation; ``True`` requires it or raises; ``False`` always approximates.
     :param coerce: Optional output view or value type; ``"natural"`` disables presentation coercion.
     :return: The inverse sine in the selected output domain, preserving vector shape.
     :raises ValueError: If exact mode is not degree mode, the angle is unsupported, or Decimal-mode parameters are invalid.
@@ -1863,6 +1985,8 @@ def asin(
     if _is_vector_input(x):
         data, _ = _vector_data(x)
         decimal_mode = digits is not None or _contains_decimal(data)
+        if exact is None and (decimal_mode or not _exact_domain(x)):
+            exact = False
         vector_digits = _effective_digits(digits, decimal_mode, exact)
         if not exact and decimal_mode:
             _validate_decimal_params(digits, rounding, max_refinements)
@@ -1888,8 +2012,14 @@ def asin(
             exact,
         )
     xf, decimal_input = _coerce(x)
+    if exact is None and (digits is not None or decimal_input or not (degrees and _exact_domain(x))):
+        exact = False
     if exact:
         return _present(_exact_asin(x), x, coerce, exact)
+    if exact is None:
+        symbolic = _try_symbolic(lambda: _exact_asin(x))
+        if symbolic is not None:
+            return _present(symbolic, x, coerce, exact)
     if digits is None and not decimal_input:
         return _present(_frac_asin(xf, degrees=degrees, prec=prec, limit=limit), x, coerce, exact)
     _validate_decimal_params(digits, rounding, max_refinements)
@@ -1906,7 +2036,7 @@ def acos(
     digits: int | None = None,
     rounding: str = "half_even",
     max_refinements: int | None = None,
-    exact: bool = False,
+    exact: bool | None = None,
     *,
     coerce: Any = None,
 ) -> Any:
@@ -1920,7 +2050,7 @@ def acos(
     :param digits: Significant digits for Decimal mode, or ``None`` for Fraction mode unless ``x`` is Decimal.
     :param rounding: Decimal rounding mode: ``"half_even"`` or ``"down"``.
     :param max_refinements: Maximum Decimal refinements, or ``None`` for the normal adaptive limit.
-    :param exact: Whether to return the exact supported degree-mode angle.
+    :param exact: ``None`` (default) returns the exact degree angle for supported exact-domain values, otherwise the domain approximation; ``True`` requires it or raises; ``False`` always approximates.
     :param coerce: Optional output view or value type; ``"natural"`` disables presentation coercion.
     :return: The inverse cosine in the selected output domain, preserving vector shape.
     :raises ValueError: If exact mode is not degree mode, the angle is unsupported, or Decimal-mode parameters are invalid.
@@ -1930,6 +2060,8 @@ def acos(
     if _is_vector_input(x):
         data, _ = _vector_data(x)
         decimal_mode = digits is not None or _contains_decimal(data)
+        if exact is None and (decimal_mode or not _exact_domain(x)):
+            exact = False
         vector_digits = _effective_digits(digits, decimal_mode, exact)
         if not exact and decimal_mode:
             _validate_decimal_params(digits, rounding, max_refinements)
@@ -1955,8 +2087,14 @@ def acos(
             exact,
         )
     xf, decimal_input = _coerce(x)
+    if exact is None and (digits is not None or decimal_input or not (degrees and _exact_domain(x))):
+        exact = False
     if exact:
         return _present(_exact_acos(x), x, coerce, exact)
+    if exact is None:
+        symbolic = _try_symbolic(lambda: _exact_acos(x))
+        if symbolic is not None:
+            return _present(symbolic, x, coerce, exact)
     if digits is None and not decimal_input:
         return _present(_frac_acos(xf, degrees=degrees, prec=prec, limit=limit), x, coerce, exact)
     _validate_decimal_params(digits, rounding, max_refinements)
@@ -1973,7 +2111,7 @@ def atan(
     digits: int | None = None,
     rounding: str = "half_even",
     max_refinements: int | None = None,
-    exact: bool = False,
+    exact: bool | None = None,
     *,
     coerce: Any = None,
 ) -> Any:
@@ -1987,7 +2125,7 @@ def atan(
     :param digits: Significant digits for Decimal mode, or ``None`` for Fraction mode unless ``x`` is Decimal.
     :param rounding: Decimal rounding mode: ``"half_even"`` or ``"down"``.
     :param max_refinements: Maximum Decimal refinements, or ``None`` for the normal adaptive limit.
-    :param exact: Whether to return the exact supported degree-mode angle.
+    :param exact: ``None`` (default) returns the exact degree angle for supported exact-domain values, otherwise the domain approximation; ``True`` requires it or raises; ``False`` always approximates.
     :param coerce: Optional output view or value type; ``"natural"`` disables presentation coercion.
     :return: The inverse tangent in the selected output domain, preserving vector shape.
     :raises ValueError: If exact mode is not degree mode, the angle is unsupported, or Decimal-mode parameters are invalid.
@@ -1997,6 +2135,8 @@ def atan(
     if _is_vector_input(x):
         data, _ = _vector_data(x)
         decimal_mode = digits is not None or _contains_decimal(data)
+        if exact is None and (decimal_mode or not _exact_domain(x)):
+            exact = False
         vector_digits = _effective_digits(digits, decimal_mode, exact)
         if not exact and decimal_mode:
             _validate_decimal_params(digits, rounding, max_refinements)
@@ -2022,8 +2162,14 @@ def atan(
             exact,
         )
     xf, decimal_input = _coerce(x)
+    if exact is None and (digits is not None or decimal_input or not (degrees and _exact_domain(x))):
+        exact = False
     if exact:
         return _present(_exact_atan(x), x, coerce, exact)
+    if exact is None:
+        symbolic = _try_symbolic(lambda: _exact_atan(x))
+        if symbolic is not None:
+            return _present(symbolic, x, coerce, exact)
     if digits is None and not decimal_input:
         return _present(_frac_atan(xf, degrees=degrees, prec=prec, limit=limit), x, coerce, exact)
     _validate_decimal_params(digits, rounding, max_refinements)
@@ -2041,7 +2187,7 @@ def atan2(
     digits: int | None = None,
     rounding: str = "half_even",
     max_refinements: int | None = None,
-    exact: bool = False,
+    exact: bool | None = None,
     *,
     coerce: Any = None,
 ) -> Any:
@@ -2058,7 +2204,7 @@ def atan2(
     :param digits: Significant digits for Decimal mode, or ``None`` for Fraction mode unless an input is Decimal.
     :param rounding: Decimal rounding mode: ``"half_even"`` or ``"down"``.
     :param max_refinements: Maximum Decimal refinements, or ``None`` for the normal adaptive limit.
-    :param exact: Whether to return the exact supported degree-mode angle.
+    :param exact: ``None`` (default) returns the exact degree angle for supported exact-domain values, otherwise the domain approximation; ``True`` requires it or raises; ``False`` always approximates.
     :param coerce: Optional output view or value type; ``"natural"`` disables presentation coercion.
     :return: The quadrant-aware angle in the selected output domain, preserving vector shape.
     :raises ValueError: If exact mode is not degree mode, the angle is unsupported, or Decimal-mode parameters are invalid.
@@ -2069,6 +2215,8 @@ def atan2(
         y_data = _vector_data(y)[0] if _is_vector_input(y) else y
         x_data = _vector_data(x)[0] if _is_vector_input(x) else x
         decimal_mode = digits is not None or _contains_decimal(y_data) or _contains_decimal(x_data)
+        if exact is None and (decimal_mode or not _exact_domain(y, x)):
+            exact = False
         vector_digits = _effective_digits(digits, decimal_mode, exact)
         if not exact and decimal_mode:
             _validate_decimal_params(digits, rounding, max_refinements)
@@ -2097,8 +2245,14 @@ def atan2(
         )
     yf, y_decimal = _coerce(y)
     xf, x_decimal = _coerce(x)
+    if exact is None and (digits is not None or y_decimal or x_decimal or not (degrees and _exact_domain(y, x))):
+        exact = False
     if exact:
         return _present(_exact_atan2(y, x), y, coerce, exact)
+    if exact is None:
+        symbolic = _try_symbolic(lambda: _exact_atan2(y, x))
+        if symbolic is not None:
+            return _present(symbolic, y, coerce, exact)
     if digits is None and not (y_decimal or x_decimal):
         return _present(_frac_atan2(yf, xf, degrees=degrees, prec=prec, limit=limit), y, coerce, exact)
     _validate_decimal_params(digits, rounding, max_refinements)

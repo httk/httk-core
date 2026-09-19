@@ -130,9 +130,10 @@ def test_view_neutral_default_presentation_matrix() -> None:
     assert exactmath.sqrt([4, 9]) == [2, 3]
     assert isinstance(exactmath.sqrt((4, 9)), tuple)
     assert isinstance(exactmath.sqrt(4), int)
-    assert isinstance(exactmath.sqrt(2), F)
+    assert isinstance(exactmath.sqrt(2), SurdScalar)
+    assert isinstance(exactmath.sqrt(2, exact=False), F)
     assert isinstance(exactmath.sqrt(2.0), float)
-    assert isinstance(exactmath.sqrt(F(2)), F)
+    assert isinstance(exactmath.sqrt(F(2)), SurdScalar)
     assert isinstance(exactmath.sqrt(D(2)), D)
     assert isinstance(exactmath.sqrt(SurdVector(4)), SurdVector)
 
@@ -150,7 +151,8 @@ def test_exactmath_explicit_presentation_and_natural_mode() -> None:
     assert isinstance(exactmath.sqrt(4, coerce=float), float)
     assert isinstance(exactmath.sqrt(2, exact=True), SurdScalar)
     assert isinstance(exactmath.sqrt(2, exact=True, coerce=float), float)
-    assert isinstance(exactmath.sqrt(2, coerce="natural"), F)
+    assert isinstance(exactmath.sqrt(2, coerce="natural"), SurdScalar)
+    assert isinstance(exactmath.sqrt(2, exact=False, coerce="natural"), F)
     with pytest.raises(TypeError):
         exactmath.sqrt(2, coerce=dict)
 
@@ -186,7 +188,7 @@ def test_view_neutral_decimal_list_preserves_decimal_leaves() -> None:
 )
 def test_all_exactmath_functions_honor_explicit_presentation(function, args) -> None:
     natural = function(*args, coerce="natural")
-    assert isinstance(natural, F)
+    assert isinstance(natural, (F, SurdScalar))
     assert isinstance(function(*args, coerce=float), float)
     with pytest.raises(TypeError):
         function(*args, coerce=dict)
@@ -243,3 +245,52 @@ def test_exact_trigonometry_and_surd_sqrt_reject_inexact_cases() -> None:
         exactmath.sqrt(SurdVector.sqrt_of(2), exact=True)
     with pytest.raises(ValueError, match="15° and 36°"):
         exactmath.sin(36, degrees=True, exact=True)
+
+
+# ------------------------------------------------- best-effort symbolic default (exact=None)
+
+
+def test_default_is_symbolic_for_exact_domain_irrational_results() -> None:
+    root3 = exactmath.sqrt(3)
+    assert isinstance(root3, SurdScalar) and root3 * root3 == 3
+    assert isinstance(exactmath.sqrt("3"), SurdScalar)
+    assert isinstance(exactmath.sqrt(FracVector(3)), SurdScalar)
+    assert isinstance(exactmath.sqrt([2, 3]), SurdVector)
+    assert exactmath.cos(30, degrees=True) == SurdVector.sqrt_of(3) / 2
+    assert exactmath.tan(60, degrees=True) == SurdVector.sqrt_of(3)
+    assert isinstance(exactmath.sin([30, 45], degrees=True), SurdVector)
+
+
+def test_default_keeps_rational_results_in_ordinary_presentation() -> None:
+    assert exactmath.sqrt(9) == 3 and isinstance(exactmath.sqrt(9), int)
+    assert exactmath.sqrt(F(9, 4)) == F(3, 2) and isinstance(exactmath.sqrt(F(9, 4)), F)
+    assert exactmath.sqrt(FracVector((4, 9))) == FracVector((2, 3))
+    assert exactmath.cos(60, degrees=True) == F(1, 2)
+    assert exactmath.acos(F(1, 2), degrees=True) == 60  # exactly, not an approximation
+    assert exactmath.atan2(1, 1, degrees=True) == 45
+    assert exactmath.log(8, 2) == 3
+
+
+def test_default_falls_back_to_approximation_where_no_exact_form_exists() -> None:
+    assert isinstance(exactmath.cos(17, degrees=True), F)
+    assert isinstance(exactmath.cos(F(1)), F)  # radians never go symbolic
+    assert isinstance(exactmath.acos(F(1, 3), degrees=True), F)
+    assert isinstance(exactmath.sqrt(2**61 - 1), F)  # radicand beyond the best-effort bound
+    assert isinstance(exactmath.sqrt(2**61 - 1, exact=True), SurdScalar)  # exact=True ignores it
+    nested = exactmath.sqrt(exactmath.sqrt(3))  # no nested radicals: rational-hub approximation
+    assert isinstance(nested, SurdScalar) and nested.is_rational
+
+
+def test_default_never_goes_symbolic_outside_the_exact_domain() -> None:
+    assert isinstance(exactmath.sqrt(3.0), float)
+    assert isinstance(exactmath.sqrt(D(3)), D)
+    assert isinstance(exactmath.sqrt(3, digits=5), D)
+    numpy = pytest.importorskip("numpy")
+    assert not isinstance(exactmath.sqrt(numpy.array([2, 3])), SurdVector)
+
+
+def test_sqrt_negative_raises_instead_of_looping() -> None:
+    with pytest.raises(ValueError):
+        exactmath.sqrt(-3)
+    with pytest.raises(ValueError):
+        exactmath.sqrt(F(-3), exact=False)

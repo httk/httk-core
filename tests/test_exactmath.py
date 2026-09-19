@@ -137,7 +137,7 @@ def test_cos_degrees() -> None:
 
 def test_returns_are_fractions() -> None:
     assert isinstance(exactmath.cos(F(1, 3)), fractions.Fraction)
-    assert isinstance(exactmath.sqrt(F(2)), fractions.Fraction)
+    assert isinstance(exactmath.sqrt(F(2), exact=False), fractions.Fraction)
 
 
 # ------------------------------------------------------------- atan2 fixes
@@ -203,7 +203,7 @@ def _independent_correctly_rounded_sqrt(x: fractions.Fraction, sig: int) -> deci
 
 def test_type_preservation_matrix() -> None:
     # Fraction / int / str inputs (no digits=) -> Fraction; Decimal input or digits= -> Decimal.
-    assert isinstance(exactmath.sqrt(F(2)), fractions.Fraction)
+    assert isinstance(exactmath.sqrt(F(2), exact=False), fractions.Fraction)
     assert isinstance(exactmath.sqrt(4), int)
     assert isinstance(exactmath.sqrt(D(2)), decimal.Decimal)
     assert isinstance(exactmath.sqrt(F(2), digits=10), decimal.Decimal)
@@ -399,9 +399,9 @@ def test_sqrt_exact_perfect_square_is_rational_surd() -> None:
     assert result.is_rational
 
 
-def test_sqrt_exact_does_not_change_default_path() -> None:
-    # Without exact=, the type-preservation rule is untouched.
-    assert isinstance(exactmath.sqrt(F(2)), fractions.Fraction)
+def test_sqrt_exact_false_keeps_approximation_path() -> None:
+    # exact=False forces the domain approximation; Decimal-domain calls never go symbolic.
+    assert isinstance(exactmath.sqrt(F(2), exact=False), fractions.Fraction)
     assert isinstance(exactmath.sqrt(D(2)), decimal.Decimal)
     assert isinstance(exactmath.sqrt(F(2), digits=10), decimal.Decimal)
 

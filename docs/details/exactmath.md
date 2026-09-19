@@ -57,38 +57,69 @@ list(exactmath.get_continued_fraction(355, 113))      # [3, 7, 16]
 exactmath.fraction_from_continued_fraction([3, 7, 16])  # Fraction(355, 113)
 ```
 
-## Controlled-precision transcendentals (Fraction domain)
+## The contract: best-effort symbolic, otherwise deterministic approximation
 
-Given `Fraction`/`int`/`str` input (and no `digits=`), the transcendentals
-return a `Fraction` within `prec` of the true value (default `prec` is very
-fine; pass a `Fraction` to control it). With `limit=True` (the default) the
-result's denominator is kept near `1/prec` rather than growing unboundedly:
+The default behavior is to make a best effort to return a symbolically exact value if one exists
+within reasonable computational effort, and otherwise a deterministic `Fraction` or `Decimal`
+approximation. `sqrt` and the degree-mode trigonometric functions expose this as a three-state
+`exact` keyword:
+
+- `exact=None` (default): for *exact-domain* input — `int`, `str`, `Fraction`, `FracVector`,
+  rational surds, and nested lists/tuples of these — an irrational result is returned as an exact
+  {py:class}`~httk.core.vectors.surdvector.SurdScalar` (or `SurdVector` for vectors), and a
+  rational result is returned exactly in the ordinary presentation. Where no exact form exists the
+  approximation below is returned instead. `float`, `Decimal`, numpy and `digits=` inputs never go
+  symbolic: they stay in their own domain.
+- `exact=True`: demand the symbolic result; `ValueError` where none exists.
+- `exact=False`: always the approximation.
 
 ```python
-exactmath.sqrt(Fraction(2), prec=Fraction(1, 10**12))
+import fractions
+from httk.core.vectors import SurdScalar, SurdVector
+
+root3 = exactmath.sqrt(3)
+assert isinstance(root3, SurdScalar) and root3 * root3 == 3          # exact sqrt(3)
+assert exactmath.sqrt(fractions.Fraction(9, 4)) == fractions.Fraction(3, 2)  # rational stays rational
+assert exactmath.cos(30, degrees=True) == SurdVector.sqrt_of(3) / 2  # exact special angle
+assert exactmath.acos(fractions.Fraction(1, 2), degrees=True) == 60  # exactly 60, not 60.0000000001
+assert isinstance(exactmath.cos(17, degrees=True), fractions.Fraction)  # no exact form: approximation
+assert isinstance(exactmath.sqrt(3, exact=False), fractions.Fraction)   # approximation on request
+assert isinstance(exactmath.sqrt(3.0), float)                           # float domain is never symbolic
+```
+
+"Reasonable computational effort" is concrete: canonicalizing a radical needs its squarefree
+factorization, which is trial division up to the cube root of the radicand. The default therefore
+falls back to the approximation when the radicand (`numerator * denominator`) exceeds `2**32`, a
+few hundred microseconds at worst; `exact=True` ignores the bound. Where the surd form does not
+exist at all — radians, unsupported angles, nested radicals such as `sqrt(sqrt(3))` — the default
+approximates silently and `exact=True` raises.
+
+`exp`, `log`, `log10` and `pi` have no surd form and take no `exact` keyword. `log` nevertheless
+returns the exact rational whenever `log(x, base)` is rational (`exactmath.log(8, 2) == 3`).
+
+A `SurdScalar` mixes exactly with `int` and `Fraction`, compares exactly, and — like
+{py:class}`fractions.Fraction` — degrades to `float` when combined with a `float`
+(`exactmath.sqrt(3) * 1.5` is a `float`). `float(root3)` and `round(root3, 3)` work as expected.
+See {doc}`vectors` ("Exact radicals: `SurdVector`") for the field itself — exact Cartesian
+crystallographic geometry, exact comparison, and the nested-radical limit.
+
+## Controlled-precision transcendentals (Fraction domain)
+
+Given `Fraction`/`int`/`str` input (and no `digits=`), the approximation is a `Fraction` within
+`prec` of the true value (default `prec` is very fine; pass a `Fraction` to control it). With
+`limit=True` (the default) the result's denominator is kept near `1/prec` rather than growing
+unboundedly. Pass `exact=False` to ask for the approximation even where a surd exists:
+
+```python
+exactmath.sqrt(Fraction(2), prec=Fraction(1, 10**12), exact=False)
 # Fraction(1402795082585, 991925915511)   — (value)**2 is within 1e-12 of 2
 ```
 
-Exact results are returned when they exist:
+Exact rational results are returned when they exist:
 
 ```python
 exactmath.sqrt(Fraction(9, 4))               # Fraction(3, 2) — exact
 exactmath.integer_sqrt(10**20)               # 10000000000 — exact integer sqrt
-```
-
-### Exact square roots as surds (`exact=True`)
-
-For an irrational square root, `exact=True` overrides the output-domain rule entirely and returns
-the value *symbolically* — as a {py:class}`~httk.core.vectors.surdvector.SurdScalar`, an element of
-the squarefree-radical field, with **no** approximation:
-
-```python
-import fractions
-from httk.core.vectors import SurdVector
-
-root2 = exactmath.sqrt(fractions.Fraction(2), exact=True)
-assert root2 * root2 == SurdVector(2)                       # squares back to exactly 2
-assert exactmath.sqrt(fractions.Fraction(9, 4), exact=True) == SurdVector(fractions.Fraction(3, 2))
 ```
 
 See {doc}`vectors` ("Exact radicals: `SurdVector`") for the field itself — exact Cartesian
@@ -108,16 +139,17 @@ hub: the value is approximated at the active Decimal context precision plus thre
 Exact symbolic calls preserve the surd and never use this lossy conversion. Floats are embedded as
 their exact binary `Fraction` value.
 
-`exact=True` is available for `sqrt` and degree-mode `cos`, `sin`, `tan`, `asin`, `acos`, `atan`,
-and `atan2`. Exact trigonometry requires `degrees=True`; cosine and sine values are exact for the
-complete square-root angle set (multiples of 15° and 36°, with the corresponding sine/tangent
-values where defined). Exact inverse functions return degree `Fraction`s. An unsupported angle or
-value raises `ValueError`, rather than silently approximating. Vector exact results are
-`SurdVector`-compatible and exact `atan2` accepts either two same-shaped vectors or scalar
-broadcasting. `atan2` follows the usual quadrant convention.
+The `exact` keyword is available for `sqrt` and degree-mode `cos`, `sin`, `tan`, `asin`, `acos`,
+`atan`, and `atan2`. Symbolic trigonometry requires `degrees=True`; cosine and sine values are
+exact for the complete square-root angle set (multiples of 15° and 36°, with the corresponding
+sine/tangent values where defined). Inverse functions return degree `Fraction`s. With
+`exact=True` an unsupported angle or value raises `ValueError`; the default approximates it.
+Vector symbolic results are `SurdVector`s (a vector whose leaves are all rational stays a
+`FracVector`) and `atan2` accepts either two same-shaped vectors or scalar broadcasting, following
+the usual quadrant convention.
 
-`digits`, `rounding`, and `max_refinements` retain their Decimal-mode meanings for vectors. In
-exact mode they are ignored, including invalid `digits` values.
+`digits`, `rounding`, and `max_refinements` retain their Decimal-mode meanings for vectors. With
+`exact=True` they are ignored, including invalid `digits` values.
 
 The trigonometric functions accept `degrees=True` to interpret their argument
 in degrees (`cos`, `sin`, ...) or to return degrees (`asin`, `acos`, `atan`,
@@ -142,7 +174,8 @@ pi.limit_denominator(1000)               # Fraction(355, 113)
 
 By default results are presented view-neutrally in the input's type family (an `int`/`Fraction`
 for int input, a `float` for float input, nested lists for list input, a native tuple view for
-tuple input, a float64 numpy view for numpy input). The keyword-only `coerce=` overrides this,
+tuple input, a float64 numpy view for numpy input); a symbolic `SurdScalar`/`SurdVector` result is
+returned as such. The keyword-only `coerce=` overrides this,
 following {func}`httk.core.coerce_view` semantics: the natural exact result stays recoverable
 behind view presentations via `unwrap()`, and coercion failures propagate. `coerce="natural"`
 returns the pre-presentation result unchanged. A caller that wants a plain, non-view value
@@ -153,8 +186,8 @@ applies {func}`httk.core.unview` to the returned presentation.
 The same functions render a correctly-rounded {py:class}`decimal.Decimal` when
 asked. The type of the result follows a single documented rule:
 
-> The result is a `Decimal` iff any numeric input is a `Decimal` **or** `digits=`
-> is passed; `Fraction`/`int`/`str` inputs otherwise get the exact `Fraction`
+> An approximation is a `Decimal` iff any numeric input is a `Decimal` **or** `digits=`
+> is passed; `Fraction`/`int`/`str` inputs otherwise get the symbolic-or-`Fraction`
 > behavior above.
 
 A `Decimal` input therefore yields a `Decimal`, and `digits=` lets a

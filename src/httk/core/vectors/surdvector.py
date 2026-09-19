@@ -85,6 +85,8 @@ linearly independent over :math:`\\mathbb{Q}`. Consequences used throughout:
 
 import decimal
 import fractions
+import operator
+from collections.abc import Callable
 from typing import Any, Self, cast
 
 from httk.core import exactmath
@@ -358,9 +360,18 @@ class SurdVector(VectorBackend):
             return SurdVector(FracVector(other))
         return None
 
+    def _float_op(self, other: float, op: Callable[[Any, Any], Any], *, reflected: bool = False) -> Any:
+        """Mixing a scalar surd with a float degrades to float, as :class:`fractions.Fraction` does."""
+        if self._dim != ():
+            return NotImplemented
+        value = float(self._as_scalar())
+        return op(other, value) if reflected else op(value, other)
+
     #### Ring operations
 
     def __add__(self, other: Any) -> "SurdVector":
+        if isinstance(other, float):
+            return self._float_op(other, operator.add)
         coerced = self._coerce(other)
         if coerced is None:
             return NotImplemented
@@ -378,12 +389,16 @@ class SurdVector(VectorBackend):
         return self._make({radicand: -comp for radicand, comp in self._components.items()}, self._dim)
 
     def __sub__(self, other: Any) -> "SurdVector":
+        if isinstance(other, float):
+            return self._float_op(other, operator.sub)
         coerced = self._coerce(other)
         if coerced is None:
             return NotImplemented
         return self.__add__(-coerced)
 
     def __rsub__(self, other: Any) -> "SurdVector":
+        if isinstance(other, float):
+            return self._float_op(other, operator.sub, reflected=True)
         coerced = self._coerce(other)
         if coerced is None:
             return NotImplemented
@@ -400,24 +415,38 @@ class SurdVector(VectorBackend):
         return self._make(result, result_dim)
 
     def __mul__(self, other: Any) -> "SurdVector":
+        if isinstance(other, float):
+            return self._float_op(other, operator.mul)
         coerced = self._coerce(other)
         if coerced is None:
             return NotImplemented
         return self._mul_surd(coerced)
 
     def __rmul__(self, other: Any) -> "SurdVector":
+        if isinstance(other, float):
+            return self._float_op(other, operator.mul, reflected=True)
         coerced = self._coerce(other)
         if coerced is None:
             return NotImplemented
         return coerced._mul_surd(self)
 
     def __truediv__(self, other: Any) -> "SurdVector":
+        if isinstance(other, float):
+            return self._float_op(other, operator.truediv)
         coerced = self._coerce(other)
         if coerced is None:
             return NotImplemented
         if coerced._dim != ():
             raise ValueError("SurdVector: division is only defined by a scalar divisor")
         return self._mul_surd(coerced._as_scalar()._inverse())
+
+    def __rtruediv__(self, other: Any) -> Any:
+        if isinstance(other, float):
+            return self._float_op(other, operator.truediv, reflected=True)
+        coerced = self._coerce(other)
+        if coerced is None:
+            return NotImplemented
+        return coerced.__truediv__(self)
 
     #### Linear algebra
 
@@ -622,6 +651,8 @@ class SurdVector(VectorBackend):
     #### Equality / hashing / display
 
     def __eq__(self, other: object) -> bool:
+        if isinstance(other, float) and self._dim == ():
+            return float(self._as_scalar()) == other
         coerced = self._coerce(other)
         if coerced is None:
             return NotImplemented
@@ -798,6 +829,9 @@ class SurdScalar(SurdVector):
             m += 1
 
     def _compare(self, other: Any) -> int:
+        if isinstance(other, float):
+            value = float(self)
+            return (value > other) - (value < other)
         coerced = self._coerce(other)
         if coerced is None:
             raise TypeError("SurdScalar: unsupported comparison operand")
@@ -904,6 +938,10 @@ class SurdScalar(SurdVector):
     def __float__(self) -> float:
         """``float(x)`` renders the scalar like :meth:`to_float` (default precision)."""
         return self.to_float()
+
+    def __round__(self, ndigits: int | None = None) -> Any:
+        """``round(x[, ndigits])`` rounds the float rendering, as mixing with a float would."""
+        return round(self.to_float(), ndigits)
 
     def to_decimal(
         self,
