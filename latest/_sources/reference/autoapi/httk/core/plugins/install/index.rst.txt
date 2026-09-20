@@ -1,0 +1,47 @@
+httk.core.plugins.install
+=========================
+
+.. py:module:: httk.core.plugins.install
+
+.. autoapi-nested-parse::
+
+   Install, build, and uninstall httk plugins from local directories.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.plugins.install.install_plugin
+   httk.core.plugins.install.build_plugin
+   httk.core.plugins.install.uninstall_plugin
+
+
+Module Contents
+---------------
+
+.. py:function:: install_plugin(source, *, force = False)
+
+   Install one plugin from an existing local directory.
+
+   ``source_sha256`` is pre-build provenance: build output and the build log
+   may change the installed tree after this digest is recorded.
+
+   :param source: Supply the local plugin directory.
+   :param force: Replace an installed plugin with the same name.
+   :return: The installed plugin.
+   :raises ValueError: If the source or plugin is invalid or cannot be built.
+
+
+.. py:function:: build_plugin(name)
+
+   Build and publish the declared programs of an installed plugin.
+
+
+.. py:function:: uninstall_plugin(name)
+
+   Remove an installed plugin and its still-owned shims.
+
+

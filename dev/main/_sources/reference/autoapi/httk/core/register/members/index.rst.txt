@@ -1,0 +1,69 @@
+httk.core.register.members
+==========================
+
+.. py:module:: httk.core.register.members
+
+.. autoapi-nested-parse::
+
+   The project-member-kind registry: which module owns which member kind.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.register.members.project_member_kinds
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.register.members.register_project_member_kind
+   httk.core.register.members.known_project_member_kinds
+   httk.core.register.members.project_member_handler
+
+
+Module Contents
+---------------
+
+.. py:data:: project_member_kinds
+
+.. py:function:: register_project_member_kind(kind, handler)
+
+   Register the handler that implements one project-member *kind*.
+
+   A *handler* is either a callable or a lazy ``"module:callable"`` reference
+   that takes no arguments and returns an object implementing
+   :class:`~httk.core.project.members.ProjectMemberHandler`. Registering a kind
+   is how an installed module teaches the core seal, manifest, and repair verbs
+   to delegate that member's internals to it. This mirrors
+   :func:`~httk.core.register.entries.register_entry_provider`.
+
+   :param kind: The member kind name to register.
+   :param handler: The handler callable or lazy ``"module:callable"`` reference.
+
+
+.. py:function:: known_project_member_kinds()
+
+   Return the registered member-kind names.
+
+   :return: Registered member-kind names in sorted order.
+
+
+.. py:function:: project_member_handler(kind)
+
+   Return the handler object for one project-member *kind*.
+
+   The registered reference is resolved lazily and called with no arguments to
+   build the handler, so a module contributes a kind without core importing it
+   until a member of that kind is actually acted on.
+
+   :param kind: The member kind whose handler to resolve.
+   :return: The handler object implementing the member protocol.
+   :raises LookupError: If no module has registered a handler for the kind.
+
+

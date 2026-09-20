@@ -1,0 +1,239 @@
+httk.core.register.entries
+==========================
+
+.. py:module:: httk.core.register.entries
+
+.. autoapi-nested-parse::
+
+   Entry-provider, entry-family, record, and binding registries.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.register.entries.entry_providers
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.register.entries.OptimadeEntryBinding
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.register.entries.register_entry_provider
+   httk.core.register.entries.known_entry_providers
+   httk.core.register.entries.register_entry_record
+   httk.core.register.entries.known_entry_records
+   httk.core.register.entries.entry_record_info
+   httk.core.register.entries.resolve_entry_record
+   httk.core.register.entries.register_entry_family
+   httk.core.register.entries.known_entry_families
+   httk.core.register.entries.entry_family_info
+   httk.core.register.entries.resolve_entry_family
+   httk.core.register.entries.register_optimade_entry_binding
+   httk.core.register.entries.known_optimade_entry_bindings
+   httk.core.register.entries.optimade_entry_binding
+
+
+Module Contents
+---------------
+
+.. py:data:: entry_providers
+
+.. py:function:: register_entry_provider(*, name, factory)
+
+   Register an :class:`~httk.core.entry_provider.EntryProvider` factory under ``name``.
+
+   ``factory`` is a lazy ``"module:callable"`` reference to a callable that
+   constructs a provider (providers need data, so applications call the factory
+   themselves; the registry only records how to reach it). This mirrors
+   ``register_reader``.
+
+   :param name: The provider registry name.
+   :param factory: The lazy ``"module:callable"`` factory reference.
+
+
+.. py:function:: known_entry_providers()
+
+   Return registered entry-provider names.
+
+   :return: Registered provider names.
+
+
+.. py:function:: register_entry_record(*, name, record, family = None, definition_id = None)
+
+   Register a lazy record-class reference and optional family and definition IRI.
+
+   :param name: The record registry name.
+   :param record: The lazy ``"module:class"`` record reference.
+   :param family: The logical entry-family name, if any.
+   :param definition_id: The record's definition IRI, if any.
+   :raises ValueError: If validation fails or ``name`` is already registered.
+
+
+.. py:function:: known_entry_records(family = None)
+
+   Return registered record names, optionally limited to a family.
+
+   :param family: An entry-family name to filter by, or ``None`` for all records.
+   :return: Matching record registry names.
+
+
+.. py:function:: entry_record_info(name)
+
+   Return record, family, and definition metadata without importing the record class.
+
+   :param name: The registered record name.
+   :return: The lazy record reference and optional family and definition IRI.
+   :raises ValueError: If ``name`` is not registered.
+
+
+.. py:function:: resolve_entry_record(name)
+
+   Import and return a registered record class.
+
+   :param name: The registered record name.
+   :return: The resolved frozen dataclass record class.
+   :raises ValueError: If ``name`` is not registered.
+   :raises TypeError: If the reference does not resolve to a frozen dataclass.
+
+
+.. py:function:: register_entry_family(*, name, family, definition_id = None)
+
+   Register a lazy entry-family class reference without importing it.
+
+   :param name: The entry-family registry name.
+   :param family: The lazy ``"module:class"`` family reference.
+   :param definition_id: The family's definition IRI, if any.
+   :raises ValueError: If validation fails or ``name`` is already registered.
+
+
+.. py:function:: known_entry_families()
+
+   Return registered entry-family names.
+
+   :return: Registered entry-family names.
+
+
+.. py:function:: entry_family_info(name)
+
+   Return entry-family metadata without importing its class.
+
+   :param name: The registered entry-family name.
+   :return: The lazy family reference and optional definition IRI.
+   :raises ValueError: If ``name`` is not registered.
+
+
+.. py:function:: resolve_entry_family(name)
+
+   Import and return a registered entry-family class.
+
+   :param name: The registered entry-family name.
+   :return: The resolved entry-family class.
+   :raises ValueError: If ``name`` is not registered.
+   :raises TypeError: If the reference does not resolve to a class.
+
+
+.. py:class:: OptimadeEntryBinding
+
+   Describe lazy typed handling for one exact entry-type definition IRI.
+
+   :param name: The binding registry name.
+   :param definition_id: The exact entry-type definition IRI selected by the binding.
+   :param backend: The lazy backend class reference.
+   :param view: The lazy view class reference.
+   :param property_decoders: Property definition IRIs mapped to lazy decoder references.
+   :param query_fields: Property definition IRIs supported for querying, if restricted.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: definition_id
+      :type:  str
+
+
+   .. py:attribute:: backend
+      :type:  str
+
+
+   .. py:attribute:: view
+      :type:  str
+
+
+   .. py:attribute:: property_decoders
+      :type:  collections.abc.Mapping[str, str]
+
+
+   .. py:attribute:: query_fields
+      :type:  tuple[str, Ellipsis] | None
+      :value: None
+
+
+
+   .. py:method:: resolve_backend()
+
+      Import and return this binding's backend class on demand.
+
+      :return: The resolved backend class.
+      :raises TypeError: If the lazy reference does not resolve to a class.
+
+
+
+   .. py:method:: resolve_view()
+
+      Import and return this binding's view class on demand.
+
+      :return: The resolved view class.
+      :raises TypeError: If the lazy reference does not resolve to a class.
+
+
+
+   .. py:method:: resolve_property_decoder(definition_id)
+
+      Resolve one property decoder, or return ``None`` when it is unbound.
+
+      :param definition_id: The property definition IRI to resolve.
+      :return: The decoder callable, or ``None`` when no decoder is registered.
+
+
+
+.. py:function:: register_optimade_entry_binding(*, name, definition_id, backend, view, property_decoders = None, query_fields = None)
+
+   Register one lazy typed binding, selected only by exact definition IRI.
+
+   :param name: The binding registry name.
+   :param definition_id: The exact entry-type definition IRI selected by the binding.
+   :param backend: The lazy backend class reference.
+   :param view: The lazy view class reference.
+   :param property_decoders: Property definition IRIs mapped to lazy decoder references.
+   :param query_fields: Property definition IRIs supported for querying, if restricted.
+   :raises ValueError: If the definition IRI is already registered or input is invalid.
+
+
+.. py:function:: known_optimade_entry_bindings()
+
+   Return registered entry-type definition IRIs without resolving imports.
+
+   :return: Exact definition IRIs with registered bindings.
+
+
+.. py:function:: optimade_entry_binding(definition_id)
+
+   Return the exact-IRI binding without importing its backend or view.
+
+   :param definition_id: The exact entry-type definition IRI to look up.
+   :return: The binding, or ``None`` if no exact match is registered.
+
+

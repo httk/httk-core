@@ -1,0 +1,195 @@
+httk.core.building
+==================
+
+.. py:module:: httk.core.building
+
+.. autoapi-nested-parse::
+
+   Provide generalized build vocabulary and execution for httk manifests.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.building.DEFAULT_TAG
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   httk.core.building.BuildError
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.building.BuildSpec
+   httk.core.building.BuildResult
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.building.read_manifest_build_spec
+   httk.core.building.artifact_excluder
+   httk.core.building.platform_tag
+   httk.core.building.execute_build
+   httk.core.building.write_generation
+   httk.core.building.registered_generation
+   httk.core.building.overlay_artifacts
+
+
+Module Contents
+---------------
+
+.. py:data:: DEFAULT_TAG
+   :value: 'any'
+
+
+.. py:class:: BuildSpec
+
+   Describe a build command and its disposable artifacts.
+
+   :param command: Supply the build command.
+   :param artifacts: Name artifact patterns to exclude from source publication.
+   :param platform: Restrict the build to a platform, when supplied.
+
+
+   .. py:attribute:: command
+      :type:  str
+
+
+   .. py:attribute:: artifacts
+      :type:  tuple[str, Ellipsis]
+
+
+   .. py:attribute:: platform
+      :type:  str | None
+      :value: None
+
+
+
+.. py:exception:: BuildError(code, message)
+
+   Bases: :py:obj:`ValueError`
+
+
+   Describe a build failure with its protocol code.
+
+   :param code: Identify the build failure.
+   :param message: Describe the build failure.
+
+
+   .. py:attribute:: code
+
+
+   .. py:attribute:: message
+
+
+.. py:class:: BuildResult
+
+   Describe the result of executing a build.
+
+   :param tag: Identify the platform registration tag.
+   :param platform_output: Preserve the raw platform probe output.
+   :param artifact_files: Name the collected artifact files as relative POSIX paths.
+
+
+   .. py:attribute:: tag
+      :type:  str
+
+
+   .. py:attribute:: platform_output
+      :type:  str
+
+
+   .. py:attribute:: artifact_files
+      :type:  tuple[str, Ellipsis]
+
+
+.. py:function:: read_manifest_build_spec(root, *, manifest_name, table_name, protected_names)
+
+   Read and validate the optional build table in a manifest.
+
+   :param root: Locate the manifest directory.
+   :param manifest_name: Name the manifest file.
+   :param table_name: Name the top-level manifest table.
+   :param protected_names: Name members artifact patterns must preserve.
+   :return: The build specification, or ``None`` when absent.
+   :raises ValueError: If the manifest or build table is malformed.
+
+
+.. py:function:: artifact_excluder(spec)
+
+   Return a predicate for declared artifacts and their descendants.
+
+   :param spec: Supply the build specification, when present.
+   :return: A predicate accepting relative POSIX paths.
+
+
+.. py:function:: platform_tag(platform_command, *, env = None)
+
+   Probe and tag the current platform.
+
+   :param platform_command: Supply the platform probe command, when present.
+   :param env: Supply the probe environment, or inherit the current environment.
+   :return: The sanitized tag and the probe's raw standard output.
+   :raises BuildError: If the platform probe cannot be run successfully.
+
+
+.. py:function:: execute_build(source, spec, *, strip_env_prefixes, keep_env = (), log_path = None, stdout_to_stderr = False)
+
+   Execute a build and collect its declared artifacts.
+
+   :param source: Run the build from this source directory.
+   :param spec: Describe the build command and artifact patterns.
+   :param strip_env_prefixes: Remove environment variables with these prefixes.
+   :param keep_env: Preserve these variable names despite their prefixes.
+   :param log_path: Optionally write build metadata at this path.
+   :param stdout_to_stderr: Route inherited build standard output to standard error.
+   :return: The platform tag, probe output, and collected artifact paths.
+   :raises BuildError: If probing, execution, or artifact collection fails.
+
+
+.. py:function:: write_generation(builds_root, relative, tag, source, artifact_files, stamp)
+
+   Copy build artifacts into an atomically registered generation.
+
+   :param builds_root: Locate the build registration store.
+   :param relative: Identify the source registration relative to the store.
+   :param tag: Identify the platform registration.
+   :param source: Locate the built source tree.
+   :param artifact_files: Name relative POSIX artifact files to copy.
+   :param stamp: Supply the build stamp fields.
+   :return: The new generation directory.
+
+
+.. py:function:: registered_generation(builds_root, relative, tag, *, format_name, expected_source_sha256)
+
+   Return registered artifacts when the build stamp still matches.
+
+   :param builds_root: Locate the build registration store.
+   :param relative: Identify the source registration relative to the store.
+   :param tag: Identify the platform registration.
+   :param format_name: Require this build stamp format name.
+   :param expected_source_sha256: Require this source digest when supplied.
+   :return: The registered artifact directory, or ``None`` when unusable.
+
+
+.. py:function:: overlay_artifacts(artifacts_dir, target)
+
+   Copy registered artifact files over a staged tree.
+
+   :param artifacts_dir: Locate the registered artifact tree.
+   :param target: Locate the staged tree to overlay.
+
+

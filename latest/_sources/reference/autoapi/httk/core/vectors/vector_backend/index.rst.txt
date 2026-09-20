@@ -1,0 +1,41 @@
+httk.core.vectors.vector_backend
+================================
+
+.. py:module:: httk.core.vectors.vector_backend
+
+.. autoapi-nested-parse::
+
+   The abstract base class for all vector backends.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.vectors.vector_backend.VectorBackend
+
+
+Module Contents
+---------------
+
+.. py:class:: VectorBackend(backend, **hints)
+
+   Bases: :py:obj:`httk.core.views.Backend`\ [\ :py:obj:`VectorBackend`\ ], :py:obj:`httk.core.vectors.vector_api.VectorAPI`
+
+
+   Abstract base class for all backends of vector (tensor) data.
+
+   Concrete backends carry a native representation (an exact FracVector, plain nested
+   sequences, or a numpy array) and produce the canonical exactness-preserving ``fractions``
+   interchange declared by :class:`~httk.core.vectors.vector_api.VectorAPI` from it.
+
+   Concrete subclasses select the accepted input and optional dispatch hints in their
+   ``_backend_adopt`` hooks.
+
+
+   .. py:attribute:: backend_classes
+      :type:  ClassVar[list[type[httk.core.views.Backend[Any]]]]
+
+

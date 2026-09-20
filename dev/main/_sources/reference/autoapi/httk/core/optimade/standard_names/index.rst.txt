@@ -1,0 +1,146 @@
+httk.core.optimade.standard_names
+=================================
+
+.. py:module:: httk.core.optimade.standard_names
+
+.. autoapi-nested-parse::
+
+   Complete an OPTIMADE schema snapshot with standard-namespace name identities.
+
+   Real OPTIMADE providers almost never publish a property-definition ``$id`` in
+   their ``/info/<entry_type>`` documents, yet the specification reserves the
+   unprefixed property namespace on a standard endpoint for the standard property
+   of that name as of the specification version the service declares. This module
+   applies that namespace rule: it fills in the definition IRI of an advertised
+   unprefixed property name whose meaning the declared specification version fixes,
+   without ever overriding a declared ``$id`` and without guessing about
+   provider-prefixed names.
+
+   The pure core is :func:`infer_standard_names`; :func:`complete_standard_schema`
+   is the registry-driven wrapper that every code path building an
+   :class:`~httk.core.optimade.resources.OptimadeSchemaSnapshot` can consult.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.optimade.standard_names.STANDARD_NAME_EVIDENCE
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.optimade.standard_names.StandardSchemaCompletion
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.optimade.standard_names.parse_optimade_api_version
+   httk.core.optimade.standard_names.infer_standard_names
+   httk.core.optimade.standard_names.complete_standard_schema
+
+
+Module Contents
+---------------
+
+.. py:data:: STANDARD_NAME_EVIDENCE
+   :value: 'standard-name'
+
+
+   Evidence tag recorded for a name inferred from the standard namespace rule.
+
+.. py:function:: parse_optimade_api_version(value)
+
+   Return the ``(major, minor)`` of a major-1 OPTIMADE version, or ``None``.
+
+   ``MAJOR.MINOR`` and ``MAJOR.MINOR.PATCH`` are accepted with optional trailing
+   pre-release or build text ignored. Only the ``(major, minor)`` pair is
+   compared. A value whose major version is not 1, or which does not parse,
+   yields ``None`` (the client supports major version 1 only).
+
+   :param value: Candidate version value.
+   :return: The ``(major, minor)`` pair, or ``None`` when unusable.
+
+
+.. py:class:: StandardSchemaCompletion
+
+   Identities inferred for standard-namespace property names.
+
+   :param entry_type: Entry type of the info document these names belong to.
+   :param api_version: Specification version the service declared, if any.
+   :param entry_type_definition_id: Definition IRI of the matched standard
+       entry type, set only when standard-name inference is possible for this
+       snapshot (a usable declared version and an owner-declared version
+       table); ``None`` otherwise.
+   :param definitions_by_name: Remote property name mapped to the property
+       definition IRI inferred for it.
+   :param evidence_by_name: Remote property name mapped to the evidence tag
+       that justified its inference.
+
+
+   .. py:attribute:: entry_type
+      :type:  str
+
+
+   .. py:attribute:: api_version
+      :type:  str | None
+
+
+   .. py:attribute:: entry_type_definition_id
+      :type:  str | None
+
+
+   .. py:attribute:: definitions_by_name
+      :type:  collections.abc.Mapping[str, str]
+
+
+   .. py:attribute:: evidence_by_name
+      :type:  collections.abc.Mapping[str, str]
+
+
+.. py:function:: infer_standard_names(*, entry_type, api_version, advertised, definition_ids_by_name, introduced_in)
+
+   Infer definition IRIs for advertised standard-namespace property names.
+
+   Pure and registry-free. For each advertised name the standard namespace
+   rule is applied: an unprefixed name that the declared specification version
+   already defines is completed to that standard property's definition IRI. A
+   declared ``$id`` always wins, provider-prefixed names carry no standard
+   semantics, and a name introduced only in a later version stays unknown. An
+   absent or non-major-1 declared version disables inference entirely.
+
+   :param entry_type: Entry type being completed.
+   :param api_version: Specification version the service declared.
+   :param advertised: The info document's ``data.properties`` mapping.
+   :param definition_ids_by_name: Standard property name to definition IRI.
+   :param introduced_in: Standard property name to its earliest spec version.
+   :return: The names inferred for this schema, possibly empty.
+
+
+.. py:function:: complete_standard_schema(snapshot)
+
+   Return the standard-name completion for one schema snapshot.
+
+   Registry-driven wrapper over :func:`infer_standard_names`. It reads the
+   declared specification version from the info document's own
+   ``meta.api_version``, resolves the standard entry type by name against the
+   registered OPTIMADE entry bindings, and gates name-based inference on that
+   binding's ``standard_property_versions`` table. It never raises for
+   malformed or hostile remote input: the safe answer is an empty completion.
+   ``entry_type_definition_id`` is set only when standard-name inference is
+   possible for this snapshot (a usable declared version and an owner-declared
+   version table).
+
+   :param snapshot: Schema snapshot whose advertised names to complete.
+   :return: The inferred completion, empty when unresolved or unsupported by
+       the declared version.
+
+

@@ -1,0 +1,95 @@
+httk.core.docs.sphinx_ext
+=========================
+
+.. py:module:: httk.core.docs.sphinx_ext
+
+.. autoapi-nested-parse::
+
+   Sphinx glue for version labels, development warnings, and the selector UI.
+
+   The module itself has no Sphinx import dependency. Sphinx is imported only by
+   :func:`setup`, allowing the rest of the documentation library to remain
+   stdlib-only and usable by release workflows.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.docs.sphinx_ext.document_label
+   httk.core.docs.sphinx_ext.channel_for_label
+   httk.core.docs.sphinx_ext.version_depth
+   httk.core.docs.sphinx_ext.selector_config_literal
+   httk.core.docs.sphinx_ext.derive_internal_intersphinx_mapping
+   httk.core.docs.sphinx_ext.setup
+
+
+Module Contents
+---------------
+
+.. py:function:: document_label(value)
+
+   Return a validated documentation label, defaulting to ``dev:local``.
+
+   :param value: Requested release or development label.
+   :return: Validated documentation label.
+   :raises ValueError: If *value* is not a supported label.
+
+
+.. py:function:: channel_for_label(label)
+
+   Return ``release`` for a version tag and ``dev`` for a development label.
+
+   :param label: Documentation label to classify.
+   :return: Channel associated with the label.
+
+
+.. py:function:: version_depth(label)
+
+   Return the URL path depth used by the selector for *label*.
+
+   :param label: Documentation label whose URL depth is needed.
+   :return: Number of path components before a page URL.
+
+
+.. py:function:: selector_config_literal(label)
+
+   Render the tiny JSON configuration literal consumed by ``selector.js``.
+
+   :param label: Documentation label to encode.
+   :return: JavaScript assignment containing selector configuration.
+   :raises ValueError: If *label* is not a supported documentation label.
+
+
+.. py:function:: derive_internal_intersphinx_mapping(mapping, config, pins, base_url, label, *, temporary_inventory_dir = None, committed_inventory_dir = None)
+
+   Return *mapping* with declared internal dependencies versioned.
+
+   The function is deliberately side-effect free.  The Sphinx callback fetches
+   the development inventories separately, then supplies their paths here.
+   ``dev:local`` is handled by the callback before this function is called so
+   that the configuration object remains byte-for-byte untouched for local
+   builds.
+
+   :param mapping: Existing intersphinx mappings to copy and update.
+   :param config: Configuration declaring internal dependencies.
+   :param pins: Locked dependency versions for release mappings.
+   :param base_url: Base URL containing dependency documentation sites.
+   :param label: Release or development documentation label.
+   :param temporary_inventory_dir: Directory for fetched development inventories.
+   :param committed_inventory_dir: Directory containing committed release inventories.
+   :return: Mapping with internal dependency targets and inventories updated.
+   :raises ReleaseError: If a release dependency has no valid locked version.
+   :raises ValueError: If the label or development inventory directory is invalid.
+
+
+.. py:function:: setup(app)
+
+   Register the extension with Sphinx and inject version-selector assets.
+
+   :param app: Sphinx application receiving the extension callbacks and assets.
+   :return: Sphinx extension metadata.
+
+

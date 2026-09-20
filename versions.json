@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "project": "httk-core",
+  "url": "https://docs.httk.org/httk-core",
+  "source_commit": "5896d929fdc04762431b79b286e3f4d5f62aee0c",
+  "default": {
+    "name": "v2.1.2",
+    "path": "latest/",
+    "channel": "release"
+  },
+  "versions": [
+    {
+      "name": "v2.1.2",
+      "path": "v2.1.2/",
+      "channel": "release"
+    },
+    {
+      "name": "v2.1.1",
+      "path": "v2.1.1/",
+      "channel": "release"
+    },
+    {
+      "name": "v2.1.0",
+      "path": "v2.1.0/",
+      "channel": "release"
+    },
+    {
+      "name": "dev:main",
+      "path": "dev/main/",
+      "channel": "dev"
+    }
+  ]
+}

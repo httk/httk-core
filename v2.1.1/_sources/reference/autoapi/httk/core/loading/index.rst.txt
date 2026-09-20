@@ -1,0 +1,104 @@
+httk.core.loading
+=================
+
+.. py:module:: httk.core.loading
+
+.. autoapi-nested-parse::
+
+   Dispatch file readers and optional domain adapters.
+
+   ``load`` retains the neutral reader result when no domain adapter owns its
+   format, while installed capability modules can register adapters to provide a
+   one-call domain-loading experience. Callers that need the neutral payload can
+   use ``raw=True``.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.loading.reader_uses_extension
+   httk.core.loading.adapt_result
+   httk.core.loading.load_source
+   httk.core.loading.load
+   httk.core.loading.load_many
+
+
+Module Contents
+---------------
+
+.. py:function:: reader_uses_extension(name)
+
+   Return whether ``name`` is claimed by an extension rather than a basename.
+
+   :param name: Filename or URL path whose reader registration is checked.
+   :return: Whether an extension registration claims the name.
+
+
+.. py:function:: adapt_result(result, raw)
+
+   Apply a registered format adapter unless ``raw`` is requested.
+
+   :param result: Neutral reader result to inspect for a format tag.
+   :param raw: Whether to return the neutral result without adaptation.
+   :return: The adapted domain value or the unchanged reader result.
+
+
+.. py:function:: load_source(source, name, *, raw = False, **kwargs)
+
+   Load ``source`` using the reader selected by ``name``.
+
+   :param source: Source passed to the selected reader.
+   :param name: Name used for extension or exact-basename dispatch.
+   :param raw: Whether to return the neutral reader result without adaptation.
+   :param \**kwargs: Additional options passed to the selected reader.
+   :return: The reader result, optionally adapted to a domain value.
+   :raises ValueError: If no reader matches the name; the error lists known extensions and basenames.
+
+
+.. py:function:: load(filename, *, raw = False, **kwargs)
+
+   Load ``filename`` and adapt its neutral payload to a domain object.
+
+   Dispatch strips at most one recognized compression suffix (``.gz``,
+   ``.bz2``, ...) to obtain an *inner* name, then selects a reader by that
+   inner name's extension (``.cif``, ``.poscar``, ...) or, failing that, by its
+   exact basename (``POSCAR``, ``CONTCAR``; case-insensitive). The selected
+   reader always receives the **original** ``filename``; readers open it
+   through the datastream layer, which transparently decompresses. By default,
+   a mapping with a string ``"format"`` tag is passed to the registered domain
+   adapter for that format. ``raw=True`` is the neutral-payload escape hatch.
+   Payloads with unknown formats, and non-mapping reader results, pass through
+   unchanged.
+
+   :param filename: Local filename to read.
+   :param raw: Whether to return the neutral reader result without adaptation.
+   :param \**kwargs: Additional options passed to the selected reader.
+   :return: The loaded and optionally adapted value.
+   :raises ValueError: If ``filename`` is a URL or no reader matches it.
+
+
+.. py:function:: load_many(sources, *, processes = None, errors = 'raise', **kwargs)
+
+   Load multiple sources lazily, preserving input order.
+
+   ``processes=None`` uses the process-pool default. ``processes=0`` or
+   ``processes=1`` loads in the current process, which is also the guaranteed
+   path for readers registered at runtime. Parallel workers rediscover
+   installed registration packages, but runtime registrations are not
+   guaranteed to be present in a fresh worker. Parallel work uses bounded
+   ordered futures rather than :meth:`~concurrent.futures.Executor.map` so
+   worker failures and result-pickling failures can be returned per source.
+
+   :param sources: Sources accepted by :func:`load`.
+   :param processes: Number of worker processes, or ``None`` for the default.
+   :param errors: Whether to raise failures or yield them as exception values.
+   :param \**kwargs: Options forwarded to every :func:`load` call.
+   :return: A lazy iterator of ``(source, result)`` pairs in input order.
+   :raises ValueError: If ``errors`` is not ``"raise"`` or ``"return"``, or if
+       ``processes`` is negative.
+   :raises TypeError: If ``processes`` is not an integer or ``None``.
+
+

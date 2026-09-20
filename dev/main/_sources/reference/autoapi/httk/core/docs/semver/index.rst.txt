@@ -1,0 +1,112 @@
+httk.core.docs.semver
+=====================
+
+.. py:module:: httk.core.docs.semver
+
+.. autoapi-nested-parse::
+
+   Strict, deliberately small Semantic Versioning helpers for documentation tags.
+
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   httk.core.docs.semver.VersionError
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.docs.semver.Version
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.docs.semver.parse_version
+   httk.core.docs.semver.parse_tag
+   httk.core.docs.semver.highest_version
+   httk.core.docs.semver.is_release_dir_name
+
+
+Module Contents
+---------------
+
+.. py:exception:: VersionError
+
+   Bases: :py:obj:`ValueError`
+
+
+   Raised when text is not an exact ``X.Y.Z`` documentation version.
+
+
+.. py:class:: Version
+
+   Represent one non-negative three-component documentation release version.
+
+   :param major: Major release component.
+   :param minor: Minor release component.
+   :param patch: Patch release component.
+   :raises VersionError: If a component is negative, non-integral, or boolean.
+
+
+   .. py:attribute:: major
+      :type:  int
+
+
+   .. py:attribute:: minor
+      :type:  int
+
+
+   .. py:attribute:: patch
+      :type:  int
+
+
+   .. py:property:: tag
+      :type: str
+
+
+      Return the canonical Git tag spelling, ``vX.Y.Z``.
+
+
+.. py:function:: parse_version(text)
+
+   Parse exactly ``X.Y.Z`` without prerelease or build metadata.
+
+   :param text: Version spelling to validate.
+   :return: Parsed release version.
+   :raises VersionError: If *text* is not an exact ``X.Y.Z`` version.
+
+
+.. py:function:: parse_tag(text)
+
+   Parse exactly the release tag ``vX.Y.Z``.
+
+   :param text: Git tag spelling to validate.
+   :return: Parsed release version.
+   :raises VersionError: If *text* is not an exact ``vX.Y.Z`` tag.
+
+
+.. py:function:: highest_version(versions)
+
+   Return the greatest version in *versions*, or ``None`` when empty.
+
+   :param versions: Versions to compare.
+   :return: Greatest version, or ``None`` when the iterable is empty.
+
+
+.. py:function:: is_release_dir_name(name)
+
+   Return whether *name* is a valid release directory such as ``v2.1.0``.
+
+   :param name: Directory name to validate.
+   :return: Whether *name* is an exact release tag spelling.
+
+
