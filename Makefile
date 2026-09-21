@@ -79,7 +79,7 @@ typecheck_pyright:
 typecheck:
 	$(PYTHON) -m mypy
 
-MEMGUARD = $(PYTHON) -m httk.core.memguard --max-rss-gb $(or $(HTTK_TEST_MAX_RSS_GB),$(1)) --
+MEMGUARD = $(PYTHON) -m httk.core.memguard --max-pss-gb $(or $(HTTK_TEST_MAX_PSS_GB),$(HTTK_TEST_MAX_RSS_GB),$(1)) --
 
 test:
 	$(call MEMGUARD,8) $(PYTHON) -m pytest

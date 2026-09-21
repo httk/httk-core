@@ -165,12 +165,21 @@ fails with a clear message and a nonzero exit code.
 ## Memory-guarded runs
 
 The Linux-only `httk.core.memguard` module runs a command in its own process
-group and kills the group when its summed RSS exceeds the selected budget:
+group and kills the group when its summed proportional set size (PSS) exceeds
+the selected budget. Shared resident pages are divided among the processes
+mapping them, so memory inherited by forked workers is not charged repeatedly:
 
 ```console
-httk memguard --max-rss-gb 8 -- python -m pytest
+httk memguard --max-pss-gb 8 -- python -m pytest
 ```
 
-It reports the peak RSS on standard error. The module requires a visible
-`/proc` filesystem and is used for the repository Makefile test and benchmark
-targets.
+It reports the peak sampled group PSS on standard error; brief allocations
+between polls may be missed. Pages shared with processes outside the group
+contribute only the group's proportional share. The budget covers resident
+memory, not swap or all memory charged by a kernel cgroup.
+
+The module requires Linux with readable `/proc/PID/smaps_rollup` files. If PSS
+accounting cannot be read, it refuses to launch the command or kills an already
+running group and returns exit status 2. `--max-rss-gb` remains a compatibility
+alias for the PSS budget. Repository Makefile test and benchmark targets use
+this guard.

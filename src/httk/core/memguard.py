@@ -20,7 +20,8 @@
 The child command starts in its own session (and therefore its own process
 group), every process it forks inherits an optional per-process virtual
 address-space rlimit, and a watchdog sums the resident memory of the whole
-group at a fixed interval. When the group's total RSS exceeds the budget the
+group at a fixed interval using proportional set size (PSS), so shared pages
+are divided among the processes mapping them. When total PSS exceeds the budget the
 entire group receives ``SIGKILL`` — sacrificing the run, never the machine.
 
 This is the userland fallback for environments without a delegatable cgroup v2
@@ -29,13 +30,15 @@ the kernel). It guards against the failure mode that motivated it: a parallel
 test or benchmark run whose workers independently grow until the system-wide
 OOM killer takes down unrelated processes.
 
-The process-group sampler requires Linux and a visible ``/proc`` filesystem.
-On other platforms, or when ``/proc`` is unavailable, the command exits with a
-clear error instead of running without its memory guard.
+The process-group sampler requires Linux and readable ``/proc/PID/smaps_rollup``
+files. If accounting is unavailable, the command exits with a clear error
+instead of running without its memory guard.
 
 Usage::
 
-    python -m httk.core.memguard [--max-rss-gb N] [--as-gb N] [--interval SECONDS] -- command args...
+    python -m httk.core.memguard [--max-pss-gb N] [--as-gb N] [--interval SECONDS] -- command args...
+
+``--max-rss-gb`` remains an alias for the PSS budget for existing callers.
 
 The exit status is the child's status, or 137 when the watchdog killed the
 group.
@@ -50,33 +53,21 @@ from collections.abc import Sequence
 
 from .cli import CLIContext
 
-try:
-    _PAGE_SIZE = os.sysconf("SC_PAGE_SIZE")
-except (AttributeError, OSError, ValueError):
-    _PAGE_SIZE = 0
+
+def _process_pss_bytes(pid: str) -> int:
+    """Read one process's proportional resident memory, in bytes."""
+    with open(f"/proc/{pid}/smaps_rollup", encoding="utf-8") as handle:
+        for line in handle:
+            if line.startswith("Pss:"):
+                return int(line.split()[1]) * 1024
+    raise OSError(f"PSS accounting unavailable for process {pid}")
 
 
-def _child_peak_bytes() -> int:
-    """Return the direct child's peak RSS as a sampler fallback.
-
-    Some sandbox runners place the child in a PID namespace whose processes
-    are not visible through the guard's ``/proc`` mount. The process-group
-    sampler remains the enforcement mechanism where that visibility exists;
-    ``RUSAGE_CHILDREN`` merely prevents a successful serial run from reporting
-    a misleading zero peak in that constrained environment.
-
-    :return: Peak resident set size of waited-for child processes, in bytes.
-    """
-    import resource
-
-    return resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss * 1024
-
-
-def _group_rss_bytes(pgid: int) -> int:
-    """Return the total resident set size of every live process in a group.
+def _group_pss_bytes(pgid: int) -> int:
+    """Return the total proportional resident memory of every live process in a group.
 
     :param pgid: Process-group identifier to sample.
-    :return: Total RSS in bytes.
+    :return: Total PSS in bytes.
     """
     total = 0
     for entry in os.listdir("/proc"):
@@ -85,7 +76,7 @@ def _group_rss_bytes(pgid: int) -> int:
         try:
             with open(f"/proc/{entry}/stat", "rb") as handle:
                 fields = handle.read().rsplit(b")", 1)[1].split()
-            # After the comm field: field 0 is state, 2 is pgrp, 21 is rss (pages).
+            # After the comm field: field 0 is state, 2 is pgrp.
             if int(fields[2]) != pgid:
                 with open(f"/proc/{entry}/status", encoding="utf-8") as handle:
                     namespace_group = next(
@@ -96,8 +87,16 @@ def _group_rss_bytes(pgid: int) -> int:
                 # child reports the local pgrp created by setsid().
                 if not namespace_group or int(namespace_group[-1]) != pgid:
                     continue
-            total += int(fields[21]) * _PAGE_SIZE
         except (OSError, ValueError, IndexError):
+            continue
+        # Zombies have no address space. Live members must have readable accounting;
+        # ignoring a permission error here would silently undercount the group.
+        if fields[0] in (b"Z", b"X"):
+            continue
+        try:
+            total += _process_pss_bytes(entry)
+        except (FileNotFoundError, ProcessLookupError):
+            # The process exited between the membership and memory reads.
             continue
     return total
 
@@ -118,10 +117,16 @@ def main(argv: Sequence[str] | None = None, *, prog: str = "httk memguard") -> i
         omitted, arguments are read from ``sys.argv``.
     :param prog: Program name displayed in command-line help.
     :return: The child exit status, 137 for a budget breach, or 2 when the
-        platform cannot provide the Linux process-group sampler.
+        platform cannot provide the Linux process-group PSS sampler.
     """
     parser = _parser(prog)
-    parser.add_argument("--max-rss-gb", type=float, default=24.0, help="group-total RSS budget (default 24)")
+    parser.add_argument(
+        "--max-pss-gb",
+        "--max-rss-gb",
+        type=float,
+        default=24.0,
+        help="group-total PSS budget in GiB (default 24); --max-rss-gb is a compatibility alias",
+    )
     parser.add_argument(
         "--as-gb",
         type=float,
@@ -141,6 +146,11 @@ def main(argv: Sequence[str] | None = None, *, prog: str = "httk memguard") -> i
     if sys.platform != "linux" or not os.path.isdir("/proc"):
         sys.stderr.write("memguard: requires Linux with a visible /proc filesystem\n")
         return 2
+    try:
+        _process_pss_bytes("self")
+    except (OSError, ValueError) as error:
+        sys.stderr.write(f"memguard: cannot read PSS accounting: {error}\n")
+        return 2
 
     def prepare() -> None:
         import resource
@@ -152,7 +162,7 @@ def main(argv: Sequence[str] | None = None, *, prog: str = "httk memguard") -> i
 
     child = subprocess.Popen(command, preexec_fn=prepare)  # noqa: PLW1509 - setsid and RLIMIT_AS must run pre-exec
     pgid = child.pid  # setsid makes the child the leader of a new group with pgid == its pid.
-    budget = int(arguments.max_rss_gb * (1 << 30))
+    budget = int(arguments.max_pss_gb * (1 << 30))
 
     def forward(signum: int, _frame: object) -> None:
         try:
@@ -166,25 +176,31 @@ def main(argv: Sequence[str] | None = None, *, prog: str = "httk memguard") -> i
     peak = 0
     while True:
         try:
+            pss = _group_pss_bytes(pgid)
+        except (OSError, ValueError) as error:
+            sys.stderr.write(f"memguard: cannot read group PSS accounting: {error} - killing the group\n")
+            forward(signal.SIGKILL, None)
+            child.wait()
+            return 2
+        peak = max(peak, pss)
+        if pss > budget:
+            sys.stderr.write(
+                f"memguard: process-group PSS {pss / (1 << 30):.1f} GiB exceeded the "
+                f"{arguments.max_pss_gb:.1f} GiB budget - killing the group\n"
+            )
+            forward(signal.SIGKILL, None)
+            child.wait()
+            return 137
+        try:
             return_code = child.wait(timeout=arguments.interval)
             break
         except subprocess.TimeoutExpired:
             pass
-        rss = _group_rss_bytes(pgid)
-        peak = max(peak, rss)
-        if rss > budget:
-            sys.stderr.write(
-                f"memguard: process-group RSS {rss / (1 << 30):.1f} GiB exceeded the "
-                f"{arguments.max_rss_gb:.1f} GiB budget - killing the group\n"
-            )
-            try:
-                os.killpg(pgid, signal.SIGKILL)
-            except ProcessLookupError:
-                pass
-            child.wait()
-            return 137
-    peak = max(peak, _child_peak_bytes())
-    sys.stderr.write(f"memguard: peak group RSS {peak / (1 << 30):.2f} GiB (budget {arguments.max_rss_gb:.1f} GiB)\n")
+    sys.stderr.write(
+        f"memguard: peak sampled group PSS {peak / (1 << 30):.2f} GiB (budget {arguments.max_pss_gb:.1f} GiB)\n"
+        if peak
+        else "memguard: no group PSS sample captured before the command exited\n"
+    )
     return return_code
 
 
