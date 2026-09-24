@@ -32,7 +32,7 @@ def _plugin(root: Path, name: str = "demo", *, description: str = "A demo plugin
     template = root / "template"
     template.mkdir()
     (template / "httk_project_template.toml").write_text(
-        "[template]\nid = 'starter'\ndescription = 'a starter'\n", encoding="utf-8"
+        "[template]\nname = 'starter'\ndescription = 'a starter'\n", encoding="utf-8"
     )
     workflow = root / "workflow"
     workflow.mkdir()
@@ -88,7 +88,7 @@ def test_show_text_and_json(homes: tuple[Path, Path], capsys) -> None:
     assert command(["show", "--json", "demo"], _context(tmp_path)) == 0
     description = json.loads(capsys.readouterr().out)
     assert description[0]["name"] == "demo"
-    assert description[0]["templates"][0]["id"] == "starter"
+    assert description[0]["templates"][0]["name"] == "starter"
     assert description[0]["programs"][0]["name"] == "tool"
     assert command(["show", "missing"], _context(tmp_path)) == 1
     assert "httk plugin:" in capsys.readouterr().err

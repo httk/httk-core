@@ -27,17 +27,17 @@ def _manifest(root: Path, text: str) -> None:
     (root / "httk_project_template.toml").write_text(text, encoding="utf-8")
 
 
-def _template(root: Path, text: str = "[template]\nid = 'demo'\n") -> Path:
+def _template(root: Path, text: str = "[template]\nname = 'demo'\n") -> Path:
     root.mkdir(parents=True, exist_ok=True)
     _manifest(root, text)
     return root
 
 
-def _installed_plugin(root: Path, name: str, template_id: str = "demo") -> Path:
+def _installed_plugin(root: Path, name: str, template_name: str = "demo") -> Path:
     plugin = root / "data" / "plugins" / name
     template = plugin / "template"
     template.mkdir(parents=True)
-    _manifest(template, f"[template]\nid = '{template_id}'\n")
+    _manifest(template, f"[template]\nname = '{template_name}'\n")
     (plugin / "plugin.json").write_text(json.dumps({"built": True}), encoding="utf-8")
     (plugin / "httk_plugin.toml").write_text(f"[plugin]\nname = '{name}'\ntemplates = ['template']\n", encoding="utf-8")
     return template
@@ -54,7 +54,7 @@ def test_minimal_and_full_manifest(tmp_path: Path) -> None:
     _manifest(
         full,
         """[template]
-id = "full"
+name = "full"
 description = "Full template"
 files = ["copy.txt"]
 
@@ -71,7 +71,7 @@ default = 2
 """,
     )
     expected = parse_template_manifest(full)
-    assert expected.id == "full"
+    assert expected.name == "full"
     assert expected.files == ("copy.txt",)
     assert expected.instantiate_file == "hook.py"
     assert expected.parameters == (
@@ -83,9 +83,9 @@ default = 2
 @pytest.mark.parametrize(
     "text",
     [
-        "[template]\nid = 'demo'\nextra = true\n",
-        "[template]\nid = 'demo'\n[template.instantiate]\nfile = 'hook.py'\nextra = true\n",
-        "[template]\nid = 'demo'\n[template.parameters.x]\ntype = 'string'\nextra = true\n",
+        "[template]\nname = 'demo'\nextra = true\n",
+        "[template]\nname = 'demo'\n[template.instantiate]\nfile = 'hook.py'\nextra = true\n",
+        "[template]\nname = 'demo'\n[template.parameters.x]\ntype = 'string'\nextra = true\n",
     ],
 )
 def test_manifest_unknown_keys(tmp_path: Path, text: str) -> None:
@@ -94,50 +94,50 @@ def test_manifest_unknown_keys(tmp_path: Path, text: str) -> None:
         parse_template_manifest(_template(tmp_path, text))
 
 
-@pytest.mark.parametrize("template_id", ["Bad", "has space", "-bad", ".", ".."])
-def test_manifest_id_rules(tmp_path: Path, template_id: str) -> None:
+@pytest.mark.parametrize("template_name", ["Bad", "has space", "-bad", ".", ".."])
+def test_manifest_name_rules(tmp_path: Path, template_name: str) -> None:
     with pytest.raises(ValueError):
-        parse_template_manifest(_template(tmp_path, f"[template]\nid = '{template_id}'\n"))
+        parse_template_manifest(_template(tmp_path, f"[template]\nname = '{template_name}'\n"))
 
 
 @pytest.mark.parametrize("name", ["bad-name", "1bad", "has space"])
 def test_manifest_parameter_name_rules(tmp_path: Path, name: str) -> None:
-    text = f"[template]\nid = 'demo'\n[template.parameters.'{name}']\ntype = 'string'\n"
+    text = f"[template]\nname = 'demo'\n[template.parameters.'{name}']\ntype = 'string'\n"
     with pytest.raises(ValueError):
         parse_template_manifest(_template(tmp_path, text))
 
 
 def test_manifest_protected_overlap_and_parameter_errors(tmp_path: Path) -> None:
     (tmp_path / "hook.py").write_text("", encoding="utf-8")
-    _manifest(tmp_path, "[template]\nid = 'demo'\nfiles = ['httk_project_template.toml']\n")
+    _manifest(tmp_path, "[template]\nname = 'demo'\nfiles = ['httk_project_template.toml']\n")
     with pytest.raises(ValueError):
         parse_template_manifest(tmp_path)
     _manifest(
         tmp_path,
-        "[template]\nid = 'demo'\nfiles = ['hook.py']\n[template.instantiate]\nfile = 'hook.py'\n",
+        "[template]\nname = 'demo'\nfiles = ['hook.py']\n[template.instantiate]\nfile = 'hook.py'\n",
     )
     with pytest.raises(ValueError):
         parse_template_manifest(tmp_path)
-    _manifest(tmp_path, "[template]\nid = 'demo'\nfiles = ['a', 'a']\n")
+    _manifest(tmp_path, "[template]\nname = 'demo'\nfiles = ['a', 'a']\n")
     (tmp_path / "a").write_text("", encoding="utf-8")
     with pytest.raises(ValueError):
         parse_template_manifest(tmp_path)
     (tmp_path / "nested").mkdir()
-    _manifest(tmp_path, "[template]\nid = 'demo'\nfiles = ['nested', 'nested/x']\n")
+    _manifest(tmp_path, "[template]\nname = 'demo'\nfiles = ['nested', 'nested/x']\n")
     (tmp_path / "nested" / "x").write_text("", encoding="utf-8")
     with pytest.raises(ValueError):
         parse_template_manifest(tmp_path)
 
-    _manifest(tmp_path, "[template]\nid = 'demo'\n[template.parameters.x]\ntype = 'string'\n")
+    _manifest(tmp_path, "[template]\nname = 'demo'\n[template.parameters.x]\ntype = 'string'\n")
     with pytest.raises(ValueError, match=r"no \[template.instantiate\]"):
         parse_template_manifest(tmp_path)
     _manifest(
         tmp_path,
-        "[template]\nid = 'demo'\n[template.parameters.x]\ntype = 'integer'\ndefault = 'no'\n",
+        "[template]\nname = 'demo'\n[template.parameters.x]\ntype = 'integer'\ndefault = 'no'\n",
     )
     _manifest(
         tmp_path,
-        "[template]\nid = 'demo'\n[template.instantiate]\nfile = 'hook.py'\n"
+        "[template]\nname = 'demo'\n[template.instantiate]\nfile = 'hook.py'\n"
         "[template.parameters.x]\ntype = 'integer'\ndefault = 'no'\n",
     )
     with pytest.raises(ValueError, match="default"):
@@ -148,7 +148,7 @@ def test_manifest_hook_must_be_python_or_executable(tmp_path: Path) -> None:
     (tmp_path / "hook.sh").write_text("#!/bin/sh\n", encoding="utf-8")
     with pytest.raises(ValueError, match="executable"):
         parse_template_manifest(
-            _template(tmp_path, "[template]\nid = 'demo'\n[template.instantiate]\nfile = 'hook.sh'\n")
+            _template(tmp_path, "[template]\nname = 'demo'\n[template.instantiate]\nfile = 'hook.sh'\n")
         )
 
 
@@ -167,7 +167,7 @@ def test_check_parameters() -> None:
     with pytest.raises(ValueError, match="name.*other|other.*name"):
         check_parameters(
             ProjectTemplate(
-                template.id,
+                template.name,
                 template.description,
                 template.files,
                 template.instantiate_file,
@@ -202,7 +202,7 @@ def test_manifest_defaults_must_be_deep_json_values(tmp_path: Path) -> None:
     source = _template(
         tmp_path / "nan",
         """[template]
-id = "nan"
+name = "nan"
 [template.instantiate]
 file = "hook.py"
 [template.parameters.value]
@@ -217,7 +217,7 @@ default = nan
     source = _template(
         tmp_path / "date",
         """[template]
-id = "date"
+name = "date"
 [template.instantiate]
 file = "hook.py"
 [template.parameters.value]
@@ -236,8 +236,8 @@ def test_resolve_templates(tmp_path: Path) -> None:
     _installed_plugin(tmp_path, "alpha", "unique")
     _installed_plugin(tmp_path, "one", "same")
     _installed_plugin(tmp_path, "two", "same")
-    assert resolve_template("alpha:unique").id == "unique"
-    assert resolve_template("unique").id == "unique"
+    assert resolve_template("alpha:unique").name == "unique"
+    assert resolve_template("unique").name == "unique"
     with pytest.raises(ValueError, match="alpha:unique|one:same"):
         resolve_template("missing")
     with pytest.raises(ValueError, match="one:same, two:same"):
@@ -246,7 +246,7 @@ def test_resolve_templates(tmp_path: Path) -> None:
         resolve_template("missing:unique")
     with pytest.raises(ValueError, match="no template"):
         resolve_template("alpha:missing")
-    assert [(name, template.id) for name, template in available_templates()] == [
+    assert [(name, template.name) for name, template in available_templates()] == [
         ("alpha", "unique"),
         ("one", "same"),
         ("two", "same"),
@@ -254,7 +254,7 @@ def test_resolve_templates(tmp_path: Path) -> None:
 
 
 def test_static_instantiation_copies_modes_and_preflights(tmp_path: Path) -> None:
-    source = _template(tmp_path / "source", "[template]\nid = 'demo'\nfiles = ['file.txt', 'directory']\n")
+    source = _template(tmp_path / "source", "[template]\nname = 'demo'\nfiles = ['file.txt', 'directory']\n")
     file = source / "file.txt"
     file.write_text("file", encoding="utf-8")
     file.chmod(0o751)
@@ -267,7 +267,7 @@ def test_static_instantiation_copies_modes_and_preflights(tmp_path: Path) -> Non
     assert stat.S_IMODE((project / "file.txt").stat().st_mode) == 0o751
     assert (project / "directory" / "nested.txt").read_text(encoding="utf-8") == "nested"
 
-    collision_source = _template(tmp_path / "collision", "[template]\nid = 'demo'\nfiles = ['a', 'b']\n")
+    collision_source = _template(tmp_path / "collision", "[template]\nname = 'demo'\nfiles = ['a', 'b']\n")
     (collision_source / "a").write_text("a", encoding="utf-8")
     (collision_source / "b").write_text("b", encoding="utf-8")
     collision_project = tmp_path / "collision-project"
@@ -280,7 +280,7 @@ def test_static_instantiation_copies_modes_and_preflights(tmp_path: Path) -> Non
 
 
 def test_symlink_inside_directory_is_rejected(tmp_path: Path) -> None:
-    source = _template(tmp_path / "source", "[template]\nid = 'demo'\nfiles = ['directory']\n")
+    source = _template(tmp_path / "source", "[template]\nname = 'demo'\nfiles = ['directory']\n")
     (source / "directory").mkdir()
     outside = tmp_path / "outside"
     outside.write_text("outside", encoding="utf-8")
@@ -307,7 +307,7 @@ def test_python_hook_round_trip_and_environment(tmp_path: Path, monkeypatch: pyt
     source = _template(
         tmp_path / "source",
         """[template]
-id = "demo"
+name = "demo"
 [template.instantiate]
 file = "hook.py"
 [template.parameters.name]
@@ -340,7 +340,7 @@ template_instantiate_main(handle)
 def test_executable_hook_and_failures(tmp_path: Path) -> None:
     source = _template(
         tmp_path / "source",
-        "[template]\nid = 'demo'\n[template.instantiate]\nfile = 'hook.sh'\n",
+        "[template]\nname = 'demo'\n[template.instantiate]\nfile = 'hook.sh'\n",
     )
     hook = source / "hook.sh"
     hook.write_text("#!/bin/sh\nprintf '{\"notes\":[\"shell\"]}\\n'\n", encoding="utf-8")
@@ -351,7 +351,7 @@ def test_executable_hook_and_failures(tmp_path: Path) -> None:
 
     failing = _template(
         tmp_path / "failing",
-        "[template]\nid = 'demo'\n[template.instantiate]\nfile = 'hook.sh'\n",
+        "[template]\nname = 'demo'\n[template.instantiate]\nfile = 'hook.sh'\n",
     )
     fail_hook = failing / "hook.sh"
     fail_hook.write_text("#!/bin/sh\nprintf '%s' 'stderr tail' >&2\nexit 3\n", encoding="utf-8")
@@ -362,7 +362,7 @@ def test_executable_hook_and_failures(tmp_path: Path) -> None:
 
     bad = _template(
         tmp_path / "bad",
-        "[template]\nid = 'demo'\n[template.instantiate]\nfile = 'hook.sh'\n",
+        "[template]\nname = 'demo'\n[template.instantiate]\nfile = 'hook.sh'\n",
     )
     bad_hook = bad / "hook.sh"
     bad_hook.write_text("#!/bin/sh\nprintf 'not json\\n'\n", encoding="utf-8")

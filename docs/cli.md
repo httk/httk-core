@@ -130,11 +130,18 @@ httk project init [--description TEXT] PATH...
 httk project init --name NAME --template SELECTOR PATH
 httk project init --template SELECTOR --parameter NAME=VALUE PATH...
 httk project init --list-templates
+httk project template install [--json] URI...
+httk project template uninstall SELECTOR...
+httk project template list [--json]
 ```
 
-`--parameter` is repeatable. `--list-templates` lists installed templates;
-`--template` may also name an explicit template directory. See
-{doc}`projects` for the selection and manifest rules.
+`--parameter` is repeatable. `--list-templates` lists plugin and installed
+templates, like `httk project template list`. `--template` may name a
+directory, a `git+…` URI (fetched and installed), `PLUGIN:NAME`, or a bare
+name. `template install` fetches templates by git URI, and `template uninstall`
+removes installed ones by URI or name; each continues after a failing item and
+exits `1` if any failed. See {doc}`projects` for the selection, git URI and
+manifest rules.
 
 ## File conversion
 

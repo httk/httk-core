@@ -98,8 +98,9 @@ skipped, and adopting a project with no such members is a no-op.
 ## Project templates
 
 An *httk₂* project template supplies files and, optionally, a hook that
-generates more project content. Templates can be bundled by plugins or used
-directly from a directory containing `httk_project_template.toml`.
+generates more project content. Templates can be bundled by plugins, installed
+from a git repository, or used directly from a directory containing
+`httk_project_template.toml`.
 
 Install a plugin, then initialize a project from one of its templates:
 
@@ -108,21 +109,79 @@ httk plugin install ./my-plugin
 httk project init --template my-plugin:starter --parameter n=3 my-project
 ```
 
-List installed templates and their plugin-qualified selectors with:
+Or install a template straight from a git repository by URI:
 
 ```console
-httk project init --list-templates
+httk project template install git+https://github.com/org/templates@v1#starter
+httk project init --template starter my-project
 ```
 
-An explicit template directory works without a plugin:
+List plugin and installed templates with their explicit selectors (add
+`--json` for a machine-readable listing; `httk project init --list-templates`
+prints the same list):
+
+```console
+httk project template list
+```
+
+An explicit template directory works without installing anything:
 
 ```console
 httk project init --template ./templates/starter my-project
 ```
 
-Templates can also be selected by a bare template ID when exactly one
-installed template has that ID; a bare ID shared by multiple plugins is
-ambiguous and must be qualified.
+A `--template` selector is one of: a directory path; a `git+…` URI, which is
+fetched and installed first; `PLUGIN:NAME`; or a bare template name. A bare
+name must identify exactly one template among the plugin templates and the
+installed git templates. A name shared by several plugins, or by a plugin and
+an installed git template, is ambiguous: the error lists the explicit
+selectors (`PLUGIN:NAME` or the canonical URI) to use instead.
+
+### Templates from git
+
+A git template URI has the form
+`git+SCHEME://HOST/PATH[@REF][#SUBDIR]`, where `SCHEME` is `https`, `http` or
+`file`. `REF` is a branch, tag, abbreviated or full commit hash, and defaults
+to the remote's default branch; `SUBDIR` names the template directory inside
+the repository, and without it the repository root must hold
+`httk_project_template.toml`. The ref is split off at the last `@` of the
+path, so repository paths that contain `@` are not supported. URIs with credentials (`user@host`), a query,
+an empty ref or subdirectory, a ref starting with `-`, whitespace, or a
+subdirectory that is absolute or contains `.`/`..`/empty components are
+rejected. The full grammar and API are in {py:mod}`httk.core.git_sources`.
+
+Installing resolves the URI to its *canonical* form, which pins the full
+commit hash (for example `git+https://github.com/org/templates@<40-hex>#starter`),
+lowercases the scheme and host, and drops trailing slashes. The repository
+path is kept verbatim, so `…/templates` and `…/templates.git` are different
+sources. Every explicit reference — `httk project template install URI` or
+`httk project init --template URI` — fetches and installs, and refreshes the
+entry's reference time. Plain listing and name lookup never run git.
+
+Several commits of one source (the same repository and subdirectory) may be
+installed at once; a bare name then means the most recently referenced one.
+If two different sources claim the same name, the bare name is ambiguous and
+the template must be selected by URI.
+
+`httk project template uninstall SELECTOR...` removes installed entries: a
+pinned URI removes that commit, an unpinned URI (no ref, or a branch, tag or
+abbreviated hash) removes every installed commit of that source without
+contacting the remote, and a bare name removes every installed commit of the
+source it resolves to. Plugin templates are not removed here; use
+`httk plugin uninstall`.
+
+Installing a template is consent to run it: its files are copied into your
+project and its instantiate hook runs with your user's rights, so install only
+templates you trust. Git runs with the global and system git configuration,
+hooks, credential helpers and terminal prompts disabled, so private
+repositories that need credentials are not supported.
+
+Checkouts are cached, without their `.git` directory, under
+`$HTTK_DATA_HOME/git/` (default `~/.local/share/httk/git/`), one directory per
+repository and commit; installed entries live in
+`$HTTK_DATA_HOME/templates/installed/`. Uninstalling removes only the entry;
+the checkout cache is safe to delete at any time, after which installed
+entries whose checkout is gone are skipped until installed again.
 
 ### The `httk_project_template.toml` manifest
 
@@ -131,7 +190,7 @@ keys are errors.
 
 ```toml
 [template]
-id = "starter"
+name = "starter"
 description = "A small starter project"
 files = ["README.md", "src"]
 
@@ -149,7 +208,7 @@ default = 1
 
 #### `[template]`
 
-`id` is required and must match `[a-z0-9._-]+`; it must not be `.` or `..`,
+`name` is required and must match `[a-z0-9._-]+`; it must not be `.` or `..`,
 and must not start with `-`. `description` is an optional string.
 
 `files` is an optional array of relative POSIX members. Each member may be a
