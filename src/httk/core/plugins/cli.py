@@ -60,7 +60,7 @@ def _template_details(plugin) -> list[dict[str, object]]:
         except (OSError, ValueError) as exc:
             details.append({"directory": member, "invalid": _first_error(exc)})
         else:
-            details.append({"id": template.id, "description": template.description})
+            details.append({"name": template.name, "description": template.description})
     return details
 
 
@@ -91,7 +91,7 @@ def _render(description: dict[str, object]) -> str:
         if "invalid" in template:
             lines.append(f"  {template['directory']}: invalid ({template['invalid']})")
         else:
-            lines.append(f"  {template['id']}  {template.get('description') or ''}")
+            lines.append(f"  {template['name']}  {template.get('description') or ''}")
     lines.append("workflows:")
     lines.extend(f"  {workflow}" for workflow in _list_value(description, "workflows"))
     lines.append("programs:")

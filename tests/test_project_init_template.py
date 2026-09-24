@@ -33,14 +33,14 @@ def _template(root: Path, manifest: str, *, files: dict[str, str] | None = None)
     return root
 
 
-def _plugin(name: str, template_id: str, description: str = "") -> Path:
+def _plugin(name: str, template_name: str, description: str = "") -> Path:
     """Create an installed-plugin directory containing one template."""
 
     root = plugins_home() / name
     template = root / "template"
     template.mkdir(parents=True)
     (template / "httk_project_template.toml").write_text(
-        f"[template]\nid = '{template_id}'\ndescription = '{description}'\n",
+        f"[template]\nname = '{template_name}'\ndescription = '{description}'\n",
         encoding="utf-8",
     )
     (root / "plugin.json").write_text('{"built": true}', encoding="utf-8")
@@ -54,7 +54,7 @@ def _plugin(name: str, template_id: str, description: str = "") -> Path:
 def test_init_with_explicit_static_template(tmp_path: Path, capsys) -> None:
     source = _template(
         tmp_path / "template",
-        "[template]\nid = 'starter'\nfiles = ['README.md']\n",
+        "[template]\nname = 'starter'\nfiles = ['README.md']\n",
         files={"README.md": "hello\n"},
     )
     target = tmp_path / "project"
@@ -88,7 +88,7 @@ def test_plugin_selectors_ambiguity_and_list(tmp_path: Path, capsys) -> None:
     output = capsys.readouterr().out
     assert "alpha:unique  A unique template" in output
     assert "one:same  " in output and "two:same  " in output
-    assert output.endswith("templates can also be given as a directory path\n")
+    assert output.endswith("templates can also be given as a directory path or a git+ URI\n")
 
     qualified = tmp_path / "qualified"
     assert command(["init", "--template", "alpha:unique", str(qualified)], _context(tmp_path)) == 0
@@ -115,7 +115,7 @@ def test_parameters_parse_json_and_validate_before_disk(tmp_path: Path, capsys) 
     source = _template(
         tmp_path / "template",
         """[template]
-id = 'parameters'
+name = 'parameters'
 [template.instantiate]
 file = 'hook.py'
 [template.parameters.n]
@@ -182,7 +182,7 @@ def test_parameter_and_list_combinations_fail(tmp_path: Path, capsys) -> None:
 def test_hook_failure_rolls_back_fresh_target_and_preserves_nonempty_target(tmp_path: Path, capsys) -> None:
     source = _template(
         tmp_path / "failing",
-        "[template]\nid = 'failing'\n[template.instantiate]\nfile = 'hook.py'\n",
+        "[template]\nname = 'failing'\n[template.instantiate]\nfile = 'hook.py'\n",
         files={
             "hook.py": """from pathlib import Path
 Path('hook-created.txt').write_text('partial')
@@ -207,7 +207,7 @@ raise SystemExit(1)
 def test_project_info_is_passed_to_hook(tmp_path: Path) -> None:
     source = _template(
         tmp_path / "info",
-        "[template]\nid = 'info'\n[template.instantiate]\nfile = 'hook.py'\n",
+        "[template]\nname = 'info'\n[template.instantiate]\nfile = 'hook.py'\n",
         files={
             "hook.py": """import json
 from pathlib import Path

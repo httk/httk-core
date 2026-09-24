@@ -2,7 +2,8 @@
 
 ``httk project`` owns the anchor: ``init`` creates one (like ``git init``),
 ``show`` describes it, ``export`` creates a signed redistribution,
-``verify-export`` checks one, and ``import-v1`` migrates a legacy project.
+``verify-export`` checks one, ``import-v1`` migrates a legacy project, and
+``template install|uninstall|list`` manages git-installed project templates.
 """
 
 import argparse
@@ -48,7 +49,15 @@ from .sealing import (
     unseal_project,
     verify_project,
 )
-from .templates import available_templates, check_parameters, instantiate_template, resolve_template
+from .templates import (
+    _selector,
+    available_templates,
+    check_parameters,
+    install_template,
+    instantiate_template,
+    resolve_template,
+    uninstall_templates,
+)
 
 #: Everything a handler may raise that is an operator's problem rather than a
 #: defect. Anything here is reported as ``PROGRAM: message`` and exits ``2``.
@@ -186,15 +195,21 @@ def _init_one(path: Path, arguments: argparse.Namespace) -> None:
         print(f"note: {note}")
 
 
+def _print_templates() -> bool:
+    """Print one ``selector  description`` line per template; return whether any exist."""
+
+    templates = available_templates()
+    if not templates:
+        print("no templates available")
+    for source, template in templates:
+        print(f"{_selector(source, template)}  {template.description or ''}")
+    return bool(templates)
+
+
 def _handle_init(arguments: argparse.Namespace, context: CLIContext) -> int:
     if arguments.list_templates:
-        templates = available_templates()
-        if not templates:
-            print("no templates available")
-        else:
-            for plugin, template in templates:
-                print(f"{plugin}:{template.id}  {template.description or ''}")
-            print("templates can also be given as a directory path")
+        if _print_templates():
+            print("templates can also be given as a directory path or a git+ URI")
         return 0
     failed = False
     for raw_path in arguments.paths:
@@ -284,6 +299,88 @@ def _handle_verify_export(arguments: argparse.Namespace, context: CLIContext) ->
     return 1 if failed else 0
 
 
+def _handle_template_list(arguments: argparse.Namespace, context: CLIContext) -> int:
+    if not arguments.json:
+        _print_templates()
+        return 0
+    rows = [
+        {
+            "name": template.name,
+            "description": template.description,
+            "selector": _selector(source, template),
+            "source": {"kind": "git", "uri": source}
+            if source.startswith("git+")
+            else {"kind": "plugin", "plugin": source},
+        }
+        for source, template in available_templates()
+    ]
+    print(json.dumps(rows, indent=2, sort_keys=True))
+    return 0
+
+
+def _handle_template_install(arguments: argparse.Namespace, context: CLIContext) -> int:
+    installed: list[dict[str, object]] = []
+    failed = False
+    for uri in arguments.uris:
+        try:
+            member = install_template(uri)
+        except _ERRORS as exc:
+            failed = True
+            print(f"{context.program} project template: {uri}: {exc}", file=sys.stderr)
+            continue
+        installed.append({"uri": member.uri, "name": member.names[0]})
+        if not arguments.json:
+            print(f"Installed template {member.names[0]!r} from {member.uri}")
+    if arguments.json:
+        print(json.dumps(installed, indent=2, sort_keys=True))
+    return 1 if failed else 0
+
+
+def _handle_template_uninstall(arguments: argparse.Namespace, context: CLIContext) -> int:
+    failed = False
+    for selector in arguments.selectors:
+        try:
+            removed = uninstall_templates(selector)
+        except _ERRORS as exc:
+            failed = True
+            print(f"{context.program} project template: {selector}: {exc}", file=sys.stderr)
+            continue
+        for member in removed:
+            print(f"Uninstalled template {', '.join(member.names)!r} {member.uri}")
+    return 1 if failed else 0
+
+
+def _add_template_group(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]") -> None:
+    """Mount the ``template list|install|uninstall`` group under the project command."""
+
+    group = subparsers.add_parser(
+        "template", help="manage project templates installed from git", description="Manage project templates"
+    )
+    group.set_defaults(handler=None, help_parser=group)
+    actions = group.add_subparsers(dest="template_action", metavar="ACTION")
+    listing = actions.add_parser(
+        "list", help="list plugin and installed templates", description="List plugin and installed templates"
+    )
+    listing.set_defaults(handler=_handle_template_list, help_parser=listing)
+    listing.add_argument("--json", action="store_true", help="print the templates as one JSON document")
+    install = actions.add_parser(
+        "install", help="fetch and install templates by git URI", description="Fetch and install templates by git URI"
+    )
+    install.set_defaults(handler=_handle_template_install, help_parser=install)
+    install.add_argument("uris", metavar="URI", nargs="+", help="git+https://, git+http:// or git+file:// URI")
+    install.add_argument("--json", action="store_true", help="print the installed templates as one JSON document")
+    uninstall = actions.add_parser(
+        "uninstall", help="remove installed templates", description="Remove installed templates by URI or name"
+    )
+    uninstall.set_defaults(handler=_handle_template_uninstall, help_parser=uninstall)
+    uninstall.add_argument(
+        "selectors",
+        metavar="SELECTOR",
+        nargs="+",
+        help="a pinned URI (one entry), an unpinned URI or a name (every installed commit of that source)",
+    )
+
+
 def _build_init(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "paths",
@@ -293,7 +390,11 @@ def _build_init(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument("--name", metavar="NAME", help="the project name (default: the directory name)")
     parser.add_argument("--description", metavar="TEXT", default="", help="a one-line description")
-    parser.add_argument("--template", metavar="SELECTOR", help="instantiate a project template")
+    parser.add_argument(
+        "--template",
+        metavar="SELECTOR",
+        help="instantiate a project template: a directory, a git+ URI (fetched and installed), PLUGIN:NAME, or NAME",
+    )
     parser.add_argument(
         "--parameter",
         action="append",
@@ -815,6 +916,7 @@ def build_parser(program: str) -> argparse.ArgumentParser:
         build=_build_adopt,
     )
     _add_manifest_group(subparsers)
+    _add_template_group(subparsers)
     _add_leaf(
         subparsers,
         "seal",

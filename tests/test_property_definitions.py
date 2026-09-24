@@ -295,6 +295,7 @@ def test_served_form_prefixes_vendored_runs() -> None:
         "immutable_id",
         "last_modified",
         "_httk_workflow_declaration_uri",
+        "_httk_workflow_definition_uri",
         "_httk_source_id",
     }
     # Renaming keeps the published $id; only the wire name changes.

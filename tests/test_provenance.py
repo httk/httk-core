@@ -93,6 +93,8 @@ def test_run_edges_are_unique_per_side_but_not_across_sides() -> None:
 def test_run_rejects_bad_uri_and_naive_timestamp() -> None:
     with pytest.raises(ValueError, match="workflow_declaration_uri"):
         Run(" ")
+    with pytest.raises(ValueError, match="workflow_definition_uri"):
+        Run(workflow_definition_uri=" ")
     with pytest.raises(ValueError, match="last_modified"):
         Run(last_modified=datetime.datetime(2026, 1, 2, tzinfo=datetime.UTC).replace(tzinfo=None))
 
@@ -136,17 +138,18 @@ def test_provenance_content_id_pins() -> None:
     assert content_id(edge) == "4e18906b8f17b826a58e360963965da3a0729b6d3c282332826801ad4d669c62"
     # A changed value means a storage-identity break; metadata is excluded.
     # Re-pinned Sep-2026: unprefixing the edge vocabulary (_httk_records -> records) rotated this pin.
-    assert content_id(run) == "a165c14eaa6452766463fcaeeb864efd840659b355dba116d802725cb18f38b8"
+    # Re-pinned Sep-2026: Run gained workflow_definition_uri.
+    assert content_id(run) == "9739a5fae5ad7a3986fd2bd380e97de96a0b033aa4ea45daffc4af2ad5766a10"
     # A changed value means a storage-identity break.
     # Re-pinned Sep-2026: unprefixing the source/target vocabulary (_httk_records -> records) rotated this pin.
     assert content_id(link) == "aa28e10aa3a427300c3baa1ec96fecec1eea7937f960ddbc566924f38b97af41"
     assert content_id(run) == content_id(
         Run(
             run.workflow_declaration_uri,
-            run.inputs,
-            run.artifacts,
-            run.outputs,
-            run.source_id,
+            inputs=run.inputs,
+            artifacts=run.artifacts,
+            outputs=run.outputs,
+            source_id=run.source_id,
             id="other",
             immutable_id="other-immutable",
             last_modified=datetime.datetime(2030, 1, 1, tzinfo=datetime.UTC),
@@ -159,6 +162,14 @@ def test_run_source_id_participates_in_content_identity() -> None:
     second = Run(source_id="job-b")
     assert content_id(first) != content_id(second)
     assert content_id(first) == content_id(Run(source_id="job-a"))
+
+
+def test_run_workflow_definition_uri_participates_in_content_identity() -> None:
+    uri = "git+https://github.com/httk/workflows-vasp@458aacb2493586faa2c9ac033334457569aeaf75#vasp-relax"
+    pinned = Run(workflow_definition_uri=uri)
+    assert Run.from_obj({"workflow_definition_uri": uri}) == pinned
+    assert content_id(pinned) != content_id(Run())
+    assert content_id(pinned) != content_id(Run(workflow_declaration_uri=uri))
 
 
 def test_run_ids_are_stored_metadata_outside_content_identity() -> None:

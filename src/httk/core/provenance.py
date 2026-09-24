@@ -131,7 +131,9 @@ class Run:
     ``relationship`` key, reverse derived at serving time); the provider prefix
     is applied at the serving edge, not here.
 
-    :param workflow_declaration_uri: The workflow declaration IRI, if declared.
+    :param workflow_declaration_uri: The workflow declaration URI (its ``$id``), if declared.
+    :param workflow_definition_uri: The workflow definition URI identifying the code
+        that ran, e.g. ``git+https://host/path@<commit>#<subdir>``, if known.
     :param inputs: The labeled entries consumed by the run.
     :param artifacts: The labeled entries created by the run.
     :param outputs: The labeled entries returned by the run.
@@ -146,10 +148,11 @@ class Run:
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
         storage_name="core_run",
         identity_name="core_run",
-        indexes=(("workflow_declaration_uri",), ("last_modified",)),
+        indexes=(("workflow_declaration_uri",), ("workflow_definition_uri",), ("last_modified",)),
     )
 
     workflow_declaration_uri: str | None = None
+    workflow_definition_uri: str | None = None
     inputs: Annotated[tuple[RunEdge, ...], StrongLink("has_input", reverse="is_input", role="input")] = ()
     artifacts: Annotated[tuple[RunEdge, ...], StrongLink("has_artifact", reverse="is_artifact", role="artifact")] = ()
     outputs: Annotated[tuple[RunEdge, ...], StrongLink("has_output", reverse="is_output", role="output")] = ()
@@ -165,6 +168,7 @@ class Run:
 
     def __post_init__(self) -> None:
         _validate_uri(self.workflow_declaration_uri, "workflow_declaration_uri")
+        _validate_uri(self.workflow_definition_uri, "workflow_definition_uri")
         _validate_uri(self.source_id, "source_id")
         for side in ("inputs", "artifacts", "outputs"):
             values = _edges(getattr(self, side))

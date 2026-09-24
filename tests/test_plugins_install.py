@@ -148,7 +148,7 @@ def test_template_is_fully_validated(plugin_dirs: tuple[Path, Path]) -> None:
     template = source / "template"
     template.mkdir()
     (template / "httk_project_template.toml").write_text(
-        "[template]\nid = 'bad'\nparameters = {broken = {type = 'string'}}\n", encoding="utf-8"
+        "[template]\nname = 'bad'\nparameters = {broken = {type = 'string'}}\n", encoding="utf-8"
     )
     (source / "httk_plugin.toml").write_text("[plugin]\nname = 'demo'\ntemplates = ['template']\n", encoding="utf-8")
     with pytest.raises(ValueError, match="plugin 'demo' template 'template'"):
