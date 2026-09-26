@@ -250,6 +250,7 @@ def execute_build(
     keep_env: Sequence[str] = (),
     log_path: Path | None = None,
     stdout_to_stderr: bool = False,
+    env: Mapping[str, str] | None = None,
 ) -> BuildResult:
     """Execute a build and collect its declared artifacts.
 
@@ -259,11 +260,12 @@ def execute_build(
     :param keep_env: Preserve these variable names despite their prefixes.
     :param log_path: Optionally write build metadata at this path.
     :param stdout_to_stderr: Route inherited build standard output to standard error.
+    :param env: Set these variables after prefix stripping, so they reach the build.
     :return: The platform tag, probe output, and collected artifact paths.
     :raises BuildError: If probing, execution, or artifact collection fails.
     """
 
-    environment = _clean_environment(strip_env_prefixes, keep_env)
+    environment = {**_clean_environment(strip_env_prefixes, keep_env), **(env or {})}
     tag, platform_output = platform_tag(spec.platform, env=environment)
     try:
         argv = shlex.split(spec.command)

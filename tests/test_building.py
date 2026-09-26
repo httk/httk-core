@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from httk.core import _manifest
-from httk.core.building import BuildSpec, artifact_excluder, read_manifest_build_spec
+from httk.core.building import BuildSpec, artifact_excluder, execute_build, read_manifest_build_spec
 
 
 def _manifest_file(root: Path, text: str, name: str = "httk_test.toml") -> Path:
@@ -145,3 +145,11 @@ def test_load_manifest_toml_reports_line_and_column(tmp_path: Path) -> None:
     # line/column is surfaced, not the version-specific coordinates.
     with pytest.raises(ValueError, match=r"invalid httk_test\.toml \(line \d+, column \d+\)"):
         _manifest.load_manifest_toml(path, tmp_path)
+
+
+def test_execute_build_env_survives_prefix_stripping(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("HTTK_DROPPED", "gone")
+    spec = BuildSpec("sh -c 'printf %s:%s \"$HTTK_EXTRA\" \"$HTTK_DROPPED\" > out.txt'", ("out.txt",))
+    result = execute_build(tmp_path, spec, strip_env_prefixes=("HTTK_",), env={"HTTK_EXTRA": "kept"})
+    assert result.artifact_files == ("out.txt",)
+    assert (tmp_path / "out.txt").read_text(encoding="utf-8") == "kept:"
