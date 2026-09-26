@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import cast
 
+from ..requirements import check_requirements
 from ..userdirs import data_home
 from .manifest import PLUGIN_MANIFEST, PluginManifest, PluginProgram, parse_plugin_manifest
 
@@ -42,6 +43,17 @@ class InstalledPlugin:
     root: Path
     manifest: PluginManifest
     metadata: Mapping[str, object]
+
+    def check_requires(self) -> None:
+        """Require the plugin's ``[plugin] requires`` to be met before a member is used.
+
+        Every consumer of an installed plugin's members (templates, workflows,
+        programs) calls this one choke point.
+
+        :raises RequirementError: If an installed distribution is missing or too old.
+        """
+
+        check_requirements(self.manifest.requires, f"plugin {self.name!r}")
 
 
 def plugins_home() -> Path:
@@ -118,6 +130,7 @@ def plugin_program(name: str, program: str) -> Path:
     :param name: Name the installed plugin.
     :param program: Name the declared program.
     :return: The program's absolute path.
+    :raises RequirementError: If the plugin's requirements are unmet.
     :raises ValueError: If the plugin or program is unavailable.
     """
 
@@ -125,6 +138,7 @@ def plugin_program(name: str, program: str) -> Path:
     declared = next((entry for entry in installed.manifest.programs if entry.name == program), None)
     if declared is None:
         raise ValueError(f"plugin {name!r} does not declare program {program!r}")
+    installed.check_requires()
     path = installed.root / declared.file
     if installed.metadata.get("built") is False or not path.is_file() or path.is_symlink():
         raise ValueError(f"plugin {name!r} program {program!r} is not built; run: httk plugin build {name}")

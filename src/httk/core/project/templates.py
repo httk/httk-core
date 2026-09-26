@@ -31,6 +31,7 @@ from ..git_sources import (
     uninstall_git_members,
 )
 from ..plugins.installed import InstalledPlugin, installed_plugins
+from ..requirements import Requirement, check_requirements, parse_requirements
 
 TEMPLATE_MANIFEST = "httk_project_template.toml"
 _NAME_RE = re.compile(r"[a-z0-9._-]+")
@@ -76,6 +77,15 @@ class ProjectTemplate:
     instantiate_file: str | None
     parameters: tuple[TemplateParameter, ...]
     root: Path
+    requires: tuple[Requirement, ...] = ()
+
+    def check_requires(self) -> None:
+        """Require the template's ``[template] requires`` to be met.
+
+        :raises RequirementError: If an installed distribution is missing or too old.
+        """
+
+        check_requirements(self.requires, f"template {self.name!r}")
 
 
 @dataclass(frozen=True)
@@ -192,9 +202,12 @@ def parse_template_manifest(directory: Path) -> ProjectTemplate:
     raw = load_manifest_toml(root / TEMPLATE_MANIFEST, root)
     reject_unknown(raw, {"template"}, "", root)
     template = require_table(raw.get("template"), "[template]", root)
-    reject_unknown(template, {"name", "description", "files", "instantiate", "parameters"}, "[template]", root)
+    reject_unknown(
+        template, {"name", "description", "requires", "files", "instantiate", "parameters"}, "[template]", root
+    )
     name = _template_name(template.get("name"), root)
     description = optional_string(template, "description", "[template]", root)
+    requires = parse_requirements(template.get("requires", []), f"{root}: [template].requires")
 
     instantiate_file: str | None = None
     if "instantiate" in template:
@@ -204,11 +217,11 @@ def parse_template_manifest(directory: Path) -> ProjectTemplate:
 
     files = _template_files(template, root, instantiate_file)
     parameters = _template_parameters(template, root, instantiate_file is not None)
-    return ProjectTemplate(name, description, files, instantiate_file, parameters, root)
+    return ProjectTemplate(name, description, files, instantiate_file, parameters, root, requires)
 
 
-def _plugin_template_list() -> list[tuple[str, ProjectTemplate]]:
-    result: list[tuple[str, ProjectTemplate]] = []
+def _plugin_template_list() -> list[tuple[InstalledPlugin, ProjectTemplate]]:
+    result: list[tuple[InstalledPlugin, ProjectTemplate]] = []
     for plugin in installed_plugins():
         for member in plugin.manifest.templates:
             try:
@@ -216,7 +229,7 @@ def _plugin_template_list() -> list[tuple[str, ProjectTemplate]]:
             except (OSError, ValueError) as exc:
                 _LOGGER.warning("Skipping template %r from plugin %s: %s", member, plugin.name, exc)
                 continue
-            result.append((plugin.name, template))
+            result.append((plugin, template))
     return result
 
 
@@ -231,7 +244,7 @@ def available_templates() -> tuple[tuple[str, ProjectTemplate], ...]:
         source is the plugin name or the canonical ``git+`` URI.
     """
 
-    result = _plugin_template_list()
+    result = [(plugin.name, template) for plugin, template in _plugin_template_list()]
     for member in installed_git_members(_KIND):
         try:
             result.append((member.uri, _installed_template(member)))
@@ -255,10 +268,16 @@ def install_template(uri: str) -> InstalledGitMember:
 
     :param uri: Supply a ``git+…`` URI whose member holds ``httk_project_template.toml``.
     :return: The installed entry; its ``uri`` is the canonical pinned URI.
+    :raises RequirementError: If the template's ``requires`` are unmet; no entry is written.
     :raises ValueError: If the URI is invalid, git fails, or the template is missing or invalid.
     """
 
-    return install_git_member(_KIND, uri, TEMPLATE_MANIFEST, lambda member: (parse_template_manifest(member).name,))
+    def names(member: Path) -> tuple[str]:
+        template = parse_template_manifest(member)
+        template.check_requires()
+        return (template.name,)
+
+    return install_git_member(_KIND, uri, TEMPLATE_MANIFEST, names)
 
 
 def uninstall_templates(selector: str) -> tuple[InstalledGitMember, ...]:
@@ -276,7 +295,7 @@ def uninstall_templates(selector: str) -> tuple[InstalledGitMember, ...]:
 
     if not selector.startswith("git+") and not any(selector in member.names for member in installed_git_members(_KIND)):
         name = selector.split(":", 1)[1] if selector.count(":") == 1 else selector
-        plugins = sorted({plugin for plugin, template in _plugin_template_list() if template.name == name})
+        plugins = sorted({plugin.name for plugin, template in _plugin_template_list() if template.name == name})
         if plugins:
             raise ValueError(
                 f"template {selector!r} is provided by plugin {', '.join(plugins)}; "
@@ -290,15 +309,27 @@ def resolve_template(selector: str) -> ProjectTemplate:
 
     A ``git+…`` URI is fetched and installed (see :func:`install_template`). A
     bare name considers plugin templates and installed git templates; it must
-    select exactly one of them.
+    select exactly one of them. The selected template's ``requires``, and those
+    of the plugin providing it, are checked before it is returned.
 
     :param selector: Select an explicit directory, ``git+…`` URI, ``plugin:name``, or bare name.
     :return: The selected project template.
+    :raises RequirementError: If the template's or its plugin's requirements are unmet.
     :raises ValueError: If the selector cannot identify exactly one template.
     """
 
+    plugin, template = _resolve_template(selector)
+    if plugin is not None:
+        plugin.check_requires()
+    template.check_requires()
+    return template
+
+
+def _resolve_template(selector: str) -> tuple[InstalledPlugin | None, ProjectTemplate]:
+    """Resolve *selector* to its template and the plugin providing it, if any."""
+
     if selector.startswith("git+"):
-        return _installed_template(install_template(selector))
+        return None, _installed_template(install_template(selector))
 
     candidate = Path(selector).expanduser()
     if (
@@ -307,7 +338,7 @@ def resolve_template(selector: str) -> ProjectTemplate:
         or selector.startswith(".")
         or (candidate.is_dir() and (candidate / TEMPLATE_MANIFEST).is_file())
     ):
-        return parse_template_manifest(candidate)
+        return None, parse_template_manifest(candidate)
 
     if selector.count(":") == 1:
         plugin_name, name = selector.split(":")
@@ -316,22 +347,24 @@ def resolve_template(selector: str) -> ProjectTemplate:
                 continue
             for template in _plugin_templates(plugin):
                 if template.name == name:
-                    return template
+                    return plugin, template
             raise ValueError(f"plugin {plugin_name!r} has no template {name!r}")
         raise ValueError(f"plugin {plugin_name!r} is not installed")
 
-    matches = [(plugin, template) for plugin, template in _plugin_template_list() if template.name == selector]
-    selectors = [_selector(source, template) for source, template in matches]
+    matches: list[tuple[InstalledPlugin | None, ProjectTemplate]] = [
+        (plugin, template) for plugin, template in _plugin_template_list() if template.name == selector
+    ]
+    selectors = [f"{plugin.name}:{template.name}" for plugin, template in matches if plugin is not None]
     try:
         installed = resolve_installed_name(_KIND, selector)
     except ValueError:  # several git sources claim the name: list every claimant
         installed = None
         selectors += [member.uri for member in installed_git_members(_KIND) if selector in member.names]
     if installed is not None:
-        matches.append((installed.uri, _installed_template(installed)))
+        matches.append((None, _installed_template(installed)))
         selectors.append(installed.uri)
     if len(selectors) == 1:
-        return matches[0][1]
+        return matches[0]
     if selectors:
         raise ValueError(f"template name {selector!r} is ambiguous; use one of: {', '.join(selectors)}")
     known = ", ".join(_selector(source, template) for source, template in available_templates()) or "none"
@@ -518,10 +551,12 @@ def instantiate_template(
     :param project_info: Supply project metadata for the hook request.
     :param timeout: Limit hook execution time in seconds.
     :return: Hook notes, or an empty tuple when no notes are returned.
+    :raises RequirementError: If the template's ``requires`` are unmet; nothing is copied.
     :raises ValueError: If validation, copying, or hook execution fails.
     """
 
     root = Path(project_root).expanduser().resolve()
+    template.check_requires()
     checked = check_parameters(template, parameters)
     _copy_members(template, root)
     if template.instantiate_file is None:

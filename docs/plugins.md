@@ -12,7 +12,9 @@ httk plugin install 'git+https://github.com/example/my-plugin.git@v1'
 
 The source may be a directory, a `.tar`/`.tar.gz`/`.zip` archive, an HTTP(S)
 archive URL, or a `git+https://…@ref` source. Use `--force` to replace an
-installed plugin with the same name.
+installed plugin with the same name. A plugin may declare minimum versions of
+the distributions it needs, as `requires = ["httk-workflow>=2.2.0"]` under
+`[plugin]`; an unmet requirement refuses installation and every later use.
 
 ```console
 httk plugin list

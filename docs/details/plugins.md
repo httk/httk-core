@@ -13,6 +13,7 @@ keys are errors. A complete manifest can look like this:
 [plugin]
 name = "example-tools"
 description = "Templates and command-line tools"
+requires = ["httk-workflow>=2.2.0"]
 templates = ["templates/starter"]
 workflows = ["workflows/example"]
 
@@ -33,6 +34,22 @@ must not start with `-`. The same rule applies to program names in
 `[plugin.programs.<name>]`.
 
 `description` is an optional string.
+
+`requires` is an optional array of minimum-version requirements on installed
+Python distributions, each of the form `NAME>=VERSION`, for example
+`"httk-atomistic>=2.1.0"`. Only `>=` is supported. `NAME` is any PEP 508
+distribution name, compared after PEP 503 normalization, and may appear only
+once; `VERSION` must be a plain release `N(.N)*`. The requirements are checked
+against the running interpreter (see {py:mod}`httk.core.requirements`): a
+missing distribution is unmet, and so is a pre or dev release of the required
+release (`2.2.0rc1` does not satisfy `>=2.2.0`), while a post release or local
+label (`2.2.0.post1`, `2.2.0+g1234`) does. They are checked when the plugin is
+installed, before anything is placed, and again whenever an installed
+plugin's members are used: resolving one of its templates, running or
+locating one of its programs (`httk plugin run`, `httk plugin path`), and
+resolving one of its workflows where the workflow tooling supports it. An
+unmet requirement is an error that lists every unmet entry and the installed
+version. `httk plugin show` lists the requirements.
 
 `templates` and `workflows` are optional arrays of relative POSIX directory
 members. A template directory must contain a regular, non-symlink
@@ -85,8 +102,9 @@ Git source URLs use `git+http://`, `git+https://`, or `git+file://`; SSH
 shorthand and `git+ssh://` are rejected. A ref after `@` is checked out, and
 the resolved commit is recorded.
 
-The installer validates the plugin manifest and fully validates every bundled
-project-template manifest while the source is still staged. It then checks the
+The installer validates the plugin manifest, checks its `requires`, and fully
+validates every bundled project-template manifest while the source is still
+staged. It then checks the
 destination name and program-shim collisions before placing anything under
 `plugins/<name>/`. With `--force`, an existing plugin of that name is moved
 aside, its owned shims are removed, and the replacement is placed atomically.

@@ -20,6 +20,7 @@ from typing import cast
 from ..building import BuildError, BuildResult, execute_build
 from ..digests import sha256_file, tree_digest
 from ..project import templates as _templates
+from ..requirements import check_requirements
 from .installed import PLUGIN_METADATA, InstalledPlugin, plugin_root, plugins_home, shims_home
 from .manifest import PluginManifest, parse_plugin_manifest
 
@@ -405,6 +406,7 @@ def install_plugin(source: str | Path, *, force: bool = False) -> InstalledPlugi
     :param source: Supply the local plugin directory.
     :param force: Replace an installed plugin with the same name.
     :return: The installed plugin.
+    :raises RequirementError: If the plugin's ``requires`` are unmet; nothing is placed.
     :raises ValueError: If the source or plugin is invalid or cannot be built.
     """
 
@@ -415,6 +417,7 @@ def install_plugin(source: str | Path, *, force: bool = False) -> InstalledPlugi
     try:
         acquisition, original_source = _acquire(source, staging)
         manifest = parse_plugin_manifest(staging)
+        check_requirements(manifest.requires, f"plugin {manifest.name!r}")
 
         for member in manifest.templates:
             try:

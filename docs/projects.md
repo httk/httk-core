@@ -192,6 +192,7 @@ keys are errors.
 [template]
 name = "starter"
 description = "A small starter project"
+requires = ["httk-atomistic>=2.1.0"]
 files = ["README.md", "src"]
 
 [template.instantiate]
@@ -210,6 +211,15 @@ default = 1
 
 `name` is required and must match `[a-z0-9._-]+`; it must not be `.` or `..`,
 and must not start with `-`. `description` is an optional string.
+
+`requires` is an optional array of minimum-version requirements `NAME>=VERSION`
+on installed Python distributions, with the same grammar and comparison as the
+plugin manifest's `requires` (see {doc}`/details/plugins`): only `>=`, a plain
+release `N(.N)*`, and pre/dev releases of the required release do not satisfy
+it. They are checked by `httk project template install`, which refuses an
+unmet template without writing its entry, and whenever the template is
+resolved or instantiated; a plugin template also requires its plugin's
+`requires`. `httk project template list --json` includes them.
 
 `files` is an optional array of relative POSIX members. Each member may be a
 regular file or a directory. Members must remain below the template root,

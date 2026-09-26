@@ -307,6 +307,7 @@ def _handle_template_list(arguments: argparse.Namespace, context: CLIContext) ->
         {
             "name": template.name,
             "description": template.description,
+            "requires": [requirement.text for requirement in template.requires],
             "selector": _selector(source, template),
             "source": {"kind": "git", "uri": source}
             if source.startswith("git+")

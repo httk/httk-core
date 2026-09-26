@@ -15,6 +15,7 @@ from .._manifest import (
     require_table,
 )
 from ..building import BuildSpec, artifact_excluder, read_manifest_build_spec
+from ..requirements import Requirement, parse_requirements
 
 PLUGIN_MANIFEST = "httk_plugin.toml"
 _NAME_RE = re.compile(r"[a-z0-9._-]+")
@@ -47,6 +48,7 @@ class PluginManifest:
     :param programs: Describe declared utility programs.
     :param build: Describe the optional build.
     :param root: Locate the parsed plugin directory.
+    :param requires: Give the minimum-version requirements on installed distributions.
     """
 
     name: str
@@ -56,6 +58,7 @@ class PluginManifest:
     programs: tuple[PluginProgram, ...]
     build: BuildSpec | None
     root: Path
+    requires: tuple[Requirement, ...] = ()
 
 
 def _name(value: object, path: str, directory: Path) -> str:
@@ -127,9 +130,12 @@ def parse_plugin_manifest(directory: Path) -> PluginManifest:
     raw = load_manifest_toml(root / PLUGIN_MANIFEST, root)
     reject_unknown(raw, {"plugin"}, "", root)
     plugin = require_table(raw.get("plugin"), "[plugin]", root)
-    reject_unknown(plugin, {"name", "description", "templates", "workflows", "programs", "build"}, "[plugin]", root)
+    reject_unknown(
+        plugin, {"name", "description", "requires", "templates", "workflows", "programs", "build"}, "[plugin]", root
+    )
     name = _name(plugin.get("name"), "[plugin]", root)
     description = optional_string(plugin, "description", "[plugin]", root)
+    requires = parse_requirements(plugin.get("requires", []), f"{root}: [plugin].requires")
     build = read_manifest_build_spec(
         root,
         manifest_name=PLUGIN_MANIFEST,
@@ -147,4 +153,4 @@ def parse_plugin_manifest(directory: Path) -> PluginManifest:
                     f"{left_kind} directory {left!r} overlaps {right_kind} directory {right!r}",
                 )
     programs = _programs(plugin, root, build)
-    return PluginManifest(name, description, templates, workflows, programs, build, root)
+    return PluginManifest(name, description, templates, workflows, programs, build, root, requires)

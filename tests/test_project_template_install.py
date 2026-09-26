@@ -66,7 +66,13 @@ def test_install_list_and_uninstall(tmp_path: Path, capsys: pytest.CaptureFixtur
     assert capsys.readouterr().out == f"{uri}  From git\n"
     assert command(["template", "list", "--json"], _context(tmp_path)) == 0
     assert json.loads(capsys.readouterr().out) == [
-        {"name": "starter", "description": "From git", "selector": uri, "source": {"kind": "git", "uri": uri}}
+        {
+            "name": "starter",
+            "description": "From git",
+            "requires": [],
+            "selector": uri,
+            "source": {"kind": "git", "uri": uri},
+        }
     ]
     assert resolve_template("starter").root.name == "tpl"
 

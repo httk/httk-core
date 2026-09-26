@@ -66,6 +66,7 @@ def _template_details(plugin) -> list[dict[str, object]]:
 
 def _description(plugin) -> dict[str, object]:
     description = dict(plugin.metadata)
+    description["requires"] = [requirement.text for requirement in plugin.manifest.requires]
     description["templates"] = _template_details(plugin)
     description["workflows"] = list(plugin.manifest.workflows)
     description["programs"] = [
@@ -84,6 +85,7 @@ def _render(description: dict[str, object]) -> str:
         _field("source", description.get("source")),
         _field("installed_at", description.get("installed_at")),
         _field("built", description.get("built")),
+        _field("requires", ", ".join(str(text) for text in _list_value(description, "requires"))),
         "templates:",
     ]
     for template in _list_value(description, "templates"):
