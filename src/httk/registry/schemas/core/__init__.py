@@ -1,6 +1,6 @@
-"""Register httk-core's vendored OPTIMADE entry-type schemas."""
+"""Register httk-core's vendored entry-type and property schemas."""
 
-from httk.core import register_entry_type_definition
+from httk.core import register_entry_type_definition, register_property_definition
 
 register_entry_type_definition(
     definition_id="https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/references",
@@ -21,4 +21,9 @@ register_entry_type_definition(
 register_entry_type_definition(
     definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/records",
     resource="httk.registry.schemas.core:records.json",
+)
+
+register_property_definition(
+    definition_id="https://schemas.httk.org/defs/v0.1/properties/core/total_energy",
+    resource="httk.registry.schemas.core:total_energy.json",
 )

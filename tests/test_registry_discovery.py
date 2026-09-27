@@ -20,7 +20,9 @@ from httk.core.register import (
     known_entry_families,
     known_entry_records,
     known_entry_type_definitions,
+    known_property_definitions,
     load_entry_type_definition,
+    load_property_definition,
     register_entry_record,
     register_entry_type_definition,
     register_property_definition,
@@ -75,6 +77,14 @@ def test_discovery_registers_httk_entry_types_families_and_records() -> None:
     assert known_entry_records(family="runs") == ["core-run"]
     assert {"runs", "records"} <= set(known_entry_families())
     assert resolve_entry_family("runs") is httk.core.provenance.RunEntry
+
+
+def test_discovery_registers_core_property_definitions() -> None:
+    total_energy_id = "https://schemas.httk.org/defs/v0.1/properties/core/total_energy"
+    assert total_energy_id in known_property_definitions()
+    total_energy = load_property_definition(total_energy_id)
+    assert total_energy.definition_id == total_energy_id
+    assert total_energy.name == "total_energy"
 
 
 def test_discovery_walks_io_and_not_flat_registry_tiers(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

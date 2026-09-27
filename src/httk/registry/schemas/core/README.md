@@ -1,4 +1,4 @@
-# Vendored entry-type definitions
+# Vendored entry-type and property definitions
 
 This directory holds the authoritative, supported copies of the OPTIMADE
 standard *entry-type definition* documents that *httk-core* serves. Each JSON
@@ -36,6 +36,16 @@ re-copying from the build output.
 | `runs.json` | `https://schemas.httk.org/defs/v0.1/entrytypes/runs` | `schemas-scource/output/defs/v0.1/entrytypes/runs.json` | [`LICENSE.httk`](./LICENSE.httk) |
 | `records.json` | `https://schemas.httk.org/defs/v0.1/entrytypes/records` | `schemas-scource/output/defs/v0.1/entrytypes/records.json` | [`LICENSE.httk`](./LICENSE.httk) |
 
+## httk-authored property definitions
+
+These register as IRI-keyed property definitions (`load_property_definition`)
+when `httk.core` is imported, so modules depending only on *httk-core* (for
+example *httk-workflow* collect hooks validating output `ref`s) resolve them.
+
+| File | Identity IRI | Source | License |
+| --- | --- | --- | --- |
+| `total_energy.json` | `https://schemas.httk.org/defs/v0.1/properties/core/total_energy` | `schemas-scource/output/defs/v0.1/properties/core/total_energy.json` | [`LICENSE.httk`](./LICENSE.httk) |
+
 ## License
 
 The three Materials-Consortia definitions above are distributed under the MIT
@@ -49,6 +59,7 @@ The httk-authored definitions are distributed under the MIT License; see
 Run `make optimade-defs` from the repository root to re-fetch the three
 Materials-Consortia files (and the `LICENSE`) from the URLs above. Refresh the
 httk-authored files by re-copying `runs.json` and `records.json` from the local
-`schemas-scource/output/defs/v0.1/entrytypes/` build output. These are source
+`schemas-scource/output/defs/v0.1/entrytypes/` build output and
+`total_energy.json` from `schemas-scource/output/defs/v0.1/properties/core/`. These are source
 tasks; ordinary builds and tests read the committed copies offline. After a
 refresh, review the diff and re-commit only intended version changes.
