@@ -12,6 +12,7 @@ from .entries import (
     ReferenceView,
     decode_optimade_value,
     decode_optional_timestamp,
+    served_entry,
 )
 from .filter import FilterAst, ParserError, ParserSyntaxError, parse_optimade_filter, parse_optimade_filter_raw
 from .resources import (
@@ -64,4 +65,5 @@ __all__ = [
     "parse_optimade_filter_raw",
     "redact_optimade_document_text",
     "redact_optimade_url",
+    "served_entry",
 ]

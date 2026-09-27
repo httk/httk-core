@@ -9,6 +9,7 @@ delegated field) is requested.
 """
 
 import datetime
+import json
 import logging
 import re
 from collections.abc import Callable, Mapping
@@ -22,9 +23,10 @@ from httk.core._sentinel import MISSING as _MISSING
 
 from ..entry_types import Calculation, File, Reference
 from ..property_definitions import EntryTypeDefinition, PropertyDefinition, standard_entry_type
-from ..register.entries import optimade_entry_binding
+from ..register.entries import entry_family_info, known_entry_families, optimade_entry_binding, resolve_entry_family
+from ..register.schemas import load_entry_type_definition
 from ..storage.markers import stored_property
-from .resources import FrozenJson, OptimadeResource, optimade_document_root
+from .resources import FrozenJson, OptimadeDocument, OptimadeResource, OptimadeSchemaSnapshot, optimade_document_root
 
 type OptimadeValueDecoder = Callable[[object, PropertyDefinition], object]
 
@@ -526,3 +528,64 @@ class CalculationView(OptimadeEntryView):
 
     backend_class = OptimadeCalculation
     record_class = Calculation
+
+
+def served_entry(
+    entry_type: str,
+    attributes: Mapping[str, object],
+    *,
+    definition: EntryTypeDefinition | str | None = None,
+    entry_id: str = "served",
+) -> object:
+    """Build a typed entry from served-form attributes through its registered binding.
+
+    The attributes are wrapped in a synthetic single-entry resource whose
+    ``/info`` snapshot declares every property of the entry-type definition by
+    ``$id``, so standard names and database-specific extensions keep their
+    meaning. The attributes are read exactly as a remote served entry would be;
+    this is not a general identity round-trip (e.g. a null
+    ``_httk_*_precision`` is treated as absent, so precision is inferred from
+    the decimal text). The binding is selected by the definition's IRI, or by
+    the IRI an extended definition extends.
+
+    :param entry_type: The OPTIMADE entry type name, e.g. ``"files"``.
+    :param attributes: The entry's served-form attributes; they must be JSON-serializable.
+    :param definition: The entry-type definition, its registered IRI, or ``None``
+        for the definition of the entry family registered under the name
+        ``entry_type``, which must have a binding (the family's ``entry_type_definition()``
+        when it provides one, otherwise its registered definition).
+    :param entry_id: The synthetic resource ``id``.
+    :return: The binding's view over its backend over the synthetic resource.
+    :raises ValueError: If no definition and binding can be resolved, or the
+        attributes are not JSON-serializable.
+    """
+
+    if definition is None:
+        # Family registry names are unique, so at most one family matches.
+        family_iri = entry_family_info(entry_type)[1] if entry_type in known_entry_families() else None
+        if family_iri is None or optimade_entry_binding(family_iri) is None:
+            raise ValueError(f"cannot build a served {entry_type!r} entry: no entry family with an OPTIMADE binding")
+        factory = getattr(resolve_entry_family(entry_type), "entry_type_definition", None)
+        definition = cast(EntryTypeDefinition, factory()) if callable(factory) else family_iri
+    if isinstance(definition, str):
+        definition = load_entry_type_definition(definition)
+    if not isinstance(definition, EntryTypeDefinition):
+        raise ValueError(f"the {entry_type!r} definition must be an EntryTypeDefinition or a registered IRI")
+    iri = definition.definition_id or definition.extends_id
+    binding = None if iri is None else optimade_entry_binding(iri)
+    if binding is None:
+        raise ValueError(f"no OPTIMADE entry binding is registered for the {entry_type!r} definition {iri!r}")
+    properties = {
+        name: {"$id": prop.definition_id} for name, prop in definition.properties.items() if prop.definition_id
+    }
+    try:
+        text = json.dumps({"data": {"id": entry_id, "type": entry_type, "attributes": dict(attributes)}})
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"served {entry_type!r} attributes must be JSON-serializable: {exc}") from exc
+    document = OptimadeDocument(text, "about:httk-served-entry")
+    info = OptimadeDocument(
+        json.dumps({"meta": {"api_version": "1.3.0"}, "data": {"properties": properties}}),
+        "about:httk-served-entry/info",
+    )
+    resource = OptimadeResource(document, 0, OptimadeSchemaSnapshot(entry_type, info))
+    return binding.resolve_view()(binding.resolve_backend()(resource))

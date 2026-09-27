@@ -243,6 +243,26 @@ once per service origin through the report channel (`extra={"context":
 `last_modified` that is present but not a parseable timestamp still raises, and
 a *required* timestamp keeps raising unconditionally.
 
+`httk.core.optimade.served_entry(entry_type, attributes)` goes the other way:
+it turns a served-form attribute mapping (for example an entry emitted by an
+external tool) into a typed entry through the registered binding. It wraps the
+attributes in a synthetic single-entry resource whose `/info` snapshot declares
+every property of the entry-type definition by `$id`, then returns the
+binding's view over its backend. The attributes are read exactly as a remote
+served entry would be, which is not a general identity round-trip: for example,
+a null `_httk_*_precision` is treated as absent, so precision is inferred from
+the decimal text. By default the definition comes from the entry family
+registered under the entry type's name, so family extensions such as `_httk_*`
+properties keep their meaning; pass `definition=` (an `EntryTypeDefinition` or
+a registered IRI) to choose it explicitly.
+
+```python
+from httk.core.optimade import served_entry
+
+entry = served_entry("files", {"url": "https://example.org/data.txt", "name": "data.txt"})
+print(type(entry).__name__, entry.name)
+```
+
 ## Entry-type record models
 
 `httk.core.entry_types` provides one frozen dataclass per standard entry type
