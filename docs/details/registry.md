@@ -2,15 +2,16 @@
 
 `httk-core` keeps capability registration separate from capability imports. A
 capability module ships a package below one of the reserved namespaces:
-`httk.registry.<tier>.<module>`. The four tiers are:
+`httk.registry.<tier>.<module>`. The five tiers are:
 
 - `cli` for top-level command registrations;
+- `codes` for simulation-code support packages;
 - `entries` for entry providers, records, families, and OPTIMADE bindings;
 - `io` for readers, writers, format adapters, and serializers;
 - `schemas` for vendored definition documents.
 
 The tier directories are PEP 420 namespace packages: they have no
-`__init__.py`. Discovery walks exactly these four tiers. It imports each
+`__init__.py`. Discovery walks exactly these five tiers. It imports each
 registration package eagerly, so installation and registration errors fail
 fast. Registration packages must only record lazy references: `"module:callable"`
 for code and `"package:filename.json"` for schema resources. They must not
@@ -206,6 +207,21 @@ The core-owned command groups own their own leaves; a module extends the
 `httk project` group not by mounting CLI leaves but by registering a project
 *member kind* with `register_project_member_kind(kind, handler)`, which the
 core seal, manifest, repair, and verify verbs delegate to (see {doc}`/projects`).
+
+## Simulation codes
+
+`register_code(name, bridge=..., bash_api=...)` registers a simulation-code
+support package, typically an `httk-workflow-<code>` distribution providing
+`httk.codes.<code>`, from a registration package under
+`httk.registry.codes.<code>`. `bridge` is the dotted path of a module defining
+`add_commands(subparsers)` and `run_command(namespace) -> int`, and the
+optional `bash_api` is a `"package:filename"` resource holding the code's Bash
+API script. The name, matching `[a-z][a-z0-9_]*`, also serves as the `<name>-`
+bridge command prefix and the environment-variable stem. Registration stores
+strings only; `code_support(name)` returns a `CodeSupport` whose
+`resolve_bridge()` and `bash_api_path()` import the bridge and locate the script
+on demand, and `known_codes()` lists the registered names. Re-registering a name
+with identical values is a no-op; different values are an error.
 
 ## Definition prefixes
 

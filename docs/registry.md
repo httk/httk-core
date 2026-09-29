@@ -1,7 +1,7 @@
 # Module registry
 
 Capability modules extend *httk₂* by shipping small registration packages
-under the reserved `httk.registry.<tier>.<module>` namespaces (`cli`,
+under the reserved `httk.registry.<tier>.<module>` namespaces (`cli`, `codes`,
 `entries`, `io`, `schemas`). Discovery imports them eagerly at
 `import httk.core`; they record **lazy references** (`"module:callable"`), so
 nothing heavy loads until first use.

@@ -31,8 +31,8 @@ def _import_registry_packages(path, prefix: str) -> None:
 def discover_and_register() -> None:
     """Eagerly import registration packages from the available registry tiers.
 
-    The reserved ``cli``, ``entries``, ``io``, and ``schemas`` sub-namespaces
-    are each walked independently. Registration packages are imported eagerly
+    The reserved ``cli``, ``codes``, ``entries``, ``io``, and ``schemas``
+    sub-namespaces are each walked independently. Registration packages are imported eagerly
     so installation errors fail fast, but they must only register lazy
     references: they must not resolve registries or load resource data while
     being imported.
@@ -40,7 +40,7 @@ def discover_and_register() -> None:
     importlib.import_module("httk.registry")
 
     prefix = "httk.registry."
-    for namespace in ("cli", "entries", "io", "schemas"):
+    for namespace in ("cli", "codes", "entries", "io", "schemas"):
         namespace_name = f"{prefix}{namespace}"
         if importlib.util.find_spec(namespace_name) is None:
             continue
