@@ -24,11 +24,29 @@ def test_standard_entry_type_counts() -> None:
     assert len(standard_entry_type("calculations").properties) == 4
 
 
-def test_standard_entry_type_unknown_lists_known() -> None:
+def test_standard_entry_type_unknown_lists_available() -> None:
     with pytest.raises(ValueError) as excinfo:
-        standard_entry_type("structures")
+        standard_entry_type("no_such_entry_type")
     message = str(excinfo.value)
     assert "references" in message and "files" in message and "calculations" in message
+    assert "httk-atomistic" in message
+
+
+def test_standard_entry_type_registered_structures() -> None:
+    pytest.importorskip("httk.atomistic")
+    structures = standard_entry_type("structures")
+    assert structures.name == "structures"
+    assert structures.definition_id == "https://schemas.optimade.org/defs/v1.3/entrytypes/optimade/structures"
+
+
+def test_standard_entry_type_picks_highest_version(monkeypatch: pytest.MonkeyPatch) -> None:
+    from httk.core.register import schemas
+
+    base = "https://schemas.optimade.org/defs/v{}/entrytypes/optimade/fake"
+    iris = [base.format("1.2"), base.format("1.10"), "https://example.org/defs/v9.9/entrytypes/optimade/fake"]
+    monkeypatch.setattr(schemas, "known_entry_type_definitions", lambda: iris)
+    monkeypatch.setattr(schemas, "load_entry_type_definition", lambda iri: iri)
+    assert standard_entry_type("fake") == base.format("1.10")
 
 
 def test_vendored_canonical_ids_and_format_mix() -> None:

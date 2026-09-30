@@ -775,32 +775,42 @@ class EntryTypeDefinition:
 
 
 _STANDARD_ENTRY_TYPES: tuple[str, ...] = ("references", "files", "calculations")
+_STANDARD_ENTRY_IRI = re.compile(r"https://schemas\.optimade\.org/defs/v(\d+)\.(\d+)/entrytypes/optimade/([^/]+)")
 
 
 def standard_entry_type(name: str) -> EntryTypeDefinition:
-    """Return one of httk-core's vendored standard OPTIMADE entry types.
+    """Return a standard OPTIMADE entry type by name.
 
-    Supported names are ``"references"``, ``"files"``, and ``"calculations"``;
-    an unknown name raises a :class:`ValueError` listing the known ones. The
-    ``structures`` standard is vendored by *httk-atomistic*, not httk-core.
+    The vendored ``"references"``, ``"files"`` and ``"calculations"`` are served
+    first. Any other name is looked up among the registered standard-namespace
+    OPTIMADE entry-type definitions (for example ``"structures"``, registered by
+    *httk-atomistic*); when several versions are registered the highest
+    ``(major, minor)`` one wins.
 
     :param name: The standard entry type name to load.
-    :return: The vendored entry-type definition.
-    :raises ValueError: If ``name`` is not vendored by httk-core.
+    :return: The entry-type definition.
+    :raises ValueError: If no such standard entry type is vendored or registered.
     """
-    if name not in _STANDARD_ENTRY_TYPES:
-        raise ValueError(
-            "Unknown standard entry type: '"
-            + name
-            + "'. Known standard entry types in httk-core: "
-            + ", ".join(_STANDARD_ENTRY_TYPES)
-            + "."
-        )
+    from .register.schemas import known_entry_type_definitions, load_entry_type_definition
+
     definition_ids = {
         "references": "https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/references",
         "files": "https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files",
         "calculations": "https://schemas.optimade.org/defs/v1.3/entrytypes/optimade/calculations",
     }
-    from .register.schemas import load_entry_type_definition
-
-    return load_entry_type_definition(definition_ids[name])
+    if name in definition_ids:
+        return load_entry_type_definition(definition_ids[name])
+    found: dict[str, tuple[tuple[int, int], str]] = {}
+    for iri in known_entry_type_definitions():
+        match = _STANDARD_ENTRY_IRI.fullmatch(iri)
+        if match is not None:
+            version = (int(match[1]), int(match[2]))
+            if match[3] not in found or version > found[match[3]][0]:
+                found[match[3]] = (version, iri)
+    if name not in found:
+        available = ", ".join(sorted({*_STANDARD_ENTRY_TYPES, *found}))
+        raise ValueError(
+            f"No registered standard OPTIMADE entry type named '{name}' exists. Available: {available}. "
+            "The standard structures and trajectories entry types are vendored by httk-atomistic."
+        )
+    return load_entry_type_definition(found[name][1])
