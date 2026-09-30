@@ -92,7 +92,8 @@ class Property:
     The Python annotation supplies the type (``str``, ``int``, ``float``, or
     ``bool``, optionally nullable). Only marked fields become served attributes.
     Use an existing :class:`~httk.core.property_definitions.PropertyDefinition`
-    as the annotation metadata instead when a curated definition exists.
+    as the annotation metadata instead when a curated definition exists; a
+    registered curated definition is served under its registered prefix.
 
     :param description: Scientific meaning of the field, including normalization.
     :param unit: Property unit; omitted means dimensionless.
@@ -211,7 +212,7 @@ def entry_record[T: EntryRecord](name: str) -> Callable[[type[T]], type[T]]:
                     unit=marker.unit,
                 )
             else:
-                definition = marker
+                definition = marker.served_form()
                 if definition.optimade_type != fulltype or (nullable and not definition.nullable):
                     raise ValueError(f"{item.name}: property definition conflicts with the Python field type")
             served_name = definition.name

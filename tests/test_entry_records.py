@@ -6,7 +6,15 @@ from typing import Annotated
 
 import pytest
 
-from httk.core import DataEntryRecord, EntryRecord, Property, PropertyDefinition, content_id, entry_record
+from httk.core import (
+    DataEntryRecord,
+    EntryRecord,
+    Property,
+    PropertyDefinition,
+    content_id,
+    entry_record,
+    load_property_definition,
+)
 from httk.core.register import known_entry_families, known_entry_records
 from httk.core.storage import stored_property_projections
 
@@ -210,3 +218,26 @@ def test_served_property_cannot_be_skipped_or_class_metadata():
 
     with pytest.raises(TypeError, match="instance field"):
         entry_record("tests.class-value")(ClassValue)
+
+
+TOTAL_ENERGY_ID = "https://schemas.httk.org/defs/v0.1/properties/core/total_energy"
+
+
+def test_curated_definition_is_served_under_registered_prefix():
+    curated = load_property_definition(TOTAL_ENERGY_ID)
+
+    @entry_record("tests.curated_energy")
+    class Curated(DataEntryRecord):
+        energy: Annotated[float, curated]
+
+    served = Curated.entry_type_definition().properties["_httk_total_energy"]
+    assert served.definition_id == curated.definition_id
+    assert "_httk_total_energy" in Curated.__httk_stored_properties__
+
+    bare = PropertyDefinition.from_optimade("foo", {**curated.as_optimade(), "$id": "https://example.org/defs/foo"})
+
+    class Unregistered(DataEntryRecord):
+        value: Annotated[float, bare]
+
+    with pytest.raises(ValueError, match="prefix"):
+        entry_record("tests.unregistered_curated")(Unregistered)

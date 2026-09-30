@@ -536,6 +536,20 @@ class PropertyDefinition:
             payload["x-optimade-implementation"] = implementation
         return type(self)(self._name, payload)
 
+    def served_form(self) -> Self:
+        """Return this property definition under its wire name.
+
+        Mirrors :meth:`EntryTypeDefinition.served_form` for one property: the
+        definition's ``$id`` and document are unchanged and only the served name
+        gains the prefix registered for its ``$id`` (see
+        :func:`apply_definition_prefix`). The transform is idempotent, and
+        ``self`` is returned when the name needs no prefix.
+
+        :return: The wire-named property definition.
+        """
+        name = apply_definition_prefix(self._name, self.definition_id)
+        return self if name == self._name else type(self).from_optimade(name, self.as_optimade())
+
     def as_optimade(self) -> dict[str, Any]:
         """Return a deep copy of the wrapped property-definition document.
 

@@ -376,3 +376,23 @@ def test_apply_definition_prefix_public_transform() -> None:
     assert apply_definition_prefix("has_input", "https://schemas.optimade.org/x") == "has_input"
     # Idempotent: an already-prefixed name is never re-prefixed.
     assert apply_definition_prefix("_httk_has_input", _RUNS_DEFINITION_ID) == "_httk_has_input"
+
+
+def test_property_served_form_prefixes_curated_definition() -> None:
+    from httk.core import load_property_definition
+
+    d = load_property_definition("https://schemas.httk.org/defs/v0.1/properties/core/total_energy")
+    served = d.served_form()
+    assert served.name == "_httk_total_energy"
+    assert served.definition_id == d.definition_id
+    assert served.as_optimade().get("x-optimade-unit") == d.as_optimade().get("x-optimade-unit")
+    assert served.served_form() is served
+    custom = PropertyDefinition.from_simple("_httk_custom_x", description="X.", fulltype="float")
+    assert custom.served_form() is custom
+
+
+def test_property_served_form_of_standard_definition_is_identity() -> None:
+    from httk.core.property_definitions import standard_entry_type
+
+    for definition in standard_entry_type("references").properties.values():
+        assert definition.served_form() is definition
