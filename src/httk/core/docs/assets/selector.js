@@ -36,7 +36,8 @@
         var target = select.options[select.selectedIndex];
         if (!target || !target.value) return;
         var targetRoot = new URL(target.value, siteRootUrl);
-        var currentRoot = new URL(config.version === "dev:main" ? "dev/main/" : config.version + "/", siteRootUrl);
+        var currentPath = config.channel === "dev" ? config.version.replace(/^dev:/, "dev/") + "/" : config.version + "/";
+        var currentRoot = new URL(currentPath, siteRootUrl);
         var currentUrl = new URL(window.location.href);
         var currentPagePath = "";
         if (currentUrl.pathname.indexOf(currentRoot.pathname) === 0) {

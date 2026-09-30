@@ -31,6 +31,7 @@ from pathlib import Path
 from .config import ConfigError, VersioningConfig, load_versioning_config
 from .inventories import InventoryError, read_inventory_header
 from .lockfile import LockError, check_lock, read_lock_pins
+from .manifests import _validate_dev_branch
 from .semver import Version, VersionError, parse_tag, parse_version
 
 __all__ = ["ReleaseCheck", "ReleaseError", "check_release", "dependency_doc_targets"]
@@ -141,25 +142,30 @@ def dependency_doc_targets(
     pins: Mapping[str, str],
     base_url: str,
     channel: str,
+    *,
+    dev_branch: str = "main",
 ) -> dict[str, str]:
-    """Derive exact release or ``dev/main`` inventory URLs for internal dependencies.
+    """Derive exact release or ``dev/<branch>`` inventory URLs for internal dependencies.
 
     :param config: Documentation-site configuration declaring the dependencies.
     :param pins: Locked distribution versions used for release URLs.
     :param base_url: Base URL containing the dependency documentation sites.
     :param channel: Documentation channel, either ``release`` or ``dev``.
+    :param dev_branch: Development branch (``main`` or ``develop``) for the ``dev`` channel.
     :return: Mapping of dependency distributions to inventory base URLs.
     :raises ReleaseError: If a release dependency has no valid locked version.
-    :raises ValueError: If *channel* or a locked dependency version is invalid.
+    :raises ValueError: If *channel*, *dev_branch* or a locked dependency version is invalid.
     """
 
     if channel not in {"release", "dev"}:
         raise ValueError(f"unknown documentation channel: {channel!r}")
+    if channel == "dev":
+        _validate_dev_branch(dev_branch)
     base = base_url.rstrip("/")
     targets: dict[str, str] = {}
     for dependency in config.internal_dependencies:
         if channel == "dev":
-            targets[dependency.distribution] = f"{base}/{dependency.slug}/dev/main/"
+            targets[dependency.distribution] = f"{base}/{dependency.slug}/dev/{dev_branch}/"
             continue
         key = _normalized(dependency.distribution)
         if key not in pins:

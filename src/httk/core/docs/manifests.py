@@ -20,6 +20,7 @@
 import json
 import os
 import tempfile
+from collections.abc import Collection
 from pathlib import Path
 from typing import Any
 
@@ -33,35 +34,57 @@ __all__ = [
     "write_version_manifest",
 ]
 
+# Development branches with a published ``dev/<branch>/`` tree, in manifest order.
+_DEV_BRANCHES = ("main", "develop")
+
+
+def _validate_dev_branch(branch: str) -> str:
+    """Return *branch* when it is an allowed development branch."""
+
+    if branch not in _DEV_BRANCHES:
+        allowed = ", ".join(repr(name) for name in _DEV_BRANCHES)
+        raise ValueError(f"unsupported development docs branch {branch!r}; expected one of {allowed}")
+    return branch
+
 
 def build_version_manifest(
     slug: str,
     url: str,
     source_commit: str | None,
     release_versions: list[Version] | tuple[Version, ...],
-    has_dev: bool,
+    dev_branches: Collection[str],
 ) -> dict[str, Any]:
-    """Build a root manifest with releases newest-first and optional dev last.
+    """Build a root manifest with releases newest-first and dev channels last.
 
-    The default release points to the maintained ``latest/`` duplicate of
-    the newest release tree.
+    Development entries follow the releases in the fixed order ``dev:main``,
+    ``dev:develop``. The default points to the maintained ``latest/``
+    duplicate of the newest release tree; without releases it is ``dev:main``
+    when published, else ``dev:develop``.
 
     :param slug: Documentation-site project slug.
     :param url: Public documentation-site URL.
-    :param source_commit: Source commit represented by the site, when known.
+    :param source_commit: Source commit of the most recent composition, when known.
     :param release_versions: Published release versions.
-    :param has_dev: Whether the replaceable development site is published.
+    :param dev_branches: Branches (``main``, ``develop``) with a published ``dev/<branch>/`` tree.
     :return: Root version manifest.
+    :raises ValueError: If *dev_branches* names an unsupported branch.
     """
 
+    published = {_validate_dev_branch(branch) for branch in dev_branches}
     releases = sorted(release_versions, reverse=True)
     versions: list[dict[str, str]] = [
         {"name": version.tag, "path": f"{version.tag}/", "channel": "release"} for version in releases
     ]
-    if has_dev:
-        versions.append({"name": "dev:main", "path": "dev/main/", "channel": "dev"})
+    dev_versions = [
+        {"name": f"dev:{branch}", "path": f"dev/{branch}/", "channel": "dev"}
+        for branch in _DEV_BRANCHES
+        if branch in published
+    ]
+    versions.extend(dev_versions)
     if releases:
         default = {"name": releases[0].tag, "path": "latest/", "channel": "release"}
+    elif dev_versions:
+        default = dict(dev_versions[0])
     else:
         default = {"name": "dev:main", "path": "dev/main/", "channel": "dev"}
     return {

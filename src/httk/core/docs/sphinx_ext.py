@@ -20,18 +20,27 @@
 The module itself has no Sphinx import dependency. Sphinx is imported only by
 :func:`setup`, allowing the rest of the documentation library to remain
 stdlib-only and usable by release workflows.
+
+:func:`setup` registers two optional configuration values:
+``httk_docs_dev_source`` (a string formatted with ``branch=`` that names the
+source of a ``dev:main``/``dev:develop`` build in the development banner,
+default ``"the GitHub {branch} branch"``) and ``httk_docs_collapse_navigation``
+(default ``True``: Furo's sidebar shows the global toctree collapsed to the
+current page's ancestors and children).
 """
 
+import importlib
 import json
 import os
 import re
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from .config import VersioningConfig, load_versioning_config
 from .inventories import InventoryError, fetch_inventory, read_inventory_header
 from .lockfile import LockError, read_lock_pins
+from .manifests import _DEV_BRANCHES
 from .release import dependency_doc_targets
 from .semver import parse_version
 
@@ -44,9 +53,15 @@ __all__ = [
     "version_depth",
 ]
 
+_DEV_LABELS = tuple(f"dev:{branch}" for branch in _DEV_BRANCHES)
+_DEFAULT_DEV_SOURCE = "the GitHub {branch} branch"
+
 
 def document_label(value: str | None) -> str:
     """Return a validated documentation label, defaulting to ``dev:local``.
+
+    Development labels are exactly ``dev:local``, ``dev:main`` and
+    ``dev:develop``; release labels are ``v``-prefixed version tags.
 
     :param value: Requested release or development label.
     :return: Validated documentation label.
@@ -54,14 +69,15 @@ def document_label(value: str | None) -> str:
     """
 
     label = value or "dev:local"
-    if label == "dev:local" or label == "dev:main":
+    if label == "dev:local" or label in _DEV_LABELS:
         return label
     if len(label) > 1 and label.startswith("v"):
         from .semver import parse_tag
 
         parse_tag(label)
         return label
-    raise ValueError(f"invalid HTTK_DOCS_VERSION label: {label!r}")
+    allowed = ", ".join(("dev:local", *_DEV_LABELS))
+    raise ValueError(f"invalid HTTK_DOCS_VERSION label: {label!r}; expected a release tag or one of {allowed}")
 
 
 def channel_for_label(label: str) -> Literal["release", "dev"]:
@@ -83,9 +99,15 @@ def version_depth(label: str) -> int:
 
     if label.startswith("v"):
         return 1
-    if label == "dev:main":
+    if label in _DEV_LABELS:
         return 2
     return 0
+
+
+def _dev_branch(label: str) -> str:
+    """Return the branch of a validated ``dev:main``/``dev:develop`` label."""
+
+    return label.removeprefix("dev:")
 
 
 def selector_config_literal(label: str) -> str:
@@ -151,8 +173,8 @@ def derive_internal_intersphinx_mapping(
         return result
 
     if temporary_inventory_dir is None:
-        raise ValueError("temporary_inventory_dir is required for dev:main intersphinx mappings")
-    targets = dependency_doc_targets(config, pins, base_url, "dev")
+        raise ValueError(f"temporary_inventory_dir is required for {normalized} intersphinx mappings")
+    targets = dependency_doc_targets(config, pins, base_url, "dev", dev_branch=_dev_branch(normalized))
     temporary = Path(temporary_inventory_dir)
     for dependency in config.internal_dependencies:
         result[dependency.slug] = (
@@ -235,23 +257,24 @@ def _rewrite_internal_mappings(app: object, _config: object) -> None:
         _validate_release_inventories(config, pins, docs_dir / "_inventories")
 
     temporary_directory = None
-    if label == "dev:main":
+    if label in _DEV_LABELS:
+        branch = _dev_branch(label)
         temporary_directory = Path(app.doctreedir) / "__httk_internal_inventories"  # type: ignore[attr-defined]
         temporary_directory.mkdir(parents=True, exist_ok=True)
         base_url = os.environ.get("HTTK_DOCS_BASE_URL", "https://docs.httk.org")
         for dependency in config.internal_dependencies:
             destination = temporary_directory / f"{dependency.slug}.inv"
-            inventory_url = f"{base_url.rstrip('/')}/{dependency.slug}/dev/main/objects.inv"
+            inventory_url = f"{base_url.rstrip('/')}/{dependency.slug}/dev/{branch}/objects.inv"
             try:
                 fetch_inventory(
                     inventory_url,
                     destination,
                     expected_project=dependency.slug,
-                    expected_version="dev:main",
+                    expected_version=label,
                 )
             except (InventoryError, OSError) as exc:
                 raise RuntimeError(
-                    f"failed to fetch dev:main inventory for internal dependency {dependency.slug!r} "
+                    f"failed to fetch {label} inventory for internal dependency {dependency.slug!r} "
                     f"from {inventory_url}: {exc}"
                 ) from exc
 
@@ -264,6 +287,31 @@ def _rewrite_internal_mappings(app: object, _config: object) -> None:
         temporary_inventory_dir=temporary_directory,
         committed_inventory_dir=docs_dir / "_inventories",
     )
+
+
+def _development_announcement(label: str, source: str | None) -> str:
+    """Return the Furo announcement text for a development *label*."""
+
+    if label == "dev:local":
+        return "Local development build (dev:local) — content may differ from any release."
+    branch = _dev_branch(label)
+    built_from = (source if source is not None else _DEFAULT_DEV_SOURCE).format(branch=branch)
+    return f"Development documentation ({label}) — built from {built_from}; content may differ from any release."
+
+
+def _collapse_furo_navigation(
+    _app: object, _pagename: str, _templatename: str, context: dict[str, Any], _doctree: object
+) -> None:
+    """Replace Furo's full sidebar tree with one collapsed around the current page."""
+
+    if "toctree" not in context:
+        return
+    try:
+        navigation = importlib.import_module("furo.navigation")
+    except ImportError:
+        return
+    toctree_html = context["toctree"](collapse=True, titles_only=True, maxdepth=-1, includehidden=True)
+    context["furo_navigation_tree"] = navigation.get_navigation_tree(toctree_html)
 
 
 def setup(app: object) -> dict[str, object]:
@@ -280,9 +328,11 @@ def setup(app: object) -> dict[str, object]:
     )
 
     del Sphinx
+    app.add_config_value("httk_docs_dev_source", None, "html", types=(str, type(None)))  # type: ignore[attr-defined]
+    app.add_config_value("httk_docs_collapse_navigation", True, "html", types=bool)  # type: ignore[attr-defined]
     # sphinx.ext.intersphinx validates its mapping at priority 800 and loads
     # inventories at builder-inited.  Rewrite at 700 so both phases see the
-    # channel-aware values, including fetched dev:main inventories.
+    # channel-aware values, including fetched development inventories.
     app.connect("config-inited", _rewrite_internal_mappings, priority=700)  # type: ignore[attr-defined]
     label = document_label(os.environ.get("HTTK_DOCS_VERSION"))
     channel = channel_for_label(label)
@@ -300,7 +350,13 @@ def setup(app: object) -> dict[str, object]:
             options = {}
             app.config.html_theme_options = options  # type: ignore[attr-defined]
         if "announcement" not in options:
-            options["announcement"] = f"Development documentation ({label}) — content may differ from any release."
+            options["announcement"] = _development_announcement(
+                label,
+                app.config.httk_docs_dev_source,  # type: ignore[attr-defined]
+            )
+    if app.config.httk_docs_collapse_navigation and app.config.html_theme == "furo":  # type: ignore[attr-defined]
+        # Furo computes its full navigation tree at the default priority 500.
+        app.connect("html-page-context", _collapse_furo_navigation, priority=600)  # type: ignore[attr-defined]
     static_path = Path(__file__).resolve().parent / "assets"
     configured = app.config.html_static_path  # type: ignore[attr-defined]
     if configured is None:

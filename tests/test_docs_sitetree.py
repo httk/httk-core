@@ -1,5 +1,6 @@
 import errno
 import os
+import shutil
 from pathlib import Path
 from typing import Literal
 
@@ -17,9 +18,15 @@ def make_build(path: Path, text: str = "home") -> None:
     (path / "reference" / "api.html").write_text("api", encoding="utf-8")
 
 
-def compose(root: Path, build: Path, target: Version | Literal["dev"]):
+def compose(root: Path, build: Path, target: Version | Literal["dev"], dev_branch: str = "main"):
     return compose_site(
-        root, build, slug="core", site_url="https://docs.httk.org/core", source_commit="sha", target=target
+        root,
+        build,
+        slug="core",
+        site_url="https://docs.httk.org/core",
+        source_commit="sha",
+        target=target,
+        dev_branch=dev_branch,
     )
 
 
@@ -53,6 +60,117 @@ def test_dev_replace_and_release_add_preserve_other_versions(tmp_path: Path) -> 
     assert (root / "dev/main/index.html").read_text(encoding="utf-8") == "two"
     assert read_version_manifest(root / "versions.json")["default"]["name"] == "v2.0.0"
     assert "url=latest/" in (root / "index.html").read_text(encoding="utf-8")
+
+
+def test_dev_branches_are_replaced_independently(tmp_path: Path) -> None:
+    root = tmp_path / "site"
+    first = tmp_path / "first"
+    second = tmp_path / "second"
+    make_build(first, "one")
+    make_build(second, "two")
+    compose(root, first, Version(1, 0, 0))
+    compose(root, first, "dev")
+    release_tree = sitetree._tree(root / "v1.0.0")
+    result = compose(root, second, "dev", "develop")
+    assert result.versions == ("v1.0.0", "dev:main", "dev:develop")
+    assert result.default_target == "v1.0.0"
+    assert (root / "dev/main/index.html").read_text(encoding="utf-8") == "one"
+    assert (root / "dev/develop/index.html").read_text(encoding="utf-8") == "two"
+    assert '"version": "dev:develop"' in (root / "dev/develop/pages.json").read_text(encoding="utf-8")
+    assert sitetree._tree(root / "v1.0.0") == release_tree
+    assert sitetree._tree(root / "latest") == release_tree
+    compose(root, second, "dev")
+    assert (root / "dev/main/index.html").read_text(encoding="utf-8") == "two"
+    assert (root / "dev/develop/index.html").read_text(encoding="utf-8") == "two"
+    manifest = read_version_manifest(root / "versions.json")
+    assert [item["path"] for item in manifest["versions"]] == ["v1.0.0/", "dev/main/", "dev/develop/"]
+    assert "url=latest/" in (root / "index.html").read_text(encoding="utf-8")
+
+
+def test_develop_only_site_defaults_to_develop(tmp_path: Path) -> None:
+    root = tmp_path / "site"
+    build = tmp_path / "build"
+    make_build(build)
+    result = compose(root, build, "dev", "develop")
+    assert result.default_target == "dev:develop"
+    assert result.versions == ("dev:develop",)
+    assert not (root / "dev/main").exists()
+    assert "url=dev/develop/" in (root / "index.html").read_text(encoding="utf-8")
+
+
+@pytest.mark.parametrize("branch", ["", "Main", "feature", "a/b"])
+def test_unsupported_dev_branch_is_rejected(tmp_path: Path, branch: str) -> None:
+    build = tmp_path / "build"
+    make_build(build)
+    with pytest.raises(ValueError, match="unsupported development docs branch"):
+        compose(tmp_path / "site", build, "dev", branch)
+    assert not (tmp_path / "site").exists()
+
+
+def test_dev_swap_recovery_is_per_branch(tmp_path: Path) -> None:
+    root = tmp_path / "site"
+    main_build = tmp_path / "main"
+    develop_build = tmp_path / "develop"
+    make_build(main_build, "main")
+    make_build(develop_build, "develop")
+    compose(root, main_build, "dev")
+    compose(root, develop_build, "dev", "develop")
+    # An interrupted develop swap is restored to dev/develop, never adopted as dev/main.
+    shutil.rmtree(root / "dev/main")
+    os.rename(root / "dev/develop", root / ".old-dev-develop-interrupted")
+    release = tmp_path / "release"
+    make_build(release, "release")
+    compose(root, release, Version(1, 0, 0))
+    assert (root / "dev/develop/index.html").read_text(encoding="utf-8") == "develop"
+    assert not (root / "dev/main").exists()
+    assert not (root / ".old-dev-develop-interrupted").exists()
+    # An interrupted main swap is restored while composing develop.
+    compose(root, main_build, "dev")
+    os.rename(root / "dev/main", root / ".old-dev-main-interrupted")
+    compose(root, develop_build, "dev", "develop")
+    assert (root / "dev/main/index.html").read_text(encoding="utf-8") == "main"
+    assert not (root / ".old-dev-main-interrupted").exists()
+    # Leftovers next to a live tree are removed without touching the other branch.
+    leftover = root / ".old-dev-develop-leftover"
+    leftover.mkdir()
+    (leftover / "index.html").write_text("stale", encoding="utf-8")
+    compose(root, main_build, "dev")
+    assert not leftover.exists()
+    assert (root / "dev/develop/index.html").read_text(encoding="utf-8") == "develop"
+    assert read_version_manifest(root / "versions.json")["default"]["name"] == "v1.0.0"
+
+
+def test_build_cache_is_never_published(tmp_path: Path) -> None:
+    root = tmp_path / "site"
+    build = tmp_path / "build"
+    make_build(build)
+    (build / ".buildinfo").write_text("config", encoding="utf-8")
+    compose(root, build, Version(1, 0, 0))
+    compose(root, build, "dev")
+    # Trees published before the cache was excluded still carry it.
+    for tree in ("v1.0.0", "latest", "dev/main"):
+        (root / tree / ".doctrees").mkdir()
+        (root / tree / ".doctrees" / "environment.pickle").write_bytes(b"cache")
+        (root / tree / "reference" / "x.pickle").write_bytes(b"cache")
+    (build / ".doctrees").mkdir()
+    (build / ".doctrees" / "index.doctree").write_bytes(b"cache")
+    (build / "x.pickle").write_bytes(b"cache")
+    result = compose(root, build, Version(1, 0, 0))
+    assert result.unchanged
+    for tree in ("v1.0.0", "latest", "dev/main"):
+        assert not (root / tree / ".doctrees").exists()
+        assert not (root / tree / "reference" / "x.pickle").exists()
+        assert (root / tree / "index.html").is_file()
+    compose(root, build, "dev", "develop")
+    assert (root / "dev/develop/.buildinfo").is_file()
+    assert not (root / "dev/develop/.doctrees").exists()
+    assert not (root / "dev/develop/x.pickle").exists()
+    snapshot = {path: path.read_bytes() for path in root.rglob("*") if path.is_file()}
+    again = compose(root, build, Version(1, 0, 0))
+    assert again.unchanged
+    assert not again.changed
+    assert {path: path.read_bytes() for path in root.rglob("*") if path.is_file()} == snapshot
+    assert not [path for path in root.rglob("*") if path.name == ".doctrees" or path.suffix == ".pickle"]
 
 
 def test_newest_release_refreshes_latest(tmp_path: Path) -> None:

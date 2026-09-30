@@ -42,6 +42,11 @@ def test_dependency_urls() -> None:
     assert dependency_doc_targets(config, {}, "https://docs.httk.org/", "dev") == {
         "httk-io": "https://docs.httk.org/httk-io/dev/main/"
     }
+    assert dependency_doc_targets(config, {}, "https://docs.httk.org/", "dev", dev_branch="develop") == {
+        "httk-io": "https://docs.httk.org/httk-io/dev/develop/"
+    }
+    with pytest.raises(ValueError, match="unsupported development docs branch 'feature'"):
+        dependency_doc_targets(config, {}, "https://docs.httk.org", "dev", dev_branch="feature")
     with pytest.raises(ReleaseError, match="httk-io.*docs/requirements.lock"):
         dependency_doc_targets(config, {}, "https://docs.httk.org", "release")
 

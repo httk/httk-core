@@ -15,7 +15,13 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Compose immutable release and replaceable development documentation trees."""
+"""Compose immutable release and replaceable development documentation trees.
+
+Development trees live at ``dev/main/`` and ``dev/develop/``. The Sphinx build
+cache (``.doctrees/`` directories and ``*.pickle`` files) is never published:
+composition skips it when copying or comparing trees and removes it from the
+existing trees of the site.
+"""
 
 import errno
 import hashlib
@@ -28,13 +34,23 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
-from .manifests import _write_atomic, build_page_manifest, build_version_manifest, write_page_manifest
+from .manifests import (
+    _DEV_BRANCHES,
+    _validate_dev_branch,
+    _write_atomic,
+    build_page_manifest,
+    build_version_manifest,
+    write_page_manifest,
+)
 from .redirect import root_redirect_html
 from .semver import Version, is_release_dir_name, parse_tag
 
 __all__ = ["ComposeError", "ComposeResult", "ImmutabilityError", "compose_site"]
 
 _LOGGER = logging.getLogger(__name__)
+
+_BUILD_CACHE_DIR = ".doctrees"
+_BUILD_CACHE_SUFFIX = ".pickle"
 
 
 class ComposeError(RuntimeError):
@@ -87,6 +103,30 @@ def _validate_tree(root: Path) -> None:
                 raise ComposeError(f"non-regular file is not allowed in documentation tree: {path}")
 
 
+def _is_build_cache(entry: os.DirEntry[str]) -> bool:
+    """Return whether *entry* is Sphinx build cache that is never published."""
+
+    if entry.is_dir(follow_symlinks=False):
+        return entry.name == _BUILD_CACHE_DIR
+    return entry.name.endswith(_BUILD_CACHE_SUFFIX)
+
+
+def _strip_build_cache(root: Path) -> None:
+    """Remove Sphinx build cache from every tree below the site *root*."""
+
+    pending = [root]
+    while pending:
+        current = pending.pop()
+        for entry in os.scandir(current):
+            path = Path(entry.path)
+            if current == root and entry.name == ".git":
+                continue
+            if _is_build_cache(entry):
+                _remove_old_dev(path)
+            elif entry.is_dir(follow_symlinks=False):
+                pending.append(path)
+
+
 def _file_hash(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as stream:
@@ -103,6 +143,8 @@ def _tree(root: Path) -> dict[str, str]:
         current = pending.pop()
         for entry in os.scandir(current):
             path = Path(entry.path)
+            if _is_build_cache(entry):
+                continue
             if entry.is_dir(follow_symlinks=False):
                 pending.append(path)
             else:
@@ -116,6 +158,8 @@ def _copy_tree(source: Path, destination: Path) -> None:
     def copy(current: Path, target_root: Path) -> None:
         target_root.mkdir(parents=True, exist_ok=True)
         for entry in os.scandir(current):
+            if _is_build_cache(entry):
+                continue
             item = Path(entry.path)
             target = target_root / entry.name
             if entry.is_dir(follow_symlinks=False):
@@ -162,7 +206,7 @@ def _remove_old_dev(path: Path) -> None:
 def _recover_swap(root: Path, destination: Path, prefix: str) -> None:
     """Recover an interrupted directory swap before starting a new composition."""
 
-    if destination == root / "dev" / "main":
+    if destination.parent == root / "dev":
         dev_parent = root / "dev"
         if dev_parent.is_symlink():
             raise ComposeError(f"symlink is not allowed for dev directory: {dev_parent}")
@@ -251,11 +295,15 @@ def compose_site(
     source_commit: str | None,
     target: Version | Literal["dev"],
     repair: bool = False,
+    dev_branch: str = "main",
 ) -> ComposeResult:
     """Compose a docs-site tree while preserving releases and maintaining latest.
 
     The root redirect lands on ``latest/`` when a release exists; ``latest/``
-    is a replaceable duplicate of the newest release tree.
+    is a replaceable duplicate of the newest release tree. A development
+    target replaces only ``dev/<dev_branch>/``; the other development tree and
+    all releases are left intact. Sphinx build cache is removed from every
+    existing tree before composing and is never copied.
 
     ``repair=True`` is reserved for replacing an existing release after an
     approved manual repair. The replacement uses the same rename transaction
@@ -268,19 +316,24 @@ def compose_site(
     :param source_commit: Source commit recorded in the version manifest.
     :param target: Release version or the replaceable development target.
     :param repair: Whether to replace an existing release after manual approval.
+    :param dev_branch: Development branch (``main`` or ``develop``) for a ``dev`` target.
     :return: Summary of the composition result.
     :raises ComposeError: If the source, destination, or target is unsafe or invalid.
+    :raises ValueError: If *dev_branch* is not an allowed development branch.
     :raises ImmutabilityError: If an existing release differs from the rebuilt tree.
     """
 
+    _validate_dev_branch(dev_branch)
     root = Path(site_root)
     source = Path(build_html)
     if root.exists() and root.is_symlink():
         raise ComposeError(f"symlink is not allowed for site root: {root}")
     root.mkdir(parents=True, exist_ok=True)
     _remove_staging(root)
-    _recover_swap(root, root / "dev" / "main", ".old-dev-main-")
+    for branch in _DEV_BRANCHES:
+        _recover_swap(root, root / "dev" / branch, f".old-dev-{branch}-")
     _recover_swap(root, root / "latest", ".old-latest-")
+    _strip_build_cache(root)
     _validate_tree(source)
     is_dev = target == "dev"
     if repair and is_dev:
@@ -288,11 +341,11 @@ def compose_site(
     if repair and not isinstance(target, Version):
         raise ComposeError("--repair requires a release target")
     if is_dev:
-        version_name = "dev:main"
+        version_name = f"dev:{dev_branch}"
     else:
         assert isinstance(target, Version)
         version_name = target.tag
-    destination = root / "dev" / "main" if is_dev else root / version_name
+    destination = root / "dev" / dev_branch if is_dev else root / version_name
     if destination.is_symlink():
         raise ComposeError(f"symlink is not allowed for destination: {destination}")
     existed = destination.exists()
@@ -307,7 +360,7 @@ def compose_site(
         old = None
         try:
             if existed:
-                old = _new_empty_sibling(root, ".old-dev-main-")
+                old = _new_empty_sibling(root, f".old-dev-{dev_branch}-")
                 os.rename(destination, old)
             destination.parent.mkdir(parents=True, exist_ok=True)
             os.rename(staging, destination)
@@ -365,8 +418,8 @@ def compose_site(
 
     release_versions = _release_versions(root)
     latest_changed = _reconcile_latest(root, release_versions)
-    has_dev = (root / "dev" / "main").is_dir()
-    manifest = build_version_manifest(slug, site_url, source_commit, release_versions, has_dev)
+    dev_branches = [branch for branch in _DEV_BRANCHES if (root / "dev" / branch).is_dir()]
+    manifest = build_version_manifest(slug, site_url, source_commit, release_versions, dev_branches)
     manifest_text = json.dumps(manifest, indent=2, sort_keys=False) + "\n"
     changed = not unchanged
     changed |= latest_changed

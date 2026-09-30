@@ -44,6 +44,25 @@ def test_cli_compose_and_filter_and_inventory(tmp_path: Path, capsys: pytest.Cap
     )
 
 
+def test_cli_compose_dev_branch_argument(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    build = tmp_path / "build"
+    build.mkdir()
+    (build / "index.html").write_text("home", encoding="utf-8")
+    site = tmp_path / "site"
+    common = ["compose", "--site", str(site), "--build", str(build)]
+    identity = ["--slug", "core", "--url", "https://x"]
+    assert cli.command([*common, "--dev", "develop", *identity], context(tmp_path)) == 0
+    output = capsys.readouterr().out
+    assert "composed dev:develop" in output
+    assert "versions: dev:develop" in output
+    assert (site / "dev" / "develop" / "index.html").is_file()
+    assert not (site / "dev" / "main").exists()
+    assert cli.command([*common, "--dev", "main", *identity], context(tmp_path)) == 0
+    assert "composed dev:main; default: dev:main; versions: dev:main, dev:develop" in capsys.readouterr().out
+    assert cli.command([*common, "--dev", "feature", *identity], context(tmp_path)) == 2
+    assert "invalid choice: 'feature'" in capsys.readouterr().err
+
+
 def test_cli_compose_release_accepts_tag_and_bare_version(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     build = tmp_path / "build"
     build.mkdir()

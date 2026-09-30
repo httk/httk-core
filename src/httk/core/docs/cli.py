@@ -44,6 +44,7 @@ from .lockfile import (
     generate_lock,
     read_lock_pins,
 )
+from .manifests import _DEV_BRANCHES
 from .release import ReleaseError, check_release
 from .semver import Version, VersionError, parse_tag, parse_version
 from .sitetree import ImmutabilityError, compose_site
@@ -90,7 +91,14 @@ def build_parser(program: str) -> argparse.ArgumentParser:
     compose.add_argument("--build", required=True, type=Path)
     targets = compose.add_mutually_exclusive_group(required=True)
     targets.add_argument("--release", type=str)
-    targets.add_argument("--dev", action="store_true")
+    targets.add_argument(
+        "--dev",
+        nargs="?",
+        const="main",
+        choices=_DEV_BRANCHES,
+        metavar="BRANCH",
+        help="replace the development tree dev/BRANCH/ (main or develop; default: main)",
+    )
     targets.add_argument("--repair", metavar="VERSION", help="replace an existing release after approved repair")
     compose.add_argument("--slug", required=True)
     compose.add_argument("--url", required=True)
@@ -176,9 +184,11 @@ def _handle_lock_check(arguments: argparse.Namespace, context: CLIContext) -> in
 
 
 def _handle_compose(arguments: argparse.Namespace, _context: CLIContext) -> int:
-    if arguments.dev:
+    dev_branch = "main"
+    if arguments.dev is not None:
         target: Literal["dev"] | Version = "dev"
-        composed = "dev:main"
+        dev_branch = arguments.dev
+        composed = f"dev:{dev_branch}"
         repair = False
     else:
         target = _parse_release_argument(arguments.release or arguments.repair)
@@ -192,6 +202,7 @@ def _handle_compose(arguments: argparse.Namespace, _context: CLIContext) -> int:
         source_commit=arguments.source_commit,
         target=target,
         repair=repair,
+        dev_branch=dev_branch,
     )
     print(f"composed {composed}; default: {result.default_target}; versions: {', '.join(result.versions) or '(none)'}")
     return 0

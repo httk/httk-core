@@ -83,6 +83,6 @@ definition in an importable module shared by your importer and server. The store
 checks the supplied classes against its persisted layout; it does not import
 Python classes or execute code named by the database.
 
-See the [three-file serving walkthrough](https://docs.httk.org/dev/main/serving-data.html)
+See the [three-file serving walkthrough](https://docs.httk.org/dev/develop/serving-data.html)
 for CIF structures, JSON results, SQLite storage, and a separate serving script.
 The API is documented in {mod}`httk.core.entry_records`.

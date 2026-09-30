@@ -17,10 +17,12 @@
 
 """Shared versioned httk documentation machinery.
 
-The package composes immutable release trees alongside replaceable ``dev:main``
-trees, writes root/page manifests and redirects, validates locks and
-inventories, and supplies the Furo-aligned version selector used by published
-sites.
+The package composes immutable release trees alongside the replaceable
+development trees ``dev:main`` (``dev/main/``) and ``dev:develop``
+(``dev/develop/``), writes root/page manifests and redirects, validates locks
+and inventories, and supplies the Furo-aligned version selector used by
+published sites. Composition never publishes the Sphinx build cache
+(``.doctrees/`` directories and ``*.pickle`` files).
 """
 
 from .config import (

@@ -86,13 +86,16 @@ def test_versioned_site_lifecycle_and_orphan_site_commits(tmp_path: Path) -> Non
     dev_initial = tmp_path / "dev-initial"
     release_two = tmp_path / "release-two"
     dev_changed = tmp_path / "dev-changed"
+    develop = tmp_path / "develop"
     _make_build(release_one, "release-one")
     _make_build(dev_initial, "dev-initial")
     _make_build(release_two, "release-two")
     _make_build(dev_changed, "dev-changed")
+    _make_build(develop, "develop")
 
     _compose(site, release_one, "--release", "v0.1.0")
     _compose(site, dev_initial, "--dev")
+    _compose(site, develop, "--dev", "develop")
     _compose(site, release_two, "--release", "v0.2.0")
     release_snapshots = {name: _tree_bytes(site / name) for name in ("v0.1.0", "v0.2.0")}
 
@@ -109,10 +112,12 @@ def test_versioned_site_lifecycle_and_orphan_site_commits(tmp_path: Path) -> Non
     assert _tree_bytes(site / "v0.1.0") == release_snapshots["v0.1.0"]
     assert _tree_bytes(site / "v0.2.0") == release_snapshots["v0.2.0"]
     manifest = json.loads((site / "versions.json").read_text(encoding="utf-8"))
-    assert [item["name"] for item in manifest["versions"]] == ["v0.2.0", "v0.1.0", "dev:main"]
+    assert [item["name"] for item in manifest["versions"]] == ["v0.2.0", "v0.1.0", "dev:main", "dev:develop"]
     assert manifest["default"]["name"] == "v0.2.0"
     assert 'url=latest/' in (site / "index.html").read_text(encoding="utf-8")
     assert _tree_bytes(site / "latest") == _tree_bytes(site / "v0.2.0")
-    for version in ("v0.1.0", "v0.2.0", "dev/main"):
+    for version in ("v0.1.0", "v0.2.0", "dev/main", "dev/develop"):
         assert (site / version / "pages.json").is_file()
+    assert (site / "dev/main/index.html").read_text(encoding="utf-8") == "index:dev-changed"
+    assert (site / "dev/develop/index.html").read_text(encoding="utf-8") == "index:develop"
     assert (site / ".nojekyll").is_file()

@@ -328,3 +328,182 @@ def test_sphinx_non_furo_dev_does_not_add_announcement(tmp_path: Path, monkeypat
     app = Sphinx(str(source), str(source), str(tmp_path / "_build"), str(tmp_path / "doctrees"), "html", freshenv=True)
     app.build(force_all=True)
     assert "announcement" not in app.config.html_theme_options
+
+
+@pytest.mark.parametrize("label", ["dev:", "dev:Main", "dev:feature", "dev:a/b", "dev:main/", "dev"])
+def test_unsupported_development_labels_are_rejected(label: str) -> None:
+    with pytest.raises(ValueError, match="invalid HTTK_DOCS_VERSION label.*dev:local, dev:main, dev:develop"):
+        document_label(label)
+
+
+def test_dev_develop_label_helpers_and_mapping() -> None:
+    assert document_label("dev:develop") == "dev:develop"
+    assert channel_for_label("dev:develop") == "dev"
+    assert version_depth("dev:develop") == 2
+    assert '"version":"dev:develop"' in selector_config_literal("dev:develop")
+    assert '"versionPathDepth":2' in selector_config_literal("dev:develop")
+    config = VersioningConfig(
+        "consumer",
+        "https://example.test/consumer",
+        internal_dependencies=(InternalDependency("httk-core", "httk-core", "https://example.test/core"),),
+    )
+    assert derive_internal_intersphinx_mapping(
+        {}, config, {}, "https://docs.httk.org", "dev:develop", temporary_inventory_dir="/tmp/inventories"
+    ) == {"httk-core": ("https://docs.httk.org/httk-core/dev/develop/", "/tmp/inventories/httk-core.inv")}
+    with pytest.raises(ValueError, match="temporary_inventory_dir is required for dev:develop"):
+        derive_internal_intersphinx_mapping({}, config, {}, "https://docs.httk.org", "dev:develop")
+
+
+def _write_dev_consumer(tmp_path: Path, published_version: bytes) -> Path:
+    source = tmp_path / "docs"
+    source.mkdir()
+    fixture = tmp_path / "published" / "httk-core" / "dev" / "develop"
+    fixture.mkdir(parents=True)
+    (fixture / "objects.inv").write_bytes(
+        b"# Sphinx inventory version 2\n# Project: httk-core\n# Version: " + published_version + b"\n"
+        b"# The remainder of this file is compressed using zlib.\n" + zlib.compress(b"")
+    )
+    (source / "versioning.toml").write_text(
+        '[site]\nslug = "consumer"\nrepository-url = "https://example.test/consumer"\n'
+        '\n[[internal-dependency]]\ndistribution = "httk-core"\nslug = "httk-core"\n'
+        'repository-url = "https://example.test/core"\n',
+        encoding="utf-8",
+    )
+    (source / "conf.py").write_text(
+        "extensions = ['sphinx.ext.intersphinx', 'httk.core.docs.sphinx_ext']\nproject = 'consumer'\n"
+        "intersphinx_mapping = {'httk-core': ('https://old', 'old.inv')}\n",
+        encoding="utf-8",
+    )
+    (source / "index.rst").write_text("Test\n====\n\nHello.\n", encoding="utf-8")
+    return source
+
+
+def test_sphinx_build_dev_develop_fetches_temporary_inventory(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    pytest.importorskip("sphinx")
+    source = _write_dev_consumer(tmp_path, b"dev:develop")
+    monkeypatch.setenv("HTTK_DOCS_VERSION", "dev:develop")
+    monkeypatch.setenv("HTTK_DOCS_BASE_URL", (tmp_path / "published").as_uri())
+    from sphinx.application import Sphinx
+
+    doctrees = tmp_path / "doctrees"
+    app = Sphinx(str(source), str(source), str(tmp_path / "_build"), str(doctrees), "html", freshenv=True)
+    assert app.config.intersphinx_mapping["httk-core"][1] == (
+        f"{(tmp_path / 'published').as_uri()}/httk-core/dev/develop/",
+        (str(doctrees / "__httk_internal_inventories" / "httk-core.inv"),),
+    )
+    app.build(force_all=True)
+    assert (doctrees / "__httk_internal_inventories" / "httk-core.inv").is_file()
+
+
+def test_sphinx_dev_develop_rejects_dev_main_inventory(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    pytest.importorskip("sphinx")
+    source = _write_dev_consumer(tmp_path, b"dev:main")
+    monkeypatch.setenv("HTTK_DOCS_VERSION", "dev:develop")
+    monkeypatch.setenv("HTTK_DOCS_BASE_URL", (tmp_path / "published").as_uri())
+    from sphinx.application import Sphinx
+
+    with pytest.raises(Exception, match="failed to fetch dev:develop inventory.*expected version 'dev:develop'"):
+        Sphinx(str(source), str(source), str(tmp_path / "_build"), str(tmp_path / "doctrees"), "html", freshenv=True)
+
+
+@pytest.mark.parametrize(
+    ("label", "extra_conf", "expected"),
+    [
+        (
+            "dev:main",
+            "",
+            (
+                "Development documentation (dev:main) — built from the GitHub main branch; "
+                "content may differ from any release."
+            ),
+        ),
+        (
+            "dev:develop",
+            "",
+            (
+                "Development documentation (dev:develop) — built from the GitHub develop branch; "
+                "content may differ from any release."
+            ),
+        ),
+        ("dev:local", "", "Local development build (dev:local) — content may differ from any release."),
+        (
+            "dev:develop",
+            "httk_docs_dev_source = \"this site's GitHub main branch and its modules' GitHub {branch} branches\"\n",
+            (
+                "Development documentation (dev:develop) — built from this site's GitHub main branch and its "
+                "modules' GitHub develop branches; content may differ from any release."
+            ),
+        ),
+    ],
+)
+def test_sphinx_development_banner_text(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, label: str, extra_conf: str, expected: str
+) -> None:
+    pytest.importorskip("sphinx")
+    source = tmp_path / "source"
+    source.mkdir()
+    (source / "conf.py").write_text(
+        "extensions = ['httk.core.docs.sphinx_ext']\nproject = 'test'\nhtml_theme = 'furo'\n" + extra_conf,
+        encoding="utf-8",
+    )
+    (source / "index.rst").write_text("Test\n====\n\nHello.\n", encoding="utf-8")
+    monkeypatch.setenv("HTTK_DOCS_VERSION", label)
+    from sphinx.application import Sphinx
+
+    app = Sphinx(str(source), str(source), str(tmp_path / "_build"), str(tmp_path / "doctrees"), "html", freshenv=True)
+    assert app.config.html_theme_options["announcement"] == expected
+
+
+def _sidebar(html: str) -> str:
+    start = html.index('<div class="sidebar-tree">')
+    return html[start : html.index("</aside>", start)]
+
+
+@pytest.mark.parametrize(
+    ("extra_conf", "overrides", "collapsed"),
+    [
+        ("", {}, True),
+        ("httk_docs_collapse_navigation = False\n", {}, False),
+        ("", {"httk_docs_collapse_navigation": "0"}, False),
+    ],
+)
+def test_sphinx_furo_navigation_is_collapsed_by_default(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, extra_conf: str, overrides: dict[str, str], collapsed: bool
+) -> None:
+    pytest.importorskip("sphinx")
+    pytest.importorskip("furo")
+    source = tmp_path / "source"
+    for section in ("alpha", "beta"):
+        (source / section).mkdir(parents=True)
+    (source / "conf.py").write_text(
+        "extensions = ['httk.core.docs.sphinx_ext']\nproject = 'test'\nhtml_theme = 'furo'\n" + extra_conf,
+        encoding="utf-8",
+    )
+    (source / "index.rst").write_text("Home\n====\n\n.. toctree::\n\n   alpha/index\n   beta/index\n", encoding="utf-8")
+    (source / "alpha" / "index.rst").write_text("Alpha\n=====\n\n.. toctree::\n\n   one\n   two\n", encoding="utf-8")
+    (source / "alpha" / "one.rst").write_text("Alpha one\n=========\n\nText.\n", encoding="utf-8")
+    (source / "alpha" / "two.rst").write_text("Alpha two\n=========\n\nText.\n", encoding="utf-8")
+    (source / "beta" / "index.rst").write_text("Beta\n====\n\n.. toctree::\n\n   three\n", encoding="utf-8")
+    (source / "beta" / "three.rst").write_text("Beta three\n==========\n\nText.\n", encoding="utf-8")
+    monkeypatch.setenv("HTTK_DOCS_VERSION", "dev:local")
+    from sphinx.application import Sphinx
+
+    output = tmp_path / "_build"
+    app = Sphinx(
+        str(source),
+        str(source),
+        str(output),
+        str(tmp_path / "doctrees"),
+        "html",
+        confoverrides=overrides,
+        freshenv=True,
+    )
+    app.build(force_all=True)
+    sidebar = _sidebar((output / "alpha" / "one.html").read_text(encoding="utf-8"))
+    assert 'href="../beta/index.html"' in sidebar
+    assert 'class="toctree-l2 current current-page"><a class="current reference internal" href="#">Alpha one' in sidebar
+    assert 'href="two.html"' in sidebar
+    assert ('href="../beta/three.html"' in sidebar) is not collapsed
+    home = _sidebar((output / "index.html").read_text(encoding="utf-8"))
+    assert 'href="alpha/index.html"' in home and 'href="beta/index.html"' in home
+    assert ('href="alpha/one.html"' in home) is not collapsed
