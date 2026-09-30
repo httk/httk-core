@@ -17,13 +17,23 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import importlib
+import importlib.util
 import re
 from dataclasses import dataclass
 from importlib.resources import files
 from pathlib import Path
 from types import ModuleType
 
-__all__ = ["CodeSupport", "code_support", "known_codes", "register_code"]
+__all__ = [
+    "CodeSupport",
+    "CollectorSupport",
+    "code_support",
+    "collector_support",
+    "known_codes",
+    "known_collectors",
+    "register_code",
+    "register_collector",
+]
 
 
 @dataclass(frozen=True)
@@ -122,3 +132,93 @@ def known_codes() -> tuple[str, ...]:
     """
 
     return tuple(sorted(_codes))
+
+
+@dataclass(frozen=True)
+class CollectorSupport:
+    """Store registration metadata for one recognized-calculation collector.
+
+    :param name: The collector name, the ``name`` of its package manifest
+        (e.g. ``"vasp.calculation.relax"``).
+    :param package: The ``"package:relative/dir"`` resource naming the collector's package directory.
+    """
+
+    name: str
+    package: str
+
+    def path(self) -> Path:
+        """Return the collector's package directory without importing its package.
+
+        :return: The directory path.
+        :raises FileNotFoundError: If the package cannot be found or the directory does not exist.
+        """
+
+        pkg, _, relative = self.package.partition(":")
+        try:
+            spec = importlib.util.find_spec(pkg)
+        except ModuleNotFoundError:
+            spec = None
+        locations = None if spec is None else spec.submodule_search_locations
+        if not locations:
+            raise FileNotFoundError(f"collector {self.name!r} package not found: {self.package!r}")
+        path = Path(next(iter(locations)), *relative.split("/"))
+        if not path.is_dir():
+            raise FileNotFoundError(f"collector {self.name!r} directory not found: {self.package!r}")
+        # ponytail: assumes a filesystem install; zipped packages would need importlib.resources.as_file.
+        return path
+
+
+_COLLECTOR_NAME = re.compile(r"[a-z][a-z0-9_]*(?:[.-][a-z0-9_]+)*")
+_COLLECTOR_PACKAGE = re.compile(_DOTTED + r":[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*")
+_collectors: dict[str, CollectorSupport] = {}
+
+
+def register_collector(name: str, *, package: str) -> None:
+    """Register a recognized-calculation collector.
+
+    Registration stores strings only; nothing is imported or resolved until
+    :meth:`CollectorSupport.path` is called. Re-registering a name with
+    identical values is a no-op.
+
+    :param name: The collector name, e.g. ``"vasp.calculation.relax"``.
+    :param package: The ``"package:relative/dir"`` resource, e.g.
+        ``"httk.codes.vasp:collectors/vasp-relax"``.
+    :raises ValueError: If a value is invalid or ``name`` is registered with different values.
+    """
+
+    if not isinstance(name, str) or _COLLECTOR_NAME.fullmatch(name) is None:
+        raise ValueError(f"invalid collector name: {name!r}")
+    if (
+        not isinstance(package, str)
+        or _COLLECTOR_PACKAGE.fullmatch(package) is None
+        or any(part in (".", "..") for part in package.partition(":")[2].split("/"))
+    ):
+        raise ValueError(f"collector package must be a 'package:relative/dir' resource: {package!r}")
+    support = CollectorSupport(name=name, package=package)
+    existing = _collectors.setdefault(name, support)
+    if existing != support:
+        raise ValueError(f"collector is already registered with different values: {name!r}")
+
+
+def collector_support(name: str) -> CollectorSupport:
+    """Return collector metadata without importing its package.
+
+    :param name: The collector name to look up.
+    :return: The registered collector metadata.
+    :raises KeyError: If ``name`` is not registered.
+    """
+
+    try:
+        return _collectors[name]
+    except KeyError:
+        known = ", ".join(known_collectors()) or "(none)"
+        raise KeyError(f"no collector registered for {name!r}; known: {known}") from None
+
+
+def known_collectors() -> tuple[str, ...]:
+    """Return registered collector names without resolving anything.
+
+    :return: Registered collector names in sorted order.
+    """
+
+    return tuple(sorted(_collectors))

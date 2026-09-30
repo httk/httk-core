@@ -7,12 +7,23 @@ import pytest
 
 import httk.registry
 from httk.core._discover import discover_and_register
-from httk.core.register import CodeSupport, code_support, codes, known_codes, register_code
+from httk.core.register import (
+    CodeSupport,
+    CollectorSupport,
+    code_support,
+    codes,
+    collector_support,
+    known_codes,
+    known_collectors,
+    register_code,
+    register_collector,
+)
 
 
 @pytest.fixture(autouse=True)
 def _isolated_codes(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(codes, "_codes", {})
+    monkeypatch.setattr(codes, "_collectors", {})
 
 
 def test_register_and_lookup_round_trip() -> None:
@@ -96,3 +107,67 @@ def test_discovery_walks_codes_tier(tmp_path: Path, monkeypatch: pytest.MonkeyPa
         assert "not_imported" not in sys.modules
     finally:
         sys.modules.pop("httk.registry.codes.test_discovery_codes", None)
+
+
+def test_collector_register_and_lookup() -> None:
+    register_collector("vasp.calculation.relax", package="pkg:collectors/vasp-relax")
+    register_collector("qe.calculation.pw", package="pkg2:c")
+    assert known_collectors() == ("qe.calculation.pw", "vasp.calculation.relax")
+    assert collector_support("qe.calculation.pw") == CollectorSupport("qe.calculation.pw", "pkg2:c")
+
+
+def test_collector_duplicate_registration() -> None:
+    register_collector("a.b", package="pkg:x")
+    register_collector("a.b", package="pkg:x")
+    with pytest.raises(ValueError, match="different values"):
+        register_collector("a.b", package="pkg:y")
+
+
+@pytest.mark.parametrize(
+    ("name", "package"),
+    [
+        ("Bad", "pkg:x"),
+        ("1a", "pkg:x"),
+        ("a..b", "pkg:x"),
+        ("a", "pkg"),
+        ("a", "pkg:"),
+        ("a", ":x"),
+        ("a", "pkg:../x"),
+        ("a", "pkg:x/../y"),
+        ("a", "pkg:./x"),
+        ("a", "pkg:x//y"),
+        ("a", "pkg:/x"),
+        ("a", "pkg:x/"),
+    ],
+)
+def test_collector_validation(name: str, package: str) -> None:
+    with pytest.raises(ValueError):
+        register_collector(name, package=package)
+    assert known_collectors() == ()
+
+
+def test_unknown_collector_raises_key_error() -> None:
+    register_collector("known.one", package="pkg:x")
+    with pytest.raises(KeyError, match="known.one"):
+        collector_support("missing")
+
+
+def test_collector_path_does_not_import_package(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    package = tmp_path / "pkgx"
+    (package / "collectors" / "demo").mkdir(parents=True)
+    package.joinpath("__init__.py").write_text('raise RuntimeError("imported")\n', encoding="utf-8")
+    monkeypatch.syspath_prepend(str(tmp_path))
+    assert CollectorSupport("demo", "pkgx:collectors/demo").path() == package / "collectors" / "demo"
+    assert "pkgx" not in sys.modules
+
+
+def test_collector_path_missing(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    (tmp_path / "pkgy").mkdir()
+    (tmp_path / "pkgy" / "__init__.py").write_text("", encoding="utf-8")
+    monkeypatch.syspath_prepend(str(tmp_path))
+    with pytest.raises(FileNotFoundError):
+        CollectorSupport("demo", "pkgy:nope").path()
+    with pytest.raises(FileNotFoundError):
+        CollectorSupport("demo", "no_such_pkg_zzz:x").path()
+    with pytest.raises(FileNotFoundError):
+        CollectorSupport("demo", "no_such_pkg_zzz.sub:x").path()

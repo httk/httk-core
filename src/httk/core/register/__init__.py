@@ -27,7 +27,16 @@ from .cli import (  # noqa: F401
     known_cli_commands,
     register_cli_command,
 )
-from .codes import CodeSupport, code_support, known_codes, register_code
+from .codes import (
+    CodeSupport,
+    CollectorSupport,
+    code_support,
+    collector_support,
+    known_codes,
+    known_collectors,
+    register_code,
+    register_collector,
+)
 from .entries import (  # noqa: F401
     OptimadeEntryBinding,
     _entry_families,
@@ -99,10 +108,12 @@ __all__ = [
     "CLICommand",
     "CLIHandler",
     "CodeSupport",
+    "CollectorSupport",
     "OptimadeEntryBinding",
     "PluginRegistry",
     "cli_command",
     "code_support",
+    "collector_support",
     "entry_family_info",
     "entry_providers",
     "entry_record_info",
@@ -110,6 +121,7 @@ __all__ = [
     "format_serializers",
     "has_reader_for",
     "known_codes",
+    "known_collectors",
     "known_entry_families",
     "known_entry_providers",
     "known_entry_records",
@@ -130,6 +142,7 @@ __all__ = [
     "readers",
     "register_cli_command",
     "register_code",
+    "register_collector",
     "register_entry_family",
     "register_entry_provider",
     "register_entry_record",
