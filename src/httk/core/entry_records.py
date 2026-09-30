@@ -125,7 +125,12 @@ def _projection(field_name: str) -> StoredPropertyProjection:
     """Build independent direct-field callbacks for one scalar property."""
 
     def query(context: QueryContext, operator: str, value: object) -> QueryExpression:
-        return context.compare(context.field(field_name), operator, context.constant(value))
+        field = context.field(field_name)
+        if operator == "IS_UNKNOWN":
+            return context.is_null(field)
+        if operator == "IS_KNOWN":
+            return context.not_(context.is_null(field))
+        return context.compare(field, operator, context.constant(value))
 
     return StoredPropertyProjection(
         response=lambda record: getattr(record, field_name),

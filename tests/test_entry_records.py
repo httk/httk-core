@@ -241,3 +241,23 @@ def test_curated_definition_is_served_under_registered_prefix():
 
     with pytest.raises(ValueError, match="prefix"):
         entry_record("tests.unregistered_curated")(Unregistered)
+
+
+def test_known_unknown_operators_route_to_null_checks():
+    class Recorder:
+        def field(self, name):
+            return ("field", name)
+
+        def is_null(self, value):
+            return ("null", value)
+
+        def not_(self, value):
+            return ("not", value)
+
+        def compare(self, *args):
+            raise AssertionError("IS_KNOWN/IS_UNKNOWN must not compare")
+
+    query = stored_property_projections(Measurement)["_httk_custom_energy"].query
+    null = ("null", ("field", "energy"))
+    assert query(Recorder(), "IS_UNKNOWN", None) == null
+    assert query(Recorder(), "IS_KNOWN", None) == ("not", null)
