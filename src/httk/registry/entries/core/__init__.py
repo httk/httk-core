@@ -29,6 +29,12 @@ register_entry_record(
     family="records",
     definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/records",
 )
+register_entry_record(
+    name="core-total-energy",
+    record="httk.core.data_records:TotalEnergyRecord",
+    family="records",
+    definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/records",
+)
 
 register_entry_record(
     name="core-reference",

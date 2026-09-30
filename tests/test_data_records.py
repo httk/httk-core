@@ -105,3 +105,48 @@ def test_product_of_edges_are_content_and_follow_the_run_edge_scheme() -> None:
     assert mapped == linked
     with pytest.raises(ValueError, match="Duplicate label"):
         DataRecord.from_value(plain.definition_id, "e", 1, product_of=[edge, RunEdge("subject", "runs", "r")])
+
+
+_TE_IRI = "https://schemas.httk.org/defs/v0.1/properties/core/total_energy"
+
+
+def test_total_energy_record_construction_and_validation() -> None:
+    from httk.core import TotalEnergyRecord
+
+    record = TotalEnergyRecord(-1)
+    assert record.total_energy == -1.0 and isinstance(record.total_energy, float)
+    assert record.type == "records"
+    assert list(TotalEnergyRecord.__httk_property_definitions__) == ["_httk_total_energy"]
+    assert list(TotalEnergyRecord.__httk_stored_properties__) == ["_httk_total_energy"]
+    for bad in (float("nan"), float("inf"), "1", True):
+        with pytest.raises(ValueError, match="finite"):
+            TotalEnergyRecord(bad)  # type: ignore[arg-type]
+
+
+def test_total_energy_from_data_record_round_trip_and_refusal() -> None:
+    from httk.core import TotalEnergyRecord
+
+    edge = RunEdge("subject", "structures", "httk.demo:1:s1")
+    stamp = datetime.datetime(2026, 1, 2, tzinfo=datetime.UTC)
+    source = DataRecord.from_value(
+        _TE_IRI, "total_energy", -1.5, product_of=[edge], id="i", immutable_id="i~1", last_modified=stamp
+    )
+    typed = TotalEnergyRecord.from_data_record(source)
+    assert (typed.total_energy, typed.product_of, typed.id, typed.immutable_id, typed.last_modified) == (
+        -1.5,
+        (edge,),
+        "i",
+        "i~1",
+        stamp,
+    )
+    with pytest.raises(ValueError, match="is not"):
+        TotalEnergyRecord.from_data_record(DataRecord.from_value("https://example.org/def", "e", -1.5))
+
+
+def test_total_energy_content_id_and_golden_pin() -> None:
+    from httk.core import TotalEnergyRecord
+
+    assert content_id(TotalEnergyRecord(-1.5)) == content_id(TotalEnergyRecord(-1.5, id="x", immutable_id="y"))
+    assert content_id(TotalEnergyRecord(-1.5)) != content_id(TotalEnergyRecord(-1.25))
+    record = TotalEnergyRecord(-1.5, product_of=[RunEdge("subject", "structures", "httk.demo:1:s1")])
+    assert content_id(record) == "345e492608d31ff005e18b6cb5fd59521be434f30442874ccade9a22bf78f08e"

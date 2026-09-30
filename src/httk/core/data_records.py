@@ -3,14 +3,18 @@
 import datetime
 import json
 import math
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass, field, fields
 from typing import Annotated, Any, ClassVar, Self
 
+from .property_definitions import PropertyDefinition
 from .provenance import RunEdge, _edges
+from .register.schemas import load_property_definition
 from .storage import IdentitySkip, Indexed, StorageInfo, StrongLink, Unique, stored_property
+from .storage.stored_properties import QueryContext, QueryExpression, StoredPropertyProjection
 
 RECORDS_DEFINITION_ID = "https://schemas.httk.org/defs/v0.1/entrytypes/records"
+TOTAL_ENERGY_DEFINITION_ID = "https://schemas.httk.org/defs/v0.1/properties/core/total_energy"
 _CANONICAL_JSON_ERROR = "value_json must be canonical JSON — use DataRecord.from_value."
 
 
@@ -183,6 +187,100 @@ class DataRecord:
         return _create(cls, obj)
 
 
+def _total_energy_query(context: QueryContext, operator: str, value: object) -> QueryExpression:
+    field_ = context.field("total_energy")
+    if operator == "IS_UNKNOWN":
+        return context.is_null(field_)
+    if operator == "IS_KNOWN":
+        return context.not_(context.is_null(field_))
+    return context.compare(field_, operator, context.constant(value))
+
+
+class _TotalEnergyDefinitions(Mapping[str, PropertyDefinition]):
+    """Served-name mapping resolved on first use; registry discovery runs after this module imports."""
+
+    def __getitem__(self, key: str) -> PropertyDefinition:
+        if key != "_httk_total_energy":
+            raise KeyError(key)
+        return load_property_definition(TOTAL_ENERGY_DEFINITION_ID).served_form()
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(("_httk_total_energy",))
+
+    def __len__(self) -> int:
+        return 1
+
+
+@dataclass(frozen=True)
+class TotalEnergyRecord:
+    """Store one total energy, in eV, as a typed record with a native float column.
+
+    Unlike :class:`DataRecord`, the property is fixed by the class, so the
+    ``_httk_total_energy`` value is served and queried from the ``total_energy``
+    column. ``product_of`` has the same meaning as on :class:`DataRecord`.
+
+    :param total_energy: The finite total energy in eV.
+    :param product_of: The entries this value is a product of, as labeled edges.
+    :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+    :param immutable_id: The per-revision immutable id; minted by the store when None.
+    :param last_modified: The optional timezone-aware metadata timestamp.
+    :raises ValueError: If the energy is not a finite number or ``last_modified`` is not timezone-aware.
+    """
+
+    __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
+        storage_name="core_total_energy", identity_name="core_total_energy"
+    )
+    __httk_property_definitions__: ClassVar[Mapping[str, PropertyDefinition]] = _TotalEnergyDefinitions()
+    __httk_stored_properties__: ClassVar[Mapping[str, StoredPropertyProjection]] = {
+        "_httk_total_energy": StoredPropertyProjection(
+            response=lambda record: getattr(record, "total_energy"),  # noqa: B009
+            query=_total_energy_query,
+            sort=lambda context: context.field("total_energy"),
+        )
+    }
+
+    total_energy: float
+    product_of: Annotated[tuple[RunEdge, ...], StrongLink("product_of", reverse="has_product", role="subject")] = ()
+    id: Annotated[str | None, IdentitySkip(), Indexed()] = field(default=None, compare=False)
+    immutable_id: Annotated[str | None, IdentitySkip(), Unique()] = field(default=None, compare=False)
+    last_modified: Annotated[datetime.datetime | None, IdentitySkip()] = field(default=None, compare=False)
+
+    @property
+    def type(self) -> str:
+        """Return the internal (unprefixed) entry type name."""
+        return "records"
+
+    def __post_init__(self) -> None:
+        if isinstance(self.total_energy, bool) or not isinstance(self.total_energy, (int, float)):
+            raise ValueError("Field 'total_energy' must be a finite number.")
+        object.__setattr__(self, "total_energy", float(self.total_energy))
+        if not math.isfinite(self.total_energy):
+            raise ValueError("Field 'total_energy' must be a finite number.")
+        edges = _edges(self.product_of)
+        if len({edge.label for edge in edges}) != len(edges):
+            raise ValueError("Duplicate label on TotalEnergyRecord product_of.")
+        object.__setattr__(self, "product_of", edges)
+        _validate_timestamp(self.last_modified, "last_modified")
+
+    @classmethod
+    def from_data_record(cls, record: DataRecord) -> Self:
+        """Build a typed total-energy record from a generic data record.
+
+        :param record: A data record whose definition is the total-energy property.
+        :return: The typed record with the same value, edges and ids.
+        :raises ValueError: If the record is for a different property definition or holds a non-numeric value.
+        """
+        if record.definition_id != TOTAL_ENERGY_DEFINITION_ID:
+            raise ValueError(f"DataRecord definition {record.definition_id!r} is not {TOTAL_ENERGY_DEFINITION_ID!r}.")
+        return cls(
+            record.value,
+            product_of=record.product_of,
+            id=record.id,
+            immutable_id=record.immutable_id,
+            last_modified=record.last_modified,
+        )
+
+
 class DataRecordEntry:
     """Logical entry family for served :class:`DataRecord` records.
 
@@ -196,4 +294,4 @@ class DataRecordEntry:
         raise TypeError("DataRecordEntry is a logical entry family; store a DataRecord directly")
 
 
-__all__ = ["RECORDS_DEFINITION_ID", "DataRecord", "DataRecordEntry"]
+__all__ = ["RECORDS_DEFINITION_ID", "TOTAL_ENERGY_DEFINITION_ID", "DataRecord", "DataRecordEntry", "TotalEnergyRecord"]
