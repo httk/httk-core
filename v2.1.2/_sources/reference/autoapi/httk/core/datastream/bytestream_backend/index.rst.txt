@@ -1,0 +1,32 @@
+httk.core.datastream.bytestream_backend
+=======================================
+
+.. py:module:: httk.core.datastream.bytestream_backend
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.datastream.bytestream_backend.BytestreamBackend
+
+
+Module Contents
+---------------
+
+.. py:class:: BytestreamBackend(backend, **hints)
+
+   Bases: :py:obj:`httk.core.views.Backend`\ [\ :py:obj:`BytestreamBackend`\ ], :py:obj:`httk.core.datastream.bytestream_api.BytestreamAPI`
+
+
+   Abstract base class for all backends of streaming byte data.
+
+   :param backend: Initial backend value accepted by the backend family.
+   :param \**hints: Backend-selection hints used by concrete backends.
+
+
+   .. py:attribute:: backend_classes
+      :type:  ClassVar[list[type[httk.core.views.Backend[Any]]]]
+
+

@@ -1,0 +1,64 @@
+httk.core.views.view
+====================
+
+.. py:module:: httk.core.views.view
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.views.view.View
+
+
+Module Contents
+---------------
+
+.. py:class:: View[BackendT: httk.core.views.backend.Backend]
+
+   A set of views allow manipulating data and state of a backend through different interfaces.
+   Hence, creating a View from a Backend, or from another View, allows to read and operate on the data through the interface of that view,
+   even if it is not the natural representation of the underlying data.
+
+   Important: views are always meant to reference the data and state of *the same* underlying object, hence, e.g.:
+
+   * If a function is given an X object, and the function applies an Xvariant1View and then calls, e.g., close() via that view,
+     the expectation should be that the original X object is also closed.
+   * When, e.g., a TextstreamStringView is created on an already partially read stream, only the unread data will appear through that string interface.
+
+   All backends and views of the same kind of data (X) should be combined into a type union XLike that functions use to declare they support this kind of data.
+   Such functions should start with creating a View on the passed data, giving them access to the data in a single desired format.
+
+   Views are lazy by default: construction stores only the backend, while
+   ``cached_property`` shadows and group fills materialize presentation state on first access.
+   Size fills to the subset served by each backend call; validate before assigning, never read a
+   shadowed attribute from a fill, and document why a view must remain eager. The explicit
+   ``coerce_view()``/``coerce()`` paths materialize via ``_ensure_materialized()``; laziness is
+   for pass-through use.
+
+
+   .. py:method:: unwrap()
+
+      Return the most raw representation possible of this view, i.e., if it uses a backend with an internal representaion -
+      or if it can (possibly lossly) convert itself into a more raw representation that still would be recognized as a <Something>Like type,
+      that representation will be returned. If this is not possible, the instance itself is returned.
+
+      :return: The backend's most raw available representation.
+
+
+
+   .. py:method:: unview()
+
+      Return the view's presented representation as a plain, non-View instance.
+
+      Concrete views that mimic a value type override this to shed the httk wrapper; the result
+      may alias the view's storage (no copy is promised). The default raises ``TypeError``,
+      which is the correct behavior for views that only adapt an interface and have no faithful
+      standalone value.
+
+      :return: The presented value as a plain, non-View instance.
+      :raises TypeError: If this interface-only view has no standalone plain value.
+
+
+

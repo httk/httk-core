@@ -1,0 +1,44 @@
+httk.core.datastream.textstream_filename
+========================================
+
+.. py:module:: httk.core.datastream.textstream_filename
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.datastream.textstream_filename.TextstreamFilename
+
+
+Module Contents
+---------------
+
+.. py:class:: TextstreamFilename(filename, **hints)
+
+   Bases: :py:obj:`httk.core.datastream.textstream_common.TextstreamCommon`, :py:obj:`httk.core.datastream.textstream_backend.TextstreamBackend`
+
+
+   Backend for streaming text via operations on a file specfied by a filename
+   Compressed content is transparently decompressed before text decoding.
+
+   :param filename: File path to open lazily for text reading.
+   :param \**hints: Backend-selection, encoding, and compression hints.
+   :raises ValueError: If the compression hint is unknown.
+
+
+   .. py:property:: name
+      :type: str | None
+
+
+      Return the configured filename.
+
+
+   .. py:property:: closed
+      :type: bool
+
+
+      Report whether the filename backend is closed.
+
+

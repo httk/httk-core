@@ -1,0 +1,48 @@
+httk.core.datastream.bytestream_bytes
+=====================================
+
+.. py:module:: httk.core.datastream.bytestream_bytes
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.datastream.bytestream_bytes.BytestreamBytes
+
+
+Module Contents
+---------------
+
+.. py:class:: BytestreamBytes(content, **hints)
+
+   Bases: :py:obj:`httk.core.datastream.bytestream_common.BytestreamCommon`, :py:obj:`httk.core.datastream.bytestream_backend.BytestreamBackend`
+
+
+   Backend for streaming byte data backed by an actual bytes object.
+   Compressed content is transparently decompressed according to the compression hint.
+
+   :param content: Bytes to expose as a stream.
+   :param \**hints: Backend-selection and compression hints.
+   :raises ValueError: If the compression hint is unknown.
+
+
+   .. py:attribute:: b
+      :type:  bytes
+
+
+   .. py:property:: name
+      :type: str | None
+
+
+      Report that an in-memory stream has no source name.
+
+
+   .. py:property:: closed
+      :type: bool
+
+
+      Report whether the in-memory stream is closed.
+
+

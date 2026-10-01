@@ -1,0 +1,47 @@
+httk.core.datastream.bytestream_bytes_view
+==========================================
+
+.. py:module:: httk.core.datastream.bytestream_bytes_view
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.datastream.bytestream_bytes_view.BytestreamBytesView
+
+
+Module Contents
+---------------
+
+.. py:class:: BytestreamBytesView(obj, **hints)
+
+   Bases: :py:obj:`httk.core.datastream.bytestream_view.BytestreamView`, :py:obj:`bytes`
+
+
+   A view presenting underlying streaming byte data as bytes.
+   This view can be used both to pass bytes in place of streaming data, and for reading streaming data into bytes.
+   Note: this view is not lazy (this is impossible for views inheriting bytes, since bytes is immutable), hence all
+   streaming data is read immediately upon creating this view.
+
+   :param obj: Byte-stream source to present or consume.
+   :param \**hints: Backend-selection and compression hints.
+
+
+   .. py:method:: unwrap()
+
+      Return the raw representation of the wrapped backend.
+
+      :return: The backend's most raw available representation.
+
+
+
+   .. py:method:: unview()
+
+      Return the presented data as plain bytes.
+
+      :return: A plain bytes value containing the presented data.
+
+
+

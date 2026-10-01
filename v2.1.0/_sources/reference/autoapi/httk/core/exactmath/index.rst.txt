@@ -1,0 +1,378 @@
+httk.core.exactmath
+===================
+
+.. py:module:: httk.core.exactmath
+
+.. autoapi-nested-parse::
+
+   Exact math on rationals and decimals: type-preserving transcendentals.
+
+   This module provides the transcendental and helper functions used by
+   :class:`~httk.core.vectors.fracvector.FracVector`. Every value is computed with 100% exact
+   integer/rational arithmetic, so results are platform-independent and deterministic by
+   construction — no floating point is used anywhere in the computation.
+
+   Two output domains are supported, selected by a single documented rule. All scalar functions also
+   accept ``ScalarLike`` and ``VectorLike`` inputs. Vectors are mapped elementwise and retain their
+   shape. The optional keyword-only ``coerce=`` presents the natural result through a requested view
+   or value type following :func:`httk.core.coerce_view` semantics — the exact backend is retained
+   behind view presentations (use :func:`httk.core.unview` on the result for a plain value);
+   ``coerce="natural"`` returns the pre-presentation result unchanged. By default, presentation is
+   view-neutral and best-effort: ordinary inputs are presented in the input type family, while
+   strings, bools, and ``Backend`` inputs retain the natural result. Explicit coercion propagates
+   coercion failures. ``exact=True`` keeps its exact SurdScalar/SurdVector result unless an explicit
+   ``coerce=`` is supplied.
+
+   The default presentation therefore returns an ``int`` for an integral integer result, an exact
+   ``Fraction`` for non-integral integer results, a ``float`` for float inputs (and explicit
+   ``coerce=float`` is lossy), nested lists for list inputs, native tuple views for tuple inputs, and
+   float64 numpy views for numpy inputs. Numpy view values are lossy, but the exact result remains
+   recoverable with ``unwrap()``. Decimal inputs or ``digits=`` select the Decimal domain. Fraction
+   inputs remain Fractions. Surd inputs are embedded back into the Surd family
+   when the natural result is rational.
+
+   The exact-symbolic domain is selected by ``exact=True`` on ``sqrt`` and degree-mode trigonometric
+   functions. It returns exact squarefree-radical values (or exact inverse angles), with no
+   approximation. Exact trigonometry is available only for the complete surd-cosine angle set:
+   multiples of 15 and 36 degrees; unsupported values raise ``ValueError``. Exact inverse
+   trigonometry accepts surd values and returns exact degree Fractions.
+
+   When a genuinely irrational ``SurdScalar`` is used by ordinary Fraction-mode functions, it is
+   reduced to the deterministic Fraction hub at the active Decimal context precision plus three guard
+   digits. Exact symbolic operations preserve the surd and never use that lossy approximation.
+
+   In the **Fraction** domain each function returns a rational (:class:`fractions.Fraction`)
+   approximation to a target precision ``prec`` (the error bound), with ``limit`` controlling the
+   result denominator. In the **Decimal** domain the same rational algorithms
+   drive Ziv's adaptive strategy to produce a *correctly rounded* Decimal to ``digits`` significant
+   digits (default: the active :func:`decimal.getcontext` precision, matching stdlib Decimal's own
+   model) under ``rounding`` (``"half_even"`` = correctly rounded, ``"down"`` = correct truncation
+   toward zero). A Decimal input is converted to a Fraction exactly (:class:`fractions.Fraction`
+   accepts a Decimal), so the rational core is identical in both domains; this gives deterministic
+   ``cos``/``sin``/``atan2``/... for Decimals, which the stdlib :mod:`decimal` module does not offer.
+
+   The implementation uses the standard-library :mod:`fractions`.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.exactmath.default_accuracy
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.exactmath.get_continued_fraction
+   httk.core.exactmath.best_rational_in_interval
+   httk.core.exactmath.fraction_from_continued_fraction
+   httk.core.exactmath.string_to_val_and_delta
+   httk.core.exactmath.any_to_fraction
+   httk.core.exactmath.integer_sqrt
+   httk.core.exactmath.sqrt
+   httk.core.exactmath.cos
+   httk.core.exactmath.sin
+   httk.core.exactmath.tan
+   httk.core.exactmath.exp
+   httk.core.exactmath.log
+   httk.core.exactmath.log10
+   httk.core.exactmath.asin
+   httk.core.exactmath.acos
+   httk.core.exactmath.atan
+   httk.core.exactmath.atan2
+   httk.core.exactmath.pi
+
+
+Module Contents
+---------------
+
+.. py:data:: default_accuracy
+
+.. py:function:: get_continued_fraction(p, q)
+
+   Yield the terms of the continued fraction expansion of ``p/q``.
+
+   :param p: Numerator of the rational value.
+   :param q: Denominator used for the rational value and continued-fraction steps.
+   :yield: The next continued-fraction term.
+
+
+.. py:function:: best_rational_in_interval(low, high)
+
+   Return the rational number with the smallest denominator in ``[low, high]``.
+
+   :param low: Lower endpoint of the interval.
+   :param high: Upper endpoint of the interval.
+   :return: The rational in the interval with the smallest denominator.
+
+
+.. py:function:: fraction_from_continued_fraction(cf)
+
+   Reconstruct a :class:`fractions.Fraction` from continued-fraction terms.
+
+   :param cf: Continued-fraction terms in order.
+   :return: The reconstructed rational value.
+
+
+.. py:function:: string_to_val_and_delta(arg, min_accuracy = fractions.Fraction(1, 10000))
+
+   Parse a numeric string into a central value and an uncertainty (delta).
+
+   Recognizes plain decimals, fractions (``"2/3"``), scientific notation, and explicit
+   standard-deviation notation (``"0.33342(10)"``). When no explicit uncertainty is
+   present and ``min_accuracy`` is not None, an uncertainty is inferred from the number
+   of written digits (capped at ``min_accuracy``).
+
+   :param arg: Numeric text, including a decimal, fraction, scientific notation, or uncertainty notation.
+   :param min_accuracy: Upper bound for inferred uncertainty, or ``None`` to disable inference.
+   :return: The central value and its absolute uncertainty.
+
+
+.. py:function:: any_to_fraction(arg, min_accuracy = fractions.Fraction(1, 10000))
+
+   Convert a numeric-like object into a :class:`fractions.Fraction`.
+
+   Strings are parsed for uncertainty via :func:`string_to_val_and_delta`. With the default
+   ``1/10000``, ``0.33`` is taken to mean ``0.3300`` (= 33/100), whereas ``0.3333`` is taken
+   to mean ``1/3``. Set ``min_accuracy`` to ``None`` to convert strings exactly.
+
+   :param arg: Value accepted by the :class:`fractions.Fraction` constructor.
+   :param min_accuracy: Minimum assumed accuracy for string input, or ``None`` for exact conversion.
+   :return: The converted rational value.
+
+
+.. py:function:: integer_sqrt(n)
+
+   Return the integer square root of ``n``.
+
+   :param n: Non-negative integer whose square root is required.
+   :return: The floor of the exact square root.
+
+
+.. py:function:: sqrt(x, prec = default_accuracy, limit = True, digits = None, rounding = 'half_even', max_refinements = None, exact = False, *, coerce = None)
+
+   Return the square root of ``x``.
+
+   Fraction domain (Fraction/int/str input, no ``digits=``): a rational approximation within
+   ``prec`` (exact for perfect squares), ``limit`` controlling the denominator. Decimal domain
+   (Decimal input or ``digits=`` given): the correctly-rounded Decimal to ``digits`` significant
+   digits under ``rounding``.
+
+   With ``exact=True`` the output-domain rule is overridden: scalar input yields an exact
+   :class:`~httk.core.vectors.surdvector.SurdScalar`, while vector input yields a
+   :class:`~httk.core.vectors.surdvector.SurdVector`. Both are squarefree-radical results with no
+   approximation at all (``sqrt(2, exact=True)`` squares back to exactly ``2``,
+   ``sqrt(9/4, exact=True)`` is the rational ``3/2``). ``x`` must be a nonnegative rational;
+   ``prec``/``limit``/``digits``/``rounding`` are ignored in this mode.
+
+   :param x: Scalar or vector value whose square root is required.
+   :param prec: Maximum absolute error requested for Fraction-mode approximation.
+   :param limit: Whether to constrain the approximation's denominator using ``prec``.
+   :param digits: Significant digits for Decimal mode, or ``None`` for Fraction mode unless ``x`` is Decimal.
+   :param rounding: Decimal rounding mode: ``"half_even"`` or ``"down"``.
+   :param max_refinements: Maximum Decimal refinements, or ``None`` for the normal adaptive limit.
+   :param exact: Whether to return an exact squarefree-radical result.
+   :param coerce: Optional output view or value type; ``"natural"`` disables presentation coercion.
+   :return: The square root in the selected output domain, preserving vector shape.
+   :raises ValueError: If the input is negative, exact input is not rational, or Decimal-mode parameters are invalid.
+
+
+.. py:function:: cos(x, prec = default_accuracy, limit = True, degrees = False, digits = None, rounding = 'half_even', max_refinements = None, exact = False, *, coerce = None)
+
+   Return the cosine of ``x`` (radians unless ``degrees`` is True). See the module docstring for
+   the type-preservation rule; Decimal mode renders the special-angle exact values exactly (e.g.
+   ``cos(Decimal("60"), degrees=True) == Decimal("0.5")``).
+
+   :param x: Scalar or vector angle.
+   :param prec: Maximum absolute error requested for Fraction-mode approximation.
+   :param limit: Whether to constrain the approximation's denominator using ``prec``.
+   :param degrees: Whether to interpret the angle in degrees instead of radians.
+   :param digits: Significant digits for Decimal mode, or ``None`` for Fraction mode unless ``x`` is Decimal.
+   :param rounding: Decimal rounding mode: ``"half_even"`` or ``"down"``.
+   :param max_refinements: Maximum Decimal refinements, or ``None`` for the normal adaptive limit.
+   :param exact: Whether to return the exact supported degree-mode surd result.
+   :param coerce: Optional output view or value type; ``"natural"`` disables presentation coercion.
+   :return: The cosine in the selected output domain, preserving vector shape.
+   :raises ValueError: If exact mode is not degree mode, the angle is unsupported, or Decimal-mode parameters are invalid.
+
+
+.. py:function:: sin(x, prec = default_accuracy, limit = True, degrees = False, digits = None, rounding = 'half_even', max_refinements = None, exact = False, *, coerce = None)
+
+   Return the sine of ``x`` (radians unless ``degrees`` is True). See the module docstring for the
+   type-preservation rule.
+
+   :param x: Scalar or vector angle.
+   :param prec: Maximum absolute error requested for Fraction-mode approximation.
+   :param limit: Whether to constrain the approximation's denominator using ``prec``.
+   :param degrees: Whether to interpret the angle in degrees instead of radians.
+   :param digits: Significant digits for Decimal mode, or ``None`` for Fraction mode unless ``x`` is Decimal.
+   :param rounding: Decimal rounding mode: ``"half_even"`` or ``"down"``.
+   :param max_refinements: Maximum Decimal refinements, or ``None`` for the normal adaptive limit.
+   :param exact: Whether to return the exact supported degree-mode surd result.
+   :param coerce: Optional output view or value type; ``"natural"`` disables presentation coercion.
+   :return: The sine in the selected output domain, preserving vector shape.
+   :raises ValueError: If exact mode is not degree mode, the angle is unsupported, or Decimal-mode parameters are invalid.
+
+
+.. py:function:: tan(x, degrees = False, prec = default_accuracy, limit = True, digits = None, rounding = 'half_even', max_refinements = None, exact = False, *, coerce = None)
+
+   Return the tangent of ``x``. See the module docstring for the type-preservation rule.
+
+   :param x: Scalar or vector angle.
+   :param degrees: Whether to interpret the angle in degrees instead of radians.
+   :param prec: Maximum absolute error requested for Fraction-mode approximation.
+   :param limit: Whether to constrain the approximation's denominator using ``prec``.
+   :param digits: Significant digits for Decimal mode, or ``None`` for Fraction mode unless ``x`` is Decimal.
+   :param rounding: Decimal rounding mode: ``"half_even"`` or ``"down"``.
+   :param max_refinements: Maximum Decimal refinements, or ``None`` for the normal adaptive limit.
+   :param exact: Whether to return the exact supported degree-mode surd result.
+   :param coerce: Optional output view or value type; ``"natural"`` disables presentation coercion.
+   :return: The tangent in the selected output domain, preserving vector shape.
+   :raises ValueError: If exact mode is not degree mode, the angle is unsupported, tangent is undefined, or Decimal-mode parameters are invalid.
+
+
+.. py:function:: exp(x, prec = default_accuracy, limit = True, digits = None, rounding = 'half_even', max_refinements = None, *, coerce = None)
+
+   Return ``e`` raised to the power ``x``. See the module docstring for the type-preservation rule.
+
+   :param x: Scalar or vector exponent.
+   :param prec: Maximum absolute error requested for Fraction-mode approximation.
+   :param limit: Whether to constrain the approximation's denominator using ``prec``.
+   :param digits: Significant digits for Decimal mode, or ``None`` for Fraction mode unless ``x`` is Decimal.
+   :param rounding: Decimal rounding mode: ``"half_even"`` or ``"down"``.
+   :param max_refinements: Maximum Decimal refinements, or ``None`` for the normal adaptive limit.
+   :param coerce: Optional output view or value type; ``"natural"`` disables presentation coercion.
+   :return: The exponential in the selected output domain, preserving vector shape.
+   :raises ValueError: If Decimal-mode parameters are invalid.
+
+
+.. py:function:: log(x, base = None, prec = default_accuracy, limit = True, digits = None, rounding = 'half_even', max_refinements = None, *, coerce = None)
+
+   Return the logarithm of ``x`` to ``base`` (natural log when ``base`` is None). See the module
+   docstring for the type-preservation rule; a Decimal ``base`` also promotes the result.
+
+   :param x: Scalar or vector value whose logarithm is required.
+   :param base: Logarithm base, or ``None`` for the natural logarithm.
+   :param prec: Maximum absolute error requested for Fraction-mode approximation.
+   :param limit: Whether to constrain the approximation's denominator using ``prec``.
+   :param digits: Significant digits for Decimal mode, or ``None`` for Fraction mode unless an input is Decimal.
+   :param rounding: Decimal rounding mode: ``"half_even"`` or ``"down"``.
+   :param max_refinements: Maximum Decimal refinements, or ``None`` for the normal adaptive limit.
+   :param coerce: Optional output view or value type; ``"natural"`` disables presentation coercion.
+   :return: The logarithm in the selected output domain, preserving vector shape.
+   :raises ValueError: If the logarithm domain or Decimal-mode parameters are invalid.
+
+
+.. py:function:: log10(x, prec = default_accuracy, limit = True, digits = None, rounding = 'half_even', max_refinements = None, *, coerce = None)
+
+   Return the base-10 logarithm of ``x``. See the module docstring for the type-preservation rule.
+   ``max_refinements`` is honored and is forwarded to the logarithm implementation.
+
+   :param x: Scalar or vector value whose base-10 logarithm is required.
+   :param prec: Maximum absolute error requested for Fraction-mode approximation.
+   :param limit: Whether to constrain the approximation's denominator using ``prec``.
+   :param digits: Significant digits for Decimal mode, or ``None`` for Fraction mode unless ``x`` is Decimal.
+   :param rounding: Decimal rounding mode: ``"half_even"`` or ``"down"``.
+   :param max_refinements: Maximum Decimal refinements, or ``None`` for the normal adaptive limit.
+   :param coerce: Optional output view or value type; ``"natural"`` disables presentation coercion.
+   :return: The base-10 logarithm in the selected output domain, preserving vector shape.
+   :raises ValueError: If the logarithm domain or Decimal-mode parameters are invalid.
+
+
+.. py:function:: asin(x, degrees = False, prec = default_accuracy, limit = True, digits = None, rounding = 'half_even', max_refinements = None, exact = False, *, coerce = None)
+
+   Return the arc sine of ``x`` (radians, or degrees if ``degrees``). See the module docstring for
+   the type-preservation rule.
+
+   :param x: Scalar or vector value whose inverse sine is required.
+   :param degrees: Whether to return the angle in degrees instead of radians.
+   :param prec: Maximum absolute error requested for Fraction-mode approximation.
+   :param limit: Whether to constrain the approximation's denominator using ``prec``.
+   :param digits: Significant digits for Decimal mode, or ``None`` for Fraction mode unless ``x`` is Decimal.
+   :param rounding: Decimal rounding mode: ``"half_even"`` or ``"down"``.
+   :param max_refinements: Maximum Decimal refinements, or ``None`` for the normal adaptive limit.
+   :param exact: Whether to return the exact supported degree-mode angle.
+   :param coerce: Optional output view or value type; ``"natural"`` disables presentation coercion.
+   :return: The inverse sine in the selected output domain, preserving vector shape.
+   :raises ValueError: If exact mode is not degree mode, the angle is unsupported, or Decimal-mode parameters are invalid.
+
+
+.. py:function:: acos(x, degrees = False, prec = default_accuracy, limit = True, digits = None, rounding = 'half_even', max_refinements = None, exact = False, *, coerce = None)
+
+   Return the arc cosine of ``x`` (radians, or degrees if ``degrees``). See the module docstring
+   for the type-preservation rule.
+
+   :param x: Scalar or vector value whose inverse cosine is required.
+   :param degrees: Whether to return the angle in degrees instead of radians.
+   :param prec: Maximum absolute error requested for Fraction-mode approximation.
+   :param limit: Whether to constrain the approximation's denominator using ``prec``.
+   :param digits: Significant digits for Decimal mode, or ``None`` for Fraction mode unless ``x`` is Decimal.
+   :param rounding: Decimal rounding mode: ``"half_even"`` or ``"down"``.
+   :param max_refinements: Maximum Decimal refinements, or ``None`` for the normal adaptive limit.
+   :param exact: Whether to return the exact supported degree-mode angle.
+   :param coerce: Optional output view or value type; ``"natural"`` disables presentation coercion.
+   :return: The inverse cosine in the selected output domain, preserving vector shape.
+   :raises ValueError: If exact mode is not degree mode, the angle is unsupported, or Decimal-mode parameters are invalid.
+
+
+.. py:function:: atan(x, degrees = False, prec = default_accuracy, limit = True, digits = None, rounding = 'half_even', max_refinements = None, exact = False, *, coerce = None)
+
+   Return the arc tangent of ``x`` (radians, or degrees if ``degrees``). See the module docstring
+   for the type-preservation rule.
+
+   :param x: Scalar or vector value whose inverse tangent is required.
+   :param degrees: Whether to return the angle in degrees instead of radians.
+   :param prec: Maximum absolute error requested for Fraction-mode approximation.
+   :param limit: Whether to constrain the approximation's denominator using ``prec``.
+   :param digits: Significant digits for Decimal mode, or ``None`` for Fraction mode unless ``x`` is Decimal.
+   :param rounding: Decimal rounding mode: ``"half_even"`` or ``"down"``.
+   :param max_refinements: Maximum Decimal refinements, or ``None`` for the normal adaptive limit.
+   :param exact: Whether to return the exact supported degree-mode angle.
+   :param coerce: Optional output view or value type; ``"natural"`` disables presentation coercion.
+   :return: The inverse tangent in the selected output domain, preserving vector shape.
+   :raises ValueError: If exact mode is not degree mode, the angle is unsupported, or Decimal-mode parameters are invalid.
+
+
+.. py:function:: atan2(y, x, degrees = False, prec = default_accuracy, limit = True, digits = None, rounding = 'half_even', max_refinements = None, exact = False, *, coerce = None)
+
+   Return the arc tangent of ``y/x`` with :func:`math.atan2` quadrant conventions (radians, or
+   degrees if ``degrees``). See the module docstring for the type-preservation rule; a Decimal in
+   either argument promotes the result (``atan2(Decimal, Fraction)`` returns a Decimal). Vector
+   inputs are mapped elementwise; a scalar argument is broadcast across the vector.
+
+   :param y: Scalar or vector ordinate.
+   :param x: Scalar or vector abscissa.
+   :param degrees: Whether to return the angle in degrees instead of radians.
+   :param prec: Maximum absolute error requested for Fraction-mode approximation.
+   :param limit: Whether to constrain the approximation's denominator using ``prec``.
+   :param digits: Significant digits for Decimal mode, or ``None`` for Fraction mode unless an input is Decimal.
+   :param rounding: Decimal rounding mode: ``"half_even"`` or ``"down"``.
+   :param max_refinements: Maximum Decimal refinements, or ``None`` for the normal adaptive limit.
+   :param exact: Whether to return the exact supported degree-mode angle.
+   :param coerce: Optional output view or value type; ``"natural"`` disables presentation coercion.
+   :return: The quadrant-aware angle in the selected output domain, preserving vector shape.
+   :raises ValueError: If exact mode is not degree mode, the angle is unsupported, or Decimal-mode parameters are invalid.
+
+
+.. py:function:: pi(prec = default_accuracy, limit = True, digits = None, rounding = 'half_even', max_refinements = None)
+
+   Return pi.
+
+   With no ``digits=`` the Fraction contract holds (a rational within ``prec``, ``limit``
+   controlling the denominator); ``pi(digits=n)`` returns the correctly-rounded Decimal to ``n``
+   significant digits under ``rounding``.
+
+   :param prec: Maximum absolute error requested for the Fraction approximation.
+   :param limit: Whether to constrain the approximation's denominator using ``prec``.
+   :param digits: Significant digits for Decimal mode, or ``None`` for Fraction mode.
+   :param rounding: Decimal rounding mode: ``"half_even"`` or ``"down"``.
+   :param max_refinements: Maximum Decimal refinements, or ``None`` for the normal adaptive limit.
+   :return: Pi in the Fraction or Decimal domain selected by ``digits``.
+   :raises ValueError: If Decimal-mode parameters are invalid.
+
+

@@ -1,0 +1,412 @@
+httk.core.storage.stored_properties
+===================================
+
+.. py:module:: httk.core.storage.stored_properties
+
+.. autoapi-nested-parse::
+
+   Backend-neutral declarations for properties of durable entry backings.
+
+   An entry family may have several concrete durable representations.  Each
+   backing declares its own served-property map with
+   :class:`StoredPropertyProjection`; the declaration remains entirely in the
+   domain package while a storage implementation translates its query callbacks
+   to its native query language.  Nothing here assumes SQL, OPTIMADE, or a
+   particular record family.
+
+   The query protocols deliberately describe expression *construction*, rather
+   than expression evaluation.  A domain callback only receives a
+   :class:`QueryContext`; the storage backend supplies its implementation and is
+   therefore free to use SQL, a document query, or an in-memory evaluator.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.storage.stored_properties.STORED_PROPERTY_PROJECTIONS_ATTRIBUTE
+   httk.core.storage.stored_properties.StoredPropertyResponse
+   httk.core.storage.stored_properties.StoredPropertyQuery
+   httk.core.storage.stored_properties.StoredPropertySort
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   httk.core.storage.stored_properties.QueryLiteralError
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.storage.stored_properties.QueryExpression
+   httk.core.storage.stored_properties.QueryValue
+   httk.core.storage.stored_properties.QueryField
+   httk.core.storage.stored_properties.QueryScope
+   httk.core.storage.stored_properties.QueryContext
+   httk.core.storage.stored_properties.StoredPropertyProjection
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.storage.stored_properties.stored_property_projections
+
+
+Module Contents
+---------------
+
+.. py:data:: STORED_PROPERTY_PROJECTIONS_ATTRIBUTE
+   :type:  Final
+   :value: '__httk_stored_properties__'
+
+
+   Exact-class attribute holding a backing's property-projection mapping.
+
+.. py:exception:: QueryLiteralError
+
+   Bases: :py:obj:`ValueError`
+
+
+   A query literal cannot represent the property value requested.
+
+   This is intentionally distinct from a query expression which simply
+   matches no records.  Protocol layers can translate it into their
+   user-facing invalid-filter-value error without depending on a domain
+   package's parser exception.
+
+
+.. py:class:: QueryExpression
+
+   Bases: :py:obj:`Protocol`
+
+
+   One backend-neutral boolean predicate.
+
+   Query callbacks compose predicates with the ordinary boolean operators;
+   the backend decides how to retain SQL's three-valued null semantics (or an
+   equivalent semantics in another storage engine).
+
+
+.. py:class:: QueryValue
+
+   Bases: :py:obj:`Protocol`
+
+
+   A scalar or aggregate value participating in a query expression.
+
+
+.. py:class:: QueryField
+
+   Bases: :py:obj:`QueryValue`, :py:obj:`Protocol`
+
+
+   A durable field selected from a :class:`QueryScope`.
+
+
+.. py:class:: QueryScope
+
+   Bases: :py:obj:`Protocol`
+
+
+   A record or correlated child/reference scope.
+
+   ``scope(name)`` follows a durable reference or child relationship while
+   retaining correlation to this scope.  It intentionally does not say
+   whether that relationship is one-to-one or a collection: ``exists`` and
+   the aggregate methods on :class:`QueryContext` give both cases a single,
+   portable vocabulary.  Every ``scope`` call creates a distinct peer scope,
+   even for the same relationship name, so a callback can compare correlated
+   child rows without an accidental self-alias.
+
+
+   .. py:method:: field(name)
+
+      Return the durable scalar field named ``name`` in this scope.
+
+      :param name: The durable field name.
+      :return: A query value representing that field.
+
+
+
+   .. py:method:: scope(name)
+
+      Return the correlated child or reference scope named ``name``.
+
+      :param name: The durable relationship name.
+      :return: A distinct correlated peer scope.
+
+
+
+.. py:class:: QueryContext
+
+   Bases: :py:obj:`QueryScope`, :py:obj:`Protocol`
+
+
+   Factory and algebra used by domain-owned property query callbacks.
+
+   ``field`` and ``scope`` start at the backing record.  ``scope`` can be
+   called again on a child/reference scope, so callbacks can express
+   correlated nested predicates without seeing storage tables or joins.
+   ``exact_equal`` requests equality in the property's exact stored domain;
+   it is the operation to use for fractions and other values for which a
+   presentation float would be lossy.
+
+
+   .. py:method:: constant(value)
+
+      Return a query value for an already validated literal constant.
+
+      :param value: The validated literal to place in the query.
+      :return: A query value for the literal.
+
+
+
+   .. py:method:: null()
+
+      Return the explicit null query value.
+
+      :return: A query value representing null.
+
+
+
+   .. py:method:: always_true()
+
+      Return the predicate which matches every backing record.
+
+      :return: A predicate that always matches.
+
+
+
+   .. py:method:: always_false()
+
+      Return the predicate which matches no backing record.
+
+      :return: A predicate that never matches.
+
+
+
+   .. py:method:: compare(left, operator, right)
+
+      Compare values with a backend-supported comparison operator.
+
+      Domain callbacks normally use :meth:`equal`, :meth:`exact_equal`, or
+      explicit operator dispatch for a protocol's filter grammar.  The
+      operator is deliberately a string so this contract does not own an
+      external query language's token enum.
+
+      :param left: The left query value.
+      :param operator: The backend-supported comparison operator.
+      :param right: The right query value.
+      :return: The comparison predicate.
+
+
+
+   .. py:method:: equal(left, right)
+
+      Compare values using the backing's ordinary stored semantics.
+
+      :param left: The left query value.
+      :param right: The right query value.
+      :return: The equality predicate.
+
+
+
+   .. py:method:: exact_equal(left, right)
+
+      Compare values in their exact canonical stored representation.
+
+      :param left: The left query value.
+      :param right: The right query value.
+      :return: The exact equality predicate.
+
+
+
+   .. py:method:: is_null(value)
+
+      Test a value for null; invert this predicate for a known-value test.
+
+      :param value: The query value to test.
+      :return: The null-test predicate.
+
+
+
+   .. py:method:: exists(scope, predicate)
+
+      Test whether a correlated scope contains a row satisfying ``predicate``.
+
+      :param scope: The correlated scope to inspect.
+      :param predicate: The predicate required of a matching row.
+      :return: The existence predicate.
+
+
+
+   .. py:method:: filtered(scope, predicate)
+
+      Return the correlated subset of ``scope`` satisfying ``predicate``.
+
+      The returned scope is usable by aggregate operations.  In particular,
+      it lets a declaration compare a required multiplicity with the exact
+      number of matching child values rather than reusing one ``exists``
+      witness for repeated values.
+
+      :param scope: The correlated scope to filter.
+      :param predicate: The predicate required of retained rows.
+      :return: A correlated scope containing only matching rows.
+
+
+
+   .. py:method:: count(scope)
+
+      Return the number of rows in a correlated child/reference scope.
+
+      :param scope: The correlated scope to count.
+      :return: A query value containing the row count.
+
+
+
+   .. py:method:: distinct_count(scope, value)
+
+      Return the count of distinct ``value`` values in ``scope``.
+
+      :param scope: The correlated scope to count.
+      :param value: The value whose distinct occurrences are counted.
+      :return: A query value containing the distinct count.
+
+
+
+   .. py:method:: scaled_exact_equal(left, left_factor, right, right_factor)
+
+      Compare two exact values after cross multiplication.
+
+      This is the portable, exact form of a proportional comparison.  It
+      avoids requiring a backend to divide fractions or approximate a ratio
+      through a presentation float: it asserts ``left * left_factor ==
+      right * right_factor`` in the backing's canonical exact domain.
+
+      :param left: The first exact value.
+      :param left_factor: The factor applied to the first value.
+      :param right: The second exact value.
+      :param right_factor: The factor applied to the second value.
+      :return: The cross-multiplied equality predicate.
+
+
+
+   .. py:method:: and_(*predicates)
+
+      Conjoin predicates; an empty conjunction is :meth:`always_true`.
+
+      :param \*predicates: The predicates to conjoin.
+      :return: The conjunction predicate.
+
+
+
+   .. py:method:: or_(*predicates)
+
+      Disjoin predicates; an empty disjunction is :meth:`always_false`.
+
+      :param \*predicates: The predicates to disjoin.
+      :return: The disjunction predicate.
+
+
+
+   .. py:method:: not_(predicate)
+
+      Negate a predicate without relying on a backend's Python truthiness.
+
+      :param predicate: The predicate to negate.
+      :return: The negated predicate.
+
+
+
+   .. py:method:: when_known(known, predicate)
+
+      Evaluate ``predicate`` only when ``known`` is true, else return unknown.
+
+      This is the backend-neutral three-valued-logic form of ``CASE WHEN
+      known THEN predicate ELSE NULL END``.  It keeps incomplete nullable
+      domain data unknown under both a predicate and its negation instead
+      of silently treating the missing representation as a non-match.
+
+      :param known: The predicate establishing that the value is available.
+      :param predicate: The predicate evaluated only when ``known`` matches.
+      :return: The conditional three-valued predicate.
+
+
+
+.. py:type:: StoredPropertyResponse
+   :canonical: Callable[[object], object]
+
+
+   Extract one served property value from one concrete backing record.
+
+.. py:type:: StoredPropertyQuery
+   :canonical: Callable[[QueryContext, str, object], QueryExpression]
+
+
+   Build one predicate from a context, protocol operator, and parsed literal.
+
+.. py:type:: StoredPropertySort
+   :canonical: Callable[[QueryContext], QueryValue]
+
+
+   Select one sortable backing value from a query context.
+
+.. py:class:: StoredPropertyProjection
+
+   One domain-owned projection of a served property for one backing.
+
+   ``response`` is called with a concrete backing record and returns its
+   protocol-boundary value.  ``query`` receives a backend-neutral context,
+   the protocol comparison operator, and its parsed literal; it returns a
+   predicate or raises :class:`QueryLiteralError` when the literal has no
+   valid representation for this property.  ``None`` means that a property
+   is response-only for this backing.  ``sort`` identifies a direct sortable
+   value and is intentionally separate from filtering because not every
+   predicate has a meaningful total ordering.
+
+   :param response: The operation that extracts the served value from a backing record.
+   :param query: The optional operation that builds filtering predicates.
+   :param sort: The optional operation that selects a value for ordering.
+   :raises TypeError: If a supplied projection operation cannot be invoked.
+
+
+   .. py:attribute:: response
+      :type:  StoredPropertyResponse
+
+
+   .. py:attribute:: query
+      :type:  StoredPropertyQuery | None
+      :value: None
+
+
+
+   .. py:attribute:: sort
+      :type:  StoredPropertySort | None
+      :value: None
+
+
+
+.. py:function:: stored_property_projections(cls)
+
+   Return a validated property's projection map declared *on* ``cls``.
+
+   The lookup deliberately uses :func:`vars` rather than :func:`getattr`.
+   A representation-specific property mapping must be opted into by the
+   exact backing class; subclasses never inherit a parent's mapping by
+   accident.  A class without the declaration serves no stored properties.
+
+   :param cls: The exact frozen dataclass backing class to inspect.
+   :return: Its validated projection map, or an empty map when undeclared.
+   :raises TypeError: If ``cls`` is not a directly declared frozen dataclass or its map is invalid.
+   :raises ValueError: If a projection name is invalid.
+
+

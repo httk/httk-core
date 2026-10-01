@@ -1,0 +1,49 @@
+httk.core.records
+=================
+
+.. py:module:: httk.core.records
+
+.. autoapi-nested-parse::
+
+   Deterministic filesystem records for signed manifests and seals.
+
+   A *record list* is the canonical description of what a directory tree contained
+   at one moment: one entry per file, symlink, and directory, sorted by path, with
+   a file's size, SHA-256, and owner-execute bit. It never follows symlinks, so a
+   symlink is recorded by its target rather than by what it points at. The same
+   record list underlies both the signed project manifest and every seal, so a
+   covered byte cannot change without a later verification noticing.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.records.file_records
+
+
+Module Contents
+---------------
+
+.. py:function:: file_records(root, *, exclusions = (), skip = None)
+
+   Return the sorted, deterministic records of the tree rooted at *root*.
+
+   Symlinks are never followed: a symlink is recorded as its target text and a
+   directory is recorded as its own entry before its contents. A file record
+   carries its ``size``, ``sha256``, and ``executable`` (the owner-execute
+   bit). Two seams keep out what a record list must not cover: *exclusions* are
+   ``fnmatch`` patterns matched case-sensitively against each entry's posix
+   relpath, and *skip*, when given, is a predicate on the absolute path of each
+   entry — an entry it accepts is left out entirely, and a directory it accepts
+   is not descended into.
+
+   :param root: The directory tree to describe.
+   :param exclusions: ``fnmatch`` patterns on posix relpaths to leave out.
+   :param skip: A predicate on absolute paths; a truthy result omits the entry.
+   :return: The record dictionaries, sorted by posix relpath.
+   :raises ValueError: If the tree holds a special filesystem entry.
+
+

@@ -1,0 +1,411 @@
+httk.core.vectors.surdvector
+============================
+
+.. py:module:: httk.core.vectors.surdvector
+
+.. autoapi-nested-parse::
+
+   Exact square-root arithmetic: :class:`SurdVector` and :class:`SurdScalar`.
+
+   Where :class:`~httk.core.vectors.fracvector.FracVector` closes the rationals under ``+,-,*,/``,
+   :class:`SurdVector` closes the rationals *and the square roots of arbitrary positive rationals*
+   under those same operations. It is the exact-arithmetic model for **Cartesian** crystallographic
+   geometry, where :class:`~httk.core.vectors.fracvector.FracVector` alone is not enough.
+
+   Why a square-root extension, and where
+   --------------------------------------
+
+   Symmetry operations and Wyckoff coordinates live in **fractional** coordinates and are already
+   exactly closed over :class:`~httk.core.vectors.fracvector.FracVector`: point-group operations are integer matrices and
+   translations are rationals, so no radicals ever appear. Radicals appear only when one moves to a
+   **Cartesian** frame: the hexagonal/trigonal basis carries a :math:`\sqrt 3`, Cartesian rotation
+   matrices carry :math:`\sqrt 2`/:math:`\sqrt 3`, and a bond length is :math:`\sqrt{\text{rational}}`
+   under a rational metric. :class:`SurdVector` is exactly the arithmetic closure needed there.
+
+   The purpose boundary (magnitudes vs. linear structure)
+   ------------------------------------------------------
+
+   For pure **magnitude** questions — comparing, sorting or testing equality of distances — the
+   *squared* representation is exact, cheaper, and already fully supported by :class:`~httk.core.vectors.fracvector.FracVector`: a
+   squared length ``lengthsqr`` is rational and a metric/Gram matrix ``G = B*B^T`` is rational, so
+   "is bond A shorter than bond B?" is an exact rational comparison of ``lengthsqr`` values. That
+   remains the recommended fast path.
+
+   Squaring fails, however, as soon as radicals sit inside **additive / linear** structure, and that
+   is exactly where :class:`SurdVector` earns its keep:
+
+   - components are signed and additive, and :math:`(a+b)^2 \neq a^2 + b^2` — the cross term is
+     itself a radical;
+   - a metric determines a basis only up to an orthogonal transformation, so squaring throws away
+     orientation and chirality;
+   - even scalar sums are not closed under squaring: :math:`(\sqrt2+\sqrt3)^2 = 5 + 2\sqrt6`.
+
+   So :class:`SurdVector` composes *with* the squared strategy rather than replacing it: its canonical
+   form collapses to the plain rational whenever a value happens to be rational, so a computation that
+   lands back in the rationals is transparently rational again.
+
+   The mathematical model
+   ----------------------
+
+   The values form the **field** :math:`\mathbb{Q}[\sqrt n : n \text{ squarefree}]` — finite sums
+   :math:`\sum_r q_r\sqrt r` with rational coefficients :math:`q_r`, the rationals being the radicand
+   :math:`r = 1` term. The canonical form is the map ``{squarefree radicand -> rational coefficient}``
+   with no zero entries; it is **unique** because the :math:`\sqrt r` (over squarefree :math:`r`) are
+   linearly independent over :math:`\mathbb{Q}`. Consequences used throughout:
+
+   - **Equality and zero-detection are exact**: equal values have equal coefficient maps.
+   - **Products combine radicands**: :math:`\sqrt r\,\sqrt s = c\,\sqrt t` where
+     :math:`r s = c^2 t` with :math:`t` squarefree (see ``square_part``).
+   - **Division is a true field inverse** via iterated per-prime conjugation: for each prime :math:`p`
+     dividing a radicand of the denominator, multiply numerator and denominator by the conjugate that
+     flips the sign of every :math:`\sqrt r` with :math:`p \mid r`; each such step eliminates :math:`p`.
+     The coefficient count can grow like :math:`2^k` in the number :math:`k` of distinct primes among
+     the denominator's radicands — tiny in practice (crystallographic denominators involve one or two
+     radicands).
+   - **Sign is exactly decidable**: refine rational lower/upper bounds on each :math:`\sqrt r` (via
+     :func:`~httk.core.exactmath.integer_sqrt` at increasing precision) until the summed
+     interval excludes zero. This terminates because a nonzero surd is never zero.
+   - **Square roots are closed over positive rationals but NOT over surds** (no nested radicals):
+     :meth:`~httk.core.vectors.surdvector.SurdVector.sqrt_of` takes any nonnegative rational to an exact surd, but there is no exact
+     :math:`\sqrt{1+\sqrt2}`. Hence :meth:`~httk.core.vectors.surdvector.SurdVector.length` is exact precisely when ``lengthsqr`` is
+     rational — which canonical arithmetic guarantees whenever the geometry is metric-rational (the
+     crystallographic case); otherwise it raises.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.vectors.surdvector.SurdVector
+   httk.core.vectors.surdvector.SurdScalar
+
+
+Module Contents
+---------------
+
+.. py:class:: SurdVector(value, dim = None)
+
+   Bases: :py:obj:`httk.core.vectors.vector_backend.VectorBackend`
+
+
+   An *immutable* exact tensor over the squarefree-radical field
+   :math:`\mathbb{Q}[\sqrt n : n\ \text{squarefree}]`.
+
+   A SurdVector is a map ``{squarefree radicand -> FracVector coefficient}`` (all coefficients
+   sharing one ``dim``); radicand ``1`` is the rational part. It is stored **canonically** —
+   coefficients simplified, all-zero coefficients dropped — so the representation is unique and
+   equality/zero-detection are exact. Like :class:`~httk.core.vectors.fracvector.FracVector` it is
+   immutable and hashable.
+
+   See the module docstring for the field facts, the fractional-vs-Cartesian motivation, and the
+   magnitude-vs-linear-structure purpose boundary.
+
+   :param value: An existing SurdVector or SurdScalar, returned unchanged; a rational
+       scalar/nested sequence accepted by :class:`~httk.core.vectors.fracvector.FracVector` (which becomes the
+       radicand-1 component); or a ``{squarefree radicand -> FracVector coefficient}`` mapping in
+       canonical component form (as emitted by ``repr()``). Non-squarefree radicands are not
+       folded here — use :meth:`from_radicand_map` for that.
+   :param dim: The shared coefficient shape, used only with the mapping form; inferred from the
+       coefficients when omitted, and required to pin the shape of an all-zero (empty) mapping.
+
+
+   .. py:method:: from_radicand_map(mapping)
+      :classmethod:
+
+
+      Compose a SurdVector from a ``{radicand -> coefficient}`` mapping.
+
+      Radicands are positive integers and need not be squarefree — each is normalized via
+      ``square_part`` (``sqrt(radicand) = s*sqrt(r)``) and the
+      coefficients (FracVector-like, all of one shape) folded together canonically.
+
+      :param mapping: Radicands mapped to their coefficient tensors.
+      :return: The canonical SurdVector representation.
+
+
+
+   .. py:method:: sqrt_of(q)
+      :classmethod:
+
+
+      Return the exact square root of a nonnegative rational ``q`` as a :class:`SurdScalar`.
+
+      The result is a plain rational when ``q`` is a perfect square (e.g. ``sqrt_of(4/9) == 2/3``)
+      and otherwise a single-radical surd (``sqrt_of(8) == 2*sqrt(2)``). ``sqrt(p/q)`` is
+      normalized as ``sqrt(p*q)/q`` so the stored radicand is always a positive squarefree integer
+      (``sqrt_of(1/2) == sqrt(2)/2``). Raises :class:`ValueError` on a negative argument — there is
+      no exact square root of a surd (no nested radicals), only of a rational.
+
+      :param q: A nonnegative rational value.
+      :return: Its exact square root.
+
+
+
+   .. py:method:: zero(dim = ())
+      :classmethod:
+
+
+      The zero SurdVector of shape ``dim`` (a :class:`SurdScalar` for the default ``()``).
+
+      :param dim: The shape of the zero tensor.
+      :return: The zero SurdVector or SurdScalar.
+
+
+
+   .. py:method:: one()
+      :classmethod:
+
+
+      The scalar ``1``.
+
+
+
+   .. py:property:: dim
+      :type: tuple[int, Ellipsis]
+
+
+      The shape tuple, as for :attr:`~httk.core.vectors.fracvector.FracVectorBase.dim`.
+
+
+   .. py:property:: is_rational
+      :type: bool
+
+
+      True iff the value is purely rational (only the radicand-1 term is present).
+
+
+   .. py:method:: is_zero()
+
+      True iff the value is exactly zero (empty canonical form).
+
+
+
+   .. py:property:: radicands
+      :type: tuple[int, Ellipsis]
+
+
+      The sorted squarefree radicands present in the canonical form.
+
+
+   .. py:method:: coefficient(radicand)
+
+      Return the FracVector coefficient of ``sqrt(radicand)`` (a zero tensor when absent).
+
+      :param radicand: The radicand whose coefficient to retrieve.
+      :return: The coefficient, or a zero tensor when absent.
+
+
+
+   .. py:method:: T()
+
+      Return the transpose, transposing each radicand's coefficient tensor.
+
+      :return: The transposed tensor.
+
+
+
+   .. py:method:: dot(other)
+
+      Return the vector dot product of two 1-D SurdVectors (``sum a_i b_i``).
+
+      :param other: The other 1-D SurdVector.
+      :return: The exact scalar dot product.
+
+
+
+   .. py:method:: lengthsqr()
+
+      Return the squared length ``A * A^T`` as a :class:`SurdScalar`.
+
+      :return: The exact squared length.
+
+
+
+   .. py:method:: length()
+
+      Return the exact length ``sqrt(lengthsqr)`` as a :class:`SurdScalar`.
+
+      Exact precisely when ``lengthsqr`` is rational — which canonical arithmetic guarantees for a
+      difference of Cartesian sites under a rational metric (the crystallographic case). When
+      ``lengthsqr`` is itself irrational the length would be a nested radical
+      (``sqrt(a + b*sqrt(c))``), which is outside the field, so this raises :class:`ValueError`.
+
+      :return: The exact length when the squared length is rational.
+
+
+
+   .. py:method:: det()
+
+      Return the determinant of a 3x3 SurdVector as a :class:`SurdScalar`.
+
+      :return: The exact determinant.
+
+
+
+   .. py:method:: inv()
+
+      Return the inverse of a 3x3 SurdVector via the adjugate and the scalar field inverse.
+
+      :return: The exact inverse matrix.
+
+
+
+   .. py:method:: to_fractions_approx(prec = fractions.Fraction(1, 10**30))
+
+      A deterministic nested list of :class:`fractions.Fraction` within ``prec`` of the true value.
+
+      Exact (not merely within ``prec``) whenever the value is rational. This is the
+      ``compute(prec)``-shaped rational approximation reused by the Decimal rendering.
+
+      :param prec: The maximum elementwise approximation error.
+      :return: Nested rational approximations of the values.
+
+
+
+   .. py:method:: to_floats(prec = fractions.Fraction(1, 10**30))
+
+      Return a nested list of floats via a high-precision exact rational approximation.
+
+      :param prec: The maximum elementwise approximation error.
+      :return: Nested floating-point approximations of the values.
+
+
+
+   .. py:property:: fractions
+      :type: httk.core.vectors.vector_api.Fractions
+
+
+      Return the exact or deterministic rational hub representation.
+
+
+   .. py:property:: fractions_exact
+      :type: bool
+
+
+      Return whether the Fraction interchange is exact for this surd.
+
+
+.. py:class:: SurdScalar(value, dim = None)
+
+   Bases: :py:obj:`SurdVector`
+
+
+   A scalar :class:`SurdVector` (shape ``()``): a single field element
+   :math:`\sum_r q_r\sqrt r`.
+
+   Adds the scalar-only operations — the field inverse, exact sign and ordering, and Decimal
+   rendering — that need a single value rather than a tensor.
+
+   :param value: A rational scalar/nested sequence accepted by :class:`~httk.core.vectors.fracvector.FracVector`, or an
+       existing SurdVector or SurdScalar, returned unchanged.
+
+
+   .. py:method:: inverse()
+
+      Return the multiplicative inverse ``1/self`` (raises :class:`ZeroDivisionError` on zero).
+
+      :return: The exact multiplicative inverse.
+
+
+
+   .. py:method:: sign()
+
+      Return the exact sign of the value: ``-1``, ``0`` or ``1``.
+
+      For an irrational value the sign is decided by refining rational lower/upper bounds on each
+      ``sqrt(r)`` (from :func:`~httk.core.exactmath.integer_sqrt` at increasing precision)
+      and summing the weighted intervals until the total interval excludes zero — which always
+      happens in finitely many steps because a nonzero surd is bounded away from zero.
+
+      :return: ``-1``, ``0``, or ``1`` according to the exact sign.
+
+
+
+   .. py:method:: cos_degrees(q)
+      :classmethod:
+
+
+      Return ``cos(q degrees)`` as an exact :class:`SurdScalar`, or None when it is not a surd.
+
+      The value lies in the squarefree-radical field precisely when the angle, reduced modulo
+      360, is a **multiple of 15 or of 36 degrees** — e.g. :math:`\cos 30° = \tfrac{\sqrt3}2`,
+      :math:`\cos 15° = \tfrac{\sqrt6+\sqrt2}4`, :math:`\cos 36° = \tfrac{1+\sqrt5}4`.
+      ``q`` may be an int, :class:`~fractions.Fraction`, or numeric string (parsed via
+      :func:`~httk.core.exactmath.any_to_fraction`).
+
+      That list is **complete**: :math:`\cos(2\pi a/b)` lies in a field generated by square
+      roots of rationals iff the Galois group :math:`(\mathbb{Z}/b)^\times/\{\pm1\}` of
+      :math:`\mathbb{Q}(\cos 2\pi/b)` has exponent at most 2, which holds exactly for
+      :math:`b \in \{1,2,3,4,5,6,8,10,12,24\}` — the rational-degree angles that are multiples
+      of 15° or 36°. (Niven's theorem is the rational-value special case of this classification.)
+      A ``None`` result is therefore a proof that the exact cosine lies outside
+      :math:`\mathbb{Q}[\sqrt n]` — use :func:`~httk.core.exactmath.cos` with
+      ``degrees=True`` for a deterministic rational approximation in that case.
+
+      :param q: The angle in degrees.
+      :return: The exact cosine, or ``None`` outside the surd field.
+
+
+
+   .. py:method:: sin_degrees(q)
+      :classmethod:
+
+
+      Return ``sin(q degrees)`` as an exact :class:`SurdScalar`, or ``None`` when the value lies
+      outside the supported surd field (when ``90 - q`` is not in the exact surd-cosine set).
+
+      Computed as ``cos(90 - q)`` degrees, so exactness follows the same classification as
+      :meth:`cos_degrees` applied to ``90 - q``: exact when ``90 - q`` is a multiple of 15 or
+      36 degrees, and ``None`` otherwise (a proof that the exact sine is outside the field).
+      For example, ``sin(54°)`` is exact because it is ``cos(36°)``.
+
+      :param q: The angle in degrees.
+      :return: The exact sine, or ``None`` outside the surd field.
+
+
+
+   .. py:method:: acos_degrees()
+
+      Return the exact ``arccos`` of this value in **degrees** over :math:`[0, 180]`, or None.
+
+      This is the reverse table lookup: the result is an exact rational number of degrees
+      precisely when the value equals the cosine of a multiple of 15° or 36° (the complete set of
+      rational-degree angles with surd cosines — see :meth:`cos_degrees`), decided by exact surd
+      equality; otherwise None (the exact angle is then irrational in degrees). Raises
+      :class:`ValueError` — decided exactly via :meth:`sign` — when the value lies outside
+      :math:`[-1, 1]`.
+
+      :return: The exact angle in degrees, or ``None`` when not represented by the table.
+
+
+
+   .. py:method:: to_float(prec = fractions.Fraction(1, 10**30))
+
+      Return the value as a float via a high-precision exact rational approximation.
+
+      :param prec: The maximum approximation error.
+      :return: The value as a float.
+
+
+
+   .. py:method:: to_decimal(digits = None, rounding = 'half_even', max_refinements = None)
+
+      Render the value as a correctly-rounded :class:`decimal.Decimal`.
+
+      Reuses the exact-math module's Ziv refinement loop
+      (``_to_decimal``): a rational value renders exactly (its
+      finite expansion when it fits, else quantized), and an irrational surd — never on a rational
+      rounding boundary — is rendered by refining the rational approximation until the rounding is
+      determined. ``digits`` (significant digits; default: the active decimal context precision),
+      ``rounding`` (``"half_even"``/``"down"``) and ``max_refinements`` match
+      :func:`~httk.core.exactmath.sqrt` in Decimal mode.
+
+      :param digits: The number of significant decimal digits, or the active context precision when omitted.
+      :param rounding: The decimal rounding mode.
+      :param max_refinements: The maximum number of approximation refinements.
+      :return: The correctly rounded decimal value.
+
+
+

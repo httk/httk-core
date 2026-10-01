@@ -1,0 +1,164 @@
+httk.core.register.codes
+========================
+
+.. py:module:: httk.core.register.codes
+
+.. autoapi-nested-parse::
+
+   Simulation-code support registry.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.register.codes.CodeSupport
+   httk.core.register.codes.CollectorSupport
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.register.codes.register_code
+   httk.core.register.codes.code_support
+   httk.core.register.codes.known_codes
+   httk.core.register.codes.register_collector
+   httk.core.register.codes.collector_support
+   httk.core.register.codes.known_collectors
+
+
+Module Contents
+---------------
+
+.. py:class:: CodeSupport
+
+   Store registration metadata for one simulation-code support package.
+
+   :param name: The code name; also the ``<name>-`` bridge command prefix and
+       the environment-variable stem.
+   :param bridge: The dotted bridge module path. The module defines
+       ``add_commands(subparsers)`` and ``run_command(namespace) -> int``.
+   :param bash_api: The ``"package:filename"`` resource of the Bash API
+       script, or ``None``.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: bridge
+      :type:  str
+
+
+   .. py:attribute:: bash_api
+      :type:  str | None
+
+
+   .. py:method:: resolve_bridge()
+
+      Import and return the bridge module.
+
+      :return: The imported bridge module.
+
+
+
+   .. py:method:: bash_api_path()
+
+      Return the filesystem path of the Bash API script.
+
+      :return: The script path, or ``None`` if no Bash API is registered.
+      :raises FileNotFoundError: If the registered resource does not exist.
+
+
+
+.. py:function:: register_code(name, *, bridge, bash_api = None)
+
+   Register a simulation-code support package.
+
+   Registration stores strings only; nothing is imported or resolved until
+   :meth:`CodeSupport.resolve_bridge` or :meth:`CodeSupport.bash_api_path` is
+   called. Re-registering a name with identical values is a no-op.
+
+   :param name: The code name, matching ``[a-z][a-z0-9_]*``.
+   :param bridge: The dotted bridge module path, e.g. ``"httk.codes.vasp._bridge"``.
+   :param bash_api: The ``"package:filename"`` Bash API resource, e.g.
+       ``"httk.codes.vasp:httk-vasp.sh"``, or ``None``.
+   :raises ValueError: If a value is invalid or ``name`` is registered with different values.
+
+
+.. py:function:: code_support(name)
+
+   Return code-support metadata without importing its implementation.
+
+   :param name: The code name to look up.
+   :return: The registered code-support metadata.
+   :raises KeyError: If ``name`` is not registered.
+
+
+.. py:function:: known_codes()
+
+   Return registered code names without resolving anything.
+
+   :return: Registered code names in sorted order.
+
+
+.. py:class:: CollectorSupport
+
+   Store registration metadata for one recognized-calculation collector.
+
+   :param name: The collector name, the ``name`` of its package manifest
+       (e.g. ``"vasp.calculation.relax"``).
+   :param package: The ``"package:relative/dir"`` resource naming the collector's package directory.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: package
+      :type:  str
+
+
+   .. py:method:: path()
+
+      Return the collector's package directory without importing its package.
+
+      :return: The directory path.
+      :raises FileNotFoundError: If the package cannot be found or the directory does not exist.
+
+
+
+.. py:function:: register_collector(name, *, package)
+
+   Register a recognized-calculation collector.
+
+   Registration stores strings only; nothing is imported or resolved until
+   :meth:`CollectorSupport.path` is called. Re-registering a name with
+   identical values is a no-op.
+
+   :param name: The collector name, e.g. ``"vasp.calculation.relax"``.
+   :param package: The ``"package:relative/dir"`` resource, e.g.
+       ``"httk.codes.vasp:collectors/vasp-relax"``.
+   :raises ValueError: If a value is invalid or ``name`` is registered with different values.
+
+
+.. py:function:: collector_support(name)
+
+   Return collector metadata without importing its package.
+
+   :param name: The collector name to look up.
+   :return: The registered collector metadata.
+   :raises KeyError: If ``name`` is not registered.
+
+
+.. py:function:: known_collectors()
+
+   Return registered collector names without resolving anything.
+
+   :return: Registered collector names in sorted order.
+
+
