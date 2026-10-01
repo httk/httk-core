@@ -150,3 +150,50 @@ def test_total_energy_content_id_and_golden_pin() -> None:
     assert content_id(TotalEnergyRecord(-1.5)) != content_id(TotalEnergyRecord(-1.25))
     record = TotalEnergyRecord(-1.5, product_of=[RunEdge("subject", "structures", "httk.demo:1:s1")])
     assert content_id(record) == "345e492608d31ff005e18b6cb5fd59521be434f30442874ccade9a22bf78f08e"
+
+
+_ATE_IRI = "https://schemas.httk.org/defs/v0.1/properties/core/average_total_energy"
+
+
+def test_average_total_energy_record_construction_and_validation() -> None:
+    from httk.core import AverageTotalEnergyRecord
+
+    record = AverageTotalEnergyRecord(-1)
+    assert record.average_total_energy == -1.0 and isinstance(record.average_total_energy, float)
+    assert record.type == "records"
+    assert list(AverageTotalEnergyRecord.__httk_property_definitions__) == ["_httk_average_total_energy"]
+    assert list(AverageTotalEnergyRecord.__httk_stored_properties__) == ["_httk_average_total_energy"]
+    for bad in (float("nan"), float("inf"), "1", True):
+        with pytest.raises(ValueError, match="finite"):
+            AverageTotalEnergyRecord(bad)  # type: ignore[arg-type]
+
+
+def test_average_total_energy_from_data_record_round_trip_and_refusal() -> None:
+    from httk.core import AverageTotalEnergyRecord
+
+    edge = RunEdge("subject", "structures", "httk.demo:1:s1")
+    stamp = datetime.datetime(2026, 1, 2, tzinfo=datetime.UTC)
+    source = DataRecord.from_value(
+        _ATE_IRI, "average_total_energy", -1.5, product_of=[edge], id="i", immutable_id="i~1", last_modified=stamp
+    )
+    typed = AverageTotalEnergyRecord.from_data_record(source)
+    assert (typed.average_total_energy, typed.product_of, typed.id, typed.immutable_id, typed.last_modified) == (
+        -1.5,
+        (edge,),
+        "i",
+        "i~1",
+        stamp,
+    )
+    with pytest.raises(ValueError, match="is not"):
+        AverageTotalEnergyRecord.from_data_record(DataRecord.from_value("https://example.org/def", "e", -1.5))
+
+
+def test_average_total_energy_content_id_and_golden_pin() -> None:
+    from httk.core import AverageTotalEnergyRecord
+
+    assert content_id(AverageTotalEnergyRecord(-1.5)) == content_id(
+        AverageTotalEnergyRecord(-1.5, id="x", immutable_id="y")
+    )
+    assert content_id(AverageTotalEnergyRecord(-1.5)) != content_id(AverageTotalEnergyRecord(-1.25))
+    record = AverageTotalEnergyRecord(-1.5, product_of=[RunEdge("subject", "structures", "httk.demo:1:s1")])
+    assert content_id(record) == "3aa22ea25cb5ff810e54e673ca335d8b4a1256a8cb25ca1609023d4fa5f8d68b"

@@ -35,6 +35,12 @@ register_entry_record(
     family="records",
     definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/records",
 )
+register_entry_record(
+    name="core-average-total-energy",
+    record="httk.core.data_records:AverageTotalEnergyRecord",
+    family="records",
+    definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/records",
+)
 
 register_entry_record(
     name="core-reference",
