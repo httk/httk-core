@@ -85,6 +85,13 @@ def test_discovery_registers_core_property_definitions() -> None:
     total_energy = load_property_definition(total_energy_id)
     assert total_energy.definition_id == total_energy_id
     assert total_energy.name == "total_energy"
+    average_id = "https://schemas.httk.org/defs/v0.1/properties/core/average_total_energy"
+    assert average_id in known_property_definitions()
+    average = load_property_definition(average_id).as_optimade()
+    assert average["x-optimade-definition"]["name"] == "average_total_energy"
+    assert average["x-optimade-unit"] == "eV"
+    assert average["x-optimade-type"] == "float"
+    assert "null" in average["type"]
 
 
 def test_discovery_walks_io_and_not_flat_registry_tiers(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

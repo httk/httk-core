@@ -27,3 +27,7 @@ register_property_definition(
     definition_id="https://schemas.httk.org/defs/v0.1/properties/core/total_energy",
     resource="httk.registry.schemas.core:total_energy.json",
 )
+register_property_definition(
+    definition_id="https://schemas.httk.org/defs/v0.1/properties/core/average_total_energy",
+    resource="httk.registry.schemas.core:average_total_energy.json",
+)
