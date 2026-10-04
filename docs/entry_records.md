@@ -26,6 +26,15 @@ selects the `_httk_records` family without prescribing any scientific fields.
 The existing `DataRecord` remains the separate model for one canonical JSON
 property value; its constructors and identities are unchanged.
 
+`DerivedDataRecord` stores a statistic or other derivation of a declared
+property, such as a standard error or an RMSE. Its `definition_id` and `name`
+name the base property and the identity-bearing `derivation` field holds the
+derivation-term IRI that qualifies it
+(e.g. `https://schemas.httk.org/defs/v0.1/derivations/standard_error`).
+Derived values are a separate record type so that no `DataRecord` content
+identity changes. A store opened before this record type existed adds it with
+the additive declaration upgrade (`upgrade=True`).
+
 `entry_record` creates the frozen dataclass, so a separate `@dataclass` is not
 needed. Its explicit name pins the logical content identity independently of the
 Python class name or module. Physical storage names are derived deterministically

@@ -28,7 +28,7 @@ from ._discover import discover_and_register as _discover_and_register
 from ._sentinel import MISSING, MissingType
 from .citations import credits, register_citation
 from .cli import CLIContext
-from .data_records import AverageTotalEnergyRecord, DataRecord, DataRecordEntry, TotalEnergyRecord
+from .data_records import AverageTotalEnergyRecord, DataRecord, DataRecordEntry, DerivedDataRecord, TotalEnergyRecord
 from .dataset_loader import DatasetLoader, DatasetLoaderRecord, DatasetMeta
 from .datasets import Dataset, DatasetDistribution, DatasetRecord
 from .datastream import (
@@ -157,6 +157,7 @@ __all__ = [
     "DatasetRecord",
     "DatastreamLike",
     "DatastreamURL",
+    "DerivedDataRecord",
     "EntryProvider",
     "EntryRecord",
     "EntryTypeDefinition",

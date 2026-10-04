@@ -57,6 +57,43 @@ def _create(cls: type[Any], obj: Any) -> Any:
     return cls(**values)
 
 
+def _validate_value_record(record: Any, string_fields: tuple[str, ...]) -> None:
+    """Validate and normalize the fields shared by :class:`DataRecord` and :class:`DerivedDataRecord`."""
+    for field_name in string_fields:
+        _validate_string(getattr(record, field_name), field_name)
+    if not isinstance(record.value_json, str) or not record.value_json:
+        raise ValueError("Field 'value_json' must be a non-empty string.")
+    try:
+        value = json.loads(record.value_json, parse_constant=_reject_constant)
+        canonical = json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError(_CANONICAL_JSON_ERROR) from exc
+    if canonical != record.value_json:
+        raise ValueError(_CANONICAL_JSON_ERROR)
+    edges = _edges(record.product_of)
+    labels: set[str] = set()
+    for edge in edges:
+        if edge.label in labels:
+            raise ValueError(f"Duplicate label {edge.label!r} on {type(record).__name__} product_of.")
+        labels.add(edge.label)
+    object.__setattr__(record, "product_of", edges)
+    _validate_timestamp(record.last_modified, "last_modified")
+
+
+def _number(value: Any) -> float | None:
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return None
+    try:
+        result = float(value)
+    except OverflowError:
+        return None
+    return result if math.isfinite(result) else None
+
+
+def _canonical_json(value: Any) -> str:
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False)
+
+
 @dataclass(frozen=True)
 class DataRecord:
     """Store one canonical JSON value of one declared property.
@@ -112,35 +149,10 @@ class DataRecord:
     @stored_property
     def value_number(self) -> float | None:
         """The decoded numeric value, stored as a numeric SQL query column."""
-        value = self.value
-        if not isinstance(value, (int, float)) or isinstance(value, bool):
-            return None
-        try:
-            result = float(value)
-        except OverflowError:
-            return None
-        return result if math.isfinite(result) else None
+        return _number(self.value)
 
     def __post_init__(self) -> None:
-        for field_name in ("definition_id", "name"):
-            _validate_string(getattr(self, field_name), field_name)
-        if not isinstance(self.value_json, str) or not self.value_json:
-            raise ValueError("Field 'value_json' must be a non-empty string.")
-        try:
-            value = json.loads(self.value_json, parse_constant=_reject_constant)
-            canonical = json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False)
-        except (TypeError, ValueError, OverflowError) as exc:
-            raise ValueError(_CANONICAL_JSON_ERROR) from exc
-        if canonical != self.value_json:
-            raise ValueError(_CANONICAL_JSON_ERROR)
-        edges = _edges(self.product_of)
-        labels: set[str] = set()
-        for edge in edges:
-            if edge.label in labels:
-                raise ValueError(f"Duplicate label {edge.label!r} on DataRecord product_of.")
-            labels.add(edge.label)
-        object.__setattr__(self, "product_of", edges)
-        _validate_timestamp(self.last_modified, "last_modified")
+        _validate_value_record(self, ("definition_id", "name"))
 
     @classmethod
     def from_value(
@@ -170,7 +182,7 @@ class DataRecord:
         return cls(
             definition_id,
             name,
-            json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False),
+            _canonical_json(value),
             product_of=_edges(product_of),
             id=id,
             immutable_id=immutable_id,
@@ -184,6 +196,112 @@ class DataRecord:
         :param obj: A data record instance or field mapping.
         :return: The existing or newly constructed data record.
         :raises TypeError: If ``obj`` is neither a data record nor a mapping.
+        :raises ValueError: If the mapping has unknown or invalid fields.
+        """
+        return _create(cls, obj)
+
+
+@dataclass(frozen=True)
+class DerivedDataRecord:
+    """Store one canonical JSON value of a statistic or other derivation of a declared property.
+
+    The sibling of :class:`DataRecord` for values such as the standard error or
+    RMSE of a property: ``definition_id`` and ``name`` identify the BASE property
+    (e.g. ``_httk_total_energy``) and ``derivation`` is the derivation-term IRI
+    that qualifies it. ``derivation`` is part of the content identity, so two
+    derivations of the same property never collide. Keeping derivations in their
+    own record type leaves every existing :class:`DataRecord` identity unchanged.
+    ``value_json``, ``value``, ``value_number`` and ``product_of`` behave as on
+    :class:`DataRecord`.
+
+    :param definition_id: The base property definition IRI.
+    :param derivation: The derivation-term IRI qualifying the base property.
+    :param name: The base property name.
+    :param value_json: The canonical JSON representation of the derived value.
+    :param product_of: The entries this value is a product of, as labeled edges.
+    :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+    :param immutable_id: The per-revision immutable id; minted by the store when None.
+    :param last_modified: The optional timezone-aware metadata timestamp.
+    """
+
+    __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
+        storage_name="core_derived_data_record",
+        identity_name="core_derived_data_record",
+        indexes=(("definition_id",), ("derivation",), ("name",)),
+    )
+
+    definition_id: str
+    derivation: str
+    name: str
+    value_json: str
+    product_of: Annotated[tuple[RunEdge, ...], StrongLink("product_of", reverse="has_product", role="subject")] = ()
+    id: Annotated[str | None, IdentitySkip(), Indexed()] = field(default=None, compare=False)
+    immutable_id: Annotated[str | None, IdentitySkip(), Unique()] = field(default=None, compare=False)
+    last_modified: Annotated[datetime.datetime | None, IdentitySkip()] = field(default=None, compare=False)
+
+    @property
+    def type(self) -> str:
+        """Return the internal (unprefixed) entry type name."""
+        return "records"
+
+    @property
+    def value(self) -> Any:
+        """Decode and return the stored derived value."""
+        return json.loads(self.value_json)
+
+    @stored_property
+    def value_number(self) -> float | None:
+        """The decoded numeric value, stored as a numeric SQL query column."""
+        return _number(self.value)
+
+    def __post_init__(self) -> None:
+        _validate_value_record(self, ("definition_id", "derivation", "name"))
+
+    @classmethod
+    def from_value(
+        cls,
+        definition_id: str,
+        derivation: str,
+        name: str,
+        value: Any,
+        *,
+        product_of: Iterable[RunEdge | Mapping[str, Any]] = (),
+        id: str | None = None,
+        immutable_id: str | None = None,
+        last_modified: datetime.datetime | None = None,
+    ) -> Self:
+        """Encode a derived value canonically and construct its record.
+
+        :param definition_id: The base property definition IRI.
+        :param derivation: The derivation-term IRI qualifying the base property.
+        :param name: The base property name.
+        :param value: The JSON value to encode.
+        :param product_of: The entries this value is a product of, as labeled edges.
+        :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+        :param immutable_id: The per-revision immutable id; minted by the store when None.
+        :param last_modified: The optional timezone-aware metadata timestamp.
+        :return: A derived data record containing the canonical JSON value.
+        :raises TypeError: If the value contains an unsupported object.
+        :raises ValueError: If the value is circular or contains a non-finite number, or if ``definition_id``, ``derivation`` or ``name`` is invalid or ``last_modified`` is not timezone-aware.
+        """
+        return cls(
+            definition_id,
+            derivation,
+            name,
+            _canonical_json(value),
+            product_of=_edges(product_of),
+            id=id,
+            immutable_id=immutable_id,
+            last_modified=last_modified,
+        )
+
+    @classmethod
+    def from_obj(cls, obj: "DerivedDataRecord | Mapping[str, Any]") -> Self:
+        """Coerce a mapping or existing record into a :class:`DerivedDataRecord`.
+
+        :param obj: A derived data record instance or field mapping.
+        :return: The existing or newly constructed derived data record.
+        :raises TypeError: If ``obj`` is neither a derived data record nor a mapping.
         :raises ValueError: If the mapping has unknown or invalid fields.
         """
         return _create(cls, obj)
@@ -399,5 +517,6 @@ __all__ = [
     "AverageTotalEnergyRecord",
     "DataRecord",
     "DataRecordEntry",
+    "DerivedDataRecord",
     "TotalEnergyRecord",
 ]

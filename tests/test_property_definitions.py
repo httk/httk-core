@@ -486,6 +486,99 @@ def test_check_accepts_and_rejects_with_json_path() -> None:
         nested.check([[1.0, 2.0], ["a"]])
 
 
+def _level(kind: str, **extra: object) -> dict[str, object]:
+    return {
+        "x-optimade-type": kind,
+        "type": [{"list": "array", "dictionary": "object", "float": "number"}[kind]],
+        **extra,
+    }
+
+
+def _dims(names: list[str], sizes: list[int | None]) -> dict[str, object]:
+    return {"x-optimade-dimensions": {"names": names, "sizes": sizes}}
+
+
+def _dict_definition(name: str, members: dict[str, object], required: list[str]) -> PropertyDefinition:
+    doc = {"$id": f"urn:test:{name}", "description": name, **_level("dictionary"), "properties": members}
+    return PropertyDefinition.from_optimade(name, {**doc, "required": required})
+
+
+def _series() -> PropertyDefinition:
+    spatial = _level("list", items=_level("float"), **_dims(["dim_spatial"], [3]))
+    return _dict_definition(
+        "_httk_msd",
+        {
+            "lag_times": _level("list", items=_level("float"), **_dims(["_httk_dim_lags"], [None])),
+            "msd": _level(
+                "list",
+                items=_level("list", items=spatial, **_dims(["dim_spatial"], [3])),
+                **_dims(["_httk_dim_lags"], [None]),
+            ),
+        },
+        ["lag_times", "msd"],
+    )
+
+
+def test_check_series_dictionary_shared_dimensions_and_required() -> None:
+    eye = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+    series = _series()
+    series.check({"lag_times": [0.0, 1.0], "msd": [eye, eye]})
+    with pytest.raises(
+        ValueError, match=r"_httk_msd: _httk_msd\.msd .*'_httk_dim_lags'.*_httk_msd\.lag_times has length 2"
+    ):
+        series.check({"lag_times": [0.0, 1.0], "msd": [eye]})
+    with pytest.raises(ValueError, match="missing required member 'msd'"):
+        series.check({"lag_times": [0.0]})
+    with pytest.raises(ValueError, match=r"msd\[0\]\[2\] has length 2, expected 3"):
+        series.check({"lag_times": [0.0], "msd": [[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 1.0]]]})
+
+
+def test_check_two_name_level_maps_names_to_nested_depths() -> None:
+    def matrix(sizes: list[int | None]) -> PropertyDefinition:
+        doc = _level(
+            "list", items=_level("list", items=_level("float")), **_dims(["dim_lattice", "dim_lattice"], sizes)
+        )
+        return PropertyDefinition.from_optimade("_httk_m", {"$id": "urn:test:m", "description": "m", **doc})
+
+    fixed = matrix([3, 3])
+    fixed.check([[1.0] * 3] * 3)
+    for bad in ([[1.0] * 2] * 3, [[1.0] * 3] * 2):
+        with pytest.raises(ValueError, match="expected 3"):
+            fixed.check(bad)
+    free = matrix([None, None])
+    free.check([[1.0] * 2] * 2)
+    with pytest.raises(ValueError, match="dim_lattice"):
+        free.check([[1.0] * 2] * 3)
+
+
+def test_check_distinct_dimension_names_may_differ_and_scope_per_element() -> None:
+    rdf = _dict_definition(
+        "_httk_rdf",
+        {
+            "bin_edges": _level("list", items=_level("float"), **_dims(["_httk_dim_bin_edges"], [None])),
+            "g": _level("list", items=_level("float"), **_dims(["_httk_dim_bins"], [None])),
+        },
+        ["bin_edges", "g"],
+    )
+    rdf.check({"bin_edges": [0.0, 1.0, 2.0], "g": [0.5, 1.5]})
+
+    # Like upstream ``species``: ``dim_species_chemical_symbols`` is shared within each species, not across species.
+    symbols = _dims(["dim_species_chemical_symbols"], [None])
+    member = _level(
+        "dictionary",
+        properties={
+            "chemical_symbols": _level("list", items={"x-optimade-type": "string", "type": ["string"]}, **symbols),
+            "concentration": _level("list", items=_level("float"), **symbols),
+        },
+    )
+    doc = _level("list", items=member, **_dims(["dim_species"], [None]))
+    species = PropertyDefinition.from_optimade("species", {"$id": "urn:test:species", "description": "s", **doc})
+    alloy = {"chemical_symbols": ["Ti", "Zr"], "concentration": [0.5, 0.5]}
+    species.check([{"chemical_symbols": ["O"], "concentration": [1.0]}, alloy])
+    with pytest.raises(ValueError, match="dim_species_chemical_symbols"):
+        species.check([{**alloy, "concentration": [1.0]}])
+
+
 def _no_none(value: object) -> bool:
     if isinstance(value, dict):
         return all(item is not None and _no_none(item) for item in value.values())

@@ -232,7 +232,24 @@ def _inner_definition(fulltype: str, unit: str) -> dict[str, Any]:
     return definition
 
 
-def _check_level(name: str, level: Mapping[str, Any], value: Any, path: str) -> None:
+type _Axis = tuple[str | None, int | None, dict[str, tuple[int, str]]]
+
+
+def _check_level(
+    name: str,
+    level: Mapping[str, Any],
+    value: Any,
+    path: str,
+    scope: dict[str, tuple[int, str]],
+    axes: tuple[tuple[_Axis, ...], ...] = (),
+) -> None:
+    """Check *value* against *level*; *axes[k]* constrains the lists *k* levels below, in their declaring scope.
+
+    A dimension name binds to one length per scope (name -> (length, path)). Each list element opens a child scope,
+    so names declared beneath a list are shared within one element (e.g. upstream ``species`` members) but may
+    differ between elements.
+    """
+
     def bad(problem: str) -> ValueError:
         return ValueError(f"{name}: {path} {problem}")
 
@@ -256,17 +273,34 @@ def _check_level(name: str, level: Mapping[str, Any], value: Any, path: str) -> 
     if kind == "list":
         if not isinstance(value, list | tuple):
             raise bad("is not a list")
-        sizes = (level.get("x-optimade-dimensions") or {}).get("sizes") or [None]
-        if sizes[0] is not None and len(value) != sizes[0]:
-            raise bad(f"has length {len(value)}, expected {sizes[0]}")
+        dims = level.get("x-optimade-dimensions") or {}
+        names, sizes = dims.get("names") or [], dims.get("sizes") or []
+        own = [
+            ((names[i] if i < len(names) else None, sizes[i] if i < len(sizes) else None, scope),)
+            for i in range(max(len(names), len(sizes)))
+        ]
+        merged = [
+            (axes[k] if k < len(axes) else ()) + (own[k] if k < len(own) else ())
+            for k in range(max(len(axes), len(own)))
+        ]
+        for dimension, size, owner in merged[0] if merged else ():
+            if size is not None and len(value) != size:
+                raise bad(f"has length {len(value)}, expected {size}")
+            if dimension is not None:
+                length, first = owner.setdefault(dimension, (len(value), path))
+                if length != len(value):
+                    raise bad(f"has length {len(value)} along dimension {dimension!r}, but {first} has length {length}")
         for index, item in enumerate(value):
-            _check_level(name, level.get("items", {}), item, f"{path}[{index}]")
+            _check_level(name, level.get("items", {}), item, f"{path}[{index}]", dict(scope), tuple(merged[1:]))
     elif kind == "dictionary":
         if not isinstance(value, Mapping) or not all(isinstance(key, str) for key in value):
             raise bad("is not a dictionary with string keys")
+        for key in level.get("required", ()):
+            if key not in value:
+                raise bad(f"is missing required member {key!r}")
         for key, inner in level.get("properties", {}).items():
             if key in value:
-                _check_level(name, inner, value[key], f"{path}.{key}")
+                _check_level(name, inner, value[key], f"{path}.{key}", scope)
 
 
 def _slice_object_definition() -> dict[str, Any]:
@@ -540,12 +574,15 @@ class PropertyDefinition:
         """Structurally validate a JSON-like *value* against this definition.
 
         Checks nullability, the OPTIMADE type of every level (booleans are not integers; floats are finite),
-        list item types and fixed dimension sizes, and nested dictionary ``properties``.
+        list item types, nested dictionary ``properties`` and ``required`` members, and
+        ``x-optimade-dimensions``: ``names[i]``/``sizes[i]`` at a list level describe the list ``i`` levels
+        below it, fixed sizes are enforced, and lists sharing a dimension name have equal lengths. A name
+        declared beneath a list is shared within one element of that list, not across elements.
 
         :param value: The value to check.
         :raises ValueError: Naming the definition and the JSON path of the first offending item.
         """
-        _check_level(self.name, self._payload, value, self.name)
+        _check_level(self.name, self._payload, value, self.name, {})
 
     @property
     def format_version(self) -> str | None:

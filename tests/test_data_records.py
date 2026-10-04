@@ -5,7 +5,7 @@ from dataclasses import replace
 
 import pytest
 
-from httk.core import DataRecord, DataRecordEntry, RunEdge
+from httk.core import DataRecord, DataRecordEntry, DerivedDataRecord, RunEdge
 from httk.core.storage import content_id, project_storage_record
 
 
@@ -197,3 +197,72 @@ def test_average_total_energy_content_id_and_golden_pin() -> None:
     assert content_id(AverageTotalEnergyRecord(-1.5)) != content_id(AverageTotalEnergyRecord(-1.25))
     record = AverageTotalEnergyRecord(-1.5, product_of=[RunEdge("subject", "structures", "httk.demo:1:s1")])
     assert content_id(record) == "3aa22ea25cb5ff810e54e673ca335d8b4a1256a8cb25ca1609023d4fa5f8d68b"
+
+
+_SE_IRI = "https://schemas.httk.org/defs/v0.1/derivations/standard_error"
+_RMSE_IRI = "https://schemas.httk.org/defs/v0.1/derivations/rmse"
+
+
+def test_derived_data_record_construction_and_validation() -> None:
+    record = DerivedDataRecord.from_value(_TE_IRI, _SE_IRI, "_httk_total_energy", 0.25)
+    assert (record.definition_id, record.derivation, record.name) == (_TE_IRI, _SE_IRI, "_httk_total_energy")
+    assert record.value_json == "0.25" and record.value == 0.25 and record.value_number == 0.25
+    assert record.type == "records"
+    assert DerivedDataRecord.from_value(_TE_IRI, _SE_IRI, "e", {"b": [1]}).value_number is None
+    for bad in ("", " x"):
+        with pytest.raises(ValueError, match="derivation"):
+            DerivedDataRecord.from_value(_TE_IRI, bad, "e", 1)
+    with pytest.raises(ValueError, match="canonical JSON"):
+        DerivedDataRecord(_TE_IRI, _SE_IRI, "e", '{"b":2,"a":1}')
+    edge = RunEdge("subject", "structures", "httk.demo:1:s1")
+    with pytest.raises(ValueError, match="Duplicate label.*DerivedDataRecord"):
+        DerivedDataRecord.from_value(_TE_IRI, _SE_IRI, "e", 1, product_of=[edge, RunEdge("subject", "runs", "r")])
+    with pytest.raises(ValueError, match="Unknown field"):
+        DerivedDataRecord.from_obj(
+            {"definition_id": _TE_IRI, "derivation": _SE_IRI, "name": "e", "value_json": "1", "x": 1}
+        )
+
+
+def test_derived_data_record_round_trip_and_identity() -> None:
+    edge = RunEdge("subject", "structures", "httk.demo:1:s1")
+    record = DerivedDataRecord.from_value(
+        _TE_IRI,
+        _SE_IRI,
+        "_httk_total_energy",
+        0.25,
+        product_of=[edge],
+        id="logical",
+        immutable_id="immutable",
+        last_modified=datetime.datetime(2026, 1, 2, 3, 4, 5, tzinfo=datetime.UTC),
+    )
+    projected = DerivedDataRecord(**project_storage_record(DerivedDataRecord, record))
+    assert projected == record and projected.id == "logical" and projected.immutable_id == "immutable"
+    mapped = DerivedDataRecord.from_obj(
+        {
+            "definition_id": _TE_IRI,
+            "derivation": _SE_IRI,
+            "name": "_httk_total_energy",
+            "value_json": "0.25",
+            "product_of": [{"label": "subject", "entry_type": "structures", "entry_id": "httk.demo:1:s1"}],
+            "last_modified": "2026-01-02T03:04:05+00:00",
+        }
+    )
+    assert mapped == record and content_id(mapped) == content_id(record)
+    rmse = DerivedDataRecord.from_value(_TE_IRI, _RMSE_IRI, "_httk_total_energy", 0.25, product_of=[edge])
+    assert content_id(rmse) != content_id(record)  # the derivation is part of the identity
+    plain = DataRecord.from_value(_TE_IRI, "_httk_total_energy", 0.25, product_of=[edge])
+    assert content_id(plain) != content_id(record)
+
+
+def test_derived_data_record_content_id_pin() -> None:
+    record = DerivedDataRecord.from_value(
+        _TE_IRI,
+        _SE_IRI,
+        "_httk_total_energy",
+        0.25,
+        immutable_id="immutable",
+        last_modified=datetime.datetime(2026, 1, 2, 3, 4, 5, tzinfo=datetime.UTC),
+    )
+    # A changed value means a storage-identity break; metadata is excluded. Pinned Oct 4 2026.
+    assert content_id(record) == "eb4a0c1dbf446357aa269f77fad64433edb32544121ed6aaf7b543009cc43b6b"
+    assert content_id(replace(record, id="logical", immutable_id="other")) == content_id(record)

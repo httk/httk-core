@@ -30,6 +30,12 @@ register_entry_record(
     definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/records",
 )
 register_entry_record(
+    name="core-derived-data-record",
+    record="httk.core.data_records:DerivedDataRecord",
+    family="records",
+    definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/records",
+)
+register_entry_record(
     name="core-total-energy",
     record="httk.core.data_records:TotalEnergyRecord",
     family="records",
