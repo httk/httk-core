@@ -579,6 +579,35 @@ def test_check_distinct_dimension_names_may_differ_and_scope_per_element() -> No
         species.check([{**alloy, "concentration": [1.0]}])
 
 
+def test_check_enforces_enum_at_every_level() -> None:
+    def string(**extra: object) -> dict[str, object]:
+        return {"x-optimade-type": "string", "type": ["string"], **extra}
+
+    top = PropertyDefinition.from_optimade(
+        "_httk_k", {"$id": "urn:test:k", "description": "k", **string(enum=["a", "b"])}
+    )
+    top.check("a")
+    with pytest.raises(ValueError, match=r"_httk_k: _httk_k is 'c', expected one of \['a', 'b'\]"):
+        top.check("c")
+    with pytest.raises(ValueError, match="must not be null"):
+        top.check(None)
+    nullable = string(enum=["a"])
+    nullable["type"] = ["string", "null"]
+    PropertyDefinition.from_optimade("_httk_n", {"$id": "urn:test:n", "description": "n", **nullable}).check(None)
+    listed = PropertyDefinition.from_optimade(
+        "_httk_l", {"$id": "urn:test:l", "description": "l", **string(enum=["a", None])}
+    )
+    listed.check(None)
+    ints = {"$id": "urn:test:i", "description": "i", "x-optimade-type": "integer", "type": ["integer"], "enum": [1]}
+    with pytest.raises(ValueError, match="expected one of"):
+        PropertyDefinition.from_optimade("_httk_i", ints).check(True)
+
+    spectrum = _dict_definition("_httk_vps", {"window": string(enum=["none", "hann"])}, ["window"])
+    spectrum.check({"window": "hann"})
+    with pytest.raises(ValueError, match=r"_httk_vps\.window is 'hamming', expected one of \['none', 'hann'\]"):
+        spectrum.check({"window": "hamming"})
+
+
 def _no_none(value: object) -> bool:
     if isinstance(value, dict):
         return all(item is not None and _no_none(item) for item in value.values())
