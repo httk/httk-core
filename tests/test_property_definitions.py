@@ -396,3 +396,115 @@ def test_property_served_form_of_standard_definition_is_identity() -> None:
 
     for definition in standard_entry_type("references").properties.values():
         assert definition.served_form() is definition
+
+
+# --- unit engine embedding and check() ----------------------------------------
+
+_CORE_IDS = [
+    "total_energy",
+    "average_total_energy",
+    "potential_energy",
+    "kinetic_energy",
+    "enthalpy",
+    "temperature",
+    "volume",
+    "pressure",
+    "stress_tensor",
+]
+
+
+def test_definition_ids_match_vendored_core_definitions() -> None:
+    from httk.core import definition_ids, load_property_definition
+
+    for name in _CORE_IDS:
+        iri = getattr(definition_ids, name.upper())
+        assert iri == f"https://schemas.httk.org/defs/v0.1/properties/core/{name}"
+        assert load_property_definition(iri).definition_id == iri
+
+
+def _embedded(prop: PropertyDefinition) -> list[str]:
+    return [d["symbol"] for d in prop.unit_definitions]
+
+
+def test_from_simple_embeds_unit_engine_documents() -> None:
+    pressure = PropertyDefinition.from_simple("_httk_p", description="p", fulltype="float", unit="GPa")
+    assert _embedded(pressure) == ["G", "Pa"]
+    volume = PropertyDefinition.from_simple("_httk_v", description="v", fulltype="float", unit="angstrom^3")
+    assert _embedded(volume) == ["angstrom"]
+    for prop in (pressure, volume):
+        for doc in prop.unit_definitions:
+            assert "$schema" not in doc
+            assert all(doc.get(key) for key in ("title", "symbol", "display-symbol", "description"))
+    assert "$schema" in pressure.as_optimade()
+
+
+@pytest.mark.parametrize("unit", ["m/s", "nosuchunit", "s*m"])
+def test_from_simple_rejects_bad_units(unit: str) -> None:
+    with pytest.raises(ValueError):
+        PropertyDefinition.from_simple("_httk_x", description="x", fulltype="float", unit=unit)
+
+
+def test_from_simple_dimensionless_embeds_nothing() -> None:
+    prop = PropertyDefinition.from_simple("_httk_x", description="x", fulltype="float", unit="dimensionless")
+    assert prop.unit_definitions == ()
+    assert "x-optimade-unit-definitions" not in prop.as_optimade()
+
+
+def test_unit_definitions_are_copies() -> None:
+    prop = PropertyDefinition.from_simple("_httk_v", description="v", fulltype="float", unit="angstrom")
+    prop.unit_definitions[0]["title"] = "changed"  # type: ignore[index]
+    assert prop.unit_definitions[0]["title"] != "changed"
+
+
+def test_check_accepts_and_rejects_with_json_path() -> None:
+    from httk.core import definition_ids, load_property_definition
+
+    stress = load_property_definition(definition_ids.STRESS_TENSOR)
+    stress.check([1, 2.5, 3, 4, 5, 6])
+    stress.check(None)
+    with pytest.raises(ValueError, match=r"stress_tensor.*stress_tensor\[2\]"):
+        stress.check([1, 2, "x", 4, 5, 6])
+    with pytest.raises(ValueError, match="length 3, expected 6"):
+        stress.check([1, 2, 3])
+    with pytest.raises(ValueError):
+        stress.check([1, 2, 3, 4, 5, float("nan")])
+    with pytest.raises(ValueError):
+        stress.check([1, 2, 3, 4, 5, None])
+
+    ints = PropertyDefinition.from_simple("_httk_n", description="n", fulltype="integer", required_response=True)
+    ints.check(3)
+    with pytest.raises(ValueError):
+        ints.check(True)
+    with pytest.raises(ValueError, match="null"):
+        ints.check(None)
+
+    nested = PropertyDefinition.from_simple(
+        "_httk_t", description="t", fulltype="list of list of float", unit="GPa", required_response=True
+    )
+    nested.check([[1.0, 2.0], [3.0]])
+    with pytest.raises(ValueError, match=r"_httk_t\[1\]\[0\]"):
+        nested.check([[1.0, 2.0], ["a"]])
+
+
+def _no_none(value: object) -> bool:
+    if isinstance(value, dict):
+        return all(item is not None and _no_none(item) for item in value.values())
+    if isinstance(value, list):
+        return all(item is not None and _no_none(item) for item in value)
+    return True
+
+
+def test_embedded_unit_definitions_have_no_nulls_and_match_rendered() -> None:
+    from httk.core import definition_ids, load_property_definition
+
+    prop = PropertyDefinition.from_simple("_httk_v", description="v", fulltype="float", unit="GPa*angstrom^3*eV")
+    for doc in prop.unit_definitions:
+        assert _no_none(dict(doc))
+        assert all(doc.get(key) for key in ("title", "symbol", "display-symbol", "description"))
+    mine = {d["symbol"]: d for d in prop.unit_definitions}
+    rendered = {d["symbol"]: d for d in load_property_definition(definition_ids.VOLUME).unit_definitions}
+    assert mine["angstrom"] == rendered["angstrom"]
+    for source, symbols in ((definition_ids.PRESSURE, ("G", "Pa")), (definition_ids.ENTHALPY, ("eV",))):
+        theirs = {d["symbol"]: d for d in load_property_definition(source).unit_definitions}
+        for symbol in symbols:
+            assert mine[symbol] == theirs[symbol]

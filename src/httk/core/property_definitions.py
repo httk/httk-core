@@ -48,9 +48,12 @@ entry types (such as ``calculations``) whose specification version is newer.
 """
 
 import copy
+import math
 import re
 from collections.abc import Mapping
 from typing import Any, Self
+
+from .units import default_registry
 
 PROPERTY_DEFINITION_META_SCHEMA = "https://schemas.optimade.org/meta/v1.2/optimade/property_definition.json"
 
@@ -176,16 +179,20 @@ def apply_definition_prefix(name: str, definition_id: str | None) -> str:
 # Pre-registered prefixes.
 _DEFINITION_PREFIXES["_httk_"] = ((_HTTK_DEFS_BASE, _HTTK_PUBLISHED_DEFS_BASE), "httk")
 
-_ANGSTROM_UNIT_DEFINITION = {
-    "symbol": "angstrom",
-    "title": "ångström",
-    "description": "The ångström unit of length.",
-    "standard": {
-        "kind": "gnu units",
-        "version": "3.15",
-        "symbol": "angstrom",
-    },
-}
+
+def _thaw(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return {key: _thaw(item) for key, item in value.items() if item is not None}
+    if isinstance(value, list | tuple):
+        return [_thaw(item) for item in value]
+    return value
+
+
+def _embedded_unit_definitions(unit: str) -> list[dict[str, Any]]:
+    """Return the vendored documents of every prefix, unit and constant symbol of *unit*, without ``$schema``."""
+    definitions = default_registry().definitions(unit)
+    return [{k: _thaw(v) for k, v in d.document.items() if k != "$schema"} for d in definitions]
+
 
 _JSON_TYPE_BY_OPTIMADE_TYPE = {
     "boolean": "boolean",
@@ -223,6 +230,43 @@ def _inner_definition(fulltype: str, unit: str) -> dict[str, Any]:
     if optimade_type == "timestamp":
         definition["format"] = "date-time"
     return definition
+
+
+def _check_level(name: str, level: Mapping[str, Any], value: Any, path: str) -> None:
+    def bad(problem: str) -> ValueError:
+        return ValueError(f"{name}: {path} {problem}")
+
+    if value is None:
+        if "null" not in level.get("type", ()):
+            raise bad("must not be null")
+        return
+    kind = level.get("x-optimade-type")
+    if kind == "integer":
+        ok = isinstance(value, int) and not isinstance(value, bool)
+    elif kind == "float":
+        ok = isinstance(value, int | float) and not isinstance(value, bool) and math.isfinite(value)
+    elif kind in ("string", "timestamp"):
+        ok = isinstance(value, str)
+    elif kind == "boolean":
+        ok = isinstance(value, bool)
+    else:
+        ok = True
+    if not ok:
+        raise bad(f"is not a valid {kind}: {value!r}")
+    if kind == "list":
+        if not isinstance(value, list | tuple):
+            raise bad("is not a list")
+        sizes = (level.get("x-optimade-dimensions") or {}).get("sizes") or [None]
+        if sizes[0] is not None and len(value) != sizes[0]:
+            raise bad(f"has length {len(value)}, expected {sizes[0]}")
+        for index, item in enumerate(value):
+            _check_level(name, level.get("items", {}), item, f"{path}[{index}]")
+    elif kind == "dictionary":
+        if not isinstance(value, Mapping) or not all(isinstance(key, str) for key in value):
+            raise bad("is not a dictionary with string keys")
+        for key, inner in level.get("properties", {}).items():
+            if key in value:
+                _check_level(name, inner, value[key], f"{path}.{key}")
 
 
 def _slice_object_definition() -> dict[str, Any]:
@@ -366,8 +410,10 @@ class PropertyDefinition:
         ``definition_id`` overrides it), a title, the ``description``, the OPTIMADE type derived
         from ``fulltype`` (``"string"``, ``"integer"``, ``"float"``,
         ``"boolean"``, ``"timestamp"``, ``"dict"``, or ``"list of ..."``), the
-        ``x-optimade-unit`` (with an ångström unit definition when
-        ``unit == "angstrom"``), the ``x-optimade-definition`` stamp (format
+        ``x-optimade-unit`` (parsed with the strict grammar of
+        :func:`httk.core.units.default_registry`; the vendored definition documents of every prefix, unit and
+        constant symbol used are embedded, without ``$schema``, as ``x-optimade-unit-definitions``, except for
+        ``dimensionless`` and ``inapplicable``), the ``x-optimade-definition`` stamp (format
         ``"1.2"``; see the module docstring), the JSON ``type`` with nullability
         derived from ``required_response``, ``items`` for lists, a ``date-time``
         format for timestamps, inner ``properties`` for dicts (from
@@ -389,6 +435,7 @@ class PropertyDefinition:
         :param required_response: Whether responses must contain a non-null value.
         :param definition_id: An explicit property-definition IRI.
         :return: A generated property definition.
+        :raises ValueError: If ``unit`` is not a valid Compound Unit Expression of known symbols.
         """
         optimade_type = _optimade_type(fulltype)
         resolved_unit = unit if unit is not None else "dimensionless"
@@ -427,8 +474,8 @@ class PropertyDefinition:
             payload["properties"] = {
                 key: _inner_definition(inner_fulltype, "dimensionless") for key, inner_fulltype in inner.items()
             }
-        if resolved_unit == "angstrom":
-            payload["x-optimade-unit-definitions"] = [copy.deepcopy(_ANGSTROM_UNIT_DEFINITION)]
+        if resolved_unit not in ("dimensionless", "inapplicable"):
+            payload["x-optimade-unit-definitions"] = _embedded_unit_definitions(resolved_unit)
 
         if dimensions is not None:
             x_dimensions: dict[str, Any] = {"names": list(dimensions["names"]), "sizes": list(dimensions["sizes"])}
@@ -483,6 +530,22 @@ class PropertyDefinition:
     def unit(self) -> str | None:
         """Return the property's declared unit, if any."""
         return self._payload.get("x-optimade-unit")
+
+    @property
+    def unit_definitions(self) -> tuple[Mapping[str, Any], ...]:
+        """Return copies of the embedded unit, prefix and constant definition documents (empty if none)."""
+        return tuple(copy.deepcopy(self._payload.get("x-optimade-unit-definitions", ())))
+
+    def check(self, value: Any) -> None:
+        """Structurally validate a JSON-like *value* against this definition.
+
+        Checks nullability, the OPTIMADE type of every level (booleans are not integers; floats are finite),
+        list item types and fixed dimension sizes, and nested dictionary ``properties``.
+
+        :param value: The value to check.
+        :raises ValueError: Naming the definition and the JSON path of the first offending item.
+        """
+        _check_level(self.name, self._payload, value, self.name)
 
     @property
     def format_version(self) -> str | None:

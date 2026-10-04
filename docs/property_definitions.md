@@ -33,3 +33,6 @@ policy and provenance, canonical `$id`s and the definition-format stamp,
 registering your own definition prefix, entry-type extension rules, how remote
 schemas that publish no `$id` are completed to standard-property identities, and
 the generated record models.
+
+Units of generated properties are checked and documented by the OPTIMADE unit
+engine; see {doc}`units`.

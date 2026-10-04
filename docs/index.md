@@ -23,6 +23,7 @@ on the other.
 - **Operator identity**: {doc}`identity`
 - **Projects and templates**: {doc}`projects`
 - **Property definitions & entry providers**: {doc}`property_definitions`
+- **Units**: {doc}`units`
 - **Declarative entry records**: {doc}`entry_records`
 - **Vectors**: {doc}`vectors`
 - **Exact math on rationals and decimals**: {doc}`exactmath`
@@ -72,6 +73,7 @@ identity
 projects
 sealing
 property_definitions
+units
 entry_records
 vectors
 exactmath

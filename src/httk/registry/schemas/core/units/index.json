@@ -1,0 +1,394 @@
+[
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/constants/codata/2018/electromagnetic/bohrmagneton",
+  "path": "constants/codata/2018/electromagnetic/bohrmagneton.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/constants/codata/2018/electromagnetic/elementarycharge",
+  "path": "constants/codata/2018/electromagnetic/elementarycharge.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/constants/math/basic/pi",
+  "path": "constants/math/basic/pi.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/atto",
+  "path": "prefixes/si/atto.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/centi",
+  "path": "prefixes/si/centi.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/deca",
+  "path": "prefixes/si/deca.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/deci",
+  "path": "prefixes/si/deci.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/exa",
+  "path": "prefixes/si/exa.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/exbi",
+  "path": "prefixes/si/exbi.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/femto",
+  "path": "prefixes/si/femto.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/gibi",
+  "path": "prefixes/si/gibi.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/giga",
+  "path": "prefixes/si/giga.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/hecto",
+  "path": "prefixes/si/hecto.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/kibi",
+  "path": "prefixes/si/kibi.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/kilo",
+  "path": "prefixes/si/kilo.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/mebi",
+  "path": "prefixes/si/mebi.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/mega",
+  "path": "prefixes/si/mega.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/micro",
+  "path": "prefixes/si/micro.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/milli",
+  "path": "prefixes/si/milli.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/nano",
+  "path": "prefixes/si/nano.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/pebi",
+  "path": "prefixes/si/pebi.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/peta",
+  "path": "prefixes/si/peta.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/pico",
+  "path": "prefixes/si/pico.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/quecto",
+  "path": "prefixes/si/quecto.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/quetta",
+  "path": "prefixes/si/quetta.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/ronna",
+  "path": "prefixes/si/ronna.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/ronto",
+  "path": "prefixes/si/ronto.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/tebi",
+  "path": "prefixes/si/tebi.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/tera",
+  "path": "prefixes/si/tera.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/yobi",
+  "path": "prefixes/si/yobi.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/yocto",
+  "path": "prefixes/si/yocto.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/yotta",
+  "path": "prefixes/si/yotta.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/zebi",
+  "path": "prefixes/si/zebi.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/zepto",
+  "path": "prefixes/si/zepto.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/prefixes/si/zetta",
+  "path": "prefixes/si/zetta.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/1960/base/metre",
+  "path": "units/si/1960/base/metre.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/1967/base/second",
+  "path": "units/si/1967/base/second.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/1983/base/metre",
+  "path": "units/si/1983/base/metre.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/2019/base/ampere",
+  "path": "units/si/2019/base/ampere.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/2019/base/kilogram",
+  "path": "units/si/2019/base/kilogram.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/2019/named/coulomb",
+  "path": "units/si/2019/named/coulomb.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/2019/named/joule",
+  "path": "units/si/2019/named/joule.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/2019/named/tesla",
+  "path": "units/si/2019/named/tesla.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/ampere",
+  "path": "units/si/general/ampere.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/angstrom",
+  "path": "units/si/general/angstrom.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/arcminute",
+  "path": "units/si/general/arcminute.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/arcsecond",
+  "path": "units/si/general/arcsecond.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/are",
+  "path": "units/si/general/are.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/astronomicalunit",
+  "path": "units/si/general/astronomicalunit.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/atmosphere",
+  "path": "units/si/general/atmosphere.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/atomicmassunit",
+  "path": "units/si/general/atomicmassunit.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/bar",
+  "path": "units/si/general/bar.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/barn",
+  "path": "units/si/general/barn.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/becquerel",
+  "path": "units/si/general/becquerel.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/candela",
+  "path": "units/si/general/candela.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/coulomb",
+  "path": "units/si/general/coulomb.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/curie",
+  "path": "units/si/general/curie.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/dalton",
+  "path": "units/si/general/dalton.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/day",
+  "path": "units/si/general/day.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/degcelsius",
+  "path": "units/si/general/degcelsius.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/degree",
+  "path": "units/si/general/degree.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/electronvolt",
+  "path": "units/si/general/electronvolt.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/farad",
+  "path": "units/si/general/farad.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/gal",
+  "path": "units/si/general/gal.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/gray",
+  "path": "units/si/general/gray.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/hectare",
+  "path": "units/si/general/hectare.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/henry",
+  "path": "units/si/general/henry.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/hertz",
+  "path": "units/si/general/hertz.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/hour",
+  "path": "units/si/general/hour.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/joule",
+  "path": "units/si/general/joule.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/katal",
+  "path": "units/si/general/katal.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/kelvin",
+  "path": "units/si/general/kelvin.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/kilogram",
+  "path": "units/si/general/kilogram.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/knot",
+  "path": "units/si/general/knot.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/litre",
+  "path": "units/si/general/litre.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/lumen",
+  "path": "units/si/general/lumen.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/lux",
+  "path": "units/si/general/lux.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/metre",
+  "path": "units/si/general/metre.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/minute",
+  "path": "units/si/general/minute.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/mole",
+  "path": "units/si/general/mole.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/nauticalmile",
+  "path": "units/si/general/nauticalmile.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/newton",
+  "path": "units/si/general/newton.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/ohm",
+  "path": "units/si/general/ohm.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/parsec",
+  "path": "units/si/general/parsec.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/pascal",
+  "path": "units/si/general/pascal.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/radian",
+  "path": "units/si/general/radian.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/radiationunit",
+  "path": "units/si/general/radiationunit.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/rem",
+  "path": "units/si/general/rem.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/roentgen",
+  "path": "units/si/general/roentgen.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/second",
+  "path": "units/si/general/second.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/siemens",
+  "path": "units/si/general/siemens.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/sievert",
+  "path": "units/si/general/sievert.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/steradian",
+  "path": "units/si/general/steradian.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/tesla",
+  "path": "units/si/general/tesla.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/tonne",
+  "path": "units/si/general/tonne.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/volt",
+  "path": "units/si/general/volt.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/watt",
+  "path": "units/si/general/watt.json"
+ },
+ {
+  "id": "https://schemas.optimade.org/defs/v1.2/units/si/general/weber",
+  "path": "units/si/general/weber.json"
+ }
+]

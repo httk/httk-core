@@ -31,3 +31,31 @@ register_property_definition(
     definition_id="https://schemas.httk.org/defs/v0.1/properties/core/average_total_energy",
     resource="httk.registry.schemas.core:average_total_energy.json",
 )
+register_property_definition(
+    definition_id="https://schemas.httk.org/defs/v0.1/properties/core/potential_energy",
+    resource="httk.registry.schemas.core:potential_energy.json",
+)
+register_property_definition(
+    definition_id="https://schemas.httk.org/defs/v0.1/properties/core/kinetic_energy",
+    resource="httk.registry.schemas.core:kinetic_energy.json",
+)
+register_property_definition(
+    definition_id="https://schemas.httk.org/defs/v0.1/properties/core/enthalpy",
+    resource="httk.registry.schemas.core:enthalpy.json",
+)
+register_property_definition(
+    definition_id="https://schemas.httk.org/defs/v0.1/properties/core/temperature",
+    resource="httk.registry.schemas.core:temperature.json",
+)
+register_property_definition(
+    definition_id="https://schemas.httk.org/defs/v0.1/properties/core/volume",
+    resource="httk.registry.schemas.core:volume.json",
+)
+register_property_definition(
+    definition_id="https://schemas.httk.org/defs/v0.1/properties/core/pressure",
+    resource="httk.registry.schemas.core:pressure.json",
+)
+register_property_definition(
+    definition_id="https://schemas.httk.org/defs/v0.1/properties/core/stress_tensor",
+    resource="httk.registry.schemas.core:stress_tensor.json",
+)

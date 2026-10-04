@@ -7,6 +7,7 @@ from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass, field, fields
 from typing import Annotated, Any, ClassVar, Self
 
+from .definition_ids import AVERAGE_TOTAL_ENERGY, TOTAL_ENERGY
 from .property_definitions import PropertyDefinition
 from .provenance import RunEdge, _edges
 from .register.schemas import load_property_definition
@@ -14,8 +15,8 @@ from .storage import IdentitySkip, Indexed, StorageInfo, StrongLink, Unique, sto
 from .storage.stored_properties import QueryContext, QueryExpression, StoredPropertyProjection
 
 RECORDS_DEFINITION_ID = "https://schemas.httk.org/defs/v0.1/entrytypes/records"
-TOTAL_ENERGY_DEFINITION_ID = "https://schemas.httk.org/defs/v0.1/properties/core/total_energy"
-AVERAGE_TOTAL_ENERGY_DEFINITION_ID = "https://schemas.httk.org/defs/v0.1/properties/core/average_total_energy"
+TOTAL_ENERGY_DEFINITION_ID = TOTAL_ENERGY
+AVERAGE_TOTAL_ENERGY_DEFINITION_ID = AVERAGE_TOTAL_ENERGY
 _CANONICAL_JSON_ERROR = "value_json must be canonical JSON — use DataRecord.from_value."
 
 

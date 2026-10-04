@@ -53,6 +53,20 @@ optimade-defs:
 	curl -fsSL https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files.json -o src/httk/registry/schemas/core/files.json
 	curl -fsSL https://schemas.optimade.org/defs/v1.3/entrytypes/optimade/calculations.json -o src/httk/registry/schemas/core/calculations.json
 	curl -fsSL https://raw.githubusercontent.com/Materials-Consortia/schemas/master/LICENSE -o src/httk/registry/schemas/core/LICENSE
+	for p in $$($(PYTHON) -c "import json; print(' '.join(e['path'] for e in json.load(open('$(UNITS_DIR)/index.json'))))"); do \
+		curl -fsSL --create-dirs https://schemas.optimade.org/defs/v1.2/$$p -o $(UNITS_DIR)/$$p || exit 1; \
+	done
+	$(PYTHON) -c "$$UNITS_INDEX_PY"
+
+# The vendored unit, prefix and constant documents used by httk.core.units mirror
+# the upstream defs/v1.2 tree under $(UNITS_DIR): units/si/general/*,
+# prefixes/si/*, constants/** and the documents their relations reference. To add
+# a document, copy it into the tree and rerun the index line of optimade-defs.
+UNITS_DIR = src/httk/registry/schemas/core/units
+export UNITS_INDEX_PY = import json, pathlib; r = pathlib.Path('$(UNITS_DIR)'); \
+e = sorted(({'id': json.loads(p.read_text())['$$id'], 'path': p.relative_to(r).as_posix()} \
+for p in r.rglob('*.json') if p.name != 'index.json'), key=lambda e: e['id']); \
+(r / 'index.json').write_text(json.dumps(e, indent=1) + '\n')
 
 dist-clean:
 	rm -rf build $(DIST_DIR) src/httk_core.egg-info
