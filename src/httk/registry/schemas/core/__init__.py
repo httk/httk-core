@@ -59,3 +59,7 @@ register_property_definition(
     definition_id="https://schemas.httk.org/defs/v0.1/properties/core/stress_tensor",
     resource="httk.registry.schemas.core:stress_tensor.json",
 )
+register_property_definition(
+    definition_id="https://schemas.httk.org/defs/v0.1/properties/core/atomic_force",
+    resource="httk.registry.schemas.core:atomic_force.json",
+)

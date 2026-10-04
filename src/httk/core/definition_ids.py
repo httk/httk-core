@@ -1,6 +1,7 @@
 """Identifiers of the httk core property definitions vendored with *httk-core*."""
 
 __all__ = [
+    "ATOMIC_FORCE",
     "AVERAGE_TOTAL_ENERGY",
     "ENTHALPY",
     "KINETIC_ENERGY",
@@ -38,3 +39,6 @@ PRESSURE = "https://schemas.httk.org/defs/v0.1/properties/core/pressure"
 
 #: Definition IRI of the stress tensor in Voigt order (GPa).
 STRESS_TENSOR = "https://schemas.httk.org/defs/v0.1/properties/core/stress_tensor"
+
+#: Definition IRI of the per-atom force vectors (eV/angstrom).
+ATOMIC_FORCE = "https://schemas.httk.org/defs/v0.1/properties/core/atomic_force"

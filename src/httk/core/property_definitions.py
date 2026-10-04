@@ -253,10 +253,13 @@ def _check_level(
     def bad(problem: str) -> ValueError:
         return ValueError(f"{name}: {path} {problem}")
 
+    enum = level.get("enum")
     if value is None:
-        if "null" not in level.get("type", ()):
+        if "null" not in level.get("type", ()) and None not in (enum or ()):
             raise bad("must not be null")
         return
+    if enum is not None and not any(x == value and isinstance(x, bool) == isinstance(value, bool) for x in enum):
+        raise bad(f"is {value!r}, expected one of {enum!r}")
     kind = level.get("x-optimade-type")
     if kind == "integer":
         ok = isinstance(value, int) and not isinstance(value, bool)
@@ -574,7 +577,7 @@ class PropertyDefinition:
         """Structurally validate a JSON-like *value* against this definition.
 
         Checks nullability, the OPTIMADE type of every level (booleans are not integers; floats are finite),
-        list item types, nested dictionary ``properties`` and ``required`` members, and
+        ``enum`` membership, list item types, nested dictionary ``properties`` and ``required`` members, and
         ``x-optimade-dimensions``: ``names[i]``/``sizes[i]`` at a list level describe the list ``i`` levels
         below it, fixed sizes are enforced, and lists sharing a dimension name have equal lengths. A name
         declared beneath a list is shared within one element of that list, not across elements.
