@@ -57,6 +57,10 @@ def register_entry_record(
 ) -> None:
     """Register a lazy record-class reference and optional family and definition IRI.
 
+    ``family`` need not be registered yet: registry tiers are imported in name
+    order, so a record may precede its family. The family is checked when the
+    record is resolved (:func:`~httk.core.register.resolve_entry_record`).
+
     :param name: The record registry name.
     :param record: The lazy ``"module:class"`` record reference.
     :param family: The logical entry-family name, if any.
@@ -67,8 +71,6 @@ def register_entry_record(
     _validate_optimade_reference(record, label="entry record")
     if family is not None:
         _validate_nonempty_optimade_string(family, label="family")
-        if family not in _entry_families:
-            raise ValueError(f"No entry family registered for record {family!r}")
     if definition_id is not None:
         _validate_nonempty_optimade_string(definition_id, label="definition_id")
     if name in _entry_records:
@@ -92,6 +94,9 @@ def known_entry_records(family: str | None = None) -> list[str]:
 def entry_record_info(name: str) -> tuple[str, str | None, str | None]:
     """Return record, family, and definition metadata without importing the record class.
 
+    The family is returned as registered and is not checked against the family
+    registry; :func:`~httk.core.register.resolve_entry_record` performs that check.
+
     :param name: The registered record name.
     :return: The lazy record reference and optional family and definition IRI.
     :raises ValueError: If ``name`` is not registered.
@@ -108,10 +113,13 @@ def resolve_entry_record(name: str) -> type:
 
     :param name: The registered record name.
     :return: The resolved frozen dataclass record class.
-    :raises ValueError: If ``name`` is not registered.
+    :raises ValueError: If ``name`` or its declared family is not registered.
     :raises TypeError: If the reference does not resolve to a frozen dataclass.
     """
-    resolved = resolve_callable(entry_record_info(name)[0])
+    reference, family, _ = entry_record_info(name)
+    if family is not None and family not in _entry_families:
+        raise ValueError(f"No entry family registered for record {name!r}: {family!r}")
+    resolved = resolve_callable(reference)
     if not isinstance(resolved, type):
         raise TypeError(f"Resolved entry record {name!r} to non-class object {resolved!r}")
     params = getattr(resolved, "__dataclass_params__", None)

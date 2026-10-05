@@ -51,6 +51,7 @@ import copy
 import math
 import re
 from collections.abc import Mapping
+from types import MappingProxyType
 from typing import Any, Self
 
 from .units import default_registry
@@ -304,6 +305,27 @@ def _check_level(
         for key, inner in level.get("properties", {}).items():
             if key in value:
                 _check_level(name, inner, value[key], f"{path}.{key}", scope)
+
+
+def _document_fulltype(level: Mapping[str, Any]) -> str:
+    """Return the compact fulltype (``"list of float"``, ``"dict"``, ...) of a definition level."""
+    kind = level["x-optimade-type"]
+    if kind == "list":
+        return "list of " + _document_fulltype(level["items"])
+    return "dict" if kind == "dictionary" else kind
+
+
+def _collect_member_fulltypes(level: Mapping[str, Any], prefix: str, flat: bool, out: dict[str, str]) -> None:
+    """Add ``path -> fulltype`` for every member below the dictionary *level*; *flat* once a list was crossed."""
+    for key, member in level.get("properties", {}).items():
+        path = prefix + key
+        inner, nested = member, False
+        while inner["x-optimade-type"] == "list":
+            inner, nested = inner["items"], True
+        # Below a list of dictionaries every list level collapses into one flattened list (OPTIMADE nested names).
+        out[path] = "list of " + _document_fulltype(inner) if flat else _document_fulltype(member)
+        if inner["x-optimade-type"] == "dictionary":
+            _collect_member_fulltypes(inner, path + ".", flat or nested, out)
 
 
 def _slice_object_definition() -> dict[str, Any]:
@@ -586,6 +608,23 @@ class PropertyDefinition:
         :raises ValueError: Naming the definition and the JSON path of the first offending item.
         """
         _check_level(self.name, self._payload, value, self.name, {})
+
+    def member_fulltypes(self) -> Mapping[str, str]:
+        """Return the fulltype of every member path of a dictionary-typed definition.
+
+        Paths are dotted (``"a.b"`` for a member of a dictionary-valued member ``a``) and listed in
+        definition order; each fulltype uses the compact spelling (``"float"``, ``"list of list of float"``,
+        ``"dict"``, ...). A dictionary-valued member maps to ``"dict"``, and a list-of-dictionaries member to
+        its true nested type (``"list of dict"``). Members reached through a list of dictionaries are completely
+        flattened per the OPTIMADE specification: every list level, crossed or their own, collapses into one,
+        so their fulltype is ``"list of "`` plus the innermost item type.
+
+        :return: A read-only mapping, empty for a definition that is not a dictionary.
+        """
+        out: dict[str, str] = {}
+        if self.optimade_type == "dictionary":
+            _collect_member_fulltypes(self._payload, "", False, out)
+        return MappingProxyType(out)
 
     @property
     def format_version(self) -> str | None:

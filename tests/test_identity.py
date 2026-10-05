@@ -14,6 +14,7 @@ import pytest
 import httk.core.storage.identity as identity_module
 from httk.core import FracScalar, FracVector, SurdScalar, SurdVector
 from httk.core.register import (
+    _entry_records,
     entry_family_info,
     entry_record_info,
     known_entry_families,
@@ -993,8 +994,12 @@ def test_entry_family_and_backing_registries_are_lazy_and_strict() -> None:
     assert {backing_name, mutable_name, plain_name} <= set(known_entry_records(family_name))
     with pytest.raises(ValueError, match="strict"):
         register_entry_family(name="bad-identity-family", family="not-a-reference")
-    with pytest.raises(ValueError, match="No entry family"):
-        register_entry_record(name="bad-identity-record", family="missing", record=backing_ref)
+    register_entry_record(name="bad-identity-record", family="missing", record=backing_ref)
+    try:
+        with pytest.raises(ValueError, match="No entry family registered for record 'bad-identity-record'"):
+            resolve_entry_record("bad-identity-record")
+    finally:
+        _entry_records.pop("bad-identity-record", None)
 
 
 def test_extras_change_the_digest_and_absent_extras_are_byte_identical() -> None:

@@ -143,3 +143,22 @@ def test_query_context_can_preserve_unknown_for_incomplete_values() -> None:
     known = cast(QueryExpression, ("known",))
     predicate = cast(QueryExpression, ("predicate",))
     assert context.when_known(known, predicate) == ("when_known", known, predicate)
+
+
+def test_projection_members_validate_and_freeze() -> None:
+    leaf = StoredPropertyProjection(_formula_response, _formula_query)
+    assert StoredPropertyProjection(_formula_response).members == {}
+    source = {"a": StoredPropertyProjection(_formula_response, members={"b": leaf})}
+    projection = StoredPropertyProjection(response=_formula_response, members=source)
+    source.clear()
+    assert projection.members["a"].members["b"] is leaf
+    assert hash(projection) == hash(StoredPropertyProjection(_formula_response))
+    with pytest.raises(TypeError):
+        projection.members["c"] = leaf  # type: ignore[index]
+    for bad in ({"a.b": leaf}, {"": leaf}, {" a": leaf}):
+        with pytest.raises(ValueError, match="member names"):
+            StoredPropertyProjection(_formula_response, members=bad)
+    with pytest.raises(TypeError, match="members\\['a'\\]"):
+        StoredPropertyProjection(_formula_response, members=cast(Any, {"a": _formula_response}))
+    with pytest.raises(TypeError, match="must be a mapping"):
+        StoredPropertyProjection(_formula_response, members=cast(Any, [("a", leaf)]))

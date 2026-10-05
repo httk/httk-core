@@ -194,7 +194,7 @@ def optimade_parse_tree_to_ojf(ast: tuple[Any, ...]) -> FilterAst:
 def _fix_const(node: tuple[Any, ...]) -> tuple[Any, ...]:
     if node[0] == 'Property':
         assert node[1][0] == 'Identifier'
-        return node[1]
+        return ('Identifier',) + tuple(x[1] for x in node[1:] if x[0] != 'Dot')
     elif node[0] == 'String':
         assert node[1][-1] == '"'
         assert node[1][0] == '"'

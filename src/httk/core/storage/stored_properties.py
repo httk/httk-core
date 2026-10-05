@@ -14,7 +14,7 @@ therefore free to use SQL, a document query, or an in-memory evaluator.
 """
 
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Any, Final, Protocol
 
@@ -309,15 +309,27 @@ class StoredPropertyProjection:
     value and is intentionally separate from filtering because not every
     predicate has a meaningful total ordering.
 
+    ``members`` realizes OPTIMADE nested property names (``name.member``) of a
+    dictionary-valued property: a filter on ``name.member`` is resolved by
+    walking ``members`` from this projection, and the member projection's
+    ``query`` receives the same ``(context, operator, literal)`` arguments for
+    the member path.  Member projections nest for nested dictionaries.  Served
+    rows always use this top-level ``response``; a member's ``response``
+    describes the member value only.
+
     :param response: The operation that extracts the served value from a backing record.
     :param query: The optional operation that builds filtering predicates.
     :param sort: The optional operation that selects a value for ordering.
-    :raises TypeError: If a supplied projection operation cannot be invoked.
+    :param members: Projections of the property's dictionary members, keyed by undotted member name.
+    :raises TypeError: If a supplied projection operation cannot be invoked or ``members`` is malformed.
+    :raises ValueError: If a member name is empty, unstripped, or dotted.
     """
 
     response: StoredPropertyResponse
     query: StoredPropertyQuery | None = None
     sort: StoredPropertySort | None = None
+    # Excluded from hashing (a mapping proxy is unhashable); equality still compares members.
+    members: Mapping[str, "StoredPropertyProjection"] = field(default=_EMPTY_PROJECTIONS, hash=False)
 
     def __post_init__(self) -> None:
         if not callable(self.response):
@@ -326,6 +338,15 @@ class StoredPropertyProjection:
             raise TypeError("StoredPropertyProjection.query must be callable or None")
         if self.sort is not None and not callable(self.sort):
             raise TypeError("StoredPropertyProjection.sort must be callable or None")
+        if not isinstance(self.members, Mapping):
+            raise TypeError("StoredPropertyProjection.members must be a mapping")
+        members = dict(self.members)
+        for name, member in members.items():
+            if not isinstance(name, str) or not name or name != name.strip() or "." in name:
+                raise ValueError("stored-property member names must be non-empty stripped strings without '.'")
+            if not isinstance(member, StoredPropertyProjection):
+                raise TypeError(f"StoredPropertyProjection.members[{name!r}] must be a StoredPropertyProjection")
+        object.__setattr__(self, "members", MappingProxyType(members))
 
 
 def stored_property_projections(cls: type[Any]) -> Mapping[str, StoredPropertyProjection]:

@@ -12,9 +12,11 @@ import httk.core.provenance
 import httk.registry
 from httk.core._discover import discover_and_register
 from httk.core.register import (
+    _entry_families,
     _entry_records,
     _entry_type_definitions,
     _property_definitions,
+    entry_family_info,
     entry_record_info,
     known_cli_commands,
     known_entry_families,
@@ -23,6 +25,7 @@ from httk.core.register import (
     known_property_definitions,
     load_entry_type_definition,
     load_property_definition,
+    register_entry_family,
     register_entry_record,
     register_entry_type_definition,
     register_property_definition,
@@ -130,6 +133,24 @@ def test_entry_record_registration_is_strict_and_lazy() -> None:
             resolve_entry_record(name)
     finally:
         _entry_records.pop(name, None)
+
+
+def test_entry_record_may_precede_its_family() -> None:
+    record, family = entry_record_info("core-run")[0], entry_family_info("runs")[0]
+    try:
+        register_entry_record(name="test-early-record", record=record, family="test-late-family")
+        register_entry_record(name="test-orphan-record", record=record, family="test-missing-family")
+        assert entry_record_info("test-early-record") == (record, "test-late-family", None)
+        with pytest.raises(ValueError, match="No entry family registered for record 'test-early-record'"):
+            resolve_entry_record("test-early-record")
+        register_entry_family(name="test-late-family", family=family)
+        assert resolve_entry_record("test-early-record") is resolve_entry_record("core-run")
+        with pytest.raises(ValueError, match="'test-orphan-record': 'test-missing-family'"):
+            resolve_entry_record("test-orphan-record")
+    finally:
+        for name in ("test-early-record", "test-orphan-record"):
+            _entry_records.pop(name, None)
+        _entry_families.pop("test-late-family", None)
 
 
 def test_unknown_entry_record_resolution_errors() -> None:

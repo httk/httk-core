@@ -630,3 +630,62 @@ def test_embedded_unit_definitions_have_no_nulls_and_match_rendered() -> None:
         theirs = {d["symbol"]: d for d in load_property_definition(source).unit_definitions}
         for symbol in symbols:
             assert mine[symbol] == theirs[symbol]
+
+
+def test_member_fulltypes_nested_dicts_and_flattened_list_of_dicts() -> None:
+    def leaf(kind: str, **extra: object) -> dict[str, object]:
+        return {"x-optimade-type": kind, "type": ["null"], **extra}
+
+    document = {
+        "$id": "https://example.org/defs/nested",
+        "description": "Nested members.",
+        "x-optimade-type": "dictionary",
+        "type": ["object"],
+        "properties": {
+            "label": leaf("string"),
+            "grid": leaf("list", items=leaf("list", items=leaf("float"))),
+            "inner": leaf("dictionary", properties={"when": leaf("timestamp"), "flag": leaf("boolean")}),
+            "sites": leaf(
+                "list",
+                items=leaf(
+                    "dictionary",
+                    properties={
+                        "index": leaf("integer"),
+                        "deep": leaf("dictionary", properties={"x": leaf("float")}),
+                        "v": leaf("list", items=leaf("integer")),
+                        "groups": leaf(
+                            "list",
+                            items=leaf(
+                                "dictionary", properties={"w": leaf("list", items=leaf("list", items=leaf("float")))}
+                            ),
+                        ),
+                    },
+                ),
+            ),
+        },
+    }
+    fulltypes = PropertyDefinition.from_optimade("nested", document).member_fulltypes()
+    assert list(fulltypes.items()) == [
+        ("label", "string"),
+        ("grid", "list of list of float"),
+        ("inner", "dict"),
+        ("inner.when", "timestamp"),
+        ("inner.flag", "boolean"),
+        ("sites", "list of dict"),
+        ("sites.index", "list of integer"),
+        ("sites.deep", "list of dict"),
+        ("sites.deep.x", "list of float"),
+        ("sites.v", "list of integer"),
+        ("sites.groups", "list of dict"),
+        ("sites.groups.w", "list of float"),
+    ]
+    with pytest.raises(TypeError):
+        fulltypes["label"] = "integer"  # type: ignore[index]
+
+
+def test_member_fulltypes_empty_for_non_dictionaries() -> None:
+    assert PropertyDefinition.from_simple("plain", description="d", fulltype="list of float").member_fulltypes() == {}
+    simple = PropertyDefinition.from_simple(
+        "d", description="d", fulltype="dict", dict_properties={"a": "list of float"}
+    )
+    assert dict(simple.member_fulltypes()) == {"a": "list of float"}

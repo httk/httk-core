@@ -131,6 +131,20 @@ def test_constant_first_comparison() -> None:
 
 
 @pytest.mark.parametrize(
+    ("filter_string", "expected"),
+    [
+        ('0.5 < _httk_e.rmse', ('<', ('Number', '0.5'), ('Identifier', '_httk_e', 'rmse'))),
+        ('"x" = a.b.c', ('=', ('String', 'x'), ('Identifier', 'a', 'b', 'c'))),
+        ('a = b.c', ('=', ('Identifier', 'a'), ('Identifier', 'b', 'c'))),
+        ('a CONTAINS b.c', ('CONTAINS', ('Identifier', 'a'), ('Identifier', 'b', 'c'))),
+        ('a HAS b.c', ('HAS_ALL', ('=',), ('Identifier', 'a'), (('Identifier', 'b', 'c'),))),
+    ],
+)
+def test_dotted_identifier_operands_keep_every_segment(filter_string: str, expected: object) -> None:
+    assert parse_optimade_filter(filter_string) == expected
+
+
+@pytest.mark.parametrize(
     "bad_filter",
     [
         'nelements = ',
