@@ -1,13 +1,14 @@
 """Generate the stdlib-only core entry record models from registered schemas."""
 
-import difflib
 import sys
 import textwrap
 import tomllib
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from . import definition_ids
+from ._typed_record_tool import _sync, check_typed_records, generate_typed_records
 from .cli import CLIContext
 from .property_definitions import EntryTypeDefinition, PropertyDefinition
 from .register.schemas import load_entry_type_definition
@@ -93,11 +94,11 @@ def _type_annotation(property_definition: PropertyDefinition) -> str:
     return type_annotation_for_fulltype(fulltype)
 
 
-def _source_entry_types_path() -> Path:
+def _source_path(filename: str, record: str) -> Path:
     core = Path(__file__).resolve().parent
     if core.name != "core" or core.parent.name != "httk" or core.parent.parent.name != "src":
         raise RuntimeError(
-            "httk registry gen/check core requires httk.core to be loaded from a source checkout under src/httk/core"
+            f"httk registry gen/check {record} requires httk.core to be loaded from a source checkout under src/httk/core"
         )
     repo_root = core.parents[2]
     pyproject = repo_root / "pyproject.toml"
@@ -106,15 +107,15 @@ def _source_entry_types_path() -> Path:
             project = tomllib.load(stream).get("project")
             project_name = project.get("name") if isinstance(project, Mapping) else None
     except (OSError, tomllib.TOMLDecodeError) as exc:
-        raise RuntimeError("httk registry gen/check core requires a valid httk-core pyproject.toml") from exc
+        raise RuntimeError(f"httk registry gen/check {record} requires a valid httk-core pyproject.toml") from exc
     if project_name != "httk-core":
-        raise RuntimeError("httk registry gen/check core requires the httk-core source checkout")
-    target = (core / "entry_types.py").resolve()
+        raise RuntimeError(f"httk registry gen/check {record} requires the httk-core source checkout")
+    target = (core / filename).resolve()
     try:
         target.relative_to(repo_root)
     except ValueError as exc:
         raise RuntimeError(
-            "httk registry gen/check core refuses an entry_types.py target outside the source checkout"
+            f"httk registry gen/check {record} refuses a {filename} target outside the source checkout"
         ) from exc
     return target
 
@@ -266,47 +267,70 @@ def generate_core_records() -> str:
     return "\n".join(lines)
 
 
+#: The core property definitions with generated typed records (total energies keep hand-written records).
+PROPERTY_RECORD_IDS = (
+    definition_ids.ATOMIC_FORCE,
+    definition_ids.ENTHALPY,
+    definition_ids.KINETIC_ENERGY,
+    definition_ids.POTENTIAL_ENERGY,
+    definition_ids.PRESSURE,
+    definition_ids.STRESS_TENSOR,
+    definition_ids.TEMPERATURE,
+    definition_ids.VOLUME,
+)
+
+
+def generate_property_records() -> str:
+    """Return the complete generated ``property_records.py`` source."""
+    return generate_typed_records(
+        PROPERTY_RECORD_IDS,
+        module_doc=(
+            "Generated typed result records for the httk-core property definitions.\n\n"
+            "Each class stores one value of its property definition in typed columns; see\n"
+            ":mod:`httk.core.typed_records`. ``RECORD_KINDS`` maps each definition IRI to its class."
+        ),
+        storage_prefix="core",
+        command="httk registry gen property-records",
+    )
+
+
+_GENERATED: Mapping[str, tuple[str, Callable[[], str]]] = {
+    "core": ("entry_types.py", generate_core_records),
+    "property-records": ("property_records.py", generate_property_records),
+}
+
+
 def check_core_records() -> bool:
-    """Return whether the committed core record module is up to date."""
-    return _source_entry_types_path().read_text(encoding="utf-8") == generate_core_records()
+    """Return whether the committed core record module is up to date (``False`` when missing)."""
+    return check_typed_records(_source_path("entry_types.py", "core"), generate_core_records())
 
 
-def _run(action: str, context: CLIContext) -> int:
+def check_property_records() -> bool:
+    """Return whether the committed core typed record module is up to date (``False`` when missing)."""
+    return check_typed_records(_source_path("property_records.py", "property-records"), generate_property_records())
+
+
+def _run(action: str, record: str, context: CLIContext) -> int:
+    filename, generate = _GENERATED[record]
     try:
-        target = _source_entry_types_path()
-        if action == "gen":
-            target.write_text(generate_core_records(), encoding="utf-8")
-            return 0
-        if check_core_records():
-            return 0
-        current = target.read_text(encoding="utf-8")
-        generated = generate_core_records()
+        target = _source_path(filename, record)
+        return _sync(target, generate(), check=action == "check", command=f"{context.program} registry gen {record}")
     except (OSError, RuntimeError, ValueError) as exc:
         print(f"{context.program} registry: {exc}", file=sys.stderr)
         return 1
 
-    diff = difflib.unified_diff(
-        current.splitlines(keepends=True),
-        generated.splitlines(keepends=True),
-        fromfile=str(target),
-        tofile="generated entry_types.py",
-    )
-    print("".join(diff), file=sys.stderr, end="")
-    print(f"Regenerate with: {context.program} registry gen core", file=sys.stderr)
-    return 1
-
 
 def command(argv: Sequence[str], context: CLIContext) -> int:
-    """Handle ``httk registry gen/check core``."""
+    """Handle ``httk registry gen/check core|property-records``."""
     import argparse
 
     parser = argparse.ArgumentParser(
         prog=f"{context.program} registry", description="Generate and verify registry code"
     )
     parser.add_argument("action", choices=("gen", "check"))
-    parser.add_argument("record", choices=("core",))
+    parser.add_argument("record", choices=tuple(_GENERATED))
     try:
         arguments = parser.parse_args(list(argv))
     except SystemExit as exc:
         return exc.code if isinstance(exc.code, int) else 2
-    return _run(arguments.action, context)
+    return _run(arguments.action, arguments.record, context)

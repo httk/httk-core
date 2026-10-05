@@ -5,12 +5,14 @@ from typing import get_type_hints
 import pytest
 
 from httk.core import CLIContext, File
-from httk.core.register import known_cli_commands
 from httk.core._registry_tool import (
     check_core_records,
+    check_property_records,
     command,
     type_annotation_for_fulltype,
 )
+from httk.core._typed_record_tool import check_typed_records
+from httk.core.register import known_cli_commands
 
 
 @pytest.mark.parametrize(
@@ -61,3 +63,24 @@ def test_registry_gen_refuses_symlinked_target(tmp_path, monkeypatch, capsys) ->
     monkeypatch.setattr(registry_tool, "__file__", str(core / "_registry_tool.py"))
     assert command(["gen", "core"], CLIContext("httk", Path.cwd())) == 1
     assert "outside the source checkout" in capsys.readouterr().err
+
+
+def test_generated_property_records_are_current() -> None:
+    assert check_property_records()
+
+
+def test_missing_generated_module_is_not_current(tmp_path, monkeypatch, capsys) -> None:
+    from httk.core import _registry_tool as registry_tool
+
+    assert not check_typed_records(tmp_path / "property_records.py", "anything")
+    core = tmp_path / "src" / "httk" / "core"
+    core.mkdir(parents=True)
+    (tmp_path / "pyproject.toml").write_text('[project]\nname = "httk-core"\n', encoding="utf-8")
+    monkeypatch.setattr(registry_tool, "__file__", str(core / "_registry_tool.py"))
+    assert not check_core_records() and not check_property_records()
+    for record in ("core", "property-records"):
+        assert command(["check", record], CLIContext("httk", Path.cwd())) == 1
+        err = capsys.readouterr().err
+        assert "is missing" in err and f"Regenerate with: httk registry gen {record}" in err
+    assert command(["gen", "property-records"], CLIContext("httk", Path.cwd())) == 0
+    assert check_property_records()

@@ -115,6 +115,7 @@ from .storage.markers import (
     WeakLink,
     stored_property,
 )
+from .typed_records import MemberLayout, TypedRecord, TypedRecordSpec, member_layout
 from .vectors import (
     FracScalar,
     FracVector,
@@ -168,6 +169,7 @@ __all__ = [
     "FracVector",
     "IdentitySkip",
     "Indexed",
+    "MemberLayout",
     "MissingType",
     "MutableFracVector",
     "NumericVector",
@@ -193,6 +195,8 @@ __all__ = [
     "TextstreamLike",
     "TextstreamURLView",
     "TotalEnergyRecord",
+    "TypedRecord",
+    "TypedRecordSpec",
     "Unique",
     "VectorLike",
     "View",
@@ -223,6 +227,7 @@ __all__ = [
     "load_many",
     "load_property_definition",
     "load_source",
+    "member_layout",
     "numpy_available",
     "parse_alternative_id",
     "parse_entry_id",

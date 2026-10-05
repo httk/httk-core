@@ -47,6 +47,23 @@ register_entry_record(
     family="records",
     definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/records",
 )
+# Generated typed records (httk.core.property_records), one per core property definition.
+for _name, _record in (
+    ("atomic-force", "AtomicForceRecord"),
+    ("enthalpy", "EnthalpyRecord"),
+    ("kinetic-energy", "KineticEnergyRecord"),
+    ("potential-energy", "PotentialEnergyRecord"),
+    ("pressure", "PressureRecord"),
+    ("stress-tensor", "StressTensorRecord"),
+    ("temperature", "TemperatureRecord"),
+    ("volume", "VolumeRecord"),
+):
+    register_entry_record(
+        name=f"core-{_name}",
+        record=f"httk.core.property_records:{_record}",
+        family="records",
+        definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/records",
+    )
 
 register_entry_record(
     name="core-reference",
