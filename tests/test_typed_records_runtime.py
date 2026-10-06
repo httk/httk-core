@@ -9,6 +9,8 @@ from typing import Annotated, Any, ClassVar, cast
 import pytest
 
 from httk.core import (
+    DataRecord,
+    DerivedDataRecord,
     IdentitySkip,
     Indexed,
     PropertyDefinition,
@@ -279,6 +281,20 @@ def test_derived_served_definition(base_id: str, derivation: str, label: str, se
     assert item.field == unprefixed and item.dimensions == member_layout(spec.definition)[0].dimensions
 
 
+def test_from_data_record_checks_the_generic_record() -> None:
+    edge = RunEdge("input", "runs", "r1")
+    generic = DataRecord.from_value(TEMPERATURE, "temperature", 300, product_of=[edge], id="t1")
+    assert Temperature.from_data_record(generic) == Temperature(300.0, product_of=(edge,))
+    assert Temperature.from_data_record(generic).id == "t1"
+    with pytest.raises(ValueError, match=f"{STRESS_TENSOR}.* is not .*{TEMPERATURE}"):
+        Temperature.from_data_record(DataRecord.from_value(STRESS_TENSOR, "stress", [0.0] * 6))
+    derived = DerivedDataRecord.from_value(TEMPERATURE, RMSE, "temperature", 1.0)
+    with pytest.raises(ValueError, match="got DerivedDataRecord"):
+        Temperature.from_data_record(cast(Any, derived))
+    with pytest.raises(ValueError, match="must not be None"):
+        Temperature.from_data_record(DataRecord.from_value(TEMPERATURE, "temperature", None))
+
+
 @dataclass(frozen=True)
 class StressRmse(TypedRecord):
     __httk_typed_record__: ClassVar[TypedRecordSpec] = TypedRecordSpec(
@@ -305,6 +321,8 @@ def test_derived_record_round_trip_and_projection() -> None:
     assert _query(projection, "LENGTH =", 6) == ("cmp", ("count", tag), "=", ("const", 6))
     with pytest.raises(ValueError, match="length 5, expected 6|do not fill"):
         StressRmse((1.0,) * 5)
+    with pytest.raises(TypeError, match="derived typed records are built with from_value"):
+        StressRmse.from_data_record(DataRecord.from_value(STRESS_TENSOR, "stress", [0.0] * 6))
 
 
 def test_declarations_are_lazy(monkeypatch: pytest.MonkeyPatch) -> None:

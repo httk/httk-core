@@ -26,7 +26,7 @@ from dataclasses import dataclass, fields
 from functools import cached_property
 from typing import Any, ClassVar, Self, cast
 
-from .data_records import _validate_string, _validate_timestamp
+from .data_records import DataRecord, _validate_string, _validate_timestamp
 from .property_definitions import _HTTK_DEFS_BASE, PropertyDefinition
 from .provenance import RunEdge, _edges
 from .register.schemas import load_property_definition
@@ -597,6 +597,34 @@ class TypedRecord:
         flats = _flatten_value(cls.__httk_typed_record__.layout, value)
         return cast(Any, cls)(
             **flats, product_of=product_of, id=id, immutable_id=immutable_id, last_modified=last_modified
+        )
+
+    @classmethod
+    def from_data_record(cls, record: DataRecord) -> Self:
+        """Build a typed record from the generic data record of the same property definition.
+
+        The generic record's ``name`` is not kept, since the class fixes the property; its value, provenance
+        edges, ids and timestamp are.
+
+        :param record: A data record whose definition is this kind's property definition.
+        :return: The typed record.
+        :raises TypeError: If this is a derived (statistics) kind.
+        :raises ValueError: If ``record`` is not a data record of this kind's definition, or its value is
+            ``None`` or fails the definition.
+        """
+        spec = cls.__httk_typed_record__
+        if spec.derivation is not None:
+            raise TypeError("derived typed records are built with from_value")
+        if not isinstance(record, DataRecord):
+            raise ValueError(f"Expected a DataRecord of {spec.definition_id!r}, got {type(record).__name__}.")
+        if record.definition_id != spec.definition_id:
+            raise ValueError(f"DataRecord definition {record.definition_id!r} is not {spec.definition_id!r}.")
+        return cls.from_value(
+            record.value,
+            product_of=record.product_of,
+            id=record.id,
+            immutable_id=record.immutable_id,
+            last_modified=record.last_modified,
         )
 
 

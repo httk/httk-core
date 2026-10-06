@@ -1,5 +1,6 @@
 """Tests for the generated core typed records (``httk.core.property_records``)."""
 
+import datetime
 import importlib
 import itertools
 import sys
@@ -9,7 +10,7 @@ from typing import Any, cast
 
 import pytest
 
-from httk.core import PropertyDefinition, typed_records
+from httk.core import DataRecord, PropertyDefinition, RunEdge, typed_records
 from httk.core._typed_record_tool import generate_typed_records
 from httk.core.definition_ids import STRESS_TENSOR, TEMPERATURE
 from httk.core.property_records import RECORD_KINDS
@@ -47,6 +48,26 @@ def test_generated_record_kind(cls: type[TypedRecord]) -> None:
     assert resolve_entry_record("core-" + name.replace("_", "-")) is cls
     assert RECORD_KINDS[spec.definition_id] is cls
     assert record.definition_id == spec.definition_id
+
+
+@pytest.mark.parametrize("cls", RECORD_KINDS.values(), ids=lambda cls: cls.__name__)
+def test_generated_record_kind_from_data_record(cls: type[TypedRecord]) -> None:
+    spec = cls.__httk_typed_record__
+    (item,) = spec.layout
+    stamp = datetime.datetime(2026, 1, 1, tzinfo=datetime.UTC)
+    edges = (RunEdge("input", "runs", "r1"),)
+    generic = DataRecord.from_value(
+        spec.definition_id,
+        "generic",
+        _synthetic(item),
+        product_of=edges,
+        id="x1",
+        immutable_id="i1",
+        last_modified=stamp,
+    )
+    record = cast(Any, cls.from_data_record(generic))
+    assert record.value == generic.value and record.product_of == edges
+    assert (record.id, record.immutable_id, record.last_modified) == ("x1", "i1", stamp)
 
 
 def test_import_loads_no_definition(monkeypatch: pytest.MonkeyPatch) -> None:

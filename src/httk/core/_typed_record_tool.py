@@ -7,6 +7,7 @@ their committed module through :func:`main`, e.g. from a ``tools/generate_record
 
 import argparse
 import difflib
+import re
 import sys
 import textwrap
 from collections.abc import Mapping, Sequence
@@ -37,6 +38,9 @@ _LICENSE = """#
 _ANNOTATIONS = {"float": "float", "integer": "int", "string": "str", "boolean": "bool"}
 _NO_UNIT = {None, "dimensionless", "inapplicable"}
 
+# A single-backtick markdown code span that is not part of an RST ``literal`` or a :role:`target`.
+_CODE_SPAN = re.compile(r"(?<![`:])`([^`\n]+)`(?!`)")
+
 _STANDARD_PARAMS = (
     ":param product_of: The entries this value is a product of, as labeled edges.",
     ":param id: The human-readable entry id shared by all revisions; minted by the store when None.",
@@ -53,12 +57,13 @@ _STANDARD_FIELDS = (
 
 
 def _doc_lines(text: str) -> list[str]:
-    """Return a schema description as docstring lines: verbatim, escaped and dedented.
+    """Return a schema description as docstring lines: escaped, dedented, markdown code spans as RST literals.
 
     :param text: The description.
     :return: Its lines.
     """
     quoted = text.replace("\\", "\\\\").replace('"""', '\\"\\"\\"')
+    quoted = _CODE_SPAN.sub(r"``\1``", quoted)
     return [line.rstrip() for line in textwrap.dedent(quoted).strip().splitlines()]
 
 

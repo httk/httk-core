@@ -58,7 +58,7 @@ __all__ = [
 class AtomicForceRecord(TypedRecord):
     """Atomic force as a typed record.
 
-    The force on one atom (the negative gradient of the energy with respect to the position of the atom), in electronvolt per angstrom, as a vector over `dim_spatial` in the Cartesian frame of the structure it belongs to.
+    The force on one atom (the negative gradient of the energy with respect to the position of the atom), in electronvolt per angstrom, as a vector over ``dim_spatial`` in the Cartesian frame of the structure it belongs to.
     This property is the base of force statistics: a statistic of it (such as an error or a bias over a population of atoms) has the same shape, one value per Cartesian component.
     A null value means the quantity is not available or not recorded.
 
