@@ -683,8 +683,41 @@ def test_member_fulltypes_nested_dicts_and_flattened_list_of_dicts() -> None:
         fulltypes["label"] = "integer"  # type: ignore[index]
 
 
+def test_member_fulltypes_flattens_a_top_level_list_of_dictionaries() -> None:
+    def leaf(kind: str, **extra: object) -> dict[str, object]:
+        return {"x-optimade-type": kind, "type": ["null"], **extra}
+
+    species = leaf(
+        "dictionary",
+        properties={
+            "name": leaf("string"),
+            "chemical_symbols": leaf("list", items=leaf("string")),
+            "concentration": leaf("list", items=leaf("float")),
+            "extra": leaf("dictionary", properties={"x": leaf("list", items=leaf("integer"))}),
+        },
+    )
+    flattened = [
+        ("name", "list of string"),
+        ("chemical_symbols", "list of string"),
+        ("concentration", "list of float"),
+        ("extra", "list of dict"),
+        ("extra.x", "list of integer"),
+    ]
+    for document in (leaf("list", items=species), leaf("list", items=leaf("list", items=species))):
+        document |= {"$id": "https://example.org/defs/species", "description": "Species."}
+        assert list(PropertyDefinition.from_optimade("species", document).member_fulltypes().items()) == flattened
+
+    authors = standard_entry_type("references").properties["authors"].member_fulltypes()
+    assert dict(authors) == {"name": "list of string", "firstname": "list of string", "lastname": "list of string"}
+
+
 def test_member_fulltypes_empty_for_non_dictionaries() -> None:
     assert PropertyDefinition.from_simple("plain", description="d", fulltype="list of float").member_fulltypes() == {}
+    assert (
+        PropertyDefinition.from_simple("deep", description="d", fulltype="list of list of string").member_fulltypes()
+        == {}
+    )
+    assert PropertyDefinition.from_simple("scalar", description="d", fulltype="integer").member_fulltypes() == {}
     simple = PropertyDefinition.from_simple(
         "d", description="d", fulltype="dict", dict_properties={"a": "list of float"}
     )

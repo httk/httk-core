@@ -610,20 +610,25 @@ class PropertyDefinition:
         _check_level(self.name, self._payload, value, self.name, {})
 
     def member_fulltypes(self) -> Mapping[str, str]:
-        """Return the fulltype of every member path of a dictionary-typed definition.
+        """Return the fulltype of every member path of a dictionary or list-of-dictionaries definition.
 
-        Paths are dotted (``"a.b"`` for a member of a dictionary-valued member ``a``) and listed in
-        definition order; each fulltype uses the compact spelling (``"float"``, ``"list of list of float"``,
-        ``"dict"``, ...). A dictionary-valued member maps to ``"dict"``, and a list-of-dictionaries member to
-        its true nested type (``"list of dict"``). Members reached through a list of dictionaries are completely
-        flattened per the OPTIMADE specification: every list level, crossed or their own, collapses into one,
-        so their fulltype is ``"list of "`` plus the innermost item type.
+        Paths are dotted (``"a.b"`` for a member of a dictionary-valued member ``a``), relative to the
+        property, and listed in definition order; each fulltype uses the compact spelling (``"float"``,
+        ``"list of list of float"``, ``"dict"``, ...). A dictionary-valued member maps to ``"dict"``, and a
+        list-of-dictionaries member to its true nested type (``"list of dict"``). Members reached through a
+        list of dictionaries are completely flattened per the OPTIMADE specification: every list level, crossed
+        or their own, collapses into one, so their fulltype is ``"list of "`` plus the innermost item type. This
+        includes every member of a definition that is itself a list (of any depth) of dictionaries.
 
-        :return: A read-only mapping, empty for a definition that is not a dictionary.
+        :return: A read-only mapping, empty for a definition that is neither a dictionary nor a list (of any
+            depth) of dictionaries.
         """
         out: dict[str, str] = {}
-        if self.optimade_type == "dictionary":
-            _collect_member_fulltypes(self._payload, "", False, out)
+        level = self._payload
+        while level["x-optimade-type"] == "list":
+            level = level["items"]
+        if level["x-optimade-type"] == "dictionary":
+            _collect_member_fulltypes(level, "", level is not self._payload, out)
         return MappingProxyType(out)
 
     @property
