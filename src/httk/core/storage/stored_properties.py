@@ -32,6 +32,8 @@ __all__ = [
     "StoredPropertyQuery",
     "StoredPropertyResponse",
     "StoredPropertySort",
+    "StoredPropertyZipQuery",
+    "ZipLiteral",
     "stored_property_projections",
 ]
 
@@ -216,6 +218,21 @@ class QueryContext(QueryScope, Protocol):
         """
         ...
 
+    def aligned(self, *scopes: QueryScope) -> tuple[QueryScope, ...]:
+        r"""Return views of sibling list scopes restricted to equal element positions.
+
+        The scopes are correlated children of one parent scope that hold list
+        elements.  Predicates, ``filtered`` and ``count`` over any returned view
+        range over the aligned positions only, so a predicate may combine the
+        views' fields position by position.  A fresh call returns fresh views,
+        as ``scope()`` returns fresh peers.  A backend may reject scopes that are
+        not siblings.
+
+        :param \*scopes: The sibling list scopes to align.
+        :return: One aligned view per scope, in the given order.
+        """
+        ...
+
     def distinct_count(self, scope: QueryScope, value: QueryValue) -> QueryValue:
         """Return the count of distinct ``value`` values in ``scope``.
 
@@ -297,6 +314,30 @@ type StoredPropertySort = Callable[[QueryContext], QueryValue]
 
 
 @dataclass(frozen=True, slots=True)
+class ZipLiteral:
+    """A correlated ("zip") list filter's operands for one owning projection.
+
+    A filter ``a:b HAS ALL v1:v2, w1:w2`` correlates element positions of the
+    zipped lists.  ``values`` holds one tuple per zipped value tuple with one
+    validated literal per path, and ``operators`` the matching comparison
+    operators (``=``, ``!=``, ``<``, ``<=``, ``>``, ``>=``).
+
+    :param paths: The zipped property paths, relative to the owning projection
+        (see :attr:`StoredPropertyProjection.zip_query`).
+    :param operators: One tuple per value tuple, one operator per path.
+    :param values: One tuple per value tuple, one validated literal per path.
+    """
+
+    paths: tuple[str, ...]
+    operators: tuple[tuple[str, ...], ...]
+    values: tuple[tuple[object, ...], ...]
+
+
+type StoredPropertyZipQuery = Callable[[QueryContext, str, ZipLiteral], QueryExpression | None]
+"""Build one zip predicate from a context, ``HAS_ZIP_*`` operator, and literal, or ``None`` if unsupported."""
+
+
+@dataclass(frozen=True, slots=True)
 class StoredPropertyProjection:
     """One domain-owned projection of a served property for one backing.
 
@@ -317,10 +358,25 @@ class StoredPropertyProjection:
     rows always use this top-level ``response``; a member's ``response``
     describes the member value only.
 
+    ``zip_query`` realizes correlated ("zip") list filters.  A zip filter
+    reaches the *owning* projection as ``zip_query(context, operator,
+    literal)`` with ``operator`` one of ``HAS_ZIP_ALL``, ``HAS_ZIP_ANY`` and
+    ``HAS_ZIP_ONLY`` and a :class:`ZipLiteral`.  For members of one
+    dictionary-valued (or list-of-dictionary) property the owner is that
+    property's projection and the literal's ``paths`` are member paths
+    relative to it; for top-level properties the owner is the projection of
+    the first named property and ``paths`` are all served names, the first
+    included.  ``HAS_ZIP_ALL`` matches when every value tuple is matched at
+    some element position (positions may differ between tuples),
+    ``HAS_ZIP_ANY`` when some tuple is matched, and ``HAS_ZIP_ONLY`` when every
+    element position matches some tuple.  Returning ``None`` means the
+    combination is not supported; the protocol layer answers not implemented.
+
     :param response: The operation that extracts the served value from a backing record.
     :param query: The optional operation that builds filtering predicates.
     :param sort: The optional operation that selects a value for ordering.
     :param members: Projections of the property's dictionary members, keyed by undotted member name.
+    :param zip_query: The optional operation that builds correlated list (zip) predicates.
     :raises TypeError: If a supplied projection operation cannot be invoked or ``members`` is malformed.
     :raises ValueError: If a member name is empty, unstripped, or dotted.
     """
@@ -330,6 +386,7 @@ class StoredPropertyProjection:
     sort: StoredPropertySort | None = None
     # Excluded from hashing (a mapping proxy is unhashable); equality still compares members.
     members: Mapping[str, "StoredPropertyProjection"] = field(default=_EMPTY_PROJECTIONS, hash=False)
+    zip_query: StoredPropertyZipQuery | None = None
 
     def __post_init__(self) -> None:
         if not callable(self.response):
@@ -338,6 +395,8 @@ class StoredPropertyProjection:
             raise TypeError("StoredPropertyProjection.query must be callable or None")
         if self.sort is not None and not callable(self.sort):
             raise TypeError("StoredPropertyProjection.sort must be callable or None")
+        if self.zip_query is not None and not callable(self.zip_query):
+            raise TypeError("StoredPropertyProjection.zip_query must be callable or None")
         if not isinstance(self.members, Mapping):
             raise TypeError("StoredPropertyProjection.members must be a mapping")
         members = dict(self.members)

@@ -23,7 +23,7 @@ from httk.core import (
     typed_records,
 )
 from httk.core.definition_ids import STRESS_TENSOR, TEMPERATURE
-from httk.core.storage import QueryLiteralError, StoredPropertyProjection
+from httk.core.storage import QueryLiteralError, StoredPropertyProjection, ZipLiteral
 from httk.core.typed_records import member_layout
 
 SAMPLE_ID = "https://schemas.httk.org/defs/v0.1/properties/test/sample"
@@ -78,7 +78,26 @@ NVE = PropertyDefinition.from_optimade(
     "nve_energy_drift",
     {"$id": NVE_ID, "title": "NVE energy drift", "description": "A drift.", **_leaf("number", "float", True)},
 )
-_TEST_DEFINITIONS = {SAMPLE_ID: SAMPLE, NULLABLE_ID: NULLABLE, NVE_ID: NVE}
+ZIP_ID = "https://schemas.httk.org/defs/v0.1/properties/test/zip_sample"
+ZIP = PropertyDefinition.from_optimade(
+    "zip_sample",
+    {
+        "$id": ZIP_ID,
+        "description": "A dictionary with sibling lists sharing a dimension.",
+        "x-optimade-type": "dictionary",
+        "type": ["object"],
+        "required": ["ids", "energy", "other", "grid", "weight"],
+        "properties": {
+            "ids": _list(_leaf("string", "string"), "phases", None),
+            "energy": _list(_leaf("number", "float", nullable=True), "phases", None),
+            "other": _list(_leaf("string", "string"), "other", None),
+            "grid": _list(_list(_leaf("number", "float"), "xy", 2), "phases", None),
+            "weight": _leaf("number", "float"),
+            "stable": _list(_leaf("boolean", "boolean"), "phases", None),
+        },
+    },
+)
+_TEST_DEFINITIONS = {SAMPLE_ID: SAMPLE, NULLABLE_ID: NULLABLE, NVE_ID: NVE, ZIP_ID: ZIP}
 
 
 @pytest.fixture(autouse=True)
@@ -417,6 +436,9 @@ class FakeContext(FakeScope):
     def when_known(self, known: Any, predicate: Any) -> Any:
         return ("when_known", known, predicate)
 
+    def aligned(self, *scopes: FakeScope) -> tuple[FakeScope, ...]:
+        return tuple(FakeScope(("aligned", scope.tag), self._counter) for scope in scopes)
+
 
 def _query(projection: StoredPropertyProjection, operator: str, literal: object = None) -> Any:
     assert projection.query is not None
@@ -544,3 +566,75 @@ def test_derived_title_keeps_acronyms() -> None:
     spec = TypedRecordSpec(NVE_ID, "_httk_nve_energy_drift_standard_error", STANDARD_ERROR, "standard error")
     assert spec.served_definition.title == "Standard error of NVE energy drift"
     assert typed_records._lower_first("Stress tensor") == "stress tensor"
+
+
+@dataclass(frozen=True)
+class ZipSample(TypedRecord):
+    __httk_typed_record__: ClassVar[TypedRecordSpec] = TypedRecordSpec(ZIP_ID, "_httk_zip_sample")
+
+    ids: tuple[str, ...]
+    energy: tuple[float | None, ...]
+    other: tuple[str, ...]
+    grid: tuple[float, ...]
+    weight: float
+    stable: tuple[bool, ...] | None = None
+    product_of: Edges = ()
+    id: Annotated[str | None, IdentitySkip(), Indexed()] = field(default=None, compare=False)
+    immutable_id: Annotated[str | None, IdentitySkip(), Unique()] = field(default=None, compare=False)
+    last_modified: Annotated[datetime.datetime | None, IdentitySkip()] = field(default=None, compare=False)
+
+
+def _zip(operator: str, paths: tuple[str, ...], *tuples: tuple[tuple[str, ...], tuple[object, ...]]) -> Any:
+    projection = ZipSample.__httk_typed_record__.projections()["_httk_zip_sample"]
+    assert projection.zip_query is not None
+    literal = ZipLiteral(paths, tuple(ops for ops, _ in tuples), tuple(values for _, values in tuples))
+    return projection.zip_query(cast(Any, FakeContext()), operator, literal)
+
+
+def _slots(first: int, paths: tuple[str, ...], ops: tuple[str, ...], values: tuple[object, ...]) -> Any:
+    views = [("aligned", ("scope", path, first + k)) for k, path in enumerate(paths)]
+    slots = zip(views, ops, values, strict=True)
+    return ("and", *(("cmp", ("field", view, "value"), op, ("const", value)) for view, op, value in slots))
+
+
+def _zip_term(first: int, paths: tuple[str, ...], ops: tuple[str, ...], values: tuple[object, ...]) -> Any:
+    matching = ("filtered", ("aligned", ("scope", paths[0], first)), _slots(first, paths, ops, values))
+    return ("cmp", ("count", matching), ">", ("const", 0))
+
+
+def test_dictionary_zip_query() -> None:
+    paths = ("ids", "energy")
+    ab, c = (("=", "<"), ("AB", -1.0)), (("=", "="), ("C", 0.0))
+    # A fresh aligned group (fresh peer scopes) per value tuple.
+    assert _zip("HAS_ZIP_ALL", paths, ab, c) == ("and", _zip_term(1, paths, *ab), _zip_term(3, paths, *c))
+    assert _zip("HAS_ZIP_ANY", paths, ab, c) == ("or", _zip_term(1, paths, *ab), _zip_term(3, paths, *c))
+    # HAS ONLY: one group; no position may fail every tuple.
+    others = ("not", ("or", _slots(1, paths, *ab), _slots(1, paths, *c)))
+    assert _zip("HAS_ZIP_ONLY", paths, ab, c) == (
+        "cmp",
+        ("count", ("filtered", ("aligned", ("scope", "ids", 1)), others)),
+        "=",
+        ("const", 0),
+    )
+
+    # A member that may be None makes the whole zip unknown when it is None.
+    paths = ("stable", "ids")
+    known = ("and", ("eq", ("field", "record", "stable_present"), ("const", True)))
+    true_ab = (("=", "="), (True, "AB"))
+    assert _zip("HAS_ZIP_ALL", paths, true_ab) == ("when_known", known, ("and", _zip_term(1, paths, *true_ab)))
+
+    # Unsupported combinations: different dimension, 2-D member, scalar, unknown, single or repeated path.
+    for unsupported in (
+        ("ids", "other"),
+        ("ids", "grid"),
+        ("ids", "weight"),
+        ("ids", "nope"),
+        ("ids",),
+        ("ids", "ids"),
+    ):
+        ops = ("=",) * len(unsupported)
+        assert _zip("HAS_ZIP_ANY", unsupported, (ops, ("x",) * len(unsupported))) is None
+    assert _zip("HAS_ALL", ("ids", "energy"), (("=", "="), ("AB", 1.0))) is None
+
+    # Top-level lists are single lists: no zip.
+    assert Stress.__httk_typed_record__.projections()["_httk_stress_tensor"].zip_query is None

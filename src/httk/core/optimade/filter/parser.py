@@ -49,11 +49,16 @@ def _too_deep_error() -> ParserSyntaxError:
 
 
 def _unsupported_filter_error() -> ParserSyntaxError:
-    # Bare `assert`s in the ojf-conversion recurse function fire on grammatical
-    # OPTIMADE constructs httk does not implement (e.g. zipped correlated lists)
-    # or otherwise malformed trees derived from user input. Map them to a real
-    # ParserSyntaxError (5-arg shape) so serving layers return HTTP 400, not 500.
+    # Bare `assert`s in the ojf-conversion recurse function fire on malformed
+    # trees derived from user input. Map them to a real ParserSyntaxError (5-arg
+    # shape) so serving layers return HTTP 400, not 500.
     return ParserSyntaxError(_UNSUPPORTED_MSG, "unsupported or invalid filter construct", 0, 0, "")
+
+
+def _zip_width_error(properties: int, values: int) -> ParserSyntaxError:
+    # A zipped value tuple must name one value per zipped property.
+    msg = f"Parser syntax error: zip value tuple has {values} values for {properties} properties"
+    return ParserSyntaxError(msg, "zip value tuple width differs from the number of properties", 0, 0, "")
 
 
 def parse_optimade_filter(filter_string: str, verbosity: int | Any = 0) -> FilterAst:
@@ -295,7 +300,7 @@ def optimade_parse_tree_to_ojf_recurse(node: tuple[Any, ...], recursion: int = 0
                 assert len(node[2]) == 4
                 op = "HAS"
                 inop = node[2][2][1]
-                right = node[2][3][1]
+                right = _fix_const(node[2][3][1])
                 pos[arg] = (op, (inop,), left, (right,))
             elif len(node[2]) == 3:
                 op = "HAS_ALL"
@@ -324,16 +329,27 @@ def optimade_parse_tree_to_ojf_recurse(node: tuple[Any, ...], recursion: int = 0
                 )
             arg = None
         elif node[2][0] == "SetZipOpRhs":
-            assert node[2][1][0] == 'IdentifierZipAddon'
-            left = (left,) + node[2][1][2::2]
+            assert node[2][1][0] == 'PropertyZipAddon'
+            identifiers = (left,) + tuple(
+                ('Identifier',) + tuple(x[1] for x in prop[1:] if x[0] != 'Dot') for prop in node[2][1][2::2]
+            )
             assert node[2][2][0] == 'HAS'
             if len(node[2]) == 4:
-                assert node[2][3][0] == 'ValueZip'
-                op = "HAS_ZIP"
+                op = "HAS_ZIP_ALL"
+                zips = (node[2][3],)
+            else:
+                assert len(node[2]) == 5 and node[2][3][0] in ['ONLY', 'ALL', 'ANY']
+                assert node[2][4][0] == 'ValueZipList'
+                op = "HAS_ZIP_" + node[2][3][0]
+                zips = node[2][4][1::2]
+            zip_inops: list[tuple[str, ...]] = []
+            zip_rights: list[tuple[Any, ...]] = []
+            for y in zips:
+                assert y[0] == 'ValueZip'
                 inop = None
                 inops = []
                 rights = []
-                for x in node[2][3][1:]:
+                for x in y[1:]:
                     if x[0] == 'Operator':
                         assert inop is None
                         inop = x[1]
@@ -341,32 +357,11 @@ def optimade_parse_tree_to_ojf_recurse(node: tuple[Any, ...], recursion: int = 0
                         rights += [_fix_const(x[1])]
                         inops += ['=' if inop is None else inop]
                         inop = None
-                pos[arg] = (op, tuple(inops), left, tuple(rights))
-            elif len(node[2]) == 5:
-                assert node[2][3][0] in ['ONLY', 'ALL', 'EXACTLY', 'ANY']
-                assert node[2][4][0] == 'ValueZipList'
-                op = "HAS_ZIP_" + node[2][3][0]
-                zip_inops: list[Any] = []
-                zip_rights: list[Any] = []
-                for y in node[2][4][1::2]:
-                    inop = None
-                    zip_inops += [[]]
-                    zip_rights += [[]]
-                    for x in y[1:]:
-                        if x[0] == 'Operator':
-                            assert inop is None
-                            inop = x[1]
-                        elif x[0] == 'Value':
-                            zip_rights[-1] += [_fix_const(x[1])]
-                            zip_inops[-1] += ['=' if inop is None else inop]
-                            inop = None
-                    zip_inops[-1] = tuple(zip_inops[-1])
-                    zip_rights[-1] = tuple(zip_rights[-1])
-                pos[arg] = (op, tuple(zip_inops), left, tuple(zip_rights))
-            else:
-                raise ParserInternalError(
-                    "Filter simplify on invalid ast, unexpected number of components in set op: " + str(node[2])
-                )
+                if len(rights) != len(identifiers):
+                    raise _zip_width_error(len(identifiers), len(rights))
+                zip_inops += [tuple(inops)]
+                zip_rights += [tuple(rights)]
+            pos[arg] = (op, tuple(zip_inops), identifiers, tuple(zip_rights))
             arg = None
         elif node[2][0] == "LengthOpRhs":
             assert node[2][1][0] == 'LENGTH'

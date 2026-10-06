@@ -34,7 +34,10 @@ from .storage.stored_properties import (
     QueryContext,
     QueryExpression,
     QueryLiteralError,
+    QueryScope,
     StoredPropertyProjection,
+    StoredPropertyZipQuery,
+    ZipLiteral,
 )
 
 __all__ = ["MemberLayout", "TypedRecord", "TypedRecordSpec", "member_layout"]
@@ -478,6 +481,11 @@ class TypedRecordSpec:
         ``HAS ONLY`` ignores null elements) and ``LENGTH``, the outer length, when every inner size is fixed.
         A dictionary value serves its members as nested names (``name.member``) and is always known.
 
+        A dictionary value also supports zip filters (``name.a:name.b HAS ...``, ``HAS ALL``/``ANY``/``ONLY``)
+        over two or more distinct one-dimensional list members sharing their dimension name; slot comparisons
+        on a null element are unknown, so that position never matches (``HAS ONLY`` ignores it). A zip over
+        a member that may be None is unknown when that member is None. Other zips are not supported.
+
         :return: A lazy read-only mapping; iterating it or taking its length loads nothing.
         """
         return _LazyMapping(self.served_name, lambda: _projection(self.layout))
@@ -644,14 +652,22 @@ def _scalar_projection(field: str) -> StoredPropertyProjection:
     )
 
 
+def _maybe_none(layout: MemberLayout) -> bool:
+    # A dictionary member may be None (absent or null); a top-level value never is.
+    return bool(layout.path) and (layout.nullable or not layout.required)
+
+
+def _present(context: QueryContext, field: str, flag: bool) -> QueryExpression:
+    return context.equal(context.field(f"{field}_present"), context.constant(flag))
+
+
 def _list_projection(layout: MemberLayout, response: Callable[[object], object]) -> StoredPropertyProjection:
     field = layout.field
     inner = [size for _, size in layout.dimensions[1:]]
-    # A dictionary member may be None (absent or null); a top-level value never is.
-    maybe_none = bool(layout.path) and (layout.nullable or not layout.required)
+    maybe_none = _maybe_none(layout)
 
     def present(context: QueryContext, flag: bool) -> QueryExpression:
-        return context.equal(context.field(f"{field}_present"), context.constant(flag))
+        return _present(context, field, flag)
 
     def query(context: QueryContext, operator: str, literal: object) -> QueryExpression:
         if operator in ("IS_KNOWN", "IS_UNKNOWN"):
@@ -695,6 +711,49 @@ def _dictionary_query(context: QueryContext, operator: str, literal: object) -> 
     raise QueryLiteralError("a dictionary value supports only IS KNOWN/UNKNOWN; filter on its members")
 
 
+def _zip_query(layout: tuple[MemberLayout, ...]) -> StoredPropertyZipQuery:
+    by_name = {item.path[0]: item for item in layout}
+
+    def zip_query(context: QueryContext, operator: str, literal: ZipLiteral) -> QueryExpression | None:
+        items = [by_name.get(path) for path in literal.paths]
+        lists = [item for item in items if item is not None and len(item.dimensions) == 1]
+        if (
+            operator not in ("HAS_ZIP_ALL", "HAS_ZIP_ANY", "HAS_ZIP_ONLY")
+            or len(lists) < 2
+            or len(lists) != len(items)
+            or len(set(literal.paths)) != len(items)
+            or len({item.dimensions[0][0] for item in lists}) != 1
+        ):
+            return None
+
+        def views() -> tuple[QueryScope, ...]:
+            # A fresh aligned group per call, as a fresh peer scope per HAS term.
+            return context.aligned(*(context.scope(item.field) for item in lists))
+
+        def matches(group: tuple[QueryScope, ...], ops: tuple[str, ...], values: tuple[object, ...]) -> QueryExpression:
+            slots = zip(group, ops, values, strict=True)
+            return context.and_(
+                *(context.compare(view.field("value"), op, context.constant(v)) for view, op, v in slots)
+            )
+
+        tuples = list(zip(literal.operators, literal.values, strict=True))
+        if operator == "HAS_ZIP_ONLY":
+            group = views()
+            others = context.not_(context.or_(*(matches(group, ops, values) for ops, values in tuples)))
+            predicate = context.compare(context.count(context.filtered(group[0], others)), "=", context.constant(0))
+        else:
+            terms = []
+            for ops, values in tuples:
+                group = views()
+                matching = context.filtered(group[0], matches(group, ops, values))
+                terms.append(context.compare(context.count(matching), ">", context.constant(0)))
+            predicate = context.and_(*terms) if operator == "HAS_ZIP_ALL" else context.or_(*terms)
+        optional = [_present(context, item.field, True) for item in lists if _maybe_none(item)]
+        return context.when_known(context.and_(*optional), predicate) if optional else predicate
+
+    return zip_query
+
+
 def _value(record: object) -> object:
     return cast(TypedRecord, record).value
 
@@ -715,5 +774,8 @@ def _projection(layout: tuple[MemberLayout, ...]) -> StoredPropertyProjection:
         return _list_projection(item, lambda record: cast(dict[str, Any], _value(record)).get(item.path[0]))
 
     return StoredPropertyProjection(
-        response=_value, query=_dictionary_query, members={item.path[0]: member(item) for item in layout}
+        response=_value,
+        query=_dictionary_query,
+        members={item.path[0]: member(item) for item in layout},
+        zip_query=_zip_query(layout),
     )

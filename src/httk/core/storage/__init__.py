@@ -35,6 +35,8 @@ from .stored_properties import (
     StoredPropertyQuery,
     StoredPropertyResponse,
     StoredPropertySort,
+    StoredPropertyZipQuery,
+    ZipLiteral,
     stored_property_projections,
 )
 
@@ -59,9 +61,11 @@ __all__ = [
     "StoredPropertyQuery",
     "StoredPropertyResponse",
     "StoredPropertySort",
+    "StoredPropertyZipQuery",
     "StrongLink",
     "Unique",
     "WeakLink",
+    "ZipLiteral",
     "canonical_form",
     "content_id",
     "project_storage_record",

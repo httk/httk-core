@@ -220,21 +220,74 @@ def test_long_and_chain_raises_syntax_error_not_recursionerror() -> None:
         parse_optimade_filter(" AND ".join(["a=1"] * 1000))
 
 
-def test_unsupported_zip_construct_raises_syntax_error_not_assertionerror() -> None:
-    # A grammatical-but-unsupported zipped correlated list ("Ag":1) fires a bare
-    # assert during ojf conversion; it must surface as a ParserSyntaxError (HTTP
-    # 400), not a raw AssertionError (a 500).
-    with pytest.raises(ParserSyntaxError):
-        parse_optimade_filter('elements:elements_ratios HAS "Ag":1')
+A, B, C = ('Identifier', 'a'), ('Identifier', 'b'), ('Identifier', 'c')
+N1, N2, N3 = ('Number', '1'), ('Number', '2'), ('Number', '3')
+EQ2 = ('=', '=')
 
 
-def test_unsupported_construct_via_public_two_step_api() -> None:
-    # The documented two-step path must also convert the bare assert.
+@pytest.mark.parametrize(
+    ("filter_string", "expected"),
+    [
+        # A plain zip HAS is HAS_ZIP_ALL with one tuple (as plain HAS is HAS_ALL).
+        ('a:b HAS 1:2', ('HAS_ZIP_ALL', (EQ2,), (A, B), ((N1, N2),))),
+        ('a:b:c HAS 1:2:3', ('HAS_ZIP_ALL', (('=', '=', '='),), (A, B, C), ((N1, N2, N3),))),
+        ('a:b HAS ALL 1:2, 2:3', ('HAS_ZIP_ALL', (EQ2, EQ2), (A, B), ((N1, N2), (N2, N3)))),
+        ('a:b HAS ANY 1:2, 2:3', ('HAS_ZIP_ANY', (EQ2, EQ2), (A, B), ((N1, N2), (N2, N3)))),
+        ('a:b HAS ONLY 1:2, 2:3, 3:1', ('HAS_ZIP_ONLY', (EQ2,) * 3, (A, B), ((N1, N2), (N2, N3), (N3, N1)))),
+        # Per-slot operators; '=' where none is given.
+        ('a:b HAS >1:<2', ('HAS_ZIP_ALL', (('>', '<'),), (A, B), ((N1, N2),))),
+        ('a:b HAS ANY 1:!=2, <=3:>=1', ('HAS_ZIP_ANY', (('=', '!='), ('<=', '>=')), (A, B), ((N1, N2), (N3, N1)))),
+        # Strings are unquoted, booleans normalized.
+        ('a:b HAS "x":TRUE', ('HAS_ZIP_ALL', (EQ2,), (A, B), ((('String', 'x'), ('Boolean', 'TRUE')),))),
+        # Dotted properties keep every segment.
+        (
+            'x.m:x.n HAS "a":1',
+            ('HAS_ZIP_ALL', (EQ2,), (('Identifier', 'x', 'm'), ('Identifier', 'x', 'n')), ((('String', 'a'), N1),)),
+        ),
+        # A property-valued slot becomes an Identifier with every segment.
+        ('a:b HAS c.d:1', ('HAS_ZIP_ALL', (EQ2,), (A, B), ((('Identifier', 'c', 'd'), N1),))),
+        ('NOT a:b HAS 1:2', ('NOT', ('HAS_ZIP_ALL', (EQ2,), (A, B), ((N1, N2),)))),
+        (
+            'c=3 AND (a:b HAS 1:2 OR c HAS 1)',
+            (
+                'AND',
+                ('=', C, N3),
+                ('OR', ('HAS_ZIP_ALL', (EQ2,), (A, B), ((N1, N2),)), ('HAS_ALL', ('=',), C, (N1,))),
+            ),
+        ),
+    ],
+)
+def test_zip_ast(filter_string: str, expected: tuple[object, ...]) -> None:
+    assert parse_optimade_filter(filter_string) == expected
+
+
+@pytest.mark.parametrize(
+    ("filter_string", "expected"),
+    [
+        ('a HAS > "x"', ('HAS', ('>',), A, (('String', 'x'),))),
+        ('a HAS != c.d', ('HAS', ('!=',), A, (('Identifier', 'c', 'd'),))),
+    ],
+)
+def test_has_operator_value_is_normalized(filter_string: str, expected: tuple[object, ...]) -> None:
+    assert parse_optimade_filter(filter_string) == expected
+
+
+@pytest.mark.parametrize("filter_string", ['a:b HAS 1:2:3', 'a:b:c HAS 1:2', 'a:b HAS ALL 1:2, 1:2:3'])
+def test_zip_width_mismatch_raises_syntax_error(filter_string: str) -> None:
+    with pytest.raises(ParserSyntaxError, match="zip value tuple has"):
+        parse_optimade_filter(filter_string)
+
+
+def test_zip_via_public_two_step_api() -> None:
     from httk.core.optimade.filter import optimade_parse_tree_to_ojf, parse_optimade_filter_raw
 
     tree = parse_optimade_filter_raw('elements:elements_ratios HAS "Ag":1')
-    with pytest.raises(ParserSyntaxError):
-        optimade_parse_tree_to_ojf(tree)
+    assert optimade_parse_tree_to_ojf(tree) == (
+        'HAS_ZIP_ALL',
+        (EQ2,),
+        (('Identifier', 'elements'), ('Identifier', 'elements_ratios')),
+        ((('String', 'Ag'), N1),),
+    )
 
 
 def test_miniparser_toy_grammar() -> None:
