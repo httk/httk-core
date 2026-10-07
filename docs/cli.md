@@ -47,7 +47,7 @@ def command(argv: Sequence[str], context: CLIContext) -> int:
 
 Command names use lowercase, hyphen-separated syntax. `help` works at every
 level: `httk help COMMAND ...` and a trailing `help` after any subcommand chain
-(e.g. `httk workflow runner help`) print that level's help; group levels
+(e.g. `httk runner help`) print that level's help; group levels
 describe the group and list subcommands, leaf levels print usage with argument
 definitions. `help` is only recognized before the first option, so it remains
 usable as an option value. `help` by itself is equivalent to root help; `help`
