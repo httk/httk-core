@@ -238,19 +238,33 @@ def key_fingerprint(value: str) -> str:
 def _write_project_key(control: Path) -> str:
     # Imported lazily to keep ``httk.core.identity`` importable while this
     # package is still initializing during core's plugin discovery.
-    from ..identity import _write_key_file_atomic
+    from ..identity import (
+        _create_identity_seed,
+        _read_existing_seed,
+        _read_key_file,
+        _read_seed_no_follow,
+        _seed_recovery_error,
+        _write_key_file_atomic,
+    )
 
     seed = ed25519_generate_seed()
     key_dir = control / "keys"
     key_dir.mkdir()
-    _write_key_file_atomic(
-        key_dir / "project.seed",
-        base64.b64encode(seed).decode("ascii") + "\n",
-        0o600,
-        exclusive=True,
-    )
+    seed_path = key_dir / "project.seed"
+    if not _create_identity_seed(seed_path, base64.b64encode(seed) + b"\n"):
+        seed = _read_existing_seed(seed_path)
     public = ed25519_public_key(seed)
-    _write_key_file_atomic(key_dir / "project.pub", base64.b64encode(public).decode("ascii") + "\n", 0o644)
+    public_path = key_dir / "project.pub"
+    public_text = base64.b64encode(public).decode("ascii") + "\n"
+    _write_key_file_atomic(public_path, public_text, 0o644)
+    if _read_key_file(public_path) != public_text:
+        raise ValueError(f"project public key does not match the seed: {public_path}")
+    try:
+        authoritative_seed = _read_seed_no_follow(seed_path)
+    except FileNotFoundError as exc:
+        raise _seed_recovery_error(seed_path) from exc
+    if authoritative_seed != seed:
+        raise _seed_recovery_error(seed_path)
     return format_public_key(public)
 
 

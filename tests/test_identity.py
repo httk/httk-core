@@ -1,18 +1,25 @@
+import base64
+import concurrent.futures
 import datetime
 import decimal
 import json
 import math
+import os
 import pickle
 import random
 import sys
+import threading
 from dataclasses import dataclass, fields
 from fractions import Fraction
+from pathlib import Path
 from typing import Annotated, Any, ClassVar, cast
 
 import pytest
 
+import httk.core.identity as operator_identity_module
 import httk.core.storage.identity as identity_module
 from httk.core import FracScalar, FracVector, SurdScalar, SurdVector
+from httk.core.crypto import ed25519_public_key
 from httk.core.register import (
     _entry_records,
     entry_family_info,
@@ -77,6 +84,11 @@ class _NotABacking:
 @dataclass(frozen=True)
 class _PickleRecord:
     value: int
+
+
+def _operator_key_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path, Path]:
+    monkeypatch.setenv("HTTK_CONFIG_HOME", str(tmp_path / "config"))
+    return operator_identity_module.identity_key_paths("race")
 
 
 def test_plain_identity_tags_bool_int_and_signed_zero() -> None:
@@ -1056,3 +1068,186 @@ def test_root_extras_do_not_affect_child_encodings() -> None:
     assert child_ref_without == child_ref_with
     assert child_ref_with["content_id"] == plain_child
     assert "extras" not in child_ref_with
+
+
+def test_identity_seed_concurrent_first_use_waits_for_the_winner(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    seed_path, public_path = _operator_key_paths(tmp_path, monkeypatch)
+    original_write = operator_identity_module.os.write
+    writer_entered = threading.Event()
+    release_writer = threading.Event()
+    delayed = False
+    delay_lock = threading.Lock()
+
+    def delayed_write(descriptor: int, data: bytes | memoryview) -> int:
+        nonlocal delayed
+        with delay_lock:
+            should_delay = not delayed
+            delayed = True
+        if should_delay:
+            writer_entered.set()
+            assert release_writer.wait(timeout=2.0)
+        return original_write(descriptor, data)
+
+    monkeypatch.setattr(operator_identity_module.os, "write", delayed_write)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        winner = executor.submit(operator_identity_module.ensure_identity_key, "race")
+        assert writer_entered.wait(timeout=2.0)
+        loser = executor.submit(operator_identity_module.ensure_identity_key, "race")
+        try:
+            assert not loser.done()
+        finally:
+            release_writer.set()
+        assert winner.result(timeout=2.0) == (seed_path, public_path)
+        assert loser.result(timeout=2.0) == (seed_path, public_path)
+
+    seed = operator_identity_module.identity_seed(seed_path)
+    assert seed is not None
+    assert public_path.read_bytes() == base64.b64encode(ed25519_public_key(seed)) + b"\n"
+
+
+def test_identity_seed_write_retries_short_writes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    seed_path, public_path = _operator_key_paths(tmp_path, monkeypatch)
+    original_write = operator_identity_module.os.write
+    calls = 0
+
+    def short_write(descriptor: int, data: bytes | memoryview) -> int:
+        nonlocal calls
+        calls += 1
+        return original_write(descriptor, data[:3])
+
+    monkeypatch.setattr(operator_identity_module.os, "write", short_write)
+    operator_identity_module.ensure_identity_key("race")
+    seed = operator_identity_module.identity_seed(seed_path)
+    assert seed is not None
+    assert calls > 1
+    assert public_path.read_bytes() == base64.b64encode(ed25519_public_key(seed)) + b"\n"
+
+
+def test_identity_seed_readback_detects_changed_bytes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    seed_path, public_path = _operator_key_paths(tmp_path, monkeypatch)
+    original_fsync = operator_identity_module.os.fsync
+    changed = False
+
+    def change_after_first_fsync(descriptor: int) -> None:
+        nonlocal changed
+        original_fsync(descriptor)
+        if not changed:
+            changed = True
+            seed_path.write_bytes(base64.b64encode(b"x" * 32) + b"\n")
+
+    monkeypatch.setattr(operator_identity_module.os, "fsync", change_after_first_fsync)
+    with pytest.raises(ValueError, match="move it aside"):
+        operator_identity_module.ensure_identity_key("race")
+    assert seed_path.exists()
+    assert not public_path.exists()
+
+
+def test_identity_seed_change_during_public_publish_is_refused(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    seed_path, public_path = _operator_key_paths(tmp_path, monkeypatch)
+    original_seed = b"a" * 32
+    replacement_seed = b"b" * 32
+    original_write = operator_identity_module._write_key_file_atomic
+
+    def change_seed_before_public(path: Path, text: str, mode: int) -> None:
+        if path == public_path:
+            seed_path.write_bytes(base64.b64encode(replacement_seed) + b"\n")
+        original_write(path, text, mode)
+
+    monkeypatch.setattr(operator_identity_module, "ed25519_generate_seed", lambda: original_seed)
+    monkeypatch.setattr(operator_identity_module, "_write_key_file_atomic", change_seed_before_public)
+    with pytest.raises(ValueError, match="move it aside"):
+        operator_identity_module.ensure_identity_key("race")
+    assert seed_path.read_bytes() == base64.b64encode(replacement_seed) + b"\n"
+    assert public_path.read_bytes() == base64.b64encode(ed25519_public_key(original_seed)) + b"\n"
+
+
+def test_identity_seed_retained_short_file_times_out(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    seed_path, public_path = _operator_key_paths(tmp_path, monkeypatch)
+    seed_path.parent.mkdir(parents=True)
+    seed_path.write_bytes(b"short")
+    clock = iter((10.0, 15.0))
+    monkeypatch.setattr(operator_identity_module.time, "monotonic", lambda: next(clock))
+
+    with pytest.raises(ValueError, match=r"identity-race\.seed; move it aside"):
+        operator_identity_module.ensure_identity_key("race")
+    assert seed_path.read_bytes() == b"short"
+    assert not public_path.exists()
+
+
+def test_identity_seed_existing_value_is_the_identity_pin(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    seed_path, public_path = _operator_key_paths(tmp_path, monkeypatch)
+    seed = bytes(range(32))
+    encoded = base64.b64encode(seed) + b"\n"
+    seed_path.parent.mkdir(parents=True)
+    seed_path.write_bytes(encoded)
+    seed_path.chmod(0o644)
+    monkeypatch.setattr(operator_identity_module, "ed25519_generate_seed", lambda: b"z" * 32)
+
+    operator_identity_module.ensure_identity_key("race")
+    assert seed_path.read_bytes() == encoded
+    assert seed_path.stat().st_mode & 0o777 == 0o600
+    assert public_path.read_bytes() == base64.b64encode(ed25519_public_key(seed)) + b"\n"
+
+
+def test_identity_seed_loser_durably_accepts_the_winner(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    seed_path, _ = _operator_key_paths(tmp_path, monkeypatch)
+    seed_path.parent.mkdir(parents=True)
+    seed_path.write_bytes(base64.b64encode(bytes(range(32))) + b"\n")
+    events: list[str] = []
+    descriptor_kind: dict[int, str] = {}
+    original_open = operator_identity_module.os.open
+    original_fchmod = operator_identity_module.os.fchmod
+    original_fsync = operator_identity_module.os.fsync
+
+    def recording_open(
+        path: str | os.PathLike[str], flags: int, mode: int = 0o777, *, dir_fd: int | None = None
+    ) -> int:
+        descriptor = original_open(path, flags, mode, dir_fd=dir_fd)
+        if Path(path) == seed_path and flags & os.O_ACCMODE == os.O_RDONLY:
+            descriptor_kind[descriptor] = "seed"
+            events.append("open_seed")
+        elif Path(path) == seed_path.parent and flags & getattr(os, "O_DIRECTORY", 0):
+            descriptor_kind[descriptor] = "parent"
+            events.append("open_parent")
+        return descriptor
+
+    def recording_fchmod(descriptor: int, mode: int) -> None:
+        events.append(f"fchmod_{descriptor_kind.get(descriptor, 'other')}")
+        original_fchmod(descriptor, mode)
+
+    def recording_fsync(descriptor: int) -> None:
+        events.append(f"fsync_{descriptor_kind.get(descriptor, 'other')}")
+        original_fsync(descriptor)
+
+    monkeypatch.setattr(operator_identity_module.os, "open", recording_open)
+    monkeypatch.setattr(operator_identity_module.os, "fchmod", recording_fchmod)
+    monkeypatch.setattr(operator_identity_module.os, "fsync", recording_fsync)
+    operator_identity_module.ensure_identity_key("race")
+    assert events[:5] == ["open_seed", "fchmod_seed", "fsync_seed", "open_parent", "fsync_parent"]
+
+
+def test_identity_seed_malformed_or_unreadable_is_never_replaced(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    seed_path, public_path = _operator_key_paths(tmp_path, monkeypatch)
+    seed_path.parent.mkdir(parents=True)
+    malformed = b"!" * 44 + b"\n"
+    seed_path.write_bytes(malformed)
+    with pytest.raises(ValueError, match="standard 32-byte Ed25519 seed"):
+        operator_identity_module.ensure_identity_key("race")
+    assert seed_path.read_bytes() == malformed
+    assert not public_path.exists()
+
+    original_open = operator_identity_module.os.open
+
+    def unreadable(path: str | os.PathLike[str], flags: int, mode: int = 0o777) -> int:
+        if Path(path) == seed_path and flags & os.O_ACCMODE == os.O_RDONLY:
+            raise PermissionError(path)
+        return original_open(path, flags, mode)
+
+    seed_path.write_bytes(base64.b64encode(bytes(range(32))) + b"\n")
+    monkeypatch.setattr(operator_identity_module.os, "open", unreadable)
+    with pytest.raises(ValueError, match="cannot safely read identity seed"):
+        operator_identity_module.ensure_identity_key("race")

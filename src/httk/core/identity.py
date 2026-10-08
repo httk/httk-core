@@ -22,6 +22,7 @@ import hashlib
 import os
 import re
 import tempfile
+import time
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -78,6 +79,8 @@ IDENTITY_SIGNATURE_MEMBER = "signature"
 
 _IDENTITY_SHORT = re.compile(r"[a-z0-9][a-z0-9_-]*\Z")
 _LITERAL_OPERATOR = re.compile(r"\A\s*(?:(?P<name>[^<>\s](?:[^<>]*[^<>\s])?)\s+)?<(?P<email>[^\s<>]*@[^\s<>]*)>\s*\Z")
+_ENCODED_SEED_SIZE = len(base64.b64encode(bytes(32)))
+_SEED_COMPLETION_TIMEOUT = 5.0
 
 
 def keys_home() -> Path:
@@ -166,36 +169,82 @@ def _ensure_identity_key_paths(private_path: Path, public_path: Path) -> tuple[P
     if private_path.is_symlink() or public_path.is_symlink():
         raise ValueError(f"refusing symlink identity key path: {private_path} or {public_path}")
 
-    try:
-        private_path.lstat()
-    except FileNotFoundError:
-        seed = ed25519_generate_seed()
-        private_path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
-        created = _write_key_file_atomic(
-            private_path,
-            base64.b64encode(seed).decode("ascii") + "\n",
-            0o600,
-            exclusive=True,
-        )
-        if not created:
-            seed = _read_existing_seed(private_path)
-            reused_seed = True
-        else:
-            reused_seed = False
+    private_path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    candidate = ed25519_generate_seed()
+    encoded = base64.b64encode(candidate) + b"\n"
+    if _create_identity_seed(private_path, encoded):
+        seed = candidate
     else:
         seed = _read_existing_seed(private_path)
-        reused_seed = True
 
     public_text = base64.b64encode(ed25519_public_key(seed)).decode("ascii") + "\n"
-    installed = _write_key_file_atomic(
-        public_path,
-        public_text,
-        0o644,
-        exclusive=not reused_seed,
-    )
-    if not installed and _read_key_file(public_path).strip() != public_text.strip():
-        raise ValueError(f"identity public key already exists and does not match the seed: {public_path}")
+    _write_key_file_atomic(public_path, public_text, 0o644)
+    if _read_key_file(public_path) != public_text:
+        raise ValueError(f"identity public key does not match the seed: {public_path}")
+    try:
+        authoritative_seed = _read_seed_no_follow(private_path)
+    except FileNotFoundError as exc:
+        raise _seed_recovery_error(private_path) from exc
+    if authoritative_seed != seed:
+        raise _seed_recovery_error(private_path)
     return private_path, public_path
+
+
+def _fsync_parent(path: Path) -> None:
+    descriptor = os.open(path.parent, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
+
+def _seed_recovery_error(path: Path) -> ValueError:
+    return ValueError(f"identity seed is incomplete or changed: {path}; move it aside and try again")
+
+
+def _read_seed_file(path: Path) -> bytes:
+    try:
+        descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+        with os.fdopen(descriptor, "rb") as stream:
+            return stream.read()
+    except FileNotFoundError:
+        raise
+    except OSError as exc:
+        raise ValueError(f"cannot safely read identity seed: {path}") from exc
+
+
+def _create_identity_seed(path: Path, encoded: bytes) -> bool:
+    """Create *path* once and durably, returning whether this call won."""
+
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
+    try:
+        descriptor = os.open(path, flags, 0o600)
+    except FileExistsError:
+        return False
+    except OSError as exc:
+        raise ValueError(f"cannot safely create identity seed: {path}") from exc
+
+    try:
+        os.fchmod(descriptor, 0o600)
+        remaining = memoryview(encoded)
+        while remaining:
+            written = os.write(descriptor, remaining)
+            if written <= 0:
+                raise OSError("identity seed write made no progress")
+            remaining = remaining[written:]
+        os.fsync(descriptor)
+    except OSError as exc:
+        raise _seed_recovery_error(path) from exc
+    finally:
+        os.close(descriptor)
+    try:
+        _fsync_parent(path)
+        recorded = _read_seed_file(path)
+    except (OSError, ValueError) as exc:
+        raise _seed_recovery_error(path) from exc
+    if recorded != encoded:
+        raise _seed_recovery_error(path)
+    return True
 
 
 def _decode_seed(encoded: bytes, path: Path) -> bytes:
@@ -222,27 +271,31 @@ def _read_seed_no_follow(path: Path) -> bytes:
     :raises ValueError: If the seed is a symlink, unreadable, or not a standard seed.
     """
 
-    try:
-        descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
-    except FileNotFoundError:
-        raise
-    except OSError as exc:
-        raise ValueError(f"cannot safely read identity seed: {path}") from exc
-    with os.fdopen(descriptor, "rb") as stream:
-        encoded = stream.read().strip()
+    encoded = _read_seed_file(path).strip()
     return _decode_seed(encoded, path)
 
 
 def _read_existing_seed(path: Path) -> bytes:
-    try:
-        descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
-    except OSError as exc:
-        raise ValueError(f"cannot safely read identity seed: {path}") from exc
-    with os.fdopen(descriptor, "rb") as stream:
-        encoded = stream.read().strip()
-        seed = _decode_seed(encoded, path)
-        os.fchmod(stream.fileno(), 0o600)
-        return seed
+    deadline = time.monotonic() + _SEED_COMPLETION_TIMEOUT
+    while True:
+        accepted: bytes | None = None
+        try:
+            descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+            with os.fdopen(descriptor, "rb") as stream:
+                encoded = stream.read().strip()
+                if len(encoded) >= _ENCODED_SEED_SIZE:
+                    accepted = _decode_seed(encoded, path)
+                    os.fchmod(stream.fileno(), 0o600)
+                    os.fsync(stream.fileno())
+            if accepted is not None:
+                _fsync_parent(path)
+                return accepted
+        except OSError as exc:
+            raise ValueError(f"cannot safely read identity seed: {path}") from exc
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise _seed_recovery_error(path)
+        time.sleep(min(0.05, remaining))
 
 
 def _read_key_file(path: Path) -> str:
@@ -250,18 +303,19 @@ def _read_key_file(path: Path) -> str:
         descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
     except OSError as exc:
         raise ValueError(f"cannot safely read identity key: {path}") from exc
-    with os.fdopen(descriptor, encoding="ascii") as stream:
-        return stream.read()
+    try:
+        with os.fdopen(descriptor, encoding="ascii") as stream:
+            return stream.read()
+    except UnicodeError as exc:
+        raise ValueError(f"cannot safely read identity key: {path}") from exc
 
 
-def _write_key_file_atomic(path: Path, text: str, mode: int, *, exclusive: bool = False) -> bool:
+def _write_key_file_atomic(path: Path, text: str, mode: int) -> None:
     """Write one key file atomically with an explicit mode.
 
     :param path: Destination key file.
     :param text: ASCII contents to write.
     :param mode: Permission bits for the written file.
-    :param exclusive: Whether an existing file must be preserved rather than replaced.
-    :return: Whether this call installed the file (``False`` when it already existed and ``exclusive`` is set).
     """
 
     path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -273,14 +327,8 @@ def _write_key_file_atomic(path: Path, text: str, mode: int, *, exclusive: bool 
             stream.write(text)
             stream.flush()
             os.fsync(stream.fileno())
-        if exclusive:
-            try:
-                os.link(temporary, path)
-            except FileExistsError:
-                return False
-        else:
-            os.replace(temporary, path)
-        return True
+        os.replace(temporary, path)
+        _fsync_parent(path)
     finally:
         temporary.unlink(missing_ok=True)
 
