@@ -1,0 +1,238 @@
+httk.core.git_sources
+=====================
+
+.. py:module:: httk.core.git_sources
+
+.. autoapi-nested-parse::
+
+   Fetch, cache and install members of git repositories named by git URIs.
+
+   A git URI has the form ``git+SCHEME://AUTHORITY/PATH[@REF][#SUBDIR]`` with
+   ``SCHEME`` one of ``https``, ``http`` or ``file``. The repository is cloned at
+   ``REF`` (a branch, tag, abbreviated or full commit hash, or the remote default
+   branch when omitted), and the member is the directory ``SUBDIR`` (or the
+   repository root), which must hold the consumer's marker file. The canonical URI
+   always carries the full commit hash, a lowercased scheme and host, and no
+   trailing slashes; the repository path is kept verbatim, so ``…/repo`` and
+   ``…/repo.git`` are distinct URIs.
+
+   Checkout trees are cached per repository and commit under
+   ``data_home() / "git"``; they carry no ``.git`` directory and are safe to
+   delete. Referencing a URI with :func:`install_git_member` records one installed
+   entry under ``data_home() / KIND / "installed"``, where ``KIND`` names the
+   consumer (for example ``"templates"``). Git runs with the global and system
+   configuration, hooks, credential helpers and terminal prompts disabled, so only
+   repositories reachable without credentials are supported. The cache-only
+   lookups (:func:`cached_git_checkout`, :func:`installed_git_members`,
+   :func:`installed_git_member`, :func:`resolve_installed_name` and
+   :func:`uninstall_git_members`) never run git and never fetch.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.git_sources.GitUri
+   httk.core.git_sources.InstalledGitMember
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.git_sources.parse_git_uri
+   httk.core.git_sources.fetch_git_checkout
+   httk.core.git_sources.cached_git_checkout
+   httk.core.git_sources.git_member
+   httk.core.git_sources.install_git_member
+   httk.core.git_sources.installed_git_members
+   httk.core.git_sources.installed_git_member
+   httk.core.git_sources.resolve_installed_name
+   httk.core.git_sources.uninstall_git_members
+
+
+Module Contents
+---------------
+
+.. py:class:: GitUri
+
+   One parsed git URI.
+
+   :param repository: Give the canonical ``git+scheme://authority/path`` repository.
+   :param ref: Give the branch, tag or commit, or ``None`` for the default branch.
+   :param subdir: Give the member directory, or ``None`` for the repository root.
+
+
+   .. py:attribute:: repository
+      :type:  str
+
+
+   .. py:attribute:: ref
+      :type:  str | None
+
+
+   .. py:attribute:: subdir
+      :type:  str | None
+
+
+   .. py:property:: pinned
+      :type: bool
+
+
+      Whether the ref is a full commit hash.
+
+
+.. py:class:: InstalledGitMember
+
+   One installed git member entry.
+
+   :param kind: Give the consumer kind, such as ``"templates"``.
+   :param uri: Give the canonical pinned URI.
+   :param repository: Give the canonical repository part of the URI.
+   :param commit: Give the full commit hash.
+   :param subdir: Give the member directory, or ``None`` for the repository root.
+   :param names: Give the short names the member claims.
+   :param referenced_at: Give the ISO timestamp of the latest explicit reference.
+   :param path: Give the member directory inside the cached checkout tree.
+
+
+   .. py:attribute:: kind
+      :type:  str
+
+
+   .. py:attribute:: uri
+      :type:  str
+
+
+   .. py:attribute:: repository
+      :type:  str
+
+
+   .. py:attribute:: commit
+      :type:  str
+
+
+   .. py:attribute:: subdir
+      :type:  str | None
+
+
+   .. py:attribute:: names
+      :type:  tuple[str, ...]
+
+
+   .. py:attribute:: referenced_at
+      :type:  str
+
+
+   .. py:attribute:: path
+      :type:  pathlib.Path
+
+
+.. py:function:: parse_git_uri(text)
+
+   Parse and canonicalize a ``git+scheme://authority/path[@ref][#subdir]`` URI.
+
+   The ref is split off at the last ``@`` of the path, so repository paths
+   that themselves contain ``@`` are not supported.
+
+   :param text: Supply the URI text.
+   :return: The parsed URI with a lowercased scheme, host and hash and no trailing slashes.
+   :raises ValueError: If the text is not a supported git URI.
+
+
+.. py:function:: fetch_git_checkout(uri)
+
+   Return the canonical pinned URI and cached checkout tree, cloning only on a cache miss.
+
+   A pinned URI whose commit is already cached runs no git at all.
+
+   :param uri: Supply a ``git+…`` URI or a parsed one.
+   :return: The URI pinned to the full commit hash, and the checkout tree root.
+   :raises ValueError: If the URI is invalid or git fails.
+
+
+.. py:function:: cached_git_checkout(uri)
+
+   Return the cached checkout tree of a pinned URI without running git.
+
+   :param uri: Supply a ``git+…`` URI or a parsed one.
+   :return: The tree root, or ``None`` if the URI is not pinned or not cached.
+   :raises ValueError: If the URI text is invalid.
+
+
+.. py:function:: git_member(tree, uri, marker)
+
+   Return the member directory *uri* names inside a checkout *tree*.
+
+   :param tree: Give the checkout tree root.
+   :param uri: Give the URI whose subdirectory names the member.
+   :param marker: Give the file name the member directory must hold.
+   :return: The member directory.
+   :raises ValueError: If the subdirectory is missing, leaves the tree, or lacks the marker.
+
+
+.. py:function:: install_git_member(kind, uri, marker, names)
+
+   Fetch the member a git URI names and record it as installed.
+
+   The entry is written only after *names* accepts the member. Every call
+   refreshes ``referenced_at``, which decides which commit a short name means.
+
+   :param kind: Name the consumer kind, such as ``"templates"``.
+   :param uri: Supply a ``git+…`` URI.
+   :param marker: Give the file name the member directory must hold.
+   :param names: Validate the member directory and return the short names it claims.
+   :return: The installed entry.
+   :raises ValueError: If the URI or kind is invalid, git fails, or the member is missing or invalid.
+
+
+.. py:function:: installed_git_members(kind)
+
+   Return the installed entries of *kind*, sorted by URI, without running git.
+
+   Malformed or inconsistent entries and entries whose checkout is missing are
+   skipped with a warning.
+
+   :param kind: Name the consumer kind, such as ``"templates"``.
+   :return: The installed entries.
+   :raises ValueError: If the kind is invalid.
+
+
+.. py:function:: installed_git_member(kind, uri)
+
+   Return the installed entry for exactly this pinned URI, without running git.
+
+   :param kind: Name the consumer kind, such as ``"templates"``.
+   :param uri: Supply a ``git+…`` URI; it is canonicalized first.
+   :return: The entry, or ``None`` if the URI is not pinned or not installed.
+   :raises ValueError: If the kind or URI is invalid.
+
+
+.. py:function:: resolve_installed_name(kind, name)
+
+   Return the installed entry a short name means: the latest referenced one.
+
+   :param kind: Name the consumer kind, such as ``"templates"``.
+   :param name: Give the short name.
+   :return: The latest-referenced entry claiming *name*, or ``None`` if none does.
+   :raises ValueError: If entries from several lineages (repository and subdirectory) claim *name*.
+
+
+.. py:function:: uninstall_git_members(kind, selector)
+
+   Remove installed entries without running git; cached checkout trees stay.
+
+   A pinned URI removes that entry; an unpinned URI (no ref, a branch, tag or
+   abbreviated hash) removes every entry of its repository and subdirectory; a
+   short name removes every entry of the lineage :func:`resolve_installed_name`
+   selects.
+
+   :param kind: Name the consumer kind, such as ``"templates"``.
+   :param selector: Give a ``git+…`` URI or a short name.
+   :return: The removed entries.
+   :raises ValueError: If the selector is invalid, ambiguous, or matches nothing.
+
+

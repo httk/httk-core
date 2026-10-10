@@ -1,0 +1,33 @@
+httk.core.views.unviewing
+=========================
+
+.. py:module:: httk.core.views.unviewing
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.views.unviewing.unview
+
+
+Module Contents
+---------------
+
+.. py:function:: unview(obj)
+
+   Shed the httk View wrapper from ``obj``, returning a plain instance of the presented type.
+
+   Unlike :func:`~httk.core.views.unwrapping.unwrap`, which goes *down* to the backend's raw
+   source representation, ``unview`` goes *sideways*: it removes the httk wrapper while keeping
+   the presentation the view exposes. The result is not promised to be a copy — it may alias
+   the view's (or the original input's) storage; use the target representation's normal copy
+   operation when independent mutation is required. A non-View input is returned unchanged.
+   Views that only adapt an interface and have no faithful standalone value raise ``TypeError``.
+
+   :param obj: Value or view to shed.
+   :return: The presented value without its httk view wrapper.
+   :raises TypeError: If a view has no faithful standalone value.
+
+

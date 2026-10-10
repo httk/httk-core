@@ -1,0 +1,85 @@
+httk.core.vectors.vector_numpy_backend
+======================================
+
+.. py:module:: httk.core.vectors.vector_numpy_backend
+
+.. autoapi-nested-parse::
+
+   Backend wrapping a numpy ndarray (numpy is an optional dependency, imported lazily).
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.vectors.vector_numpy_backend.VectorNumpyBackend
+
+
+Module Contents
+---------------
+
+.. py:class:: VectorNumpyBackend(obj, **hints)
+
+   Bases: :py:obj:`httk.core.vectors.vector_backend.VectorBackend`
+
+
+   Backend for a vector backed by a :class:`numpy.ndarray`.
+
+   numpy is an optional dependency (``httk-core[numpy]``) and is imported lazily; if numpy is
+   not installed, this backend's ``_backend_adopt`` returns None so it is simply never selected.
+
+   numpy float64 values are themselves binary rationals, so the ``fractions`` interchange is
+   produced *exactly* from the array (each float becomes its exact rational value). Only the
+   reverse direction (building a numpy view) is lossy. ``unwrap`` returns the wrapped array.
+
+   :param obj: The source data to wrap.
+   :param \**hints: Optional backend-selection hints.
+
+
+   .. py:property:: fractions
+      :type: httk.core.vectors.vector_api.Fractions
+
+
+      Return the array in the exact Fraction interchange format.
+
+
+   .. py:property:: dim
+      :type: tuple[int, Ellipsis]
+
+
+      Return the array shape.
+
+
+   .. py:method:: to_floats()
+
+      Return floats through a numpy fast path for real numeric dtypes.
+
+      Other dtypes fall back to
+      :meth:`~httk.core.vectors.vector_api.VectorAPI.to_floats` so the exact hub conversion
+      and its error semantics are preserved.
+
+      :return: The rendered value.
+
+
+
+   .. py:method:: to_float()
+
+      Return a scalar float through numpy for real numeric 0-D arrays.
+
+      Non-scalar arrays raise the same :class:`TypeError` as the hub implementation. Other
+      scalar dtypes fall back to :meth:`~httk.core.vectors.vector_api.VectorAPI.to_float` for
+      its exact conversion and error semantics.
+
+      :return: The rendered scalar value.
+      :raises TypeError: If the value is not scalar.
+
+
+
+   .. py:method:: unwrap()
+
+      Return the wrapped numpy array.
+
+
+

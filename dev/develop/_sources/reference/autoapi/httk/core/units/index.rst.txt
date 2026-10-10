@@ -1,0 +1,183 @@
+httk.core.units
+===============
+
+.. py:module:: httk.core.units
+
+.. autoapi-nested-parse::
+
+   Parse and convert OPTIMADE Compound Unit Expressions with exact factors.
+
+   Symbols resolve against OPTIMADE unit, prefix and constant definition documents;
+   :func:`default_registry` uses the upstream documents vendored with *httk-core*.
+   Every relation-less unit is a base dimension named by its symbol (upstream ``kg``
+   is a base unit; there is no ``g``). Relations are read only when a symbol is
+   resolved, so a malformed upstream relation fails only for the symbols using it.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.units.UnitDefinition
+   httk.core.units.Conversion
+   httk.core.units.UnitRegistry
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.units.default_registry
+
+
+Module Contents
+---------------
+
+.. py:class:: UnitDefinition
+
+   One OPTIMADE unit, prefix or constant definition known to a registry.
+
+   :param symbol: Symbol used in Compound Unit Expressions.
+   :param kind: Definition kind from ``x-optimade-definition``.
+   :param definition_id: The document's ``$id``.
+   :param document: Read-only view of the definition document.
+
+
+   .. py:attribute:: symbol
+      :type:  str
+
+
+   .. py:attribute:: kind
+      :type:  Literal['unit', 'prefix', 'constant']
+
+
+   .. py:attribute:: definition_id
+      :type:  str
+
+
+   .. py:attribute:: document
+      :type:  collections.abc.Mapping[str, Any]
+
+
+.. py:class:: Conversion
+
+   An exact scale factor between two unit expressions.
+
+   :param factor: Exact rational factor; a value in the source unit times it is the value in the target unit.
+   :param approximate: Whether upstream metadata marks any relation used as approximate; informational only.
+
+
+   .. py:attribute:: factor
+      :type:  fractions.Fraction
+
+
+   .. py:attribute:: approximate
+      :type:  bool
+
+
+   .. py:method:: apply(value)
+
+      Convert a number or nested lists/tuples of numbers.
+
+      :param value: Number or nested sequence of numbers in the source unit.
+      :return: Float, or nested lists of floats, in the target unit.
+      :raises TypeError: If a leaf is not a number or is a boolean.
+
+
+
+.. py:class:: UnitRegistry(documents)
+
+   Symbol table and converter over OPTIMADE unit, prefix and constant documents.
+
+   A document listed in the ``compatibility`` of another document with the same
+   symbol (for example a dated SI edition of a general unit) yields that symbol
+   to it and stays reachable by ``$id`` from relations.
+
+   :param documents: OPTIMADE definition documents (``x-optimade-definition.kind`` of unit, prefix or constant).
+   :raises ValueError: If a document has an unsupported kind or two documents claim the same symbol.
+
+
+   .. py:method:: definition(symbol)
+
+      Return the unit or constant with *symbol*, else the prefix with *symbol*.
+
+      :param symbol: Whole unit, constant or prefix symbol.
+      :return: The definition.
+      :raises KeyError: If no definition has the symbol.
+
+
+
+   .. py:method:: parse(expression)
+
+      Parse a Compound Unit Expression under the strict OPTIMADE grammar.
+
+      :param expression: Expression with symbols in code-point order, or ``dimensionless``.
+      :return: ``(prefix symbol or None, unit or constant symbol, power)`` per factor.
+      :raises ValueError: If the expression is malformed, unordered, repeats a symbol, uses an unknown or
+          ambiguous symbol, or is ``inapplicable``.
+
+
+
+   .. py:method:: definitions(expression)
+
+      Return the distinct definitions an expression uses, each prefix before its unit.
+
+      :param expression: Compound Unit Expression, parsed as by :meth:`parse`.
+      :return: Prefix, unit and constant definitions in first-appearance order.
+      :raises ValueError: As :meth:`parse`.
+
+
+
+   .. py:method:: canonical(expression)
+
+      Return *expression* with symbols in code-point order and ``^1`` dropped.
+
+      :param expression: Expression in any symbol order.
+      :return: Canonical expression.
+      :raises ValueError: As :meth:`parse`, except for symbol order.
+
+
+
+   .. py:method:: dimension(expression)
+
+      Return the exponents of *expression* over base-unit symbols.
+
+      :param expression: Compound Unit Expression.
+      :return: Read-only mapping from base symbol to nonzero exponent.
+      :raises ValueError: As :meth:`parse`, or if a definition it uses cannot be resolved.
+
+
+
+   .. py:method:: factor(source, target)
+
+      Return the factor converting values in *source* to *target*.
+
+      :param source: Compound Unit Expression of the values.
+      :param target: Compound Unit Expression to convert to.
+      :return: The exact conversion.
+      :raises ValueError: If the dimensions differ, or as :meth:`dimension`.
+
+
+
+   .. py:method:: convert(value, source, target)
+
+      Convert a number or nested sequence of numbers from *source* to *target*.
+
+      :param value: Number or nested lists/tuples of numbers.
+      :param source: Compound Unit Expression of *value*.
+      :param target: Compound Unit Expression to convert to.
+      :return: Float, or nested lists of floats.
+      :raises ValueError: As :meth:`factor`.
+
+
+
+.. py:function:: default_registry()
+
+   Return the registry over the OPTIMADE documents vendored with *httk-core*, built on first use.
+
+   :return: The shared default registry.
+
+

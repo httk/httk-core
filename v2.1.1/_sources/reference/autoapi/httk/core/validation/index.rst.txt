@@ -1,0 +1,83 @@
+httk.core.validation
+====================
+
+.. py:module:: httk.core.validation
+
+.. autoapi-nested-parse::
+
+   Syntax validation predicates for IRIs and URLs.
+
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /reference/autoapi/httk/core/validation/iris/index
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.validation.has_valid_percent_escapes
+   httk.core.validation.is_absolute_iri
+   httk.core.validation.is_https_url
+   httk.core.validation.is_root_relative_url
+
+
+Package Contents
+----------------
+
+.. py:function:: has_valid_percent_escapes(value)
+
+   Return whether every ``%`` in *value* introduces a valid percent-escape.
+
+   Each ``%`` must be followed by exactly two hexadecimal digits, including
+   when the ``%`` sits at the end of the string, where the missing followers
+   make the escape invalid.
+
+   :param value: The candidate string.
+   :return: ``True`` if every ``%`` in *value* is followed by two hex digits.
+
+
+.. py:function:: is_absolute_iri(value)
+
+   Return whether *value* is a minimally well-formed absolute IRI.
+
+   The check rejects whitespace, control characters, the C1 range, lone
+   surrogates, the ASCII set ``<>"{}|\^```, and malformed percent-escapes,
+   then requires a non-empty URL scheme.
+
+   :param value: The candidate IRI string.
+   :return: ``True`` if *value* is a minimally well-formed absolute IRI.
+
+
+.. py:function:: is_https_url(value, *, allow_query = False)
+
+   Return whether *value* is a minimally well-formed absolute HTTPS URL.
+
+   The value must be a well-formed absolute IRI whose scheme is exactly
+   ``https``, with a non-empty host, no userinfo, and no fragment; any explicit
+   port must lie in ``1..65535``.  A non-empty query is rejected unless
+   *allow_query* is ``True``.
+
+   :param value: The candidate URL string.
+   :param allow_query: Whether a non-empty query component is permitted.
+   :return: ``True`` if *value* is a minimally well-formed absolute HTTPS URL.
+
+
+.. py:function:: is_root_relative_url(value)
+
+   Return whether *value* is a minimally well-formed root-relative URL.
+
+   A root-relative URL begins with a single ``/``, carries no scheme, network
+   location, or fragment, and its path component is valid IRI syntax.
+
+   :param value: The candidate URL string.
+   :return: ``True`` if *value* is a minimally well-formed root-relative URL.
+
+

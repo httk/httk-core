@@ -1,0 +1,79 @@
+httk.core.vectors.vector_frac_view
+==================================
+
+.. py:module:: httk.core.vectors.vector_frac_view
+
+.. autoapi-nested-parse::
+
+   A view presenting any vector backend as a FracVector (the exact-rational representation).
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.vectors.vector_frac_view.VectorFracView
+
+
+Module Contents
+---------------
+
+.. py:class:: VectorFracView(obj, **hints)
+
+   Bases: :py:obj:`httk.core.vectors.vector_view.VectorView`, :py:obj:`httk.core.vectors.fracvector.FracVector`
+
+
+   A view presenting an underlying vector backend as an exact
+   :class:`~httk.core.vectors.fracvector.FracVector`.
+
+   This view is a genuine FracVector, so it can be passed anywhere a FracVector is accepted,
+   and it exposes the full exact-rational algebra (``det``/``inv``/``*``/...). It is built
+   lazily on first access — adopting a frac backend's FracVector directly, otherwise
+   converting from the backend's exact ``fractions`` interchange — so the
+   round-trip is exactness-preserving for the frac and native backends. (numpy values are
+   binary rationals, so a numpy source round-trips to the exact float64 rational, not
+   necessarily the original decimal fraction.)
+
+   Because inherited FracVector algebra builds its results with the low-level
+   ``self.__class__._of(noms, denom)`` constructor, results built that way are
+   plain (backend-less) FracVector values presented through this class.
+
+   :param obj: The source value to present.
+   :param \**hints: Backend-selection and view-conversion hints.
+
+
+   .. py:property:: fractions_exact
+      :type: bool
+
+
+      Return whether this view's Fraction interchange is exact.
+
+
+   .. py:property:: noms
+      :type: httk.core.vectors.fracvector.Noms
+
+
+      Return the materialized numerator data.
+
+
+   .. py:property:: denom
+      :type: int
+
+
+      Return the materialized common denominator.
+
+
+   .. py:method:: unwrap()
+
+      Return the underlying unwrapped vector, or this value when no backend remains.
+
+
+
+   .. py:method:: unview()
+
+      Return a plain FracVector containing this view's presented data.
+
+
+

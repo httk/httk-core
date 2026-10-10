@@ -1,0 +1,54 @@
+httk.core.views.backend
+=======================
+
+.. py:module:: httk.core.views.backend
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.views.backend.Backend
+
+
+Module Contents
+---------------
+
+.. py:class:: Backend[BackendT: Backend](backend, **hints)
+
+   Bases: :py:obj:`abc.ABC`
+
+
+   Abstract base class to be subclassed into classes that keep track of alternative
+   representations of certain types of data, all adhering to a common API interface.
+
+   The class variable backend_classes is a list of all classes that can carry the kind of data the subclass represents.
+
+   A system of "hints" are used primarily to disambiguate between multiple valid interpretations of the same input object.
+   Unless otherwise documented for a specific backend, extra hints that do not affect this interpretation are ignored.
+
+   A set of backends are meant to be combined with a set of Views.
+
+   Concrete backends implement ``_backend_adopt`` to accept an object and return an initialized
+   backend instance, or ``None`` to decline it. The ``kind`` hint convention is used to
+   disambiguate between multiple valid interpretations.
+
+   :param backend: Source value or backend being adopted by the concrete backend.
+   :param \**hints: Backend-specific initialization hints.
+
+
+   .. py:attribute:: backend_classes
+      :type:  ClassVar[list[type[Backend[Any]]]]
+
+
+   .. py:method:: unwrap()
+
+      Return the most raw representation possible of this backend, i.e., if it uses a backend with an internal representaion -
+      or if it can (possibly lossly) convert itself into a more raw representation that still would be recognized as a <Something>Like type,
+      that representation will be returned. If this is not possible, the instance itself is returned.
+
+      :return: The backend's most raw available representation.
+
+
+

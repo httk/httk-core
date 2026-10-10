@@ -1,0 +1,71 @@
+httk.core.definition_ids
+========================
+
+.. py:module:: httk.core.definition_ids
+
+.. autoapi-nested-parse::
+
+   Identifiers of the httk core property definitions vendored with *httk-core*.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.definition_ids.TOTAL_ENERGY
+   httk.core.definition_ids.AVERAGE_TOTAL_ENERGY
+   httk.core.definition_ids.POTENTIAL_ENERGY
+   httk.core.definition_ids.KINETIC_ENERGY
+   httk.core.definition_ids.ENTHALPY
+   httk.core.definition_ids.TEMPERATURE
+   httk.core.definition_ids.VOLUME
+   httk.core.definition_ids.PRESSURE
+   httk.core.definition_ids.STRESS_TENSOR
+   httk.core.definition_ids.ATOMIC_FORCE
+
+
+Module Contents
+---------------
+
+.. py:data:: TOTAL_ENERGY
+   :value: 'https://schemas.httk.org/defs/v0.1/properties/core/total_energy'
+
+
+.. py:data:: AVERAGE_TOTAL_ENERGY
+   :value: 'https://schemas.httk.org/defs/v0.1/properties/core/average_total_energy'
+
+
+.. py:data:: POTENTIAL_ENERGY
+   :value: 'https://schemas.httk.org/defs/v0.1/properties/core/potential_energy'
+
+
+.. py:data:: KINETIC_ENERGY
+   :value: 'https://schemas.httk.org/defs/v0.1/properties/core/kinetic_energy'
+
+
+.. py:data:: ENTHALPY
+   :value: 'https://schemas.httk.org/defs/v0.1/properties/core/enthalpy'
+
+
+.. py:data:: TEMPERATURE
+   :value: 'https://schemas.httk.org/defs/v0.1/properties/core/temperature'
+
+
+.. py:data:: VOLUME
+   :value: 'https://schemas.httk.org/defs/v0.1/properties/core/volume'
+
+
+.. py:data:: PRESSURE
+   :value: 'https://schemas.httk.org/defs/v0.1/properties/core/pressure'
+
+
+.. py:data:: STRESS_TENSOR
+   :value: 'https://schemas.httk.org/defs/v0.1/properties/core/stress_tensor'
+
+
+.. py:data:: ATOMIC_FORCE
+   :value: 'https://schemas.httk.org/defs/v0.1/properties/core/atomic_force'
+
+

@@ -1,0 +1,37 @@
+httk.core.atomic_write
+======================
+
+.. py:module:: httk.core.atomic_write
+
+.. autoapi-nested-parse::
+
+   Exception-safe local file replacement for filename-sensitive format writers.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.atomic_write.atomic_destination
+
+
+Module Contents
+---------------
+
+.. py:function:: atomic_destination(destination)
+
+   Yield a same-filesystem staging path and publish it only on success.
+
+   Follow symlinks, preserve existing permission bits, and retain the requested
+   basename for filename-sensitive writers. Replacing a hard link leaves its
+   other links unchanged. This does not provide crash durability or serialize
+   concurrent writers. The caller must close all output streams before exit.
+
+   :param destination: Output filename whose resolved parent directory exists.
+   :yields: A staging path retaining the requested basename for the writer.
+   :raises ValueError: If the resolved destination exists and is not a regular file.
+   :raises OSError: If staging or publishing the output fails.
+
+

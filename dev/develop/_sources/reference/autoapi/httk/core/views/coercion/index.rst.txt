@@ -1,0 +1,105 @@
+httk.core.views.coercion
+========================
+
+.. py:module:: httk.core.views.coercion
+
+.. autoapi-nested-parse::
+
+   General coercion into registered view or value classes.
+
+   Two verbs share the machinery here: :func:`coerce_view` is the backend-aware, best-effort
+   coercion (results may be httk Views retaining their exact backend, and lossless fallbacks of
+   another type are allowed), while :func:`coerce` is strict (the result is a non-View instance of
+   the requested target, or ``TypeError``).
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.views.coercion.Coercer
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.views.coercion.register_coercer
+   httk.core.views.coercion.view_class_coercer
+   httk.core.views.coercion.coerce_view
+   httk.core.views.coercion.coerce
+
+
+Module Contents
+---------------
+
+.. py:type:: Coercer
+   :canonical: Callable[[Any, type], Any | None]
+
+
+.. py:function:: register_coercer(coercer, target)
+
+   Append ``coercer`` to the registry, preserving registration order.
+
+   ``target`` declares what the coercer can coerce *into*: a class, a tuple of classes, or
+   ``typing.Any`` for a fully general coercer. During :func:`coerce`, a registered coercer is
+   only tried when the requested target class is a subclass of (one of) its declared targets;
+   ``Any`` matches every target. Invalid declarations raise ``TypeError`` eagerly.
+
+   :param coercer: Conversion function to append to the registry.
+   :param target: Class, tuple of classes, or ``Any`` accepted by the coercer.
+   :raises TypeError: If ``target`` is not a class, tuple of classes, or ``Any``.
+
+
+.. py:function:: view_class_coercer(view_classes)
+
+   Create a coercer that tries matching view classes in ``view_classes`` order.
+
+   :param view_classes: View classes to try in order.
+   :return: A coercer for the supplied view classes.
+
+
+.. py:function:: coerce_view(value, target)
+
+   Coerce ``value`` to a target class or prototype instance, backend-aware and best-effort.
+
+   The exact string ``"natural"`` is a documented sentinel that returns ``value`` unchanged.
+   Otherwise, a class target is used directly and an instance target is treated as a prototype,
+   using its type. Values already matching the target are returned unchanged — including httk
+   Views that subclass the target, so the exact backend is retained. A target that is a
+   :class:`~httk.core.views.view.View` subclass is then tried directly as a view conversion of
+   ``value``, so any view family works without a registered coercer. Failing that, registered
+   coercers whose declared targets match are tried in registration order, and the first
+   non-``None`` result wins. If none succeeds, ``TypeError`` is raised naming the value type and
+   target. Coercion is best effort and favors lossless view wrapping; a coercer may return a
+   lossless fallback of another type (e.g. ``Fraction(1, 2)`` for target ``int``), and
+   individual coercers document any deliberately lossy conversion. Callers that need a plain,
+   exactly-typed result use :func:`coerce` instead.
+
+   :param value: Value to convert.
+   :param target: Target class, prototype instance, or the ``"natural"`` sentinel.
+   :return: The best available backend-aware conversion.
+   :raises TypeError: If no registered or direct conversion succeeds.
+
+
+.. py:function:: coerce(value, target)
+
+   Coerce ``value`` strictly: return a non-View instance of the requested target or raise.
+
+   The exact string ``"natural"`` returns ``value`` unchanged (no coercion, even for a View).
+   Otherwise the resolution of :func:`coerce_view` applies, and then: an httk View result is
+   shed via :func:`~httk.core.views.unviewing.unview` unless the requested target is itself a
+   View class; a View result that cannot shed raises ``unview``'s own ``TypeError``; and the
+   final result must satisfy ``isinstance(result, target)`` — a lossless fallback of another
+   type (available through :func:`coerce_view`) makes strict coercion fail with ``TypeError``. An
+   existing non-View subtype of the target is an identity result.
+
+   :param value: Value to convert.
+   :param target: Target class, prototype instance, or the ``"natural"`` sentinel.
+   :return: A non-View instance matching the requested target.
+   :raises TypeError: If strict conversion cannot produce the requested target.
+
+

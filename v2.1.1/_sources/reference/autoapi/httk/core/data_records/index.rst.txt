@@ -1,0 +1,152 @@
+httk.core.data_records
+======================
+
+.. py:module:: httk.core.data_records
+
+.. autoapi-nested-parse::
+
+   Stdlib-only records for one declared property value per entry.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.data_records.RECORDS_DEFINITION_ID
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.data_records.DataRecord
+   httk.core.data_records.DataRecordEntry
+
+
+Module Contents
+---------------
+
+.. py:data:: RECORDS_DEFINITION_ID
+   :value: 'https://schemas.httk.org/defs/v0.1/entrytypes/records'
+
+
+.. py:class:: DataRecord
+
+   Store one canonical JSON value of one declared property.
+
+   ``value_json`` is canonical JSON, with sorted object keys, compact
+   separators, and no non-finite numeric values. ``value`` decodes it on
+   access; ``value_number`` exposes finite numeric values for numeric queries.
+   The human-readable and immutable identifiers and timestamp metadata are
+   excluded from content identity.
+
+   :param definition_id: The property definition IRI for the value.
+   :param name: The property name.
+   :param value_json: The canonical JSON representation of the value.
+   :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+   :param immutable_id: The per-revision immutable id; minted by the store when None.
+   :param last_modified: The optional timezone-aware metadata timestamp.
+
+
+   .. py:attribute:: definition_id
+      :type:  str
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: value_json
+      :type:  str
+
+
+   .. py:attribute:: id
+      :type:  Annotated[str | None, IdentitySkip(), Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: immutable_id
+      :type:  Annotated[str | None, IdentitySkip(), Unique()]
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+   .. py:property:: type
+      :type: str
+
+
+      Return the internal (unprefixed) entry type name.
+
+
+   .. py:property:: value
+      :type: Any
+
+
+      Decode and return the stored property value.
+
+
+   .. py:property:: value_number
+      :type: float | None
+
+
+      The decoded numeric value, stored as a numeric SQL query column.
+
+
+   .. py:method:: from_value(definition_id, name, value, *, id = None, immutable_id = None, last_modified = None)
+      :classmethod:
+
+
+      Encode a value canonically and construct its data record.
+
+      :param definition_id: The property definition IRI for the value.
+      :param name: The property name.
+      :param value: The JSON value to encode.
+      :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+      :param immutable_id: The per-revision immutable id; minted by the store when None.
+      :param last_modified: The optional timezone-aware metadata timestamp.
+      :return: A data record containing the canonical JSON value.
+      :raises TypeError: If the value contains an unsupported object.
+      :raises ValueError: If the value is circular or contains a non-finite number, or if ``definition_id`` or ``name`` is invalid or ``last_modified`` is not timezone-aware.
+
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+      Coerce a mapping or existing record into a :class:`DataRecord`.
+
+      :param obj: A data record instance or field mapping.
+      :return: The existing or newly constructed data record.
+      :raises TypeError: If ``obj`` is neither a data record nor a mapping.
+      :raises ValueError: If the mapping has unknown or invalid fields.
+
+
+
+.. py:class:: DataRecordEntry
+
+   Logical entry family for served :class:`DataRecord` records.
+
+   This family is not itself storable; store a ``DataRecord`` directly.
+
+
+   .. py:attribute:: type
+      :value: 'records'
+
+
+
+   .. py:attribute:: definition_id
+      :value: 'https://schemas.httk.org/defs/v0.1/entrytypes/records'
+
+
+

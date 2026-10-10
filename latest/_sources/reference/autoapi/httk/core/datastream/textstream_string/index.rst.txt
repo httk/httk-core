@@ -1,0 +1,47 @@
+httk.core.datastream.textstream_string
+======================================
+
+.. py:module:: httk.core.datastream.textstream_string
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.datastream.textstream_string.TextstreamString
+
+
+Module Contents
+---------------
+
+.. py:class:: TextstreamString(content, **hints)
+
+   Bases: :py:obj:`httk.core.datastream.textstream_common.TextstreamCommon`, :py:obj:`httk.core.datastream.textstream_backend.TextstreamBackend`
+
+
+   Backend for streaming text backed by an actual string
+
+   :param content: Text to expose as a stream.
+   :param \**hints: Backend-selection and compression hints.
+   :raises ValueError: If the compression hint is not a no-op mode for text-native content.
+
+
+   .. py:attribute:: s
+      :type:  str
+
+
+   .. py:property:: name
+      :type: str | None
+
+
+      Report that an in-memory stream has no source name.
+
+
+   .. py:property:: closed
+      :type: bool
+
+
+      Report whether the in-memory stream is closed.
+
+

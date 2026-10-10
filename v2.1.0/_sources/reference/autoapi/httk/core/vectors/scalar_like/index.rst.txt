@@ -1,0 +1,26 @@
+httk.core.vectors.scalar_like
+=============================
+
+.. py:module:: httk.core.vectors.scalar_like
+
+.. autoapi-nested-parse::
+
+   The accepted scalar inputs for exact-math functions.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.vectors.scalar_like.ScalarLike
+
+
+Module Contents
+---------------
+
+.. py:type:: ScalarLike
+   :canonical: int | float | str | fractions.Fraction | decimal.Decimal | fracvector.FracScalar | surdvector.SurdScalar
+
+

@@ -1,0 +1,1166 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>httk.core.typed_records - httk-core dev:develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/selector.css?v=626bada3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+<div class="announcement">
+  <aside class="announcement-content">
+     Development documentation (dev:develop) — built from the GitHub develop branch; content may differ from any release. 
+  </aside>
+</div>
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../index.html"><div class="brand">httk-core dev:develop documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
+  
+  <span class="sidebar-brand-text">httk-core dev:develop documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/index.html">Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../view_backend_pattern.html">Views and Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../registry.html">Module registry</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../datastreams.html">Datastreams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../cli.html">The extensible command line</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../plugins.html">Plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../crypto.html">Cryptography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../identity.html">Operator identity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../projects.html">Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sealing.html">Sealing and manifests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../property_definitions.html">Property definitions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units.html">Units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../entry_records.html">Declarative entry records</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../vectors.html">Vectors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../exactmath.html">Exact math on rationals and decimals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../credits.html">Citation credits</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Details</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../details/view_backend_pattern.html">Views and Backends in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../details/registry.html">Module registry in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../details/datastreams.html">Datastreams in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../details/plugins.html">Plugins in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../details/property_definitions.html">Property definitions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../details/vectors.html">Vectors in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../details/exactmath.html">Exact math in detail</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference/autoapi/index.html">API Reference</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <h1>Source code for httk.core.typed_records</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Storage layouts of typed result records, derived from OPTIMADE property definitions.</span>
+
+<span class="sd">A typed result record stores the value of one property definition as plain fields. :func:`member_layout`</span>
+<span class="sd">derives those fields: one per member of a dictionary-typed definition (in document order), or a single</span>
+<span class="sd">field named after the definition for a scalar or list definition.</span>
+
+<span class="sd">**Flattened storage rule.** A scalar member is stored as-is. A list-valued member of any depth, with fixed</span>
+<span class="sd">or variable sizes, is stored as *one* flat ``tuple`` of its leaves in row-major order; the nested value is</span>
+<span class="sd">reassembled from the definition's ``x-optimade-dimensions``. Fixed sizes come from the definition. A</span>
+<span class="sd">variable outermost size comes from a sibling member whose outermost dimension has the same name, else from</span>
+<span class="sd">the flat length divided by the product of the inner sizes. A variable inner size must be supplied by such a</span>
+<span class="sd">sibling, so it cannot be reconstructed from nothing; a layout that would need one is rejected.</span>
+
+<span class="sd">**Runtime.** A typed record class is a frozen dataclass deriving from :class:`TypedRecord` whose</span>
+<span class="sd">``__httk_typed_record__`` :class:`TypedRecordSpec` names the definition. Its value fields follow the</span>
+<span class="sd">layout (required members first, then non-required members), followed by the standard ``product_of``,</span>
+<span class="sd">``id``, ``immutable_id`` and ``last_modified`` fields. :meth:`TypedRecordSpec.projections` serves and</span>
+<span class="sd">queries the value from those fields.</span>
+<span class="sd">"""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">keyword</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">fields</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">cached_property</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ClassVar</span><span class="p">,</span> <span class="n">Self</span><span class="p">,</span> <span class="n">cast</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.data_records</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataRecord</span><span class="p">,</span> <span class="n">_validate_string</span><span class="p">,</span> <span class="n">_validate_timestamp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.property_definitions</span><span class="w"> </span><span class="kn">import</span> <span class="n">_HTTK_DEFS_BASE</span><span class="p">,</span> <span class="n">PropertyDefinition</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.provenance</span><span class="w"> </span><span class="kn">import</span> <span class="n">RunEdge</span><span class="p">,</span> <span class="n">_edges</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.register.schemas</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_property_definition</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.storage.stored_properties</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">QueryContext</span><span class="p">,</span>
+    <span class="n">QueryExpression</span><span class="p">,</span>
+    <span class="n">QueryLiteralError</span><span class="p">,</span>
+    <span class="n">QueryScope</span><span class="p">,</span>
+    <span class="n">StoredPropertyProjection</span><span class="p">,</span>
+    <span class="n">StoredPropertyZipQuery</span><span class="p">,</span>
+    <span class="n">ZipLiteral</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"MemberLayout"</span><span class="p">,</span> <span class="s2">"TypedRecord"</span><span class="p">,</span> <span class="s2">"TypedRecordSpec"</span><span class="p">,</span> <span class="s2">"member_layout"</span><span class="p">]</span>
+
+<span class="n">_LEAVES</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"float"</span><span class="p">,</span> <span class="s2">"integer"</span><span class="p">,</span> <span class="s2">"string"</span><span class="p">,</span> <span class="s2">"boolean"</span><span class="p">})</span>
+<span class="c1"># Must contain the store's reserved field names (httk-store backend/schema.py, pinned by a store test).</span>
+<span class="n">_RESERVED_FIELDS</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span>
+    <span class="p">{</span>
+        <span class="s2">"_httk_role"</span><span class="p">,</span>
+        <span class="s2">"alt_id"</span><span class="p">,</span>
+        <span class="s2">"alt_kind"</span><span class="p">,</span>
+        <span class="s2">"links"</span><span class="p">,</span>
+        <span class="s2">"logical_id"</span><span class="p">,</span>
+        <span class="s2">"store_timestamp"</span><span class="p">,</span>
+        <span class="s2">"type"</span><span class="p">,</span>
+        <span class="s2">"value"</span><span class="p">,</span>
+        <span class="s2">"definition_id"</span><span class="p">,</span>
+        <span class="s2">"derivation"</span><span class="p">,</span>
+        <span class="s2">"id"</span><span class="p">,</span>
+        <span class="s2">"immutable_id"</span><span class="p">,</span>
+        <span class="s2">"last_modified"</span><span class="p">,</span>
+        <span class="s2">"product_of"</span><span class="p">,</span>
+        <span class="s2">"sid"</span><span class="p">,</span>
+        <span class="s2">"content_id"</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="viewcode-block" id="MemberLayout">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.MemberLayout">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MemberLayout</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""How one member of a property definition's value is stored in a typed record.</span>
+
+<span class="sd">    :param field: The record field name: ``"_".join(path)``, or the definition name for a non-dictionary</span>
+<span class="sd">        definition.</span>
+<span class="sd">    :param path: The member path within the value; ``()`` for a scalar or list definition's own value.</span>
+<span class="sd">    :param fulltype: The compact fulltype, e.g. ``"float"`` or ``"list of list of float"``.</span>
+<span class="sd">    :param leaf: The scalar leaf type: ``"float"``, ``"integer"``, ``"string"`` or ``"boolean"``.</span>
+<span class="sd">    :param required: Whether the member is a required dictionary member (always true for a non-dictionary</span>
+<span class="sd">        definition's value).</span>
+<span class="sd">    :param nullable: Whether the member or value itself may be null.</span>
+<span class="sd">    :param element_nullable: Whether list leaf items may be null (false for scalars).</span>
+<span class="sd">    :param dimensions: The ``(name, size)`` of every list level, outermost first; ``size`` is ``None`` for a</span>
+<span class="sd">        variable dimension. Empty for scalars.</span>
+<span class="sd">    """</span>
+
+<div class="viewcode-block" id="MemberLayout.field">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.MemberLayout.field">[docs]</a>
+    <span class="n">field</span><span class="p">:</span> <span class="nb">str</span></div>
+
+<div class="viewcode-block" id="MemberLayout.path">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.MemberLayout.path">[docs]</a>
+    <span class="n">path</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="MemberLayout.fulltype">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.MemberLayout.fulltype">[docs]</a>
+    <span class="n">fulltype</span><span class="p">:</span> <span class="nb">str</span></div>
+
+<div class="viewcode-block" id="MemberLayout.leaf">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.MemberLayout.leaf">[docs]</a>
+    <span class="n">leaf</span><span class="p">:</span> <span class="nb">str</span></div>
+
+<div class="viewcode-block" id="MemberLayout.required">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.MemberLayout.required">[docs]</a>
+    <span class="n">required</span><span class="p">:</span> <span class="nb">bool</span></div>
+
+<div class="viewcode-block" id="MemberLayout.nullable">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.MemberLayout.nullable">[docs]</a>
+    <span class="n">nullable</span><span class="p">:</span> <span class="nb">bool</span></div>
+
+<div class="viewcode-block" id="MemberLayout.element_nullable">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.MemberLayout.element_nullable">[docs]</a>
+    <span class="n">element_nullable</span><span class="p">:</span> <span class="nb">bool</span></div>
+
+<div class="viewcode-block" id="MemberLayout.dimensions">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.MemberLayout.dimensions">[docs]</a>
+    <span class="n">dimensions</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span></div>
+</div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_lower_first</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Lower-case the first letter of *text* unless it starts an acronym (first two characters upper-case).</span>
+
+<span class="sd">    :param text: A title.</span>
+<span class="sd">    :return: The title for use mid-sentence.</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">text</span> <span class="k">if</span> <span class="n">text</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">isupper</span><span class="p">()</span> <span class="k">else</span> <span class="n">text</span><span class="p">[:</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">+</span> <span class="n">text</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_nullable</span><span class="p">(</span><span class="n">level</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="n">json_type</span> <span class="o">=</span> <span class="n">level</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"type"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">json_type</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">"null"</span> <span class="ow">in</span> <span class="n">json_type</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_layout_one</span><span class="p">(</span>
+    <span class="n">definition</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">level</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">required</span><span class="p">:</span> <span class="nb">bool</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MemberLayout</span><span class="p">:</span>
+    <span class="n">where</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">definition</span><span class="si">}</span><span class="s2">: member </span><span class="si">{</span><span class="s1">'.'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="n">field</span><span class="si">!r}</span><span class="s2">"</span>
+    <span class="n">levels</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">leaf</span> <span class="o">=</span> <span class="n">level</span>
+    <span class="k">while</span> <span class="n">leaf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"x-optimade-type"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"list"</span><span class="p">:</span>
+        <span class="n">levels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">leaf</span><span class="p">)</span>
+        <span class="n">leaf</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"items"</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">kind</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"x-optimade-type"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"dictionary"</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> is a </span><span class="si">{</span><span class="s1">'list of dictionaries'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">levels</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'nested dictionary'</span><span class="si">}</span><span class="s2">, which typed records do not support"</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_LEAVES</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> has leaf type </span><span class="si">{</span><span class="n">kind</span><span class="si">!r}</span><span class="s2">; typed records support only </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_LEAVES</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">_nullable</span><span class="p">(</span><span class="n">inner</span><span class="p">)</span> <span class="k">for</span> <span class="n">inner</span> <span class="ow">in</span> <span class="n">levels</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> has a nullable inner list level, which a flat tuple cannot store"</span><span class="p">)</span>
+    <span class="c1"># Mirror _check_level: names[i]/sizes[i] declared at list level j describe list level j + i.</span>
+    <span class="n">declared</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">levels</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">depth</span><span class="p">,</span> <span class="n">list_level</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">levels</span><span class="p">):</span>
+        <span class="n">dims</span> <span class="o">=</span> <span class="n">list_level</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"x-optimade-dimensions"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="n">names</span><span class="p">,</span> <span class="n">sizes</span> <span class="o">=</span> <span class="n">dims</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"names"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[],</span> <span class="n">dims</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"sizes"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">sizes</span><span class="p">))):</span>
+            <span class="k">if</span> <span class="n">depth</span> <span class="o">+</span> <span class="n">offset</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">levels</span><span class="p">):</span>
+                <span class="n">declared</span><span class="p">[</span><span class="n">depth</span> <span class="o">+</span> <span class="n">offset</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">names</span><span class="p">[</span><span class="n">offset</span><span class="p">]</span> <span class="k">if</span> <span class="n">offset</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span> <span class="n">sizes</span><span class="p">[</span><span class="n">offset</span><span class="p">]</span> <span class="k">if</span> <span class="n">offset</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">sizes</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="p">)</span>
+    <span class="n">dimensions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">depth</span><span class="p">,</span> <span class="n">entries</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">declared</span><span class="p">):</span>
+        <span class="n">names_found</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">}</span>
+        <span class="n">sizes_found</span> <span class="o">=</span> <span class="p">{</span><span class="n">size</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">if</span> <span class="n">size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">}</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">names_found</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">sizes_found</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> list level </span><span class="si">{</span><span class="n">depth</span><span class="si">}</span><span class="s2"> needs exactly one dimension declaration, found </span><span class="si">{</span><span class="n">entries</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">dimensions</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">names_found</span><span class="o">.</span><span class="n">pop</span><span class="p">(),</span> <span class="n">sizes_found</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span> <span class="k">if</span> <span class="n">sizes_found</span> <span class="k">else</span> <span class="kc">None</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">MemberLayout</span><span class="p">(</span>
+        <span class="n">field</span><span class="o">=</span><span class="n">field</span><span class="p">,</span>
+        <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span>
+        <span class="n">fulltype</span><span class="o">=</span><span class="s2">"list of "</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">levels</span><span class="p">)</span> <span class="o">+</span> <span class="n">kind</span><span class="p">,</span>
+        <span class="n">leaf</span><span class="o">=</span><span class="n">kind</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="n">required</span><span class="p">,</span>
+        <span class="n">nullable</span><span class="o">=</span><span class="n">_nullable</span><span class="p">(</span><span class="n">level</span><span class="p">),</span>
+        <span class="n">element_nullable</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">levels</span><span class="p">)</span> <span class="ow">and</span> <span class="n">_nullable</span><span class="p">(</span><span class="n">leaf</span><span class="p">),</span>
+        <span class="n">dimensions</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">dimensions</span><span class="p">),</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="member_layout">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.member_layout">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">member_layout</span><span class="p">(</span><span class="n">definition</span><span class="p">:</span> <span class="n">PropertyDefinition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">MemberLayout</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Derive the typed-record storage layout of *definition*.</span>
+
+<span class="sd">    A dictionary definition gives one layout per member in document order; any other definition gives a</span>
+<span class="sd">    single layout for its own value, with ``path == ()``. The derivation is deterministic and shared by the</span>
+<span class="sd">    record generator and the runtime. A top-level value is never stored as null, even when the definition</span>
+<span class="sd">    is nullable (a typed record always holds a value); ``nullable`` then only describes the definition.</span>
+
+<span class="sd">    :param definition: The property definition to lay out.</span>
+<span class="sd">    :return: The member layouts.</span>
+<span class="sd">    :raises ValueError: Naming the definition and member, for a timestamp or other unsupported leaf, a nested</span>
+<span class="sd">        dictionary or list of dictionaries, a nullable inner list level, a list level without exactly one dimension declaration, a</span>
+<span class="sd">        variable inner dimension no sibling's outermost dimension supplies (any variable inner dimension of</span>
+<span class="sd">        a non-dictionary definition), or a reserved or colliding field name.</span>
+<span class="sd">    """</span>
+    <span class="n">document</span> <span class="o">=</span> <span class="n">definition</span><span class="o">.</span><span class="n">as_optimade</span><span class="p">()</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">definition</span><span class="o">.</span><span class="n">name</span>
+    <span class="k">if</span> <span class="n">document</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"x-optimade-type"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"dictionary"</span><span class="p">:</span>
+        <span class="n">required</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">document</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"required"</span><span class="p">,</span> <span class="p">()))</span>
+        <span class="n">layouts</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+            <span class="n">_layout_one</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="n">key</span><span class="p">,),</span> <span class="n">member</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">required</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">document</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"properties"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">layouts</span> <span class="o">=</span> <span class="p">(</span><span class="n">_layout_one</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="p">(),</span> <span class="n">document</span><span class="p">,</span> <span class="kc">True</span><span class="p">),)</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">{</span><span class="n">layout</span><span class="o">.</span><span class="n">field</span> <span class="k">for</span> <span class="n">layout</span> <span class="ow">in</span> <span class="n">layouts</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">layout</span> <span class="ow">in</span> <span class="n">layouts</span><span class="p">:</span>
+        <span class="n">field</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">field</span>
+        <span class="n">derived</span> <span class="o">=</span> <span class="p">{</span><span class="n">other</span> <span class="o">+</span> <span class="n">suffix</span> <span class="k">for</span> <span class="n">other</span> <span class="ow">in</span> <span class="n">fields</span> <span class="o">-</span> <span class="p">{</span><span class="n">field</span><span class="p">}</span> <span class="k">for</span> <span class="n">suffix</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"_present"</span><span class="p">,</span> <span class="s2">"_exact"</span><span class="p">)}</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="n">field</span><span class="o">.</span><span class="n">isidentifier</span><span class="p">()</span>
+            <span class="ow">or</span> <span class="n">keyword</span><span class="o">.</span><span class="n">iskeyword</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">_RESERVED_FIELDS</span>
+            <span class="ow">or</span> <span class="n">field</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"_present"</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">derived</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: member </span><span class="si">{</span><span class="n">field</span><span class="si">!r}</span><span class="s2"> has a reserved or colliding field name"</span><span class="p">)</span>
+    <span class="c1"># Fixpoint: a member whose inner variable dimensions are known supplies its outermost dimension name.</span>
+    <span class="n">known</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">changed</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">while</span> <span class="n">changed</span><span class="p">:</span>
+        <span class="n">changed</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">layout</span> <span class="ow">in</span> <span class="n">layouts</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">layout</span><span class="o">.</span><span class="n">dimensions</span> <span class="ow">and</span> <span class="n">layout</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">known</span> <span class="ow">and</span> <span class="n">_inner_variable</span><span class="p">(</span><span class="n">layout</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">known</span><span class="p">:</span>
+                <span class="n">known</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">layout</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">changed</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">for</span> <span class="n">layout</span> <span class="ow">in</span> <span class="n">layouts</span><span class="p">:</span>
+        <span class="n">missing</span> <span class="o">=</span> <span class="n">_inner_variable</span><span class="p">(</span><span class="n">layout</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">known</span> <span class="k">if</span> <span class="n">layout</span><span class="o">.</span><span class="n">path</span> <span class="k">else</span> <span class="nb">set</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: member </span><span class="si">{</span><span class="n">layout</span><span class="o">.</span><span class="n">field</span><span class="si">!r}</span><span class="s2"> has variable inner dimension(s) </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span><span class="si">}</span><span class="s2"> "</span>
+                <span class="s2">"that no sibling member supplies as its outermost dimension"</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">layouts</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_inner_variable</span><span class="p">(</span><span class="n">layout</span><span class="p">:</span> <span class="n">MemberLayout</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">dim</span> <span class="k">for</span> <span class="n">dim</span><span class="p">,</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">layout</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">if</span> <span class="n">size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_flatten</span><span class="p">(</span><span class="n">layout</span><span class="p">:</span> <span class="n">MemberLayout</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Return the flat stored form of one member *value* and its shape (``None`` below an empty list).</span>
+
+<span class="sd">    :param layout: The member layout.</span>
+<span class="sd">    :param value: The member value; scalars and ``None`` pass through.</span>
+<span class="sd">    :return: The flat value and the length of every list level.</span>
+<span class="sd">    :raises ValueError: If a list level is not a list or ragged lists cannot be stored rectangularly.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">layout</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">value</span><span class="p">,</span> <span class="p">()</span>
+    <span class="n">items</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span>
+    <span class="n">shape</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">depth</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">layout</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">list</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"member </span><span class="si">{</span><span class="n">layout</span><span class="o">.</span><span class="n">field</span><span class="si">!r}</span><span class="s2">: list level </span><span class="si">{</span><span class="n">depth</span><span class="si">}</span><span class="s2"> holds a non-list value"</span><span class="p">)</span>
+        <span class="n">lengths</span> <span class="o">=</span> <span class="p">{</span><span class="nb">len</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">}</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"member </span><span class="si">{</span><span class="n">layout</span><span class="o">.</span><span class="n">field</span><span class="si">!r}</span><span class="s2">: ragged lists at level </span><span class="si">{</span><span class="n">depth</span><span class="si">}</span><span class="s2"> (lengths </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+        <span class="n">shape</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lengths</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span> <span class="k">if</span> <span class="n">lengths</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="p">[</span><span class="n">element</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">item</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">items</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_resolve_sizes</span><span class="p">(</span><span class="n">layouts</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">MemberLayout</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">flats</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Resolve every present list member's per-level sizes from the definition and its siblings' flat values.</span>
+
+<span class="sd">    :param layouts: The definition's member layouts.</span>
+<span class="sd">    :param flats: The flat value of every field.</span>
+<span class="sd">    :return: The sizes of every list field whose flat value is not ``None``.</span>
+<span class="sd">    :raises ValueError: If sizes are inconsistent, a flat length does not divide, or a dimension is unknown.</span>
+<span class="sd">    """</span>
+    <span class="n">lengths</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">pending</span> <span class="o">=</span> <span class="p">[</span><span class="n">layout</span> <span class="k">for</span> <span class="n">layout</span> <span class="ow">in</span> <span class="n">layouts</span> <span class="k">if</span> <span class="n">layout</span><span class="o">.</span><span class="n">dimensions</span> <span class="ow">and</span> <span class="n">flats</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">layout</span><span class="o">.</span><span class="n">field</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">resolved</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="n">guess_empty</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="n">progress</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">layout</span> <span class="ow">in</span> <span class="n">pending</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">layout</span><span class="o">.</span><span class="n">field</span> <span class="ow">in</span> <span class="n">resolved</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">sizes</span> <span class="o">=</span> <span class="p">[</span><span class="n">size</span> <span class="k">if</span> <span class="n">size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">lengths</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span> <span class="k">for</span> <span class="n">dim</span><span class="p">,</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">layout</span><span class="o">.</span><span class="n">dimensions</span><span class="p">]</span>
+            <span class="n">inner</span> <span class="o">=</span> <span class="n">sizes</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="k">if</span> <span class="kc">None</span> <span class="ow">in</span> <span class="n">inner</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">total</span><span class="p">,</span> <span class="n">product</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">flats</span><span class="p">[</span><span class="n">layout</span><span class="o">.</span><span class="n">field</span><span class="p">]),</span> <span class="n">math</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">inner</span> <span class="k">if</span> <span class="n">s</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">outer</span> <span class="o">=</span> <span class="n">sizes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">outer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">product</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">total</span> <span class="o">%</span> <span class="n">product</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"member </span><span class="si">{</span><span class="n">layout</span><span class="o">.</span><span class="n">field</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">total</span><span class="si">}</span><span class="s2"> items do not divide into rows of </span><span class="si">{</span><span class="n">product</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                    <span class="n">outer</span> <span class="o">=</span> <span class="n">total</span> <span class="o">//</span> <span class="n">product</span>
+                <span class="k">elif</span> <span class="ow">not</span> <span class="n">guess_empty</span><span class="p">:</span>
+                    <span class="k">continue</span>  <span class="c1"># Only a sibling knows how many empty rows there are; defer to it.</span>
+                <span class="k">elif</span> <span class="n">total</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"member </span><span class="si">{</span><span class="n">layout</span><span class="o">.</span><span class="n">field</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">total</span><span class="si">}</span><span class="s2"> items cannot fill empty inner lists"</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># ponytail: no sibling supplies the row count of empty rows, so assume none;</span>
+                    <span class="c1"># _flatten_value rejects any value this would shorten.</span>
+                    <span class="n">outer</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">elif</span> <span class="n">outer</span> <span class="o">*</span> <span class="n">product</span> <span class="o">!=</span> <span class="n">total</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"member </span><span class="si">{</span><span class="n">layout</span><span class="o">.</span><span class="n">field</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">total</span><span class="si">}</span><span class="s2"> items do not fill shape </span><span class="si">{</span><span class="p">[</span><span class="n">outer</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">inner</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">dim</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">lengths</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">outer</span><span class="p">)</span> <span class="o">!=</span> <span class="n">outer</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"member </span><span class="si">{</span><span class="n">layout</span><span class="o">.</span><span class="n">field</span><span class="si">!r}</span><span class="s2">: length </span><span class="si">{</span><span class="n">outer</span><span class="si">}</span><span class="s2"> along dimension </span><span class="si">{</span><span class="n">dim</span><span class="si">!r}</span><span class="s2"> contradicts </span><span class="si">{</span><span class="n">lengths</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">)</span>
+            <span class="n">resolved</span><span class="p">[</span><span class="n">layout</span><span class="o">.</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">outer</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">inner</span> <span class="k">if</span> <span class="n">s</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">))</span>
+            <span class="n">progress</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">progress</span>
+
+    <span class="k">while</span> <span class="n">step</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span> <span class="ow">or</span> <span class="n">step</span><span class="p">(</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">pass</span>
+    <span class="k">for</span> <span class="n">layout</span> <span class="ow">in</span> <span class="n">pending</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">layout</span><span class="o">.</span><span class="n">field</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">resolved</span><span class="p">:</span>
+            <span class="n">unknown</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">dim</span> <span class="k">for</span> <span class="n">dim</span><span class="p">,</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">layout</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">if</span> <span class="n">size</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">dim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">lengths</span><span class="p">})</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"member </span><span class="si">{</span><span class="n">layout</span><span class="o">.</span><span class="n">field</span><span class="si">!r}</span><span class="s2">: cannot reassemble, dimension(s) </span><span class="si">{</span><span class="n">unknown</span><span class="si">}</span><span class="s2"> unknown"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">resolved</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_nest</span><span class="p">(</span><span class="n">flat</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">sizes</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+    <span class="n">items</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">flat</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">depth</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sizes</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">width</span><span class="p">,</span> <span class="n">rows</span> <span class="o">=</span> <span class="n">sizes</span><span class="p">[</span><span class="n">depth</span><span class="p">],</span> <span class="n">math</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">sizes</span><span class="p">[:</span><span class="n">depth</span><span class="p">])</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="p">[</span><span class="n">items</span><span class="p">[</span><span class="n">row</span> <span class="o">*</span> <span class="n">width</span> <span class="p">:</span> <span class="p">(</span><span class="n">row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">width</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rows</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">items</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_flatten_value</span><span class="p">(</span><span class="n">layouts</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">MemberLayout</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Flatten a whole JSON-like *value* into ``{field: flat}``.</span>
+
+<span class="sd">    :param layouts: The definition's member layouts (from :func:`member_layout`).</span>
+<span class="sd">    :param value: The value; a dictionary for a dictionary definition.</span>
+<span class="sd">    :return: The flat value of every field; absent non-required members map to ``None``.</span>
+<span class="sd">    :raises ValueError: If *value* is ``None``, is not a dictionary where one is needed, has unknown or</span>
+<span class="sd">        missing required members, or cannot be flattened so that it reassembles to the same shape.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"a typed record value must not be None"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">layouts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">layouts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
+        <span class="n">members</span> <span class="o">=</span> <span class="p">{</span><span class="n">layouts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">field</span><span class="p">:</span> <span class="n">value</span><span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"a dictionary value is required, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">known</span> <span class="o">=</span> <span class="p">{</span><span class="n">layout</span><span class="o">.</span><span class="n">field</span> <span class="k">for</span> <span class="n">layout</span> <span class="ow">in</span> <span class="n">layouts</span><span class="p">}</span>
+        <span class="n">unknown</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">value</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">known</span><span class="p">)</span>
+        <span class="n">missing</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">layout</span><span class="o">.</span><span class="n">field</span> <span class="k">for</span> <span class="n">layout</span> <span class="ow">in</span> <span class="n">layouts</span> <span class="k">if</span> <span class="n">layout</span><span class="o">.</span><span class="n">required</span> <span class="ow">and</span> <span class="n">layout</span><span class="o">.</span><span class="n">field</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">unknown</span> <span class="ow">or</span> <span class="n">missing</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"value has unknown member(s) </span><span class="si">{</span><span class="n">unknown</span><span class="si">}</span><span class="s2"> or lacks required member(s) </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">members</span> <span class="o">=</span> <span class="p">{</span><span class="n">layout</span><span class="o">.</span><span class="n">field</span><span class="p">:</span> <span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">layout</span><span class="o">.</span><span class="n">field</span><span class="p">)</span> <span class="k">for</span> <span class="n">layout</span> <span class="ow">in</span> <span class="n">layouts</span><span class="p">}</span>
+    <span class="n">flats</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">shapes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">layout</span> <span class="ow">in</span> <span class="n">layouts</span><span class="p">:</span>
+        <span class="n">flats</span><span class="p">[</span><span class="n">layout</span><span class="o">.</span><span class="n">field</span><span class="p">],</span> <span class="n">shapes</span><span class="p">[</span><span class="n">layout</span><span class="o">.</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">_flatten</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="n">members</span><span class="p">[</span><span class="n">layout</span><span class="o">.</span><span class="n">field</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">field</span><span class="p">,</span> <span class="n">sizes</span> <span class="ow">in</span> <span class="n">_resolve_sizes</span><span class="p">(</span><span class="n">layouts</span><span class="p">,</span> <span class="n">flats</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">actual</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">actual</span> <span class="o">!=</span> <span class="n">size</span> <span class="k">for</span> <span class="n">actual</span><span class="p">,</span> <span class="n">size</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">shapes</span><span class="p">[</span><span class="n">field</span><span class="p">],</span> <span class="n">sizes</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"member </span><span class="si">{</span><span class="n">field</span><span class="si">!r}</span><span class="s2">: shape </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">shapes</span><span class="p">[</span><span class="n">field</span><span class="p">])</span><span class="si">}</span><span class="s2"> would reassemble as </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">sizes</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">flats</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_reassemble_value</span><span class="p">(</span><span class="n">layouts</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">MemberLayout</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">flats</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Reassemble the JSON value from flat field values.</span>
+
+<span class="sd">    Required members are always present (``None`` stays ``None``); non-required members are present only</span>
+<span class="sd">    when not ``None``.</span>
+
+<span class="sd">    :param layouts: The definition's member layouts (from :func:`member_layout`).</span>
+<span class="sd">    :param flats: The flat value of every field.</span>
+<span class="sd">    :return: The reassembled value: nested lists for list members, a dictionary for a dictionary definition.</span>
+<span class="sd">    :raises ValueError: If a flat list cannot be reassembled into the definition's dimensions.</span>
+<span class="sd">    """</span>
+    <span class="n">sizes</span> <span class="o">=</span> <span class="n">_resolve_sizes</span><span class="p">(</span><span class="n">layouts</span><span class="p">,</span> <span class="n">flats</span><span class="p">)</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">field</span><span class="p">:</span> <span class="n">_nest</span><span class="p">(</span><span class="n">flats</span><span class="p">[</span><span class="n">layout</span><span class="o">.</span><span class="n">field</span><span class="p">],</span> <span class="n">sizes</span><span class="p">[</span><span class="n">layout</span><span class="o">.</span><span class="n">field</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">layout</span><span class="o">.</span><span class="n">field</span> <span class="ow">in</span> <span class="n">sizes</span>
+        <span class="k">else</span> <span class="n">flats</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">layout</span><span class="o">.</span><span class="n">field</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">layout</span> <span class="ow">in</span> <span class="n">layouts</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">layouts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">layouts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">values</span><span class="p">[</span><span class="n">layouts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">field</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">values</span><span class="p">[</span><span class="n">layout</span><span class="o">.</span><span class="n">field</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">layout</span> <span class="ow">in</span> <span class="n">layouts</span>
+        <span class="k">if</span> <span class="n">layout</span><span class="o">.</span><span class="n">required</span> <span class="ow">or</span> <span class="n">values</span><span class="p">[</span><span class="n">layout</span><span class="o">.</span><span class="n">field</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="p">}</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_LazyMapping</span><span class="p">[</span><span class="n">V</span><span class="p">](</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">V</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">"""A one-key read-only mapping whose value is computed on first lookup; iteration loads nothing."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">compute</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">V</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_key</span> <span class="o">=</span> <span class="n">key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_compute</span> <span class="o">=</span> <span class="n">compute</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">V</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">V</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_compute</span><span class="p">())</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_key</span><span class="p">,))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="viewcode-block" id="TypedRecordSpec">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.TypedRecordSpec">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TypedRecordSpec</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The property definition a typed record class stores, resolved lazily on first use.</span>
+
+<span class="sd">    :param definition_id: The IRI of the stored property definition.</span>
+<span class="sd">    :param served_name: The served (prefixed) property name, e.g. ``"_httk_temperature"``.</span>
+<span class="sd">    :param derivation: The derivation-term IRI for a record of a statistic of the base property</span>
+<span class="sd">        ``definition_id``, else ``None``.</span>
+<span class="sd">    :param derivation_label: The human-readable derivation name (e.g. ``"root-mean-square error"``); required</span>
+<span class="sd">        exactly when ``derivation`` is given.</span>
+<span class="sd">    :raises ValueError: If a name is empty or unstripped, or ``derivation_label`` is given without</span>
+<span class="sd">        ``derivation`` or missing with it.</span>
+<span class="sd">    """</span>
+
+<div class="viewcode-block" id="TypedRecordSpec.definition_id">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.TypedRecordSpec.definition_id">[docs]</a>
+    <span class="n">definition_id</span><span class="p">:</span> <span class="nb">str</span></div>
+
+<div class="viewcode-block" id="TypedRecordSpec.served_name">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.TypedRecordSpec.served_name">[docs]</a>
+    <span class="n">served_name</span><span class="p">:</span> <span class="nb">str</span></div>
+
+<div class="viewcode-block" id="TypedRecordSpec.derivation">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.TypedRecordSpec.derivation">[docs]</a>
+    <span class="n">derivation</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="TypedRecordSpec.derivation_label">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.TypedRecordSpec.derivation_label">[docs]</a>
+    <span class="n">derivation_label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_validate_string</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">definition_id</span><span class="p">,</span> <span class="s2">"definition_id"</span><span class="p">)</span>
+        <span class="n">_validate_string</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">served_name</span><span class="p">,</span> <span class="s2">"served_name"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"derivation"</span><span class="p">,</span> <span class="s2">"derivation_label"</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">_validate_string</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">),</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">derivation_label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">derivation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Fields 'derivation' and 'derivation_label' must be given together."</span><span class="p">)</span>
+
+    <span class="nd">@cached_property</span>
+<div class="viewcode-block" id="TypedRecordSpec.definition">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.TypedRecordSpec.definition">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">definition</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PropertyDefinition</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return the (base) property definition ``definition_id``."""</span>
+        <span class="k">return</span> <span class="n">load_property_definition</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">definition_id</span><span class="p">)</span></div>
+
+
+    <span class="nd">@cached_property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_stored_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PropertyDefinition</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return the unprefixed definition the record stores: :attr:`definition`, or the derived one.</span>
+
+<span class="sd">        A derived definition copies the base document's type, shape and units, and gets an ad-hoc httk</span>
+<span class="sd">        ``$id`` (unpublished), the name ``&lt;base name&gt;_&lt;derivation name&gt;``, a composed title, and a</span>
+<span class="sd">        description naming the derivation term and the base definition.</span>
+
+<span class="sd">        :return: The definition.</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">derivation</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">derivation_label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">definition</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">definition</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">base</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">derivation</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">'/'</span><span class="p">)</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">'/'</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">document</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">as_optimade</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"x-optimade-implementation"</span><span class="p">,</span> <span class="s2">"sortable"</span><span class="p">):</span>
+            <span class="n">document</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="n">document</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"title"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">base</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"_"</span><span class="p">,</span> <span class="s2">" "</span><span class="p">)</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">derivation_label</span>
+        <span class="n">stamp</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">document</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"x-optimade-definition"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s2">"label"</span><span class="p">}</span>
+        <span class="n">document</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">"$id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_HTTK_DEFS_BASE</span><span class="si">}</span><span class="s2">/_httk_</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="s2">"title"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">label</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}{</span><span class="n">label</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">_lower_first</span><span class="p">(</span><span class="n">title</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="s2">"description"</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"The </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> of the property </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">definition_id</span><span class="si">}</span><span class="s2">, as identified by the derivation term "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">derivation</span><span class="si">}</span><span class="s2">.</span><span class="se">\n\n</span><span class="si">{</span><span class="n">base</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">),</span>
+                <span class="s2">"x-optimade-definition"</span><span class="p">:</span> <span class="p">{</span><span class="o">**</span><span class="n">stamp</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">:</span> <span class="n">name</span><span class="p">},</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">PropertyDefinition</span><span class="o">.</span><span class="n">from_optimade</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">document</span><span class="p">)</span>
+
+    <span class="nd">@cached_property</span>
+<div class="viewcode-block" id="TypedRecordSpec.served_definition">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.TypedRecordSpec.served_definition">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">served_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PropertyDefinition</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return the served property definition; its name must be ``served_name``.</span>
+
+<span class="sd">        :return: The served form of the base definition, or of the synthesized derived definition.</span>
+<span class="sd">        :raises ValueError: If the served definition is named otherwise.</span>
+<span class="sd">        """</span>
+        <span class="n">served</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stored_definition</span><span class="o">.</span><span class="n">served_form</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">served</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">served_name</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">definition_id</span><span class="si">}</span><span class="s2"> is served as </span><span class="si">{</span><span class="n">served</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">, not </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">served_name</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">served</span></div>
+
+
+    <span class="nd">@cached_property</span>
+<div class="viewcode-block" id="TypedRecordSpec.layout">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.TypedRecordSpec.layout">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">layout</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">MemberLayout</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Return the member layout of the stored (base or derived) definition."""</span>
+        <span class="k">return</span> <span class="n">member_layout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_stored_definition</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TypedRecordSpec.definitions">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.TypedRecordSpec.definitions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">definitions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">PropertyDefinition</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Return ``{served_name: served definition}``, loaded on first lookup.</span>
+
+<span class="sd">        :return: A lazy read-only mapping; iterating it or taking its length loads nothing.</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">_LazyMapping</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">served_name</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">served_definition</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TypedRecordSpec.projections">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.TypedRecordSpec.projections">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">projections</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">StoredPropertyProjection</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Return ``{served_name: projection}`` serving and querying the value, built on first lookup.</span>
+
+<span class="sd">        Scalars are queried on their column: comparisons, string matching and ``IS KNOWN``/``IS UNKNOWN``;</span>
+<span class="sd">        float equality is exact binary64 equality. A list member (or list value) supports ``HAS``,</span>
+<span class="sd">        ``HAS ALL``, ``HAS ANY`` and ``HAS ONLY`` when one-dimensional (exact binary64 equality on floats;</span>
+<span class="sd">        ``HAS ONLY`` ignores null elements) and ``LENGTH``, the outer length, when every inner size is fixed.</span>
+<span class="sd">        A dictionary value serves its members as nested names (``name.member``) and is always known.</span>
+
+<span class="sd">        A dictionary value also supports zip filters (``name.a:name.b HAS ...``, ``HAS ALL``/``ANY``/``ONLY``)</span>
+<span class="sd">        over two or more distinct one-dimensional list members sharing their dimension name; slot comparisons</span>
+<span class="sd">        on a null element are unknown, so that position never matches (``HAS ONLY`` ignores it). A zip over</span>
+<span class="sd">        a member that may be None is unknown when that member is None. Other zips are not supported.</span>
+
+<span class="sd">        :return: A lazy read-only mapping; iterating it or taking its length loads nothing.</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="n">_LazyMapping</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">served_name</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">_projection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="p">))</span></div>
+</div>
+
+
+
+<span class="n">_STANDARD_FIELDS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"product_of"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"immutable_id"</span><span class="p">,</span> <span class="s2">"last_modified"</span><span class="p">)</span>
+<span class="n">_COMPARISONS</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"="</span><span class="p">,</span> <span class="s2">"!="</span><span class="p">,</span> <span class="s2">"&lt;"</span><span class="p">,</span> <span class="s2">"&lt;="</span><span class="p">,</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"&gt;="</span><span class="p">,</span> <span class="s2">"CONTAINS"</span><span class="p">,</span> <span class="s2">"STARTS"</span><span class="p">,</span> <span class="s2">"ENDS"</span><span class="p">})</span>
+<span class="n">_VERIFIED_CLASSES</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">type</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="n">layout</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">MemberLayout</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Verify once per class that *cls* is a frozen dataclass whose fields match *layout*.</span>
+
+<span class="sd">    :param cls: The typed record class.</span>
+<span class="sd">    :param layout: Its spec's layout.</span>
+<span class="sd">    :raises TypeError: If the class is not frozen or its fields differ from the layout.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">_VERIFIED_CLASSES</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">expected</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span><span class="o">.</span><span class="n">field</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">layout</span> <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">required</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">item</span><span class="o">.</span><span class="n">field</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">layout</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span><span class="o">.</span><span class="n">required</span><span class="p">]</span>
+    <span class="n">actual</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">(</span><span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="bp">cls</span><span class="p">))]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="n">__dataclass_params__</span><span class="o">.</span><span class="n">frozen</span> <span class="ow">or</span> <span class="n">actual</span> <span class="o">!=</span> <span class="p">[</span><span class="o">*</span><span class="n">expected</span><span class="p">,</span> <span class="o">*</span><span class="n">_STANDARD_FIELDS</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> must be a frozen dataclass with fields </span><span class="si">{</span><span class="p">[</span><span class="o">*</span><span class="n">expected</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">_STANDARD_FIELDS</span><span class="p">]</span><span class="si">}</span><span class="s2">, has </span><span class="si">{</span><span class="n">actual</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="n">_VERIFIED_CLASSES</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_coerce_leaf</span><span class="p">(</span><span class="n">field</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">leaf</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">leaf</span> <span class="o">==</span> <span class="s2">"float"</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Field </span><span class="si">{</span><span class="n">field</span><span class="si">!r}</span><span class="s2"> must hold numbers, not booleans."</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">if</span> <span class="n">leaf</span> <span class="o">==</span> <span class="s2">"float"</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="n">value</span>
+
+
+<div class="viewcode-block" id="TypedRecord">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.TypedRecord">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TypedRecord</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Mixin base of generated typed result records: one frozen dataclass per property definition.</span>
+
+<span class="sd">    A subclass sets ``__httk_typed_record__`` to its :class:`TypedRecordSpec` and declares the layout's</span>
+<span class="sd">    value fields (required members, then non-required members defaulting to ``None``) followed by the</span>
+<span class="sd">    standard ``product_of``, ``id``, ``immutable_id`` and ``last_modified`` fields. Construction coerces</span>
+<span class="sd">    integers to floats for float members and lists to tuples, validates the provenance edges and the</span>
+<span class="sd">    timestamp, and checks the reassembled :attr:`value` against the served definition. The value itself is</span>
+<span class="sd">    never ``None``, even for a nullable definition; dictionary members may be ``None`` when nullable or</span>
+<span class="sd">    not required.</span>
+<span class="sd">    """</span>
+
+    <span class="n">__httk_typed_record__</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">TypedRecordSpec</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="TypedRecord.type">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.TypedRecord.type">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return the internal (unprefixed) entry type name."""</span>
+        <span class="k">return</span> <span class="s2">"records"</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="TypedRecord.definition_id">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.TypedRecord.definition_id">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">definition_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return the IRI of the property definition whose value this record holds, as on ``DataRecord``.</span>
+
+<span class="sd">        For a derived (statistics) kind this is the base definition, qualified by :attr:`derivation`.</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__httk_typed_record__</span><span class="o">.</span><span class="n">definition_id</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="TypedRecord.derivation">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.TypedRecord.derivation">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">derivation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return the derivation-term IRI qualifying :attr:`definition_id`, as on ``DerivedDataRecord``; ``None`` for a plain kind."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__httk_typed_record__</span><span class="o">.</span><span class="n">derivation</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="TypedRecord.value">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.TypedRecord.value">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return the JSON value reassembled from the record's fields."""</span>
+        <span class="n">layout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__httk_typed_record__</span><span class="o">.</span><span class="n">layout</span>
+        <span class="k">return</span> <span class="n">_reassemble_value</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="p">{</span><span class="n">item</span><span class="o">.</span><span class="n">field</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">field</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">layout</span><span class="p">})</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">cls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__httk_typed_record__</span>
+        <span class="n">_check_class</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">spec</span><span class="o">.</span><span class="n">layout</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">layout</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">field</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Field </span><span class="si">{</span><span class="n">item</span><span class="o">.</span><span class="n">field</span><span class="si">!r}</span><span class="s2"> must not be None; a typed record holds a value."</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Field </span><span class="si">{</span><span class="n">item</span><span class="o">.</span><span class="n">field</span><span class="si">!r}</span><span class="s2"> must be a flat list or tuple."</span><span class="p">)</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">_coerce_leaf</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">field</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">leaf</span><span class="p">,</span> <span class="n">element</span><span class="p">)</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">_coerce_leaf</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">field</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">leaf</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">field</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="n">_edges</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"product_of"</span><span class="p">))</span>  <span class="c1"># noqa: B009</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">({</span><span class="n">edge</span><span class="o">.</span><span class="n">label</span> <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">})</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">edges</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Duplicate label on </span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> product_of."</span><span class="p">)</span>
+        <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"product_of"</span><span class="p">,</span> <span class="n">edges</span><span class="p">)</span>
+        <span class="n">_validate_timestamp</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"last_modified"</span><span class="p">),</span> <span class="s2">"last_modified"</span><span class="p">)</span>  <span class="c1"># noqa: B009</span>
+        <span class="n">spec</span><span class="o">.</span><span class="n">served_definition</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="TypedRecord.from_value">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.TypedRecord.from_value">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_value</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">product_of</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">RunEdge</span> <span class="o">|</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(),</span>
+        <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">immutable_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">last_modified</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Build a record from a JSON-like value of the definition.</span>
+
+<span class="sd">        :param value: The property value (a dictionary for a dictionary definition); never ``None``.</span>
+<span class="sd">        :param product_of: The entries this value is a product of, as labeled edges.</span>
+<span class="sd">        :param id: The human-readable entry id shared by all revisions; minted by the store when None.</span>
+<span class="sd">        :param immutable_id: The per-revision immutable id; minted by the store when None.</span>
+<span class="sd">        :param last_modified: The optional timezone-aware metadata timestamp.</span>
+<span class="sd">        :return: The typed record.</span>
+<span class="sd">        :raises ValueError: If the value is ``None``, cannot be flattened, or fails the definition check.</span>
+<span class="sd">        """</span>
+        <span class="n">flats</span> <span class="o">=</span> <span class="n">_flatten_value</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">__httk_typed_record__</span><span class="o">.</span><span class="n">layout</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">Any</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)(</span>
+            <span class="o">**</span><span class="n">flats</span><span class="p">,</span> <span class="n">product_of</span><span class="o">=</span><span class="n">product_of</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">,</span> <span class="n">immutable_id</span><span class="o">=</span><span class="n">immutable_id</span><span class="p">,</span> <span class="n">last_modified</span><span class="o">=</span><span class="n">last_modified</span>
+        <span class="p">)</span></div>
+
+
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="TypedRecord.from_data_record">
+<a class="viewcode-back" href="../../../reference/autoapi/httk/core/typed_records/index.html#httk.core.TypedRecord.from_data_record">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_data_record</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">record</span><span class="p">:</span> <span class="n">DataRecord</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Build a typed record from the generic data record of the same property definition.</span>
+
+<span class="sd">        The generic record's ``name`` is not kept, since the class fixes the property; its value, provenance</span>
+<span class="sd">        edges, ids and timestamp are.</span>
+
+<span class="sd">        :param record: A data record whose definition is this kind's property definition.</span>
+<span class="sd">        :return: The typed record.</span>
+<span class="sd">        :raises TypeError: If this is a derived (statistics) kind.</span>
+<span class="sd">        :raises ValueError: If ``record`` is not a data record of this kind's definition, or its value is</span>
+<span class="sd">            ``None`` or fails the definition.</span>
+<span class="sd">        """</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__httk_typed_record__</span>
+        <span class="k">if</span> <span class="n">spec</span><span class="o">.</span><span class="n">derivation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"derived typed records are built with from_value"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">DataRecord</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Expected a DataRecord of </span><span class="si">{</span><span class="n">spec</span><span class="o">.</span><span class="n">definition_id</span><span class="si">!r}</span><span class="s2">, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">record</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">record</span><span class="o">.</span><span class="n">definition_id</span> <span class="o">!=</span> <span class="n">spec</span><span class="o">.</span><span class="n">definition_id</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"DataRecord definition </span><span class="si">{</span><span class="n">record</span><span class="o">.</span><span class="n">definition_id</span><span class="si">!r}</span><span class="s2"> is not </span><span class="si">{</span><span class="n">spec</span><span class="o">.</span><span class="n">definition_id</span><span class="si">!r}</span><span class="s2">."</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_value</span><span class="p">(</span>
+            <span class="n">record</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+            <span class="n">product_of</span><span class="o">=</span><span class="n">record</span><span class="o">.</span><span class="n">product_of</span><span class="p">,</span>
+            <span class="nb">id</span><span class="o">=</span><span class="n">record</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="n">immutable_id</span><span class="o">=</span><span class="n">record</span><span class="o">.</span><span class="n">immutable_id</span><span class="p">,</span>
+            <span class="n">last_modified</span><span class="o">=</span><span class="n">record</span><span class="o">.</span><span class="n">last_modified</span><span class="p">,</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_scalar_projection</span><span class="p">(</span><span class="n">field</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StoredPropertyProjection</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">query</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="n">QueryContext</span><span class="p">,</span> <span class="n">operator</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">literal</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QueryExpression</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">operator</span> <span class="o">==</span> <span class="s2">"IS_KNOWN"</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">not_</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">is_null</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">operator</span> <span class="o">==</span> <span class="s2">"IS_UNKNOWN"</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">is_null</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">operator</span> <span class="ow">in</span> <span class="n">_COMPARISONS</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">operator</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">literal</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="n">QueryLiteralError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">field</span><span class="si">}</span><span class="s2"> supports comparisons, string matching and IS KNOWN/UNKNOWN only"</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">StoredPropertyProjection</span><span class="p">(</span>
+        <span class="n">response</span><span class="o">=</span><span class="k">lambda</span> <span class="n">record</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">field</span><span class="p">),</span> <span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="k">lambda</span> <span class="n">context</span><span class="p">:</span> <span class="n">context</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_maybe_none</span><span class="p">(</span><span class="n">layout</span><span class="p">:</span> <span class="n">MemberLayout</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="c1"># A dictionary member may be None (absent or null); a top-level value never is.</span>
+    <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">layout</span><span class="o">.</span><span class="n">path</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">layout</span><span class="o">.</span><span class="n">nullable</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">layout</span><span class="o">.</span><span class="n">required</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_present</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="n">QueryContext</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">flag</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QueryExpression</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">field</span><span class="si">}</span><span class="s2">_present"</span><span class="p">),</span> <span class="n">context</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">flag</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_list_projection</span><span class="p">(</span><span class="n">layout</span><span class="p">:</span> <span class="n">MemberLayout</span><span class="p">,</span> <span class="n">response</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">object</span><span class="p">],</span> <span class="nb">object</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">StoredPropertyProjection</span><span class="p">:</span>
+    <span class="n">field</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">field</span>
+    <span class="n">inner</span> <span class="o">=</span> <span class="p">[</span><span class="n">size</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">layout</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span>
+    <span class="n">maybe_none</span> <span class="o">=</span> <span class="n">_maybe_none</span><span class="p">(</span><span class="n">layout</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">present</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="n">QueryContext</span><span class="p">,</span> <span class="n">flag</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QueryExpression</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_present</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">flag</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">query</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="n">QueryContext</span><span class="p">,</span> <span class="n">operator</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">literal</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QueryExpression</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">operator</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"IS_KNOWN"</span><span class="p">,</span> <span class="s2">"IS_UNKNOWN"</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">maybe_none</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">always_true</span><span class="p">()</span> <span class="k">if</span> <span class="n">operator</span> <span class="o">==</span> <span class="s2">"IS_KNOWN"</span> <span class="k">else</span> <span class="n">context</span><span class="o">.</span><span class="n">always_false</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">present</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">operator</span> <span class="o">==</span> <span class="s2">"IS_KNOWN"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">operator</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"LENGTH "</span><span class="p">):</span>
+            <span class="k">if</span> <span class="kc">None</span> <span class="ow">in</span> <span class="n">inner</span> <span class="ow">or</span> <span class="mi">0</span> <span class="ow">in</span> <span class="n">inner</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">literal</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">literal</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">QueryLiteralError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">field</span><span class="si">}</span><span class="s2"> LENGTH needs an integer literal and fixed inner sizes"</span><span class="p">)</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">scope</span><span class="p">(</span><span class="n">field</span><span class="p">))</span>
+            <span class="n">factor</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">size</span> <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">inner</span> <span class="k">if</span> <span class="n">size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">predicate</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">operator</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="s2">"LENGTH "</span><span class="p">),</span> <span class="n">context</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">literal</span> <span class="o">*</span> <span class="n">factor</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">operator</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"HAS_ALL"</span><span class="p">,</span> <span class="s2">"HAS_ANY"</span><span class="p">,</span> <span class="s2">"HAS_ONLY"</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">inner</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">literal</span><span class="p">,</span> <span class="nb">list</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">QueryLiteralError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">field</span><span class="si">}</span><span class="s2"> supports HAS only on a one-dimensional list, with a list literal"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">operator</span> <span class="o">==</span> <span class="s2">"HAS_ONLY"</span><span class="p">:</span>
+                <span class="n">scope</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">scope</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+                <span class="n">others</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">and_</span><span class="p">(</span>
+                    <span class="o">*</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">not_</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="s2">"value"</span><span class="p">),</span> <span class="n">context</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">literal</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="n">predicate</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">filtered</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">others</span><span class="p">)),</span> <span class="s2">"="</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">terms</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">literal</span><span class="p">:</span>
+                    <span class="n">scope</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">scope</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>  <span class="c1"># A fresh peer scope per term.</span>
+                    <span class="n">matching</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">filtered</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">scope</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="s2">"value"</span><span class="p">),</span> <span class="n">context</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+                    <span class="n">terms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">matching</span><span class="p">),</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="mi">0</span><span class="p">)))</span>
+                <span class="n">predicate</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">and_</span><span class="p">(</span><span class="o">*</span><span class="n">terms</span><span class="p">)</span> <span class="k">if</span> <span class="n">operator</span> <span class="o">==</span> <span class="s2">"HAS_ALL"</span> <span class="k">else</span> <span class="n">context</span><span class="o">.</span><span class="n">or_</span><span class="p">(</span><span class="o">*</span><span class="n">terms</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">QueryLiteralError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">field</span><span class="si">}</span><span class="s2"> supports HAS, LENGTH and IS KNOWN/UNKNOWN only"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">when_known</span><span class="p">(</span><span class="n">present</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span> <span class="n">predicate</span><span class="p">)</span> <span class="k">if</span> <span class="n">maybe_none</span> <span class="k">else</span> <span class="n">predicate</span>
+
+    <span class="k">return</span> <span class="n">StoredPropertyProjection</span><span class="p">(</span><span class="n">response</span><span class="o">=</span><span class="n">response</span><span class="p">,</span> <span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_dictionary_query</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="n">QueryContext</span><span class="p">,</span> <span class="n">operator</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">literal</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QueryExpression</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">operator</span> <span class="o">==</span> <span class="s2">"IS_KNOWN"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">always_true</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">operator</span> <span class="o">==</span> <span class="s2">"IS_UNKNOWN"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">always_false</span><span class="p">()</span>
+    <span class="k">raise</span> <span class="n">QueryLiteralError</span><span class="p">(</span><span class="s2">"a dictionary value supports only IS KNOWN/UNKNOWN; filter on its members"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_zip_query</span><span class="p">(</span><span class="n">layout</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">MemberLayout</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">StoredPropertyZipQuery</span><span class="p">:</span>
+    <span class="n">by_name</span> <span class="o">=</span> <span class="p">{</span><span class="n">item</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">layout</span><span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">zip_query</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="n">QueryContext</span><span class="p">,</span> <span class="n">operator</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">literal</span><span class="p">:</span> <span class="n">ZipLiteral</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QueryExpression</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="p">[</span><span class="n">by_name</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">literal</span><span class="o">.</span><span class="n">paths</span><span class="p">]</span>
+        <span class="n">lists</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span> <span class="k">if</span> <span class="n">item</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">operator</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"HAS_ZIP_ALL"</span><span class="p">,</span> <span class="s2">"HAS_ZIP_ANY"</span><span class="p">,</span> <span class="s2">"HAS_ZIP_ONLY"</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">lists</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span>
+            <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">lists</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">literal</span><span class="o">.</span><span class="n">paths</span><span class="p">))</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="nb">len</span><span class="p">({</span><span class="n">item</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">lists</span><span class="p">})</span> <span class="o">!=</span> <span class="mi">1</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">views</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">QueryScope</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+            <span class="c1"># A fresh aligned group per call, as a fresh peer scope per HAS term.</span>
+            <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">aligned</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">scope</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">field</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">lists</span><span class="p">))</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">matches</span><span class="p">(</span><span class="n">group</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">QueryScope</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">ops</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">values</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">QueryExpression</span><span class="p">:</span>
+            <span class="n">slots</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">ops</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">and_</span><span class="p">(</span>
+                <span class="o">*</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span><span class="n">view</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="s2">"value"</span><span class="p">),</span> <span class="n">op</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">v</span><span class="p">))</span> <span class="k">for</span> <span class="n">view</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">slots</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="n">tuples</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">literal</span><span class="o">.</span><span class="n">operators</span><span class="p">,</span> <span class="n">literal</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">operator</span> <span class="o">==</span> <span class="s2">"HAS_ZIP_ONLY"</span><span class="p">:</span>
+            <span class="n">group</span> <span class="o">=</span> <span class="n">views</span><span class="p">()</span>
+            <span class="n">others</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">not_</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">or_</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">matches</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">ops</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span> <span class="k">for</span> <span class="n">ops</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">tuples</span><span class="p">)))</span>
+            <span class="n">predicate</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">filtered</span><span class="p">(</span><span class="n">group</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">others</span><span class="p">)),</span> <span class="s2">"="</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">terms</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">ops</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">tuples</span><span class="p">:</span>
+                <span class="n">group</span> <span class="o">=</span> <span class="n">views</span><span class="p">()</span>
+                <span class="n">matching</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">filtered</span><span class="p">(</span><span class="n">group</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">matches</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">ops</span><span class="p">,</span> <span class="n">values</span><span class="p">))</span>
+                <span class="n">terms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">matching</span><span class="p">),</span> <span class="s2">"&gt;"</span><span class="p">,</span> <span class="n">context</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="mi">0</span><span class="p">)))</span>
+            <span class="n">predicate</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">and_</span><span class="p">(</span><span class="o">*</span><span class="n">terms</span><span class="p">)</span> <span class="k">if</span> <span class="n">operator</span> <span class="o">==</span> <span class="s2">"HAS_ZIP_ALL"</span> <span class="k">else</span> <span class="n">context</span><span class="o">.</span><span class="n">or_</span><span class="p">(</span><span class="o">*</span><span class="n">terms</span><span class="p">)</span>
+        <span class="n">optional</span> <span class="o">=</span> <span class="p">[</span><span class="n">_present</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">field</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">lists</span> <span class="k">if</span> <span class="n">_maybe_none</span><span class="p">(</span><span class="n">item</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">context</span><span class="o">.</span><span class="n">when_known</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">and_</span><span class="p">(</span><span class="o">*</span><span class="n">optional</span><span class="p">),</span> <span class="n">predicate</span><span class="p">)</span> <span class="k">if</span> <span class="n">optional</span> <span class="k">else</span> <span class="n">predicate</span>
+
+    <span class="k">return</span> <span class="n">zip_query</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_value</span><span class="p">(</span><span class="n">record</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">TypedRecord</span><span class="p">,</span> <span class="n">record</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_projection</span><span class="p">(</span><span class="n">layout</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">MemberLayout</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">StoredPropertyProjection</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Build the projection of a typed record's served value from its layout.</span>
+
+<span class="sd">    :param layout: The definition's member layout.</span>
+<span class="sd">    :return: The top-level projection, with member projections for a dictionary definition.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">layout</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">layout</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="n">layout</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">_list_projection</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">_value</span><span class="p">)</span> <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">dimensions</span> <span class="k">else</span> <span class="n">_scalar_projection</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">field</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">member</span><span class="p">(</span><span class="n">item</span><span class="p">:</span> <span class="n">MemberLayout</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StoredPropertyProjection</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_scalar_projection</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">field</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_list_projection</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">record</span><span class="p">:</span> <span class="n">cast</span><span class="p">(</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">_value</span><span class="p">(</span><span class="n">record</span><span class="p">))</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+    <span class="k">return</span> <span class="n">StoredPropertyProjection</span><span class="p">(</span>
+        <span class="n">response</span><span class="o">=</span><span class="n">_value</span><span class="p">,</span>
+        <span class="n">query</span><span class="o">=</span><span class="n">_dictionary_query</span><span class="p">,</span>
+        <span class="n">members</span><span class="o">=</span><span class="p">{</span><span class="n">item</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">member</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">layout</span><span class="p">},</span>
+        <span class="n">zip_query</span><span class="o">=</span><span class="n">_zip_query</span><span class="p">(</span><span class="n">layout</span><span class="p">),</span>
+    <span class="p">)</span>
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2026, The httk-core AUTHORS
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="../../../_static/documentation_options.js?v=952df46a"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=fd10adb8"></script>
+    <script src="../../../_static/selector.js?v=d8e9b3ce"></script>
+    <script>window.HTTK_DOCS_VERSIONING = {"channel":"dev","version":"dev:develop","versionPathDepth":2};</script>
+    </body>
+</html>

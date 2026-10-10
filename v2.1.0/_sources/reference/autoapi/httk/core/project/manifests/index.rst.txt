@@ -1,0 +1,206 @@
+httk.core.project.manifests
+===========================
+
+.. py:module:: httk.core.project.manifests
+
+.. autoapi-nested-parse::
+
+   The deterministic, signed project manifest.
+
+   A *manifest* is a signed record of every file in a project tree at one moment:
+   the same canonical, sorted record list a seal is built from, wrapped in a v2
+   JSONL.bz2 document with a domain-separated Ed25519 signature over its body. A
+   manifest covers the whole tree minus what each member decides to leave out of
+   its own internals, so payloads stay covered while working scratch does not.
+
+   Verification answers the two questions a signature always raises separately —
+   *does this manifest still describe this tree* (the digests and signature) and
+   *was it made by a key this project pins* (a trust anchor that never comes from
+   the manifest itself).
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.project.manifests.VALID_TRUSTED
+   httk.core.project.manifests.VALID_UNKNOWN_KEY
+   httk.core.project.manifests.INVALID
+   httk.core.project.manifests.VERDICT_EXIT_CODES
+   httk.core.project.manifests.DEFAULT_MANIFEST_EXCLUSIONS
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.project.manifests.ManifestVerification
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.project.manifests.project_exclusions
+   httk.core.project.manifests.create_manifest
+   httk.core.project.manifests.resolve_trusted_keys
+   httk.core.project.manifests.verdict_for_key
+   httk.core.project.manifests.verify_manifest
+
+
+Module Contents
+---------------
+
+.. py:data:: VALID_TRUSTED
+   :value: 'valid_trusted'
+
+
+.. py:data:: VALID_UNKNOWN_KEY
+   :value: 'valid_unknown_key'
+
+
+.. py:data:: INVALID
+   :value: 'invalid'
+
+
+.. py:data:: VERDICT_EXIT_CODES
+
+.. py:data:: DEFAULT_MANIFEST_EXCLUSIONS
+
+.. py:function:: project_exclusions(metadata)
+
+   Return the default manifest exclusions plus the project's configured ones.
+
+   :param metadata: Project metadata carrying the optional exclusion member.
+   :return: The exclusion patterns applied before members contribute their own.
+   :raises ValueError: If ``manifest_exclusions`` is not an array of strings.
+
+
+.. py:function:: create_manifest(project = None, *, output = None)
+
+   Create and atomically publish the signed v2 project manifest.
+
+   :param project: Locate the project to snapshot, or use discovery when unset.
+   :param output: Publish the manifest at this path, or use the project default.
+   :return: The published manifest path.
+   :raises ValueError: If the project is invalid or cannot be snapshotted.
+
+
+.. py:class:: ManifestVerification
+
+   What verifying one manifest against one tree established.
+
+   A signature check answers two separate questions. *Does this manifest
+   describe this tree, unaltered?* is answered by the digests and the signature.
+   *Was it made by somebody this project trusts?* is answered only by comparing
+   the signing key with a trust anchor that did not come from the manifest.
+
+   :param verdict: Classify the verification result.
+   :param reason: Explain the classification.
+   :param manifest: Identify the verified manifest.
+   :param manifest_format: Identify the manifest format used.
+   :param public_key: Record the signing key, when readable.
+   :param trusted_keys: Record the trust anchors consulted.
+
+
+   .. py:attribute:: verdict
+      :type:  str
+
+
+   .. py:attribute:: reason
+      :type:  str
+
+
+   .. py:attribute:: manifest
+      :type:  pathlib.Path
+
+
+   .. py:attribute:: manifest_format
+      :type:  str
+
+
+   .. py:attribute:: public_key
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: trusted_keys
+      :type:  tuple[str, Ellipsis]
+      :value: ()
+
+
+
+   .. py:property:: valid
+      :type: bool
+
+
+      Whether the manifest describes this tree and its signature verified.
+
+
+   .. py:property:: trusted
+      :type: bool
+
+
+      Whether the verified signature was made by a pinned key.
+
+
+   .. py:property:: exit_code
+      :type: int
+
+
+      The command-line status this verdict reports.
+
+
+   .. py:method:: as_mapping()
+
+      Return the JSON representation of this verdict.
+
+      :return: JSON-compatible verification members.
+
+
+
+.. py:function:: resolve_trusted_keys(project = None, *, trusted_keys = None)
+
+   Return the trust anchors of *project* plus every explicitly named key.
+
+   An entry of *trusted_keys* is either a recorded key — ``ed25519:BASE64`` or
+   the bare base64 — or the path of a ``*.pub`` file holding one.
+
+   :param project: Locate the project whose pinned keys to include.
+   :param trusted_keys: Add explicit recorded keys or public-key files.
+   :return: Unique canonical trust-anchor values in stable order.
+   :raises ValueError: If an explicit key cannot be canonicalized.
+
+
+.. py:function:: verdict_for_key(public_key, trusted, *, manifest, manifest_format)
+
+   Classify a verified signature against the trust anchors of a project.
+
+   :param public_key: The recorded public key whose signature already verified.
+   :param trusted: The project's trust anchors.
+   :param manifest: The manifest the verdict is about.
+   :param manifest_format: The manifest format label carried into the verdict.
+   :return: The trusted or unknown-key verdict for the signer.
+
+
+.. py:function:: verify_manifest(project = None, *, manifest = None, trusted_keys = None)
+
+   Verify a project's v2 manifest against the tree and its trust anchors.
+
+   The trust anchor is the key pinned in ``project.json`` — never the key the
+   manifest names in its own header — plus any key passed in *trusted_keys*, as
+   a recorded value or the path of a ``*.pub`` file.
+
+   :param project: Locate the project to discover and verify.
+   :param manifest: Select a manifest path instead of the project default.
+   :param trusted_keys: Add explicit trust anchors to the project keys.
+   :return: The detailed verification verdict.
+   :raises ValueError: If no project or usable manifest exists.
+   :raises FileNotFoundError: If the selected manifest file is absent.
+
+

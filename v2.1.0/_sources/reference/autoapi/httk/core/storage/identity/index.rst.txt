@@ -1,0 +1,186 @@
+httk.core.storage.identity
+==========================
+
+.. py:module:: httk.core.storage.identity
+
+.. autoapi-nested-parse::
+
+   Canonical content identity for plain and projected frozen records.
+
+   Canonical format version 2 represents a standalone record as a type-tagged
+   record object containing its logical ``identity_name`` and sorted field pairs.
+   Whenever an annotated record is reached through a field, a list or tuple
+   element, or a typed mapping value, the parent contains only a Merkle reference::
+
+       {"content_id": "<64 lowercase hex characters>", "type": "record_ref"}
+
+   The referenced digest is SHA-256 of that child's own canonical record JSON,
+   including its ``"version": 2`` header. It is computed in the same encoder
+   context as the parent so active-path cycle detection retains the complete field
+   path. Canonical JSON uses ASCII escaping, compact separators, and sorted object
+   keys.
+
+   The v2 value-node shapes are:
+
+   * ``null``; ``bool`` with a JSON boolean; ``int`` with decimal text; ``float``
+     with :meth:`float.hex` text; ``string``; and hexadecimal ``bytes``;
+   * ``rational`` for :class:`fractions.Fraction`, :class:`decimal.Decimal`, and
+     :class:`~httk.core.vectors.fracvector.FracScalar`, with reduced ``"p/q"``
+     text and an explicit positive denominator (including ``"0/1"`` and
+     ``"5/1"``);
+   * structural ``frac_vector``, ``surd_scalar``, and ``surd_vector`` nodes,
+     unchanged from format v1;
+   * ``date`` and ``datetime`` nodes, the latter recording whether the original
+     value was timezone-aware;
+   * ``list`` and ``tuple`` nodes containing value nodes, and ``mapping`` nodes
+     containing sorted string-key/value-node pairs;
+   * ``custom`` nodes containing the exact Python type name and the tagged value
+     returned by its registered encoder; and
+   * standalone ``record`` nodes plus the ``record_ref`` nodes described above.
+
+   The format is not injective after record children are replaced by digests. Its
+   guarantee is computational binding: producing two distinct well-formed
+   canonical value trees, modulo the documented deliberate equivalences
+   (shared-vs-duplicated equal children, ``IdentitySkip`` exclusions,
+   ``identity_name``-based record unification, ``Decimal`` equivalence with
+   ``Fraction``, builtin-subclass leaf unification, and annotation-normalized
+   list/tuple values), with equal digests requires a SHA-256 collision. A
+   ``record_ref`` is sound domain separation because user data is always enclosed
+   in its own tagged value node and can never forge a bare reference node.
+
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   httk.core.storage.identity.StorageProjectionCycleError
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.storage.identity.register_canonical_encoder
+   httk.core.storage.identity.resolve_storage_record
+   httk.core.storage.identity.project_storage_record
+   httk.core.storage.identity.storage_identity_name
+   httk.core.storage.identity.canonical_form
+   httk.core.storage.identity.content_id
+
+
+Module Contents
+---------------
+
+.. py:exception:: StorageProjectionCycleError(path, record_type)
+
+   Bases: :py:obj:`ValueError`
+
+
+   Raise when a projected record graph contains an active cycle.
+
+   :param path: The canonical field path where the cycle was detected.
+   :param record_type: The record class being projected when the cycle was found.
+
+
+   .. py:attribute:: path
+
+
+   .. py:attribute:: record_type
+
+
+.. py:function:: register_canonical_encoder(python_type, encoder)
+
+   Register one deterministic encoder for an exact custom Python type.
+
+   Leaf values use exact-type lookup, so a registered encoder for a base class
+   does not apply to subclasses. The encoder must return JSON-compatible data.
+
+   :param python_type: The exact custom class to encode.
+   :param encoder: The deterministic encoder callable.
+   :raises TypeError: If the type or encoder is invalid.
+   :raises ValueError: If an encoder is already registered for the class.
+
+
+.. py:function:: resolve_storage_record(source, *, as_record = None)
+
+   Resolve the exact record target for ``source`` without constructing it.
+
+   :param source: The source value whose storage record target is requested.
+   :param as_record: An explicit record class override, if supplied.
+   :return: The validated frozen dataclass record class.
+   :raises TypeError: If the resolved target is not a frozen dataclass.
+
+
+.. py:function:: project_storage_record(record_type, source)
+
+   Project and validate one record level, returning field values by name.
+
+   Projection classes may declare a source class and classmethod projection;
+   otherwise ``source`` must already be an instance of ``record_type``. A
+   projection used by the trusted content-id path must be deterministic for
+   the immutable lifetime of its source: the content-id cache is governed by
+   that immutability contract.
+
+   :param record_type: The frozen dataclass record class to project.
+   :param source: A record instance or declared projection source.
+   :return: Field values present at this record level.
+   :raises TypeError: If the record or projection declaration is invalid.
+   :raises ValueError: If a projection omits a required field or names an unknown one.
+
+
+.. py:function:: storage_identity_name(record_type)
+
+   Return the logical identity name, independent of physical storage naming.
+
+   :param record_type: The record class whose logical identity name is requested.
+   :return: The declared identity name or the fully qualified class name.
+   :raises TypeError: If ``record_type`` is not a class or has an invalid storage declaration.
+
+
+.. py:function:: canonical_form(obj, *, as_record = None, projector = project_storage_record, extras = None)
+
+   Return the versioned, type-tagged canonical JSON for a record value.
+
+   Storage integrations may supply a caching ``projector`` to reuse the exact
+   per-record mappings traversed while computing identity.
+
+   Record fields marked with :class:`~httk.core.storage.IdentitySkip`, or
+   represented by :class:`~httk.core.storage.stored_property`, are outside the
+   content identity. Registered custom encoders apply only to exact leaf types.
+
+   ``extras`` fold additional save-time key/value pairs into the identity of
+   the root record only; child records never receive them. When ``extras`` is
+   ``None`` or empty the output is byte-identical to omitting it.
+
+   :param obj: The record or projected source to encode.
+   :param as_record: An explicit record class override, if supplied.
+   :param projector: The record-level projection function.
+   :param extras: Root-only identity contributions encoded through the value machinery.
+   :return: Versioned, type-tagged canonical JSON.
+   :raises TypeError: If a value or projection cannot be represented.
+   :raises ValueError: If a projection is invalid or contains a cycle.
+
+
+.. py:function:: content_id(obj, *, as_record = None, projector = project_storage_record, extras = None)
+
+   Return the lowercase SHA-256 content identity of ``obj``.
+
+   The digest covers :func:`~httk.core.storage.identity.canonical_form`, including exact-type leaf
+   encodings and excluding fields marked with :class:`~httk.core.storage.markers.IdentitySkip`.
+
+   ``extras`` fold additional save-time key/value pairs into the root record's
+   identity (see :func:`~httk.core.storage.identity.canonical_form`). Extras-bearing calls bypass the
+   trusted per-instance cache entirely, so they never read or poison it.
+
+   :param obj: The record or projected source to identify.
+   :param as_record: An explicit record class override, if supplied.
+   :param projector: The record-level projection function.
+   :param extras: Root-only identity contributions encoded through the value machinery.
+   :return: The lowercase SHA-256 hexadecimal digest.
+   :raises TypeError: If a value or projection cannot be represented.
+   :raises ValueError: If a projection is invalid or contains a cycle.
+
+

@@ -1,0 +1,152 @@
+httk.core.entry_records
+=======================
+
+.. py:module:: httk.core.entry_records
+
+.. autoapi-nested-parse::
+
+   Declarative frozen records with explicit OPTIMADE property metadata.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.entry_records.EntryRecord
+   httk.core.entry_records.DataEntryRecord
+   httk.core.entry_records.Property
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.entry_records.entry_record
+
+
+Module Contents
+---------------
+
+.. py:class:: EntryRecord
+
+   Common metadata for application-defined served records.
+
+   Subclasses declare their entry family's ``type`` and ``definition_id`` and
+   use :func:`entry_record` to become concrete frozen records. Metadata fields
+   are keyword-only and excluded from equality and content identity.
+
+   :param id: Public lineage identifier, assigned by the store when omitted.
+   :param immutable_id: Revision identifier, assigned by the store when omitted.
+   :param last_modified: Optional timezone-aware source modification time.
+   :raises ValueError: If an identifier is empty or a timestamp lacks a timezone.
+
+
+   .. py:attribute:: id
+      :type:  Annotated[str | None, IdentitySkip(), Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: immutable_id
+      :type:  Annotated[str | None, IdentitySkip(), Unique()]
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+   .. py:attribute:: type
+      :type:  ClassVar[str]
+
+
+   .. py:attribute:: definition_id
+      :type:  ClassVar[str]
+
+
+   .. py:method:: entry_type_definition()
+      :classmethod:
+
+
+      Return this concrete record's extended entry-family definition.
+
+      :return: The base family definition extended with declared properties.
+      :raises TypeError: If the class was not decorated with :func:`entry_record`.
+      :raises ValueError: If a standard property definition is replaced.
+
+
+
+.. py:class:: DataEntryRecord
+
+   Bases: :py:obj:`EntryRecord`
+
+
+   Base for typed application records served at ``_httk_records``.
+
+   No scientific fields are prescribed. This does not replace the existing
+   :class:`~httk.core.data_records.DataRecord` single-property value model.
+
+
+   .. py:attribute:: type
+      :type:  ClassVar[str]
+      :value: 'records'
+
+
+
+   .. py:attribute:: definition_id
+      :type:  ClassVar[str]
+      :value: 'https://schemas.httk.org/defs/v0.1/entrytypes/records'
+
+
+
+.. py:class:: Property
+
+   Declare a served scalar field through ``Annotated`` metadata.
+
+   The Python annotation supplies the type (``str``, ``int``, ``float``, or
+   ``bool``, optionally nullable). Only marked fields become served attributes.
+   Use an existing :class:`~httk.core.property_definitions.PropertyDefinition`
+   as the annotation metadata instead when a curated definition exists.
+
+   :param description: Scientific meaning of the field, including normalization.
+   :param unit: Property unit; omitted means dimensionless.
+   :param name: Served name; omitted uses ``_httk_custom_<field>``.
+
+
+   .. py:attribute:: description
+      :type:  str
+
+
+   .. py:attribute:: unit
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: name
+      :type:  str | None
+      :value: None
+
+
+
+.. py:function:: entry_record[T](name)
+
+   Declare a frozen served record with a stable, explicit identity.
+
+   This decorator does not register global plugins. Pass the resulting class
+   explicitly to the store on creation and reopening. Referenced records remain
+   ordinary dataclass fields. Property mappings are compiled for each concrete
+   class; subclasses must opt in with their own decoration and identity.
+
+   :param name: Stable logical identity, independent of the Python module/name.
+   :return: A decorator that creates a frozen dataclass and its served mappings.
+   :raises TypeError: If the class, field type, or declaration is unsupported.
+   :raises ValueError: If identities, property names, or definitions conflict.
+
+

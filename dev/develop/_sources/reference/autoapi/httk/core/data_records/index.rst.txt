@@ -1,0 +1,425 @@
+httk.core.data_records
+======================
+
+.. py:module:: httk.core.data_records
+
+.. autoapi-nested-parse::
+
+   Stdlib-only records for one declared property value per entry.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.data_records.RECORDS_DEFINITION_ID
+   httk.core.data_records.TOTAL_ENERGY_DEFINITION_ID
+   httk.core.data_records.AVERAGE_TOTAL_ENERGY_DEFINITION_ID
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.data_records.DataRecord
+   httk.core.data_records.DerivedDataRecord
+   httk.core.data_records.TotalEnergyRecord
+   httk.core.data_records.AverageTotalEnergyRecord
+   httk.core.data_records.DataRecordEntry
+
+
+Module Contents
+---------------
+
+.. py:data:: RECORDS_DEFINITION_ID
+   :value: 'https://schemas.httk.org/defs/v0.1/entrytypes/records'
+
+
+.. py:data:: TOTAL_ENERGY_DEFINITION_ID
+   :value: 'https://schemas.httk.org/defs/v0.1/properties/core/total_energy'
+
+
+.. py:data:: AVERAGE_TOTAL_ENERGY_DEFINITION_ID
+   :value: 'https://schemas.httk.org/defs/v0.1/properties/core/average_total_energy'
+
+
+.. py:class:: DataRecord
+
+   Store one canonical JSON value of one declared property.
+
+   ``value_json`` is canonical JSON, with sorted object keys, compact
+   separators, and no non-finite numeric values. ``value`` decodes it on
+   access; ``value_number`` exposes finite numeric values for numeric queries.
+   The human-readable and immutable identifiers and timestamp metadata are
+   excluded from content identity.
+
+   ``product_of`` names the entries this value describes, as
+   :class:`~httk.core.storage.StrongLink` edges with the same
+   :class:`~httk.core.provenance.RunEdge` scheme a :class:`~httk.core.Run` uses:
+   string ``(label, entry_type, entry_id)`` triples, part of the record's content
+   and therefore pinned to the exact entry revision. It is served forward as the
+   ``product_of`` relationship and in reverse as ``has_product`` on the target,
+   and is searchable through ``record.links.product_of`` and
+   ``target.links.has_product``.
+
+   :param definition_id: The property definition IRI for the value.
+   :param name: The property name.
+   :param value_json: The canonical JSON representation of the value.
+   :param product_of: The entries this value is a product of, as labeled edges.
+   :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+   :param immutable_id: The per-revision immutable id; minted by the store when None.
+   :param last_modified: The optional timezone-aware metadata timestamp.
+
+
+   .. py:attribute:: definition_id
+      :type:  str
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: value_json
+      :type:  str
+
+
+   .. py:attribute:: product_of
+      :type:  Annotated[tuple[httk.core.provenance.RunEdge, ...], StrongLink('product_of', reverse='has_product', role='subject')]
+      :value: ()
+
+
+
+   .. py:attribute:: id
+      :type:  Annotated[str | None, IdentitySkip(), Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: immutable_id
+      :type:  Annotated[str | None, IdentitySkip(), Unique()]
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+   .. py:property:: type
+      :type: str
+
+
+      Return the internal (unprefixed) entry type name.
+
+
+   .. py:property:: value
+      :type: Any
+
+
+      Decode and return the stored property value.
+
+
+   .. py:property:: value_number
+      :type: float | None
+
+
+      The decoded numeric value, stored as a numeric SQL query column.
+
+
+   .. py:method:: from_value(definition_id, name, value, *, product_of = (), id = None, immutable_id = None, last_modified = None)
+      :classmethod:
+
+
+      Encode a value canonically and construct its data record.
+
+      :param definition_id: The property definition IRI for the value.
+      :param name: The property name.
+      :param value: The JSON value to encode.
+      :param product_of: The entries this value is a product of, as labeled edges.
+      :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+      :param immutable_id: The per-revision immutable id; minted by the store when None.
+      :param last_modified: The optional timezone-aware metadata timestamp.
+      :return: A data record containing the canonical JSON value.
+      :raises TypeError: If the value contains an unsupported object.
+      :raises ValueError: If the value is circular or contains a non-finite number, or if ``definition_id`` or ``name`` is invalid or ``last_modified`` is not timezone-aware.
+
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+      Coerce a mapping or existing record into a :class:`DataRecord`.
+
+      :param obj: A data record instance or field mapping.
+      :return: The existing or newly constructed data record.
+      :raises TypeError: If ``obj`` is neither a data record nor a mapping.
+      :raises ValueError: If the mapping has unknown or invalid fields.
+
+
+
+.. py:class:: DerivedDataRecord
+
+   Store one canonical JSON value of a statistic or other derivation of a declared property.
+
+   The sibling of :class:`DataRecord` for values such as the standard error or
+   RMSE of a property: ``definition_id`` and ``name`` identify the BASE property
+   (e.g. ``_httk_total_energy``) and ``derivation`` is the derivation-term IRI
+   that qualifies it. ``derivation`` is part of the content identity, so two
+   derivations of the same property never collide. Keeping derivations in their
+   own record type leaves every existing :class:`DataRecord` identity unchanged.
+   ``value_json``, ``value``, ``value_number`` and ``product_of`` behave as on
+   :class:`DataRecord`.
+
+   :param definition_id: The base property definition IRI.
+   :param derivation: The derivation-term IRI qualifying the base property.
+   :param name: The base property name.
+   :param value_json: The canonical JSON representation of the derived value.
+   :param product_of: The entries this value is a product of, as labeled edges.
+   :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+   :param immutable_id: The per-revision immutable id; minted by the store when None.
+   :param last_modified: The optional timezone-aware metadata timestamp.
+
+
+   .. py:attribute:: definition_id
+      :type:  str
+
+
+   .. py:attribute:: derivation
+      :type:  str
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: value_json
+      :type:  str
+
+
+   .. py:attribute:: product_of
+      :type:  Annotated[tuple[httk.core.provenance.RunEdge, ...], StrongLink('product_of', reverse='has_product', role='subject')]
+      :value: ()
+
+
+
+   .. py:attribute:: id
+      :type:  Annotated[str | None, IdentitySkip(), Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: immutable_id
+      :type:  Annotated[str | None, IdentitySkip(), Unique()]
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+   .. py:property:: type
+      :type: str
+
+
+      Return the internal (unprefixed) entry type name.
+
+
+   .. py:property:: value
+      :type: Any
+
+
+      Decode and return the stored derived value.
+
+
+   .. py:property:: value_number
+      :type: float | None
+
+
+      The decoded numeric value, stored as a numeric SQL query column.
+
+
+   .. py:method:: from_value(definition_id, derivation, name, value, *, product_of = (), id = None, immutable_id = None, last_modified = None)
+      :classmethod:
+
+
+      Encode a derived value canonically and construct its record.
+
+      :param definition_id: The base property definition IRI.
+      :param derivation: The derivation-term IRI qualifying the base property.
+      :param name: The base property name.
+      :param value: The JSON value to encode.
+      :param product_of: The entries this value is a product of, as labeled edges.
+      :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+      :param immutable_id: The per-revision immutable id; minted by the store when None.
+      :param last_modified: The optional timezone-aware metadata timestamp.
+      :return: A derived data record containing the canonical JSON value.
+      :raises TypeError: If the value contains an unsupported object.
+      :raises ValueError: If the value is circular or contains a non-finite number, or if ``definition_id``, ``derivation`` or ``name`` is invalid or ``last_modified`` is not timezone-aware.
+
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+      Coerce a mapping or existing record into a :class:`DerivedDataRecord`.
+
+      :param obj: A derived data record instance or field mapping.
+      :return: The existing or newly constructed derived data record.
+      :raises TypeError: If ``obj`` is neither a derived data record nor a mapping.
+      :raises ValueError: If the mapping has unknown or invalid fields.
+
+
+
+.. py:class:: TotalEnergyRecord
+
+   Store one total energy, in eV, as a typed record with a native float column.
+
+   Unlike :class:`DataRecord`, the property is fixed by the class, so the
+   ``_httk_total_energy`` value is served and queried from the ``total_energy``
+   column. ``product_of`` has the same meaning as on :class:`DataRecord`.
+
+   :param total_energy: The finite total energy in eV.
+   :param product_of: The entries this value is a product of, as labeled edges.
+   :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+   :param immutable_id: The per-revision immutable id; minted by the store when None.
+   :param last_modified: The optional timezone-aware metadata timestamp.
+   :raises ValueError: If the energy is not a finite number or ``last_modified`` is not timezone-aware.
+
+
+   .. py:attribute:: total_energy
+      :type:  float
+
+
+   .. py:attribute:: product_of
+      :type:  Annotated[tuple[httk.core.provenance.RunEdge, ...], StrongLink('product_of', reverse='has_product', role='subject')]
+      :value: ()
+
+
+
+   .. py:attribute:: id
+      :type:  Annotated[str | None, IdentitySkip(), Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: immutable_id
+      :type:  Annotated[str | None, IdentitySkip(), Unique()]
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+   .. py:property:: type
+      :type: str
+
+
+      Return the internal (unprefixed) entry type name.
+
+
+   .. py:method:: from_data_record(record)
+      :classmethod:
+
+
+      Build a typed total-energy record from a generic data record.
+
+      :param record: A data record whose definition is the total-energy property.
+      :return: The typed record with the same value, edges and ids.
+      :raises ValueError: If the record is for a different property definition or holds a non-numeric value.
+
+
+
+.. py:class:: AverageTotalEnergyRecord
+
+   Store one average total energy, in eV, as a typed record with a native float column.
+
+   Unlike :class:`DataRecord`, the property is fixed by the class, so the
+   ``_httk_average_total_energy`` value is served and queried from the ``average_total_energy``
+   column. ``product_of`` has the same meaning as on :class:`DataRecord`.
+
+   :param average_total_energy: The finite average total energy in eV.
+   :param product_of: The entries this value is a product of, as labeled edges.
+   :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+   :param immutable_id: The per-revision immutable id; minted by the store when None.
+   :param last_modified: The optional timezone-aware metadata timestamp.
+   :raises ValueError: If the energy is not a finite number or ``last_modified`` is not timezone-aware.
+
+
+   .. py:attribute:: average_total_energy
+      :type:  float
+
+
+   .. py:attribute:: product_of
+      :type:  Annotated[tuple[httk.core.provenance.RunEdge, ...], StrongLink('product_of', reverse='has_product', role='subject')]
+      :value: ()
+
+
+
+   .. py:attribute:: id
+      :type:  Annotated[str | None, IdentitySkip(), Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: immutable_id
+      :type:  Annotated[str | None, IdentitySkip(), Unique()]
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+   .. py:property:: type
+      :type: str
+
+
+      Return the internal (unprefixed) entry type name.
+
+
+   .. py:method:: from_data_record(record)
+      :classmethod:
+
+
+      Build a typed average-total-energy record from a generic data record.
+
+      :param record: A data record whose definition is the average-total-energy property.
+      :return: The typed record with the same value, edges and ids.
+      :raises ValueError: If the record is for a different property definition or holds a non-numeric value.
+
+
+
+.. py:class:: DataRecordEntry
+
+   Logical entry family for served :class:`DataRecord` records.
+
+   This family is not itself storable; store a ``DataRecord`` directly.
+
+
+   .. py:attribute:: type
+      :value: 'records'
+
+
+
+   .. py:attribute:: definition_id
+      :value: 'https://schemas.httk.org/defs/v0.1/entrytypes/records'
+
+
+
