@@ -148,6 +148,8 @@ def test_supported_python_versions_use_normal_tests() -> None:
         "3.14",
         "--extra",
         "dev",
+        "--extra",
+        "ci",
         "make",
         "test",
     ]

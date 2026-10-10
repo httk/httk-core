@@ -70,6 +70,8 @@ dev = [
   "numpy>=1.26",
   "pydoclint>=0.9,<1"
 ]
+# Optional integrations exercised only by the full CI gate (none for httk-core).
+ci = []
 docs = [
   "sphinx",
   "furo",
