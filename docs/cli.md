@@ -113,9 +113,16 @@ first added becomes the default:
 httk identity add alice --name "Alice" --email alice@example.test
 httk identity add ci_bot --name "CI" --email ci@example.test --default
 httk identity list --json
+httk identity show [--json] [SHORT]
+httk identity key [SHORT]
 httk identity default alice
 httk identity remove ci_bot ...
 ```
+
+`show` describes one identity, including its key file paths, and `key` prints
+only its `ed25519:...` public key, ready to paste. Both use the default identity
+when `SHORT` is omitted; `key` exits `2` rather than print anything when there is
+no usable key.
 
 `remove` forgets an identity's attribution but deliberately leaves its key files
 on disk, so a signature it already produced stays verifiable. See

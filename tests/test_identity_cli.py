@@ -4,7 +4,7 @@ The library-level behaviour of operator identity — resolution order, literal
 selectors, signing, seed handling, key permissions — lives in
 ``httk.core.identity`` and is covered by ``tests/test_operator_identity.py``.
 What is covered here is only the command-line wiring: that ``httk init`` and
-``httk identity add|list|default|remove`` drive the identity store in
+``httk identity add|list|show|key|default|remove`` drive the identity store in
 ``identity.json`` and report it the way operators depend on.
 """
 
@@ -16,6 +16,7 @@ import pytest
 from httk.core.cli import CLIContext, main
 from httk.core.identity import (
     identity_key_paths,
+    identity_public_key,
     read_identity_config,
     write_identity_config,
 )
@@ -206,3 +207,45 @@ def test_identity_remove_is_best_effort(capsys: pytest.CaptureFixture[str]) -> N
     assert "identity bogus:" in captured.err
     assert "removed a" in captured.out and "removed c" in captured.out
     assert not read_identity_config().get("identities")
+
+
+def test_identity_show_and_key_default_to_the_default_identity(capsys: pytest.CaptureFixture[str]) -> None:
+    assert _identity("add", "alice", "--name", "Alice", "--email", "alice@example.test") == 0
+    assert _identity("add", "ci_bot", "--name", "CI", "--email", "ci@example.test") == 0
+    capsys.readouterr()
+
+    assert _identity("key") == 0
+    assert capsys.readouterr().out == f"{identity_public_key()}\n"
+    assert _identity("key", "ci_bot") == 0
+    assert capsys.readouterr().out == f"{identity_public_key(identity_key_paths('ci_bot')[0])}\n"
+
+    assert _identity("show", "--json") == 0
+    shown = json.loads(capsys.readouterr().out)
+    assert shown["short"] == "alice" and shown["default"] and shown["public_key"] == identity_public_key()
+    assert shown["private_key_file"] == str(identity_key_paths("alice")[0])
+    assert _identity("show", "ci_bot") == 0
+    printed = capsys.readouterr().out
+    assert "short: ci_bot\n" in printed and "default: no\n" in printed and "public_key: ed25519:" in printed
+
+
+@pytest.mark.parametrize("subcommand", ["show", "key"])
+def test_identity_show_and_key_refuse_without_a_usable_identity(
+    subcommand: str, capsys: pytest.CaptureFixture[str]
+) -> None:
+    assert _identity(subcommand) == 2
+    assert "set one up with `httk init`" in capsys.readouterr().err
+    assert _identity("add", "alice", "--name", "Alice", "--email", "alice@example.test") == 0
+    capsys.readouterr()
+    assert _identity(subcommand, "bogus") == 2
+    assert "unknown identity 'bogus'" in capsys.readouterr().err
+    assert _identity(subcommand, "Alice <alice@example.test>") == 2
+    assert "expected a configured identity short name" in capsys.readouterr().err
+
+
+def test_identity_key_refuses_a_missing_seed(capsys: pytest.CaptureFixture[str]) -> None:
+    assert _identity("add", "alice", "--name", "Alice", "--email", "alice@example.test") == 0
+    capsys.readouterr()
+    identity_key_paths("alice")[0].unlink()
+    assert _identity("key") == 2
+    captured = capsys.readouterr()
+    assert captured.out == "" and "has no signing key" in captured.err

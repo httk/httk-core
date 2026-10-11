@@ -24,9 +24,16 @@ including adding more identities and choosing a different default.
 httk init --name "Alice" --email alice@example.test
 httk identity add ci_bot --name "CI" --email ci@example.test --default
 httk identity list --json
+httk identity show
+httk identity key
 httk identity default alice
 httk identity remove ci_bot
 ```
+
+`httk identity show [SHORT]` describes one identity and `httk identity key
+[SHORT]` prints only its `ed25519:...` public key; both select the default
+identity when `SHORT` is omitted. `httk identity key` is the way to hand your
+public key to someone who must trust it, such as a workspace daemon operator.
 
 `httk init` prompts for a missing name or email on a terminal and, with
 `--non-interactive`, refuses one instead. The short name is derived from the

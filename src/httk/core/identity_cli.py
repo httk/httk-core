@@ -15,6 +15,7 @@ from pathlib import Path
 
 from httk.core.cli import CLIContext
 from httk.core.identity import (
+    OperatorIdentity,
     add_identity,
     configured_operator_identity,
     identity_config_path,
@@ -23,6 +24,7 @@ from httk.core.identity import (
     initialize_identity,
     read_identity_config,
     remove_identity,
+    resolve_operator_identity,
     set_default_identity,
 )
 
@@ -164,6 +166,45 @@ def _handle_identity_list(arguments: argparse.Namespace) -> int:
     return 0
 
 
+def _selected_identity(short: str | None) -> OperatorIdentity:
+    """Resolve the named identity *short*, or the default one when ``None``."""
+
+    if short is not None and "<" in short:
+        raise ValueError(f"expected a configured identity short name, not {short!r}")
+    if short is None and configured_operator_identity() is None:
+        raise ValueError("no operator identity is configured; set one up with `httk init`")
+    return resolve_operator_identity(short)
+
+
+def _handle_identity_show(arguments: argparse.Namespace) -> int:
+    identity = _selected_identity(arguments.short)
+    assert identity.short is not None
+    default = configured_operator_identity()
+    is_default = default is not None and default.short == identity.short
+    report = _identity_report(identity.short, identity.name, identity.email, is_default)
+    seed_path, public_path = identity_key_paths(identity.short)
+    report["private_key_file"] = str(seed_path)
+    report["public_key_file"] = str(public_path)
+    if arguments.json:
+        print(json.dumps(report, indent=2, sort_keys=True))
+    else:
+        for field in ("short", "name", "email", "default", "public_key", "private_key_file", "public_key_file"):
+            value = report[field]
+            print(f"{field}: {'yes' if value is True else 'no' if value is False else value}")
+    return 0
+
+
+def _handle_identity_key(arguments: argparse.Namespace) -> int:
+    identity = _selected_identity(arguments.short)
+    assert identity.short is not None
+    seed_path, _ = identity_key_paths(identity.short)
+    key = identity_public_key(seed_path)
+    if key is None:
+        raise ValueError(f"identity {identity.short!r} has no signing key at {seed_path}")
+    print(key)
+    return 0
+
+
 def _handle_identity_default(arguments: argparse.Namespace) -> int:
     set_default_identity(arguments.short)
     print(identity_config_path())
@@ -186,7 +227,7 @@ def _handle_identity_remove(arguments: argparse.Namespace) -> int:
 def _build_identity_parser(program: str) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog=program,
-        description="Create, list, select, and remove named operator identities",
+        description="Create, list, show, select, and remove named operator identities",
     )
     subparsers = parser.add_subparsers(dest="subcommand", required=True)
 
@@ -200,6 +241,15 @@ def _build_identity_parser(program: str) -> argparse.ArgumentParser:
     listed = subparsers.add_parser("list", help="list named operator identities")
     listed.add_argument("--json", action="store_true", help="print the identities as JSON")
     listed.set_defaults(handler=_handle_identity_list)
+
+    shown = subparsers.add_parser("show", help="show one identity (the default when SHORT is omitted)")
+    shown.add_argument("short", metavar="SHORT", nargs="?", help="the configured identity short name")
+    shown.add_argument("--json", action="store_true", help="print the identity as JSON")
+    shown.set_defaults(handler=_handle_identity_show)
+
+    keyed = subparsers.add_parser("key", help="print an identity's public key (the default when SHORT is omitted)")
+    keyed.add_argument("short", metavar="SHORT", nargs="?", help="the configured identity short name")
+    keyed.set_defaults(handler=_handle_identity_key)
 
     selected = subparsers.add_parser("default", help="select the default identity")
     selected.add_argument("short", metavar="SHORT", help="the configured identity short name")
