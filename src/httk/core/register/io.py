@@ -54,6 +54,9 @@ readers = PluginRegistry()
 #: extension-less file (``POSCAR``, ``CONTCAR``) can still dispatch by name.
 reader_filenames = PluginRegistry()
 
+#: Readers selected explicitly by ``load(..., format=tag)``; one reader per tag.
+reader_formats = PluginRegistry()
+
 #: Domain adapters selected by a reader's neutral payload ``"format"`` tag.
 format_adapters = PluginRegistry()
 _format_adapter_lock = Lock()
@@ -72,25 +75,52 @@ def register_reader(
     *,
     name: str,
     reader: str,
+    format: str | None = None,
     extensions: tuple[str, ...] = (),
     filenames: tuple[str, ...] = (),
 ) -> None:
-    """Register a reader under one or more file ``extensions`` and/or ``filenames``.
+    """Register a reader under a ``format`` tag, file ``extensions`` and/or ``filenames``.
 
     ``extensions`` are matched (case-insensitively) against a file's suffix, e.g.
     ``".cif"``. ``filenames`` are exact basenames matched (case-insensitively)
     against a file's name with any recognized compression suffix stripped, e.g.
     ``"POSCAR"`` matches ``POSCAR``, ``poscar``, and ``POSCAR.bz2``.
 
+    A ``format`` tag lets callers select the reader explicitly with
+    ``load(path, format=tag)`` whatever the file is called, so readers for
+    ambiguous names need not claim an extension. A tag has one reader:
+    re-registering it with the same reference is a no-op. A reader may be
+    registered with only a ``format``.
+
     :param name: The registry name for the reader.
     :param reader: A lazy ``"module:callable"`` reference to the reader.
+    :param format: Optional tag that selects the reader through ``load(format=...)``.
     :param extensions: File suffixes that select the reader.
     :param filenames: Exact basenames that select the reader.
+    :raises ValueError: If ``format`` is empty or not a string, or the tag already has another reader.
     """
+    if format is not None:
+        if not isinstance(format, str) or not format:
+            raise ValueError(f"reader format must be a nonempty string, got {format!r}")
+        existing = reader_formats.get(format)
+        if existing is not None and not _same_callable_reference(existing.handler, reader):
+            raise ValueError(
+                f"reader format {format!r} is already registered by {existing.name!r}; cannot register {name!r}"
+            )
+        if existing is None:
+            reader_formats.register(key=format, handler=reader, name=name)
     for ext in extensions:
         readers.register(key=ext.lower(), handler=reader, name=name)
     for filename in filenames:
         reader_filenames.register(key=filename.lower(), handler=reader, name=name)
+
+
+def known_reader_formats() -> list[str]:
+    """Return registered reader format tags.
+
+    :return: Sorted tags accepted by ``load(format=...)``.
+    """
+    return sorted(reader_formats.keys())
 
 
 def known_extensions() -> list[str]:

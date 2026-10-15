@@ -123,6 +123,12 @@ To discover the available dispatch options, use
 has the corresponding `known_format_adapters()` accessor and, for probing
 reader dispatch by name, `has_reader_for(name)`.
 
+`register_reader(..., format="tag")` likewise gives a reader a tag, and
+`load(path, format="tag")` then selects it whatever the file is called. This
+suits ambiguous names such as `cp2k.inp`, whose extension a reader should not
+claim; `known_reader_formats()` lists the tags, and `format` is never passed on
+to the reader.
+
 ```python
 from httk.core.register.io import known_writer_formats
 

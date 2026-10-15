@@ -38,6 +38,8 @@ from .register.io import (
     has_reader_for,  # noqa: F401
     known_extensions,
     known_filenames,
+    known_reader_formats,
+    reader_formats,
     readers,
 )
 
@@ -67,16 +69,24 @@ def adapt_result(result: Any, raw: bool) -> Any:
     return format_adapters.dispatch(format_tag, result)
 
 
-def load_source(source: Any, name: str, *, raw: bool = False, **kwargs: Any) -> Any:
+def load_source(source: Any, name: str, *, format: str | None = None, raw: bool = False, **kwargs: Any) -> Any:
     r"""Load ``source`` using the reader selected by ``name``.
 
     :param source: Source passed to the selected reader.
     :param name: Name used for extension or exact-basename dispatch.
+    :param format: Reader format tag that overrides name-based dispatch.
     :param raw: Whether to return the neutral reader result without adaptation.
     :param \**kwargs: Additional options passed to the selected reader.
     :return: The reader result, optionally adapted to a domain value.
     :raises ValueError: If no reader matches the name; the error lists known extensions and basenames.
+        If ``format`` is unknown, the error lists the known format tags.
     """
+    if format is not None:
+        if reader_formats.get(format) is None:
+            raise ValueError(
+                f"Unknown reader format {format!r}. Known formats: " + (", ".join(known_reader_formats()) or "(none)")
+            )
+        return adapt_result(reader_formats.dispatch(format, source, **kwargs), raw)
     key = _reader_key(name)
     if key is None:
         basename = PurePath(name).name
@@ -97,7 +107,7 @@ def load_source(source: Any, name: str, *, raw: bool = False, **kwargs: Any) -> 
     return adapt_result(registry.dispatch(reader_key, source, **kwargs), raw)
 
 
-def load(filename: str, *, raw: bool = False, **kwargs: Any) -> Any:
+def load(filename: str, *, format: str | None = None, raw: bool = False, **kwargs: Any) -> Any:
     r"""Load ``filename`` and adapt its neutral payload to a domain object.
 
     Dispatch strips at most one recognized compression suffix (``.gz``,
@@ -109,17 +119,20 @@ def load(filename: str, *, raw: bool = False, **kwargs: Any) -> Any:
     a mapping with a string ``"format"`` tag is passed to the registered domain
     adapter for that format. ``raw=True`` is the neutral-payload escape hatch.
     Payloads with unknown formats, and non-mapping reader results, pass through
-    unchanged.
+    unchanged. ``format`` selects the reader by its registered format tag
+    instead (see :func:`~httk.core.register.known_reader_formats`), whatever the
+    file is called; it is not passed to the reader.
 
     :param filename: Local filename to read.
+    :param format: Reader format tag that overrides name-based dispatch.
     :param raw: Whether to return the neutral reader result without adaptation.
     :param \**kwargs: Additional options passed to the selected reader.
     :return: The loaded and optionally adapted value.
-    :raises ValueError: If ``filename`` is a URL or no reader matches it.
+    :raises ValueError: If ``filename`` is a URL or no reader matches it, or ``format`` is unknown.
     """
     if isinstance(filename, str) and urlsplit(filename).scheme in {"http", "https", "ftp", "file"}:
         raise ValueError("load reads local files; httk.core.fetch(url) is the URL entry point")
-    return load_source(filename, filename, raw=raw, **kwargs)
+    return load_source(filename, filename, format=format, raw=raw, **kwargs)
 
 
 def _load_many_worker(source: Any, kwargs: dict[str, Any]) -> Any:

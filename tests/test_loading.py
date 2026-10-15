@@ -13,7 +13,9 @@ from httk.core.register import (
     known_extensions,
     known_filenames,
     known_format_adapters,
+    known_reader_formats,
     reader_filenames,
+    reader_formats,
     readers,
     register_format_adapter,
     register_reader,
@@ -196,3 +198,47 @@ def test_identical_format_adapter_registration_is_idempotent() -> None:
 def test_format_adapter_formats_must_be_nonempty_string_tags(formats: Any) -> None:
     with pytest.raises(ValueError, match="format"):
         register_format_adapter(name="invalid-formats", adapter=lambda value: value, formats=formats)
+
+
+def _format_reader(filename: str, **kwargs: Any) -> dict[str, Any]:
+    return {"filename": filename, "kwargs": kwargs}
+
+
+def _other_format_reader(filename: str, **kwargs: Any) -> dict[str, Any]:
+    return {}
+
+
+@pytest.fixture
+def _format_cleanup() -> Iterator[None]:
+    yield
+    for tag in ("demo-fmt", "demo-fmt-only"):
+        reader_formats._by_key.pop(tag, None)
+    readers._by_key.pop(".stub", None)
+
+
+def test_load_format_overrides_extension(_register_stub: None, _format_cleanup: None) -> None:
+    register_reader(name="demo-fmt", reader=f"{__name__}:_format_reader", format="demo-fmt")
+    result = load("/tmp/x.stub", format="demo-fmt", mode=1)
+    assert result == {"filename": "/tmp/x.stub", "kwargs": {"mode": 1}}
+
+
+def test_load_format_only_and_raw(_format_cleanup: None) -> None:
+    register_reader(name="fo", reader=f"{__name__}:_format_reader", format="demo-fmt-only")
+    assert "demo-fmt-only" in known_reader_formats()
+    assert load("whatever.zzz", format="demo-fmt-only", raw=True)["kwargs"] == {}
+    assert not has_reader_for("whatever.zzz")
+
+
+def test_load_unknown_format_lists_known(_format_cleanup: None) -> None:
+    register_reader(name="demo-fmt", reader=f"{__name__}:_format_reader", format="demo-fmt")
+    with pytest.raises(ValueError, match="Unknown reader format 'nope'.*demo-fmt"):
+        load("x.stub", format="nope")
+
+
+def test_register_reader_format_conflict_and_idempotence(_format_cleanup: None) -> None:
+    register_reader(name="demo-fmt", reader=f"{__name__}:_format_reader", format="demo-fmt")
+    register_reader(name="demo-fmt", reader=f"{__name__}:_format_reader", format="demo-fmt")
+    with pytest.raises(ValueError, match="already registered by 'demo-fmt'"):
+        register_reader(name="other", reader=f"{__name__}:_other_format_reader", format="demo-fmt")
+    with pytest.raises(ValueError, match="nonempty"):
+        register_reader(name="bad", reader=f"{__name__}:_format_reader", format="")
