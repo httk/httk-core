@@ -1,5 +1,5 @@
-from pathlib import Path
 import zlib
+from pathlib import Path
 
 import pytest
 
@@ -58,7 +58,8 @@ def test_release_checks_tag_lock_and_hash(tmp_path: Path) -> None:
     )
     lock = tmp_path / "docs" / "requirements.lock"
     lock.write_text(
-        "# httk-docs-lock-schema: 1\n# input-hash: sha256:" + "0" * 64
+        "# httk-docs-lock-schema: 1\n# input-hash: sha256:"
+        + "0" * 64
         + "\n# python: 3.12\n# platform: linux\nrequests==2\n",
         encoding="utf-8",
     )

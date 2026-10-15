@@ -45,9 +45,7 @@ class ToyMemberHandler:
             raise sealing.SealError(f"toy member is unsealed: {member_root}")
         return member_root.name, hashlib.sha256(path.read_bytes()).hexdigest()
 
-    def verify(
-        self, member_root: Path, *, trusted_keys: Sequence[str], deep: bool
-    ) -> tuple[dict[str, object], ...]:
+    def verify(self, member_root: Path, *, trusted_keys: Sequence[str], deep: bool) -> tuple[dict[str, object], ...]:
         path = member_root / _SEAL
         if not path.is_file():
             absent = sealing.SealVerification(False, sealing.INVALID, "not sealed", (), (), ())

@@ -128,7 +128,7 @@ def test_surdvector_and_surdscalar_copy_round_trip() -> None:
 def test_repr_roundtrips_via_public_constructor() -> None:
     value = SurdVector({1: FracVector._of((1, 2), 3)}, (2,))
     assert repr(value) == "SurdVector({1: FracVector((1, 2), denom=3)}, (2,))"
-    roundtrip = eval(repr(value))  # noqa: S307 - trusted repr, verifies eval(repr(x)) fidelity
+    roundtrip = eval(repr(value))
     assert roundtrip == value
     assert roundtrip.radicands == value.radicands
 

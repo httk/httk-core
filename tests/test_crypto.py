@@ -1,5 +1,6 @@
-import pytest
 import hashlib
+
+import pytest
 
 from httk.core.crypto import (
     ed25519_backend_available,

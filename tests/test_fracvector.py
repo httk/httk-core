@@ -15,7 +15,7 @@ from typing import cast
 
 import pytest
 
-from httk.core.vectors import MutableFracVector, FracScalar, FracVector, SurdVector, VectorBackend, VectorNativeBackend
+from httk.core.vectors import FracScalar, FracVector, MutableFracVector, SurdVector, VectorBackend, VectorNativeBackend
 
 F = fractions.Fraction
 
@@ -475,7 +475,7 @@ def test_fracvector_and_fracscalar_copy_round_trip() -> None:
 def test_repr_roundtrips_via_public_constructor() -> None:
     value = FracVector._of((2, 4), 8)  # deliberately unsimplified stored state
     assert repr(value) == "FracVector((2, 4), denom=8)"
-    roundtrip = eval(repr(value))  # noqa: S307 - trusted repr, verifies eval(repr(x)) fidelity
+    roundtrip = eval(repr(value))
     assert roundtrip == value
     assert roundtrip.noms == value.noms  # exact stored state preserved, not just numeric value
     assert roundtrip.denom == value.denom

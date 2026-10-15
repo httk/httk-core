@@ -129,9 +129,7 @@ def test_surdvector_hash_matches_across_component_representations() -> None:
     _assert_hash_contract(unreduced, reduced)
 
     negative_denominator = SurdVector._of({2: FracVector._of(-1, -3)}, ())
-    _assert_hash_contract(
-        negative_denominator, SurdVector._of({2: FracVector._of(1, 3)}, ())
-    )
+    _assert_hash_contract(negative_denominator, SurdVector._of({2: FracVector._of(1, 3)}, ()))
 
     # And through arithmetic, where denominators routinely arrive unreduced.
     _assert_hash_contract(SurdVector.sqrt_of(3) * FracVector(F(1, 2)), reduced)

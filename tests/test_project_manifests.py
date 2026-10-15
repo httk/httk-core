@@ -3,12 +3,11 @@
 from pathlib import Path
 
 import pytest
+from _toy_member import toy_kind_registered
 
 from httk.core.project import initialize_project
 from httk.core.project.manifests import create_manifest, verify_manifest
 from httk.core.project.members import register_project_member
-
-from _toy_member import toy_kind_registered
 
 
 @pytest.fixture

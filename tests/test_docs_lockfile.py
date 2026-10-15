@@ -12,7 +12,6 @@ from httk.core.docs.lockfile import (
     read_lock_pins,
 )
 
-
 PYPROJECT = '''[project]
 requires-python = ">=3.12"
 dependencies = ["requests>=2"]
@@ -36,7 +35,12 @@ def test_input_hash_ignores_toml_formatting(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     assert compute_input_hash(path) == first
-    path.write_text(PYPROJECT.replace('dependencies = ["requests>=2"]', 'dependencies = ["requests>=2", "furo"]').replace('docs = ["sphinx"]', 'docs = ["sphinx", "myst-parser"]'), encoding="utf-8")
+    path.write_text(
+        PYPROJECT.replace('dependencies = ["requests>=2"]', 'dependencies = ["requests>=2", "furo"]').replace(
+            'docs = ["sphinx"]', 'docs = ["sphinx", "myst-parser"]'
+        ),
+        encoding="utf-8",
+    )
     reordered = compute_input_hash(path)
     path.write_text(
         PYPROJECT.replace('dependencies = ["requests>=2"]', 'dependencies = ["furo", "requests>=2"]')

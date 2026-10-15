@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+from _toy_member import ToyMemberHandler, toy_kind_registered
 
 from httk.core.project import initialize_project
 from httk.core.project.members import register_project_member
@@ -19,8 +20,6 @@ from httk.core.project.sealing import (
     verify_seal,
     write_seal,
 )
-
-from _toy_member import ToyMemberHandler, toy_kind_registered
 
 
 @pytest.fixture

@@ -1,5 +1,5 @@
-from pathlib import Path
 import zlib
+from pathlib import Path
 
 import pytest
 
@@ -56,9 +56,7 @@ def test_internal_mapping_derivation_is_channel_aware(tmp_path: Path) -> None:
         "https://docs.httk.org/httk-core/dev/main/",
         "/tmp/inventories/httk-core.inv",
     )
-    assert derive_internal_intersphinx_mapping(
-        mapping, config, {}, "https://docs.httk.org", "dev:local"
-    ) == mapping
+    assert derive_internal_intersphinx_mapping(mapping, config, {}, "https://docs.httk.org", "dev:local") == mapping
     with pytest.raises(ReleaseError, match="httk-core.*requirements.lock"):
         derive_internal_intersphinx_mapping(mapping, config, {}, "https://docs.httk.org", "v2.1.0")
 
@@ -180,7 +178,8 @@ def test_sphinx_release_rejects_mismatched_committed_inventory(tmp_path: Path, m
     (source / "versioning.toml").write_text(
         '[site]\nslug = "consumer"\nrepository-url = "https://example.test/consumer"\n'
         '\n[[internal-dependency]]\ndistribution = "httk-core"\nslug = "httk-core"\n'
-        'repository-url = "https://example.test/core"\n', encoding="utf-8"
+        'repository-url = "https://example.test/core"\n',
+        encoding="utf-8",
     )
     (source / "requirements.lock").write_text("httk-core==2.0.2\n", encoding="utf-8")
     (source / "conf.py").write_text(
@@ -196,7 +195,9 @@ def test_sphinx_release_rejects_mismatched_committed_inventory(tmp_path: Path, m
         Sphinx(str(source), str(source), str(tmp_path / "_build"), str(tmp_path / "doctrees"), "html", freshenv=True)
 
 
-def test_sphinx_out_of_tree_source_uses_confdir_and_absolute_inventory(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_sphinx_out_of_tree_source_uses_confdir_and_absolute_inventory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     pytest.importorskip("sphinx")
     repo = tmp_path / "repo"
     confdir = repo / "docs"
@@ -210,7 +211,8 @@ def test_sphinx_out_of_tree_source_uses_confdir_and_absolute_inventory(tmp_path:
     (confdir / "versioning.toml").write_text(
         '[site]\nslug = "consumer"\nrepository-url = "https://example.test/consumer"\n'
         '\n[[internal-dependency]]\ndistribution = "httk-core"\nslug = "httk-core"\n'
-        'repository-url = "https://example.test/core"\n', encoding="utf-8"
+        'repository-url = "https://example.test/core"\n',
+        encoding="utf-8",
     )
     (confdir / "requirements.lock").write_text("httk-core==2.0.2\n", encoding="utf-8")
     (confdir / "conf.py").write_text(
@@ -242,7 +244,8 @@ def test_sphinx_build_dev_main_fetches_temporary_inventory(tmp_path: Path, monke
     (source / "versioning.toml").write_text(
         '[site]\nslug = "consumer"\nrepository-url = "https://example.test/consumer"\n'
         '\n[[internal-dependency]]\ndistribution = "httk-core"\nslug = "httk-core"\n'
-        'repository-url = "https://example.test/core"\n', encoding="utf-8"
+        'repository-url = "https://example.test/core"\n',
+        encoding="utf-8",
     )
     (source / "conf.py").write_text(
         "extensions = ['sphinx.ext.intersphinx', 'httk.core.docs.sphinx_ext']\nproject = 'consumer'\n"
@@ -277,7 +280,8 @@ def test_sphinx_dev_main_rejects_wrong_inventory_version(tmp_path: Path, monkeyp
     (source / "versioning.toml").write_text(
         '[site]\nslug = "consumer"\nrepository-url = "https://example.test/consumer"\n'
         '\n[[internal-dependency]]\ndistribution = "httk-core"\nslug = "httk-core"\n'
-        'repository-url = "https://example.test/core"\n', encoding="utf-8"
+        'repository-url = "https://example.test/core"\n',
+        encoding="utf-8",
     )
     (source / "conf.py").write_text(
         "extensions = ['sphinx.ext.intersphinx', 'httk.core.docs.sphinx_ext']\nproject = 'consumer'\n"

@@ -11,9 +11,9 @@ from httk.core import CLIContext
 from httk.core.crypto import ed25519_generate_seed, ed25519_public_key, ed25519_sign
 from httk.core.project import (
     PROJECT_DIRECTORY,
+    export_project,
     import_v1_project,
     initialize_project,
-    export_project,
     verify_export,
 )
 from httk.core.project.cli import command

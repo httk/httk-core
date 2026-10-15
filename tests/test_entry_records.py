@@ -187,7 +187,7 @@ def test_entry_metadata_validation_and_optional_definition_contract():
     import datetime
 
     with pytest.raises(ValueError, match="timezone-aware"):
-        Measurement(-1.2, "sample", last_modified=datetime.datetime(2026, 1, 1))
+        Measurement(-1.2, "sample", last_modified=datetime.datetime(2026, 1, 1))  # noqa: DTZ001  naive on purpose: the test pins the rejection
     with pytest.raises(ValueError, match="nonempty string"):
         Measurement(-1.2, "sample", id=" ")
     assert Measurement(-1.2, "sample", last_modified=datetime.datetime(2026, 1, 1, tzinfo=datetime.UTC))
@@ -205,6 +205,7 @@ def test_entry_metadata_validation_and_optional_definition_contract():
 
 def test_served_property_cannot_be_skipped_or_class_metadata():
     from typing import ClassVar
+
     from httk.core import Skip
 
     class Skipped(DataEntryRecord):

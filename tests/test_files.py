@@ -108,9 +108,7 @@ def test_file_record_stored_property_projections() -> None:
 
     # Every non-nullable served property (bar the intrinsic ids) must be projected.
     required = {
-        name
-        for name, definition in served.properties.items()
-        if name not in intrinsic and not definition.nullable
+        name for name, definition in served.properties.items() if name not in intrinsic and not definition.nullable
     }
     assert required <= set(projections)
     # Projection keys are exactly the intended served properties, all valid names.

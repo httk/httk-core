@@ -4,6 +4,7 @@ from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
+from _toy_member import ToyMemberHandler, toy_kind_registered
 
 from httk.core.project import initialize_project
 from httk.core.project.members import (
@@ -22,8 +23,6 @@ from httk.core.register.members import (
     project_member_kinds,
     register_project_member_kind,
 )
-
-from _toy_member import ToyMemberHandler, toy_kind_registered
 
 
 @pytest.fixture
@@ -104,8 +103,7 @@ def test_missing_registry_is_empty(project: Path) -> None:
 
 def test_read_refuses_escaping_path(project: Path) -> None:
     members_path(project).write_text(
-        '{"format":"httk-project-members","format_version":1,'
-        '"members":[{"path":"../evil","kind":"toy"}]}',
+        '{"format":"httk-project-members","format_version":1,"members":[{"path":"../evil","kind":"toy"}]}',
         encoding="utf-8",
     )
     with pytest.raises(ValueError, match="members.json"):

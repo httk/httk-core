@@ -56,6 +56,7 @@ def test_prepare_rejects_missing_or_wrong_version_before_side_effects(tmp_path: 
         capture_output=True,
         text=True,
         timeout=10,
+        check=False,
     )
 
     assert result.returncode != 0
@@ -75,6 +76,7 @@ def test_next_steps_works_outside_git_without_preparing(tmp_path: Path) -> None:
         capture_output=True,
         text=True,
         timeout=10,
+        check=False,
     )
 
     assert result.returncode == 0, result.stderr
