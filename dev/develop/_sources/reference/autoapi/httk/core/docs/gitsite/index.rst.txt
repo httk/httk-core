@@ -1,0 +1,103 @@
+httk.core.docs.gitsite
+======================
+
+.. py:module:: httk.core.docs.gitsite
+
+.. autoapi-nested-parse::
+
+   Create the single orphan commit used by a generated documentation site.
+
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   httk.core.docs.gitsite.GitSiteError
+   httk.core.docs.gitsite.GitUnavailableError
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.docs.gitsite.CommitSiteResult
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.docs.gitsite.commit_site
+
+
+Module Contents
+---------------
+
+.. py:exception:: GitSiteError
+
+   Bases: :py:obj:`RuntimeError`
+
+
+   Raised when a generated site cannot be committed to a Git repository.
+
+
+.. py:exception:: GitUnavailableError
+
+   Bases: :py:obj:`GitSiteError`
+
+
+   Raised when the ``git`` executable is not available.
+
+
+.. py:class:: CommitSiteResult
+
+   Summarize a site commit operation.
+
+   :param repository: Repository receiving the generated objects.
+   :param branch: Branch replaced by the new commit.
+   :param commit: Identifier of the parentless commit.
+   :param tree: Identifier of the committed site tree.
+
+
+   .. py:attribute:: repository
+      :type:  pathlib.Path
+
+
+   .. py:attribute:: branch
+      :type:  str
+
+
+   .. py:attribute:: commit
+      :type:  str
+
+
+   .. py:attribute:: tree
+      :type:  str
+
+
+.. py:function:: commit_site(site_directory, branch, message, *, repository = None, author_name = None, author_email = None, committer_name = None, committer_email = None)
+
+   Replace *branch* with one parentless commit containing *site_directory*.
+
+   The site is converted directly into Git objects, so the caller's index and
+   checked-out files are not changed. Ref leases for concurrent publishers
+   remain the caller's responsibility when pushing the resulting branch. Git
+   dates remain ambient, so commit IDs are intentionally not deterministic.
+
+   :param site_directory: Generated site tree to commit.
+   :param branch: Branch to replace with the generated commit.
+   :param message: Commit message for the generated commit.
+   :param repository: Repository to update, or the site/current repository.
+   :param author_name: Git author name, using the docs-bot default when omitted.
+   :param author_email: Git author email, using the docs-bot default when omitted.
+   :param committer_name: Git committer name, using the docs-bot default when omitted.
+   :param committer_email: Git committer email, using the docs-bot default when omitted.
+   :return: Identifiers and paths for the generated commit.
+   :raises GitSiteError: If the site, repository, branch, or Git operation is invalid.
+   :raises GitUnavailableError: If the ``git`` executable is unavailable.
+
+

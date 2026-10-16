@@ -1,0 +1,102 @@
+httk.core.docs.lockfile
+=======================
+
+.. py:module:: httk.core.docs.lockfile
+
+.. autoapi-nested-parse::
+
+   Portable documentation lock files and injectable ``uv pip compile`` tooling.
+
+   The lock keeps four contract headers: schema, a canonical-input SHA-256 hash,
+   Python 3.12, and Linux.  The resolver's comment noise is discarded; only
+   ``name==version`` pins are retained after the headers.  Its pins cover runtime,
+   documentation, and build-backend requirements so a clean Python 3.12
+   environment can install the lock before using ``--no-build-isolation``.
+
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   httk.core.docs.lockfile.LockError
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.docs.lockfile.compute_input_hash
+   httk.core.docs.lockfile.generate_lock
+   httk.core.docs.lockfile.check_lock
+   httk.core.docs.lockfile.read_lock_pins
+   httk.core.docs.lockfile.filter_lock_pins
+   httk.core.docs.lockfile.internal_pins
+
+
+Module Contents
+---------------
+
+.. py:exception:: LockError
+
+   Bases: :py:obj:`RuntimeError`
+
+
+   Raised when a documentation lock is absent, stale, or cannot be made.
+
+
+.. py:function:: compute_input_hash(pyproject_path)
+
+   Hash the documentation dependency inputs, independent of TOML formatting.
+
+   :param pyproject_path: Project metadata file containing the dependency inputs.
+   :return: SHA-256 digest of the canonicalized lock inputs.
+   :raises LockError: If the project metadata or dependency inputs are invalid.
+
+
+.. py:function:: generate_lock(project_dir, output_path, *, command_prefix = None)
+
+   Generate a lock by invoking ``uv pip compile`` or an injected command.
+
+   :param project_dir: Project directory containing ``pyproject.toml``.
+   :param output_path: Lock path, relative to the project directory when relative.
+   :param command_prefix: Command to invoke instead of ``uv``.
+   :raises LockError: If inputs are invalid, compilation fails, or the lock cannot be written.
+
+
+.. py:function:: check_lock(project_dir, lock_path)
+
+   Raise :class:`LockError` if a lock is missing or stale for *project_dir*.
+
+   :param project_dir: Project directory whose dependency inputs are checked.
+   :param lock_path: Lock path, relative to the project directory when relative.
+   :raises LockError: If the lock is missing, malformed, stale, or has invalid pins.
+
+
+.. py:function:: read_lock_pins(lock_path)
+
+   Read normalized distribution names and versions from a lock file.
+
+   :param lock_path: Lock file to read.
+   :return: Mapping of normalized distribution names to pinned versions.
+
+
+.. py:function:: filter_lock_pins(pins, *, drop)
+
+   Return pins excluding all ``httk-*`` names and the explicitly dropped names.
+
+   :param pins: Distribution pins to normalize and filter.
+   :param drop: Additional distribution names to exclude.
+   :return: Filtered pins keyed by normalized distribution name.
+
+
+.. py:function:: internal_pins(pins)
+
+   Return the normalized subset of pins belonging to internal httk distributions.
+
+   :param pins: Distribution pins to normalize and filter.
+   :return: Pins whose normalized names start with ``httk-``.
+
+

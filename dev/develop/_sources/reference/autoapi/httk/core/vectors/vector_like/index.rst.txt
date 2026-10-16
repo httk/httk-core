@@ -1,0 +1,26 @@
+httk.core.vectors.vector_like
+=============================
+
+.. py:module:: httk.core.vectors.vector_like
+
+.. autoapi-nested-parse::
+
+   The accepted-input union for vector functions.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.vectors.vector_like.VectorLike
+
+
+Module Contents
+---------------
+
+.. py:type:: VectorLike
+   :canonical: vector_backend.VectorBackend | vector_view.VectorView | fracvector.FracVector | surdvector.SurdVector | tuple[Any, ...] | list[Any] | 'numpy.ndarray'
+
+

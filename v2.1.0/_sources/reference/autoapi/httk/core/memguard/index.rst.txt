@@ -1,0 +1,62 @@
+httk.core.memguard
+==================
+
+.. py:module:: httk.core.memguard
+
+.. autoapi-nested-parse::
+
+   Run a command inside a Linux memory-guarded process group.
+
+   The child command starts in its own session (and therefore its own process
+   group), every process it forks inherits an optional per-process virtual
+   address-space rlimit, and a watchdog sums the resident memory of the whole
+   group at a fixed interval. When the group's total RSS exceeds the budget the
+   entire group receives ``SIGKILL`` — sacrificing the run, never the machine.
+
+   This is the userland fallback for environments without a delegatable cgroup v2
+   subtree (where ``memory.max`` on a dedicated cgroup would do the same job in
+   the kernel). It guards against the failure mode that motivated it: a parallel
+   test or benchmark run whose workers independently grow until the system-wide
+   OOM killer takes down unrelated processes.
+
+   The process-group sampler requires Linux and a visible ``/proc`` filesystem.
+   On other platforms, or when ``/proc`` is unavailable, the command exits with a
+   clear error instead of running without its memory guard.
+
+   Usage::
+
+       python -m httk.core.memguard [--max-rss-gb N] [--as-gb N] [--interval SECONDS] -- command args...
+
+   The exit status is the child's status, or 137 when the watchdog killed the
+   group.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.memguard.main
+   httk.core.memguard.command
+
+
+Module Contents
+---------------
+
+.. py:function:: main(argv = None, *, prog = 'httk memguard')
+
+   Run the requested command under the process-group memory guard.
+
+   :param argv: Command-line arguments, excluding the program name. When
+       omitted, arguments are read from ``sys.argv``.
+   :param prog: Program name displayed in command-line help.
+   :return: The child exit status, 137 for a budget breach, or 2 when the
+       platform cannot provide the Linux process-group sampler.
+
+
+.. py:function:: command(argv, context)
+
+   Adapt the memory guard to the top-level ``httk`` command contract.
+
+

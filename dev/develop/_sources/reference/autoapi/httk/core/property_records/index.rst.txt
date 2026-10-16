@@ -1,0 +1,406 @@
+httk.core.property_records
+==========================
+
+.. py:module:: httk.core.property_records
+
+.. autoapi-nested-parse::
+
+   Generated typed result records for the httk-core property definitions.
+
+   Each class stores one value of its property definition in typed columns; see
+   :mod:`httk.core.typed_records`. ``RECORD_KINDS`` maps each definition IRI to its class.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.property_records.RECORD_KINDS
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.property_records.AtomicForceRecord
+   httk.core.property_records.EnthalpyRecord
+   httk.core.property_records.KineticEnergyRecord
+   httk.core.property_records.PotentialEnergyRecord
+   httk.core.property_records.PressureRecord
+   httk.core.property_records.StressTensorRecord
+   httk.core.property_records.TemperatureRecord
+   httk.core.property_records.VolumeRecord
+
+
+Module Contents
+---------------
+
+.. py:class:: AtomicForceRecord
+
+   Bases: :py:obj:`httk.core.TypedRecord`
+
+
+   Atomic force as a typed record.
+
+   The force on one atom (the negative gradient of the energy with respect to the position of the atom), in electronvolt per angstrom, as a vector over ``dim_spatial`` in the Cartesian frame of the structure it belongs to.
+   This property is the base of force statistics: a statistic of it (such as an error or a bias over a population of atoms) has the same shape, one value per Cartesian component.
+   A null value means the quantity is not available or not recorded.
+
+   :param atomic_force: The atomic force value. Unit: angstrom^-1*eV.
+   :param product_of: The entries this value is a product of, as labeled edges.
+   :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+   :param immutable_id: The per-revision immutable id; minted by the store when None.
+   :param last_modified: The optional timezone-aware metadata timestamp.
+
+
+   .. py:attribute:: atomic_force
+      :type:  tuple[float, ...]
+
+
+   .. py:attribute:: product_of
+      :type:  Annotated[tuple[httk.core.RunEdge, ...], StrongLink('product_of', reverse='has_product', role='subject')]
+      :value: ()
+
+
+
+   .. py:attribute:: id
+      :type:  Annotated[str | None, IdentitySkip(), Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: immutable_id
+      :type:  Annotated[str | None, IdentitySkip(), Unique()]
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+.. py:class:: EnthalpyRecord
+
+   Bases: :py:obj:`httk.core.TypedRecord`
+
+
+   Enthalpy as a typed record.
+
+   The enthalpy H = E_total + P V in electronvolt, with P the applied (external) pressure and V the cell volume. Extensive: refers to the whole simulated cell, not per atom.
+   The reference/zero of the energy scale is method- and code-specific, so values are comparable only within one consistent computational setup.
+   A null value means the quantity is not available or not recorded.
+
+   :param enthalpy: The enthalpy value. Unit: eV.
+   :param product_of: The entries this value is a product of, as labeled edges.
+   :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+   :param immutable_id: The per-revision immutable id; minted by the store when None.
+   :param last_modified: The optional timezone-aware metadata timestamp.
+
+
+   .. py:attribute:: enthalpy
+      :type:  float
+
+
+   .. py:attribute:: product_of
+      :type:  Annotated[tuple[httk.core.RunEdge, ...], StrongLink('product_of', reverse='has_product', role='subject')]
+      :value: ()
+
+
+
+   .. py:attribute:: id
+      :type:  Annotated[str | None, IdentitySkip(), Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: immutable_id
+      :type:  Annotated[str | None, IdentitySkip(), Unique()]
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+.. py:class:: KineticEnergyRecord
+
+   Bases: :py:obj:`httk.core.TypedRecord`
+
+
+   Kinetic energy as a typed record.
+
+   The nuclear kinetic energy of a system, in electronvolt. Extensive: refers to the whole simulated cell, not per atom.
+   A null value means the quantity is not available or not recorded.
+
+   :param kinetic_energy: The kinetic energy value. Unit: eV.
+   :param product_of: The entries this value is a product of, as labeled edges.
+   :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+   :param immutable_id: The per-revision immutable id; minted by the store when None.
+   :param last_modified: The optional timezone-aware metadata timestamp.
+
+
+   .. py:attribute:: kinetic_energy
+      :type:  float
+
+
+   .. py:attribute:: product_of
+      :type:  Annotated[tuple[httk.core.RunEdge, ...], StrongLink('product_of', reverse='has_product', role='subject')]
+      :value: ()
+
+
+
+   .. py:attribute:: id
+      :type:  Annotated[str | None, IdentitySkip(), Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: immutable_id
+      :type:  Annotated[str | None, IdentitySkip(), Unique()]
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+.. py:class:: PotentialEnergyRecord
+
+   Bases: :py:obj:`httk.core.TypedRecord`
+
+
+   Potential energy as a typed record.
+
+   The potential energy of a computed system from the energy model, in electronvolt. Extensive: refers to the whole simulated cell, not per atom.
+   The reference/zero of the energy scale is method- and code-specific, so values are comparable only within one consistent computational setup.
+   A null value means the quantity is not available or not recorded.
+
+   :param potential_energy: The potential energy value. Unit: eV.
+   :param product_of: The entries this value is a product of, as labeled edges.
+   :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+   :param immutable_id: The per-revision immutable id; minted by the store when None.
+   :param last_modified: The optional timezone-aware metadata timestamp.
+
+
+   .. py:attribute:: potential_energy
+      :type:  float
+
+
+   .. py:attribute:: product_of
+      :type:  Annotated[tuple[httk.core.RunEdge, ...], StrongLink('product_of', reverse='has_product', role='subject')]
+      :value: ()
+
+
+
+   .. py:attribute:: id
+      :type:  Annotated[str | None, IdentitySkip(), Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: immutable_id
+      :type:  Annotated[str | None, IdentitySkip(), Unique()]
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+.. py:class:: PressureRecord
+
+   Bases: :py:obj:`httk.core.TypedRecord`
+
+
+   Pressure as a typed record.
+
+   The pressure of a system, in gigapascal (GPa; 1 GPa = 10^9 Pa). Pressure is positive in compression; stress is tensile-positive. For a hydrostatic state P = -tr(sigma)/3.
+   A null value means the quantity is not available or not recorded.
+
+   :param pressure: The pressure value. Unit: GPa.
+   :param product_of: The entries this value is a product of, as labeled edges.
+   :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+   :param immutable_id: The per-revision immutable id; minted by the store when None.
+   :param last_modified: The optional timezone-aware metadata timestamp.
+
+
+   .. py:attribute:: pressure
+      :type:  float
+
+
+   .. py:attribute:: product_of
+      :type:  Annotated[tuple[httk.core.RunEdge, ...], StrongLink('product_of', reverse='has_product', role='subject')]
+      :value: ()
+
+
+
+   .. py:attribute:: id
+      :type:  Annotated[str | None, IdentitySkip(), Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: immutable_id
+      :type:  Annotated[str | None, IdentitySkip(), Unique()]
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+.. py:class:: StressTensorRecord
+
+   Bases: :py:obj:`httk.core.TypedRecord`
+
+
+   Stress tensor as a typed record.
+
+   The stress tensor of a system in Voigt notation, in gigapascal (GPa). Pressure is positive in compression; stress is tensile-positive. Voigt order [xx, yy, zz, yz, xz, xy].
+   A null value means the quantity is not available or not recorded.
+
+   :param stress_tensor: The stress tensor value. Unit: GPa.
+   :param product_of: The entries this value is a product of, as labeled edges.
+   :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+   :param immutable_id: The per-revision immutable id; minted by the store when None.
+   :param last_modified: The optional timezone-aware metadata timestamp.
+
+
+   .. py:attribute:: stress_tensor
+      :type:  tuple[float, ...]
+
+
+   .. py:attribute:: product_of
+      :type:  Annotated[tuple[httk.core.RunEdge, ...], StrongLink('product_of', reverse='has_product', role='subject')]
+      :value: ()
+
+
+
+   .. py:attribute:: id
+      :type:  Annotated[str | None, IdentitySkip(), Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: immutable_id
+      :type:  Annotated[str | None, IdentitySkip(), Unique()]
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+.. py:class:: TemperatureRecord
+
+   Bases: :py:obj:`httk.core.TypedRecord`
+
+
+   Temperature as a typed record.
+
+   The temperature of a system, in kelvin.
+   A null value means the quantity is not available or not recorded.
+
+   :param temperature: The temperature value. Unit: K.
+   :param product_of: The entries this value is a product of, as labeled edges.
+   :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+   :param immutable_id: The per-revision immutable id; minted by the store when None.
+   :param last_modified: The optional timezone-aware metadata timestamp.
+
+
+   .. py:attribute:: temperature
+      :type:  float
+
+
+   .. py:attribute:: product_of
+      :type:  Annotated[tuple[httk.core.RunEdge, ...], StrongLink('product_of', reverse='has_product', role='subject')]
+      :value: ()
+
+
+
+   .. py:attribute:: id
+      :type:  Annotated[str | None, IdentitySkip(), Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: immutable_id
+      :type:  Annotated[str | None, IdentitySkip(), Unique()]
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+.. py:class:: VolumeRecord
+
+   Bases: :py:obj:`httk.core.TypedRecord`
+
+
+   Volume as a typed record.
+
+   The volume of the simulation cell, in cubic angstrom. Extensive: refers to the whole simulated cell, not per atom.
+   A null value means the quantity is not available or not recorded.
+
+   :param volume: The volume value. Unit: angstrom^3.
+   :param product_of: The entries this value is a product of, as labeled edges.
+   :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+   :param immutable_id: The per-revision immutable id; minted by the store when None.
+   :param last_modified: The optional timezone-aware metadata timestamp.
+
+
+   .. py:attribute:: volume
+      :type:  float
+
+
+   .. py:attribute:: product_of
+      :type:  Annotated[tuple[httk.core.RunEdge, ...], StrongLink('product_of', reverse='has_product', role='subject')]
+      :value: ()
+
+
+
+   .. py:attribute:: id
+      :type:  Annotated[str | None, IdentitySkip(), Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: immutable_id
+      :type:  Annotated[str | None, IdentitySkip(), Unique()]
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+.. py:data:: RECORD_KINDS
+   :type:  collections.abc.Mapping[str, type[httk.core.TypedRecord]]
+

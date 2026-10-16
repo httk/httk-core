@@ -1,0 +1,66 @@
+httk.core.datastream.textstream_common
+======================================
+
+.. py:module:: httk.core.datastream.textstream_common
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.datastream.textstream_common.TextstreamCommon
+
+
+Module Contents
+---------------
+
+.. py:class:: TextstreamCommon
+
+   Bases: :py:obj:`abc.ABC`
+
+
+   Common superclass for many of the implementations of backends for streaming text data.
+
+
+   .. py:method:: unwrap()
+
+      Return the currently opened underlying text stream.
+
+      :return: The stream used for reading text.
+
+
+
+   .. py:method:: read(size = -1)
+
+      Read up to ``size`` characters, or all remaining characters when ``size`` is negative.
+
+      :param size: Maximum number of characters to read.
+      :return: The text read from the stream.
+
+
+
+   .. py:method:: close()
+
+      Close the opened stream and any source stream owned by it.
+
+
+
+   .. py:method:: seek(offset, whence = os.SEEK_SET)
+
+      Move the stream position.
+
+      :param offset: Position adjustment interpreted according to ``whence``.
+      :param whence: Reference point for ``offset``.
+      :return: The resulting absolute stream position.
+
+
+
+   .. py:method:: tell()
+
+      Return the current stream position.
+
+      :return: The absolute stream position.
+
+
+
