@@ -11,7 +11,9 @@ trailing slashes; the repository path is kept verbatim, so ``…/repo`` and
 
 Checkout trees are cached per repository and commit under
 ``data_home() / "git"``; they carry no ``.git`` directory and are safe to
-delete. Referencing a URI with :func:`install_git_member` records one installed
+delete. :func:`fetch_git_checkout` can also fill the cache from a local clone or
+git bundle, and :func:`local_git_refs` reads a local clone's HEAD and tags.
+Referencing a URI with :func:`install_git_member` records one installed
 entry under ``data_home() / KIND / "installed"``, where ``KIND`` names the
 consumer (for example ``"templates"``). Git runs with the global and system
 configuration, hooks, credential helpers and terminal prompts disabled, so only
@@ -33,6 +35,7 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
+from types import MappingProxyType
 
 from httk.core.userdirs import data_home
 
@@ -41,12 +44,14 @@ _LOGGER = logging.getLogger(__name__)
 __all__ = [
     "GitUri",
     "InstalledGitMember",
+    "LocalGitRefs",
     "cached_git_checkout",
     "fetch_git_checkout",
     "git_member",
     "install_git_member",
     "installed_git_member",
     "installed_git_members",
+    "local_git_refs",
     "parse_git_uri",
     "resolve_installed_name",
     "uninstall_git_members",
@@ -204,7 +209,9 @@ def _write_json(path: Path, document: Mapping[str, object]) -> None:
 
 def _git(cwd: Path, *arguments: str, check: bool = True) -> subprocess.CompletedProcess[str]:
     environment = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
-    environment.update(GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_SYSTEM=os.devnull, GIT_TERMINAL_PROMPT="0")
+    environment.update(
+        GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_SYSTEM=os.devnull, GIT_TERMINAL_PROMPT="0", GIT_NO_LAZY_FETCH="1"
+    )
     try:
         result = subprocess.run(
             ["git", "-c", "core.hooksPath=/dev/null", *arguments],
@@ -222,17 +229,22 @@ def _git(cwd: Path, *arguments: str, check: bool = True) -> subprocess.Completed
     return result
 
 
-def fetch_git_checkout(uri: str | GitUri) -> tuple[GitUri, Path]:
+def fetch_git_checkout(uri: str | GitUri, *, source: Path | None = None) -> tuple[GitUri, Path]:
     """Return the canonical pinned URI and cached checkout tree, cloning only on a cache miss.
 
     A pinned URI whose commit is already cached runs no git at all.
 
     :param uri: Supply a ``git+…`` URI or a parsed one.
+    :param source: Fetch from this local repository directory or git bundle file instead of
+        the URI's remote; the URI must then be pinned. The checkout is cached under the URI's
+        repository exactly as a remote fetch of that commit is.
     :return: The URI pinned to the full commit hash, and the checkout tree root.
-    :raises ValueError: If the URI is invalid or git fails.
+    :raises ValueError: If the URI is invalid, *source* is given for an unpinned URI, or git fails.
     """
 
     parsed = _uri(uri)
+    if source is not None and not parsed.pinned:
+        raise ValueError(f"a local source needs a URI pinned to a full commit hash: {parsed}")
     parent = _checkouts(parsed.repository)
     if parsed.pinned:
         assert parsed.ref is not None
@@ -243,7 +255,11 @@ def fetch_git_checkout(uri: str | GitUri) -> tuple[GitUri, Path]:
     scratch = Path(tempfile.mkdtemp(prefix=".fetch-", dir=parent))
     try:
         work = scratch / "tree"
-        if parsed.pinned:
+        if source is not None:
+            assert parsed.ref is not None
+            _git(scratch, "clone", "-q", "--no-checkout", "--no-hardlinks", "--", str(source.absolute()), str(work))
+            _git(work, "checkout", "-q", "--detach", parsed.ref)
+        elif parsed.pinned:
             assert parsed.ref is not None
             work.mkdir()
             _git(work, "init", "-q")
@@ -253,8 +269,6 @@ def fetch_git_checkout(uri: str | GitUri) -> tuple[GitUri, Path]:
             else:
                 _git(work, "fetch", "origin")
                 _git(work, "checkout", "-q", "--detach", parsed.ref)
-            if _git(work, "rev-parse", "HEAD").stdout.strip().lower() != parsed.ref:
-                raise ValueError(f"{parsed.repository}: fetched commit does not match {parsed.ref}")
         elif parsed.ref is None:
             _git(scratch, "clone", "-q", "--depth", "1", url, str(work))
         elif _git(
@@ -265,6 +279,8 @@ def fetch_git_checkout(uri: str | GitUri) -> tuple[GitUri, Path]:
             commit = _git(work, "rev-parse", "--verify", "--end-of-options", f"{parsed.ref}^{{commit}}").stdout.strip()
             _git(work, "checkout", "-q", "--detach", commit)
         commit = _git(work, "rev-parse", "HEAD").stdout.strip().lower()
+        if parsed.pinned and commit != parsed.ref:
+            raise ValueError(f"{parsed.repository}: fetched commit does not match {parsed.ref}")
         tree = parent / commit
         if not tree.is_dir():
             shutil.rmtree(work / ".git")
@@ -286,6 +302,51 @@ def fetch_git_checkout(uri: str | GitUri) -> tuple[GitUri, Path]:
         return GitUri(parsed.repository, commit, parsed.subdir), tree
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
+
+
+@dataclass(frozen=True)
+class LocalGitRefs:
+    """The HEAD commit and matching tags of a local clone.
+
+    :param head: Give the full lowercase commit hash of HEAD.
+    :param tags: Give the tag name to peeled commit hash mapping.
+    """
+
+    head: str
+    tags: Mapping[str, str]
+
+
+def local_git_refs(clone: Path, tag_pattern: str) -> LocalGitRefs:
+    """Read a local clone's HEAD commit and the commits of its tags matching a glob.
+
+    Tags that do not peel to a commit are left out.
+
+    :param clone: Give the clone directory.
+    :param tag_pattern: Give the ``git for-each-ref`` glob for tag names, such as ``"v*"``.
+    :return: The HEAD commit and the matching tags.
+    :raises ValueError: If *clone* is not a git repository with a HEAD commit, or git fails.
+    """
+
+    if not clone.is_dir():
+        raise ValueError(f"not a git repository: {clone}")
+    try:
+        head = _git(clone, "rev-parse", "--verify", "HEAD^{commit}").stdout.strip().lower()
+        listing = _git(
+            clone,
+            "for-each-ref",
+            "--format=%(refname:strip=2) %(objecttype) %(objectname) %(*objecttype) %(*objectname)",
+            f"refs/tags/{tag_pattern}",
+        ).stdout
+    except ValueError as exc:
+        raise ValueError(f"not a git repository with a HEAD commit: {clone}: {exc}") from exc
+    tags: dict[str, str] = {}
+    for line in listing.splitlines():
+        name, kind, commit, peeled_kind, peeled = line.split(" ")
+        if kind == "tag":
+            kind, commit = peeled_kind, peeled
+        if kind == "commit":
+            tags[name] = commit.lower()
+    return LocalGitRefs(head, MappingProxyType(tags))
 
 
 def cached_git_checkout(uri: str | GitUri) -> Path | None:

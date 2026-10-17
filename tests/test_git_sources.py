@@ -2,7 +2,10 @@
 
 import json
 import logging
+import os
+import re
 import shutil
+import stat
 import subprocess
 import time
 from pathlib import Path
@@ -10,6 +13,7 @@ from pathlib import Path
 import pytest
 
 from httk.core import git_sources
+from httk.core.digests import tree_digest
 from httk.core.git_sources import (
     GitUri,
     cached_git_checkout,
@@ -17,6 +21,7 @@ from httk.core.git_sources import (
     install_git_member,
     installed_git_member,
     installed_git_members,
+    local_git_refs,
     parse_git_uri,
     resolve_installed_name,
     uninstall_git_members,
@@ -265,3 +270,86 @@ def test_kind_must_be_a_plain_name() -> None:
     for kind in ("", "../x", "Templates", "a/b", "git"):
         with pytest.raises(ValueError, match="kind"):
             installed_git_members(kind)
+
+
+_REMOTE = "git+https://example.invalid/org/repo"
+
+
+def _sourced_repository(root: Path) -> tuple[Path, str, str]:
+    """Create a repository with an executable script and CRLF-converted text; tag v1, then commit again."""
+
+    root, _ = _repository(root, {"": "thing"})
+    (root / ".gitattributes").write_text("*.txt text eol=crlf\n", encoding="utf-8")
+    (root / "notes.txt").write_text("one\ntwo\n", encoding="utf-8")
+    script = root / "run.sh"
+    script.write_text("#!/bin/sh\necho run\n", encoding="utf-8")
+    script.chmod(0o755)
+    _git(root, "add", "-A")
+    _git(root, "commit", "-q", "-m", "files")
+    _git(root, "tag", "v1")
+    first = _git(root, "rev-parse", "HEAD")
+    return root, first, _commit(root, "two")
+
+
+def _executables(tree: Path) -> dict[str, bool]:
+    return {
+        path.relative_to(tree).as_posix(): bool(path.stat().st_mode & stat.S_IXUSR)
+        for path in tree.rglob("*")
+        if path.is_file()
+    }
+
+
+def test_local_clone_source_caches_under_the_uri_repository(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    root, _, commit = _sourced_repository(tmp_path / "repo")
+    canonical, tree = fetch_git_checkout(f"{_REMOTE}@{commit.upper()}", source=root)
+    parent = git_sources._checkouts(_REMOTE)
+    assert canonical == GitUri(_REMOTE, commit, None) and tree == parent / commit
+    assert (tree / _MARKER).is_file() and not (tree / ".git").exists()
+    checkout = json.loads((parent / f"{commit}.json").read_text(encoding="utf-8"))
+    assert checkout["repository"] == _REMOTE and checkout["commit"] == commit
+    monkeypatch.setattr(git_sources, "_git", _refuse)
+    assert fetch_git_checkout(f"{_REMOTE}@{commit}#sub", source=root) == (GitUri(_REMOTE, commit, "sub"), tree)
+
+
+def test_bundle_source_fetches_a_tagged_older_commit(tmp_path: Path) -> None:
+    root, first, _ = _sourced_repository(tmp_path / "repo")
+    bundle = tmp_path / "repo.bundle"
+    _git(root, "bundle", "create", "-q", str(bundle), "HEAD", "v1")
+    canonical, tree = fetch_git_checkout(f"{_REMOTE}@{first}", source=bundle)
+    assert canonical.ref == first and tree == git_sources._checkouts(_REMOTE) / first
+    assert not (tree / "CHANGES").exists() and (tree / "run.sh").is_file()
+
+
+def test_local_source_tree_is_identical_to_a_fetched_one(tmp_path: Path) -> None:
+    root, first, _ = _sourced_repository(tmp_path / "repo")
+    _, local = fetch_git_checkout(f"{_REMOTE}@{first}", source=root)
+    _, fetched = fetch_git_checkout(f"git+file://{root}@{first}")
+    assert local != fetched
+    assert (local / "notes.txt").read_bytes() == b"one\r\ntwo\r\n"
+    assert tree_digest(local) == tree_digest(fetched)
+    assert _executables(local) == _executables(fetched) and _executables(local)["run.sh"]
+    assert os.access(local / "run.sh", os.X_OK)
+
+
+def test_local_source_needs_a_pinned_uri_and_a_present_commit(tmp_path: Path) -> None:
+    root, _, _ = _sourced_repository(tmp_path / "repo")
+    with pytest.raises(ValueError, match=f"pinned.*{re.escape(_REMOTE)}@main"):
+        fetch_git_checkout(f"{_REMOTE}@main", source=root)
+    with pytest.raises(ValueError, match="checkout"):
+        fetch_git_checkout(f"{_REMOTE}@{'0' * 40}", source=root)
+    parent = git_sources._checkouts(_REMOTE)
+    assert not parent.exists() or list(parent.iterdir()) == []
+
+
+def test_local_git_refs(tmp_path: Path) -> None:
+    root, first, head = _sourced_repository(tmp_path / "repo")
+    _git(root, "tag", "wf-v0.1.0", first)
+    _git(root, "tag", "-a", "-m", "annotated", "wf-v0.2.0")
+    _git(root, "tag", "wf-decl-v0.1.0")
+    _git(root, "tag", "wf-vtree", _git(root, "rev-parse", "HEAD^{tree}"))
+    refs = local_git_refs(root, "wf-v*")
+    assert refs.head == head
+    assert dict(refs.tags) == {"wf-v0.1.0": first, "wf-v0.2.0": head}
+    for missing in (tmp_path / "missing", tmp_path):
+        with pytest.raises(ValueError, match=re.escape(str(missing))):
+            local_git_refs(missing, "*")
