@@ -18,6 +18,7 @@ on the other.
 - **Module registry**: {doc}`registry`
 - **Datastreams**: {doc}`datastreams`
 - **Extensible CLI**: {doc}`cli`
+- **Reporting and diagnostics**: {doc}`reporting`
 - **Plugins**: {doc}`plugins`
 - **Cryptography**: {doc}`crypto`
 - **Operator identity**: {doc}`identity`
@@ -67,6 +68,7 @@ view_backend_pattern
 registry
 datastreams
 cli
+reporting
 plugins
 crypto
 identity
