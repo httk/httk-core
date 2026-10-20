@@ -33,7 +33,7 @@ def _record(**metadata: object) -> FileRecord:
 def test_file_record_content_id_and_metadata_exclusion() -> None:
     record = _record()
     # A changed value means a storage-identity break.
-    assert content_id(record) == "349a6fc790d32f824296482b89f946d84329fe76cbf4f4c67f3b099911b8a455"
+    assert content_id(record) == "241443b4f45978c6fea225793f63543cafaea989699b8f46b6f44b5b103a061f"
     assert record.id is None
     assert record.type == "files"
     metadata = {
@@ -48,6 +48,7 @@ def test_file_record_content_id_and_metadata_exclusion() -> None:
         "checksums": {"sha256": "different"},
     }
     assert content_id(_record(**metadata)) == content_id(record)
+    assert content_id(replace(record, size=1, version="v2", description="Another")) == content_id(record)
 
     identified = replace(record, id="logical", immutable_id="immutable")
     assert identified.id == "logical"
@@ -55,6 +56,24 @@ def test_file_record_content_id_and_metadata_exclusion() -> None:
     projected = FileRecord(**project_storage_record(FileRecord, identified))
     assert projected.id == "logical"
     assert projected.immutable_id == "immutable"
+
+
+def test_file_record_identity_is_content_not_location() -> None:
+    digest = "ab" * 32
+    first = FileRecord(url="a", name="x", sha256=digest)
+    assert first.media_type == "application/octet-stream"
+    assert first.format is None
+    assert content_id(first) == content_id(FileRecord(url="b", name="y", sha256=digest))
+    assert content_id(replace(first, url="c", name="z")) == content_id(first)
+    assert content_id(replace(first, sha256="cd" * 32)) != content_id(first)
+    assert content_id(replace(first, media_type="text/plain")) != content_id(first)
+    assert content_id(replace(first, format="poscar")) != content_id(first)
+    assert content_id(replace(first, format="poscar")) != content_id(replace(first, format="cif"))
+    with pytest.raises(TypeError, match="sha256"):
+        cast(Any, FileRecord)("a", "x")
+    for bad in ("AB" * 32, "ab" * 31, "zz" * 32, cast(Any, None)):
+        with pytest.raises(ValueError, match="sha256 must be a lowercase hex SHA-256 digest"):
+            FileRecord(url="a", name="x", sha256=bad)
 
 
 def test_file_entry_and_record_create() -> None:
@@ -127,4 +146,3 @@ def test_file_record_stored_property_projections() -> None:
     # and an explicit checksums mapping wins.
     assert projections["checksums"].response(record) == {"sha256": record.sha256}
     assert projections["checksums"].response(replace(record, checksums={"md5": "abc"})) == {"md5": "abc"}
-    assert projections["checksums"].response(replace(record, sha256=None)) is None

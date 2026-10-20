@@ -39,6 +39,7 @@ from .register.io import (
     known_extensions,
     known_filenames,
     known_reader_formats,
+    reader_format_for,  # noqa: F401
     reader_formats,
     readers,
 )

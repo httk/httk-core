@@ -33,6 +33,7 @@ from httk.core.register import (
 )
 from httk.core.storage import (
     IdentitySkip,
+    IdentitySkipWhenNone,
     Skip,
     StorageInfo,
     StorageProjectionCycleError,
@@ -118,6 +119,25 @@ def test_skip_markers_inside_optional_annotations_are_honored() -> None:
         skip_inner: Annotated[str, IdentitySkip()] | None
 
     assert content_id(Record(1, "a", "x")) == content_id(Record(1, "b", "y"))
+
+
+def test_identity_skip_when_none_field_is_absent_only_while_none() -> None:
+    @dataclass(frozen=True)
+    class Before:
+        __httk_storage__: ClassVar[StorageInfo] = StorageInfo(identity_name="evolving")
+        value: int
+
+    @dataclass(frozen=True)
+    class After:
+        __httk_storage__: ClassVar[StorageInfo] = StorageInfo(identity_name="evolving")
+        value: int
+        added: Annotated[str | None, IdentitySkipWhenNone()] = None
+
+    assert content_id(After(1)) == content_id(Before(1))
+    assert canonical_form(After(1)) == canonical_form(Before(1))
+    assert content_id(After(1, "x")) != content_id(Before(1))
+    assert content_id(After(1, "x")) != content_id(After(1, "y"))
+    assert '"added"' in canonical_form(After(1, "x"))
 
 
 def test_projected_identity_skip_field_is_required_but_skip_may_be_omitted() -> None:

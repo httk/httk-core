@@ -1,18 +1,29 @@
 """Stdlib-only storage records for OPTIMADE ``files`` entries.
 
-``FileRecord`` stores file metadata and a flat ``sha256`` digest. The URL is
-part of identity deliberately: two paths to the same bytes are two entries.
+``FileRecord`` stores file metadata and a flat ``sha256`` digest. Files are
+deduplicated by content: identity is the media type, the httk format name when
+set, and the SHA-256 digest, so every path to the same bytes is one entry.
 The mapping-valued ``checksums`` field is skipped because SQL storage cannot
 persist mappings; use ``sha256`` for the storable digest.
 """
 
 import datetime
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Annotated, Any, ClassVar, Self, cast
 
 from .entry_types import File
-from .storage import IdentitySkip, Indexed, Skip, StorageInfo, StoredPropertyProjection, Unique
+from .storage import (
+    IdentitySkip,
+    IdentitySkipWhenNone,
+    Indexed,
+    KeepStored,
+    Skip,
+    StorageInfo,
+    StoredPropertyProjection,
+    Unique,
+)
 
 FILES_DEFINITION_ID = "https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files"
 
@@ -21,10 +32,15 @@ FILES_DEFINITION_ID = "https://schemas.optimade.org/defs/v1.2/entrytypes/optimad
 class FileRecord(File):
     """Store one OPTIMADE ``files`` entry with content identity metadata.
 
-    URL and name remain required positional fields. The URL is included in
-    identity so separate paths to identical bytes remain separate entries.
-    The human-readable and immutable identifiers, metadata timestamps, and
-    other metadata are excluded from content identity.
+    A file record is identified by its content: the media type, the httk
+    ``format`` name when set, and the SHA-256 digest of the bytes. URL and name
+    remain required positional fields, but they only say where the bytes
+    currently live and are excluded from content identity; a record may be
+    re-pointed to any copy whose bytes still match ``sha256``, and the same
+    bytes used in many places are one entry. The human-readable and immutable
+    identifiers, size, version, description, timestamps, and other metadata
+    are excluded from content identity as well. A repeated save of the same
+    content from another location keeps the stored location and metadata.
     ``checksums`` is skipped because mapping fields are not SQL-storable;
     store the flat ``sha256`` value when a storable digest is needed.
 
@@ -35,7 +51,7 @@ class FileRecord(File):
     :param last_modified: The optional timezone-aware metadata timestamp.
     :param url_stable_until: The optional URL stability deadline.
     :param size: The file size in bytes, if known.
-    :param media_type: The file MIME type, if known.
+    :param media_type: The file MIME type; ``"application/octet-stream"`` when nothing more specific is known.
     :param version: The file version, if known.
     :param modification_timestamp: The optional content modification timestamp.
     :param description: An optional free-form file description.
@@ -43,7 +59,9 @@ class FileRecord(File):
     :param atime: The optional POSIX access timestamp.
     :param ctime: The optional POSIX status-change timestamp.
     :param mtime: The optional POSIX modification timestamp.
-    :param sha256: The optional flat SHA-256 digest.
+    :param sha256: The flat SHA-256 hexadecimal digest of the file bytes; required, keyword-only.
+    :param format: The httk reader format name usable as ``httk.core.load(path, format=...)`` (e.g. ``"poscar"``), if known; part of identity only when set.
+    :raises ValueError: If ``sha256`` is not a lowercase hexadecimal SHA-256 digest.
     """
 
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
@@ -52,20 +70,34 @@ class FileRecord(File):
         indexes=(("url",), ("name",), ("sha256",)),
     )
 
+    url: Annotated[str, IdentitySkip(), KeepStored()]
+    name: Annotated[str, IdentitySkip(), KeepStored()]
     id: Annotated[str | None, IdentitySkip(), Indexed()] = field(default=None, compare=False)
     immutable_id: Annotated[str | None, IdentitySkip(), Unique()] = field(default=None, compare=False)
-    last_modified: Annotated[datetime.datetime | None, IdentitySkip()] = field(default=None, compare=False)
-    url_stable_until: Annotated[datetime.datetime | None, IdentitySkip()] = field(default=None, compare=False)
-    size: int | None = None
-    media_type: str | None = None
-    version: str | None = None
-    modification_timestamp: Annotated[datetime.datetime | None, IdentitySkip()] = field(default=None, compare=False)
-    description: str | None = None
+    last_modified: Annotated[datetime.datetime | None, IdentitySkip(), KeepStored()] = field(
+        default=None, compare=False
+    )
+    url_stable_until: Annotated[datetime.datetime | None, IdentitySkip(), KeepStored()] = field(
+        default=None, compare=False
+    )
+    size: Annotated[int | None, IdentitySkip(), KeepStored()] = None
+    media_type: str = "application/octet-stream"
+    version: Annotated[str | None, IdentitySkip(), KeepStored()] = None
+    modification_timestamp: Annotated[datetime.datetime | None, IdentitySkip(), KeepStored()] = field(
+        default=None, compare=False
+    )
+    description: Annotated[str | None, IdentitySkip(), KeepStored()] = None
     checksums: Annotated[Mapping[str, str] | None, Skip()] = None
-    atime: Annotated[datetime.datetime | None, IdentitySkip()] = field(default=None, compare=False)
-    ctime: Annotated[datetime.datetime | None, IdentitySkip()] = field(default=None, compare=False)
-    mtime: Annotated[datetime.datetime | None, IdentitySkip()] = field(default=None, compare=False)
-    sha256: str | None = None
+    atime: Annotated[datetime.datetime | None, IdentitySkip(), KeepStored()] = field(default=None, compare=False)
+    ctime: Annotated[datetime.datetime | None, IdentitySkip(), KeepStored()] = field(default=None, compare=False)
+    mtime: Annotated[datetime.datetime | None, IdentitySkip(), KeepStored()] = field(default=None, compare=False)
+    sha256: str = field(kw_only=True)
+    format: Annotated[str | None, IdentitySkipWhenNone()] = None
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        if not isinstance(self.sha256, str) or re.fullmatch(r"[0-9a-f]{64}", self.sha256) is None:
+            raise ValueError(f"FileRecord sha256 must be a lowercase hex SHA-256 digest, got {self.sha256!r}")
 
     @property
     def type(self) -> str:
@@ -100,7 +132,7 @@ def _served_file_value(field_name: str) -> StoredPropertyProjection:
     return StoredPropertyProjection(response=lambda record: getattr(record, field_name))
 
 
-def _served_checksums(served: object) -> Mapping[str, str] | None:
+def _served_checksums(served: object) -> Mapping[str, str]:
     """Return the served ``checksums``, derived from the flat ``sha256`` when unset.
 
     ``checksums`` is not SQL-storable, so a stored record serves its ``sha256``
@@ -108,12 +140,12 @@ def _served_checksums(served: object) -> Mapping[str, str] | None:
     explicit ``checksums`` mapping wins.
 
     :param served: The ``FileRecord`` whose checksums are served.
-    :return: The served checksums mapping, or ``None`` without any digest.
+    :return: The served checksums mapping.
     """
     record = cast(FileRecord, served)
     if record.checksums is not None:
         return record.checksums
-    return None if record.sha256 is None else {"sha256": record.sha256}
+    return {"sha256": record.sha256}
 
 
 # Default projections so ``StoredEntrySource(store, FileEntry, ...)`` resolves (a

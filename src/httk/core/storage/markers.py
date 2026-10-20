@@ -58,7 +58,9 @@ __all__ = [
     "STORAGE_INFO_ATTRIBUTE",
     "DedupPolicy",
     "IdentitySkip",
+    "IdentitySkipWhenNone",
     "Indexed",
+    "KeepStored",
     "Related",
     "Shape",
     "Skip",
@@ -107,6 +109,24 @@ class Skip:
 @dataclass(frozen=True)
 class IdentitySkip:
     """Field marker: exclude the field from content identity."""
+
+
+@dataclass(frozen=True)
+class IdentitySkipWhenNone:
+    """Field marker: exclude the field from content identity while its value is ``None``.
+
+    A set value participates in content identity as usual. Adding a new
+    optional field with this marker therefore leaves the content ids of
+    records that predate the field (and leave it ``None``) unchanged.
+    """
+
+
+@dataclass(frozen=True)
+class KeepStored:
+    """Field marker: on a save that deduplicates onto an existing row, keep the stored value and ignore a differing incoming value.
+
+    Only meaningful together with :class:`IdentitySkip`.
+    """
 
 
 @dataclass(frozen=True)

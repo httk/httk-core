@@ -9,6 +9,7 @@ import pytest
 from httk.core.storage import (
     STORAGE_INFO_ATTRIBUTE,
     Indexed,
+    KeepStored,
     Related,
     Shape,
     Skip,
@@ -22,6 +23,15 @@ from httk.core.storage import (
 @dataclass(frozen=True)
 class _Target:
     value: int
+
+
+def test_keep_stored_is_exported_and_marks_file_record_location():
+    import httk.core
+    from httk.core import FileRecord
+
+    assert httk.core.KeepStored is KeepStored
+    metadata = get_type_hints(FileRecord, include_extras=True)["url"].__metadata__
+    assert KeepStored() in metadata
 
 
 def test_field_markers_are_frozen_and_equal_by_value():

@@ -15,6 +15,7 @@ from httk.core.register import (
     known_format_adapters,
     known_reader_formats,
     reader_filenames,
+    reader_format_for,
     reader_formats,
     readers,
     register_format_adapter,
@@ -78,6 +79,21 @@ def test_load_real_poscar_path_raw(_register_stub: None, tmp_path: Path) -> None
 def test_load_rejects_urls(url: str) -> None:
     with pytest.raises(ValueError, match=r"httk\.core\.fetch"):
         load(url)
+
+
+def test_reader_format_for_returns_the_selected_readers_tag() -> None:
+    assert reader_format_for("x.dmy.gz") is None
+    register_reader(name="dummy", reader="dummy_module:read", format="dummy-fmt", extensions=(".dmy",))
+    readers.register(key=".untagged", handler="dummy_module:other", name="untagged")
+    try:
+        assert reader_format_for("x.dmy.gz") == "dummy-fmt"
+        assert reader_format_for("X.DMY") == "dummy-fmt"
+        assert reader_format_for("x.untagged") is None
+        assert reader_format_for("x.unknown") is None
+    finally:
+        readers._by_key.pop(".dmy", None)
+        readers._by_key.pop(".untagged", None)
+        reader_formats._by_key.pop("dummy-fmt", None)
 
 
 def test_has_reader_for_checks_registry_keys_only(_register_stub: None, monkeypatch: pytest.MonkeyPatch) -> None:

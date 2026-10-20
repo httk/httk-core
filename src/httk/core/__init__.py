@@ -64,7 +64,7 @@ from .entry_records import DataEntryRecord, EntryRecord, Property, entry_record
 from .entry_types import Calculation, File, Reference
 from .fetching import fetch
 from .files import FileEntry, FileRecord
-from .loading import has_reader_for, load, load_many, load_source
+from .loading import has_reader_for, load, load_many, load_source, reader_format_for
 from .precision import combined_precision, decimal_precision
 from .property_definitions import (
     EntryTypeDefinition,
@@ -105,7 +105,9 @@ from .services import Service, ServiceRecord
 from .storage.identity import content_id
 from .storage.markers import (
     IdentitySkip,
+    IdentitySkipWhenNone,
     Indexed,
+    KeepStored,
     Related,
     Shape,
     Skip,
@@ -168,7 +170,9 @@ __all__ = [
     "FracScalar",
     "FracVector",
     "IdentitySkip",
+    "IdentitySkipWhenNone",
     "Indexed",
+    "KeepStored",
     "MemberLayout",
     "MissingType",
     "MutableFracVector",
@@ -233,6 +237,7 @@ __all__ = [
     "parse_entry_id",
     "parse_immutable_id",
     "project_member_handler",
+    "reader_format_for",
     "register_citation",
     "register_cli_command",
     "register_compression",

@@ -30,7 +30,8 @@ serializers under `httk.registry.io.atomistic`, entry registrations under
 basename when no registered extension matches. Matching is case-insensitive.
 At most one recognized compression suffix is stripped before dispatch, while
 the reader receives the original filename. `has_reader_for` tests dispatch
-without loading a file.
+without loading a file, and `reader_format_for` returns the `format=` tag of
+the reader a name would select, or `None`.
 
 ```python
 from httk.core import load, register_reader
@@ -321,8 +322,9 @@ their structural v1 payloads.
 The format is not injective after record children are replaced by digests. Its
 guarantee is **computational binding**: producing two distinct well-formed
 canonical value trees, modulo the documented deliberate equivalences
-(shared-vs-duplicated equal children, `IdentitySkip` exclusions,
-`identity_name`-based record unification, `Decimal` ≡ `Fraction`, unregistered
+(shared-vs-duplicated equal children, `IdentitySkip` exclusions, an
+`IdentitySkipWhenNone` field that is `None` being indistinguishable from the
+field being absent, `identity_name`-based record unification, `Decimal` ≡ `Fraction`, unregistered
 builtin-subclass leaf unification, and annotation-normalized list/tuple values),
 with equal digests requires a SHA-256 collision. `record_ref` provides sound
 domain separation: user strings, mappings, and custom values remain enclosed

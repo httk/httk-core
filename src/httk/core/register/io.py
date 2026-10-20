@@ -46,6 +46,31 @@ def has_reader_for(name: str) -> bool:
     return _reader_key(name) is not None
 
 
+def reader_format_for(name: str) -> str | None:
+    """Return the ``format`` tag of the reader that ``name`` selects.
+
+    The reader is selected as by :func:`has_reader_for` (extension, then exact
+    basename, with any compression suffix stripped); its tag is the
+    :data:`~httk.core.register.reader_formats` key registered with the same reader
+    reference.
+
+    :param name: Filename or URL path whose reader is looked up.
+    :return: The reader's format tag, or ``None`` when no reader matches or it has no tag.
+    """
+    key = _reader_key(name)
+    if key is None:
+        return None
+    registry, reader_key = key
+    spec = registry.get(reader_key)
+    if spec is None:
+        return None
+    # ponytail: linear scan over reader_formats; index by handler if tag counts grow large.
+    for tag, candidate in reader_formats.items():
+        if _same_callable_reference(candidate.handler, spec.handler):
+            return tag
+    return None
+
+
 #: Readers selected by file *extension* (keys are lower-case ``".ext"`` suffixes).
 readers = PluginRegistry()
 

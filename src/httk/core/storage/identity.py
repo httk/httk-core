@@ -34,7 +34,9 @@ The v2 value-node shapes are:
 The format is not injective after record children are replaced by digests. Its
 guarantee is computational binding: producing two distinct well-formed
 canonical value trees, modulo the documented deliberate equivalences
-(shared-vs-duplicated equal children, ``IdentitySkip`` exclusions,
+(shared-vs-duplicated equal children, ``IdentitySkip`` exclusions, an
+``IdentitySkipWhenNone`` field that is ``None`` being indistinguishable from
+the field being absent,
 ``identity_name``-based record unification, ``Decimal`` equivalence with
 ``Fraction``, builtin-subclass leaf unification, and annotation-normalized
 list/tuple values), with equal digests requires a SHA-256 collision. A
@@ -55,7 +57,7 @@ from typing import Annotated, Any, Union, get_args, get_origin, get_type_hints
 
 from httk.core._sentinel import MISSING as _MISSING
 
-from .markers import STORAGE_INFO_ATTRIBUTE, IdentitySkip, Skip, StorageInfo, stored_property
+from .markers import STORAGE_INFO_ATTRIBUTE, IdentitySkip, IdentitySkipWhenNone, Skip, StorageInfo, stored_property
 from .rational_text import fraction_to_text
 
 __all__ = [
@@ -233,7 +235,9 @@ def canonical_form(
 
     Record fields marked with :class:`~httk.core.storage.IdentitySkip`, or
     represented by :class:`~httk.core.storage.stored_property`, are outside the
-    content identity. Registered custom encoders apply only to exact leaf types.
+    content identity; fields marked with
+    :class:`~httk.core.storage.IdentitySkipWhenNone` are outside it while
+    ``None``. Registered custom encoders apply only to exact leaf types.
 
     ``extras`` fold additional save-time key/value pairs into the identity of
     the root record only; child records never receive them. When ``extras`` is
@@ -431,6 +435,7 @@ class _Encoder:
         try:
             values = self._projector(record_type, source)
             excluded = _identity_excluded_names(record_type)
+            skip_when_none = _identity_skip_when_none_names(record_type)
             plans = _field_plans(record_type)
             if record_type not in _RESOLVED_ANNOTATIONS:
                 # The fallback annotations are intentionally not cache-safe:
@@ -438,7 +443,7 @@ class _Encoder:
                 self.plans_resolved = False
             fields = []
             for name in sorted(values):
-                if name in excluded:
+                if name in excluded or (name in skip_when_none and values[name] is None):
                     continue
                 fields.append([name, self.value(values[name], plans.get(name, _ANY_PLAN), (*path, name))])
             result: dict[str, Any] = {
@@ -708,6 +713,7 @@ _VECTOR_TYPES: tuple[type[Any], type[Any], type[Any], type[Any]] | None = None
 _LEAF_KINDS: dict[type[Any], int] = {}
 _FIELD_PLANS: dict[type[Any], dict[str, "_AnnotationPlan"]] = {}
 _IDENTITY_EXCLUDED: dict[type[Any], frozenset[str]] = {}
+_IDENTITY_SKIP_WHEN_NONE: dict[type[Any], frozenset[str]] = {}
 
 
 def _vector_types() -> tuple[type[Any], type[Any], type[Any], type[Any]]:
@@ -868,6 +874,21 @@ def _identity_excluded_names(record_type: type[Any]) -> frozenset[str]:
     if record_type in _RESOLVED_ANNOTATIONS:
         _IDENTITY_EXCLUDED[record_type] = excluded
     return excluded
+
+
+def _identity_skip_when_none_names(record_type: type[Any]) -> frozenset[str]:
+    cached = _IDENTITY_SKIP_WHEN_NONE.get(record_type)
+    if cached is not None:
+        return cached
+    _record_annotations(record_type)  # trigger annotation resolution before deciding to cache
+    names = frozenset(
+        field.name
+        for field in dataclasses.fields(record_type)
+        if _field_has_marker(record_type, field.name, None, IdentitySkipWhenNone)
+    )
+    if record_type in _RESOLVED_ANNOTATIONS:
+        _IDENTITY_SKIP_WHEN_NONE[record_type] = names
+    return names
 
 
 def _field_markers(record_type: type[Any], name: str, annotation: Any = None) -> tuple[Any, ...]:
