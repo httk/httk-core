@@ -111,9 +111,8 @@ def test_file_record_stored_property_projections() -> None:
         name for name, definition in served.properties.items() if name not in intrinsic and not definition.nullable
     }
     assert required <= set(projections)
-    # Projection keys are exactly the intended served properties, all valid names.
-    assert set(projections) == {"url", "name", "size", "media_type"}
-    assert set(projections) <= set(served.properties)
+    # Every served files property is projected; unprojected ones would serve null.
+    assert set(projections) == set(served.properties) - intrinsic
     # sha256 is a stored field but not an OPTIMADE files property, so it is not projected.
     assert "sha256" not in served.properties
     assert "sha256" not in projections
@@ -123,3 +122,9 @@ def test_file_record_stored_property_projections() -> None:
     assert projections["name"].response(record) == record.name
     assert projections["size"].response(record) == record.size
     assert projections["media_type"].response(record) == record.media_type
+    assert projections["description"].response(record) == record.description
+    # checksums is not SQL-storable: the flat sha256 is served in its place,
+    # and an explicit checksums mapping wins.
+    assert projections["checksums"].response(record) == {"sha256": record.sha256}
+    assert projections["checksums"].response(replace(record, checksums={"md5": "abc"})) == {"md5": "abc"}
+    assert projections["checksums"].response(replace(record, sha256=None)) is None

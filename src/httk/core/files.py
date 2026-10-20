@@ -100,17 +100,46 @@ def _served_file_value(field_name: str) -> StoredPropertyProjection:
     return StoredPropertyProjection(response=lambda record: getattr(record, field_name))
 
 
-# Default projections so ``StoredEntrySource(store, FileEntry, ...)`` resolves: a
-# stored source rejects a family whose non-nullable served properties (``url``,
-# ``name``) have no response mapping. ``size`` and ``media_type`` are the useful
-# nullable served properties; ``sha256`` is deliberately absent (it is a stored
-# field but not an OPTIMADE ``files`` property, so projecting it would be rejected
-# as unknown). Keys are the served (wire) ``files`` property names.
+def _served_checksums(served: object) -> Mapping[str, str] | None:
+    """Return the served ``checksums``, derived from the flat ``sha256`` when unset.
+
+    ``checksums`` is not SQL-storable, so a stored record serves its ``sha256``
+    digest as ``{"sha256": ...}``, as the in-memory files provider does; an
+    explicit ``checksums`` mapping wins.
+
+    :param served: The ``FileRecord`` whose checksums are served.
+    :return: The served checksums mapping, or ``None`` without any digest.
+    """
+    record = cast(FileRecord, served)
+    if record.checksums is not None:
+        return record.checksums
+    return None if record.sha256 is None else {"sha256": record.sha256}
+
+
+# Default projections so ``StoredEntrySource(store, FileEntry, ...)`` resolves (a
+# stored source rejects a family whose non-nullable served properties ``url`` and
+# ``name`` have no response mapping) and serves every stored ``files`` property;
+# an unprojected property would be served as null. ``sha256`` is not an OPTIMADE
+# ``files`` property, so it is served through ``checksums`` instead. Keys are the
+# served (wire) ``files`` property names.
 cast(Any, FileRecord).__httk_stored_properties__ = {
-    "url": _served_file_value("url"),
-    "name": _served_file_value("name"),
-    "size": _served_file_value("size"),
-    "media_type": _served_file_value("media_type"),
+    **{
+        name: _served_file_value(name)
+        for name in (
+            "url",
+            "name",
+            "url_stable_until",
+            "size",
+            "media_type",
+            "version",
+            "modification_timestamp",
+            "description",
+            "atime",
+            "ctime",
+            "mtime",
+        )
+    },
+    "checksums": StoredPropertyProjection(response=_served_checksums),
 }
 
 
