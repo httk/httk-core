@@ -315,6 +315,9 @@ def test_served_form_prefixes_vendored_runs() -> None:
         "_httk_workflow_declaration_uri",
         "_httk_workflow_definition_uri",
         "_httk_source_id",
+        "_httk_name",
+        "_httk_started_at",
+        "_httk_finished_at",
     }
     # Renaming keeps the published $id; only the wire name changes.
     workflow = served.properties["_httk_workflow_declaration_uri"]

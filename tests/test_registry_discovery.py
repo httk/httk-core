@@ -72,6 +72,9 @@ def test_discovery_registers_httk_entry_types_families_and_records() -> None:
         "last_modified",
         "workflow_declaration_uri",
         "workflow_definition_uri",
+        "name",
+        "started_at",
+        "finished_at",
     }
     assert records.name == "records"
     assert set(records.properties) == {"id", "type", "immutable_id", "last_modified"}

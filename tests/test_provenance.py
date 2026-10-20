@@ -181,3 +181,24 @@ def test_run_ids_are_stored_metadata_outside_content_identity() -> None:
     projected = Run(**project_storage_record(Run, identified))
     assert projected.id == "logical"
     assert projected.immutable_id == "immutable"
+
+
+def test_run_name_and_timing_are_metadata_outside_identity_and_equality() -> None:
+    start = datetime.datetime(2026, 1, 2, 3, 4, 5, tzinfo=datetime.UTC)
+    end = datetime.datetime(2026, 1, 2, 4, 0, 0, tzinfo=datetime.UTC)
+    run = Run(source_id="ws:job", name="tight relax 1", started_at=start, finished_at=end)
+    assert (run.name, run.started_at, run.finished_at) == ("tight relax 1", start, end)
+    bare = Run(source_id="ws:job")
+    assert run == bare
+    assert content_id(run) == content_id(bare)
+    created = Run.from_obj({"source_id": "ws:job", "started_at": start.isoformat(), "finished_at": end.isoformat()})
+    assert (created.started_at, created.finished_at) == (start, end)
+    projected = Run(**project_storage_record(Run, run))
+    assert (projected.name, projected.started_at, projected.finished_at) == ("tight relax 1", start, end)
+    for field_name in ("started_at", "finished_at"):
+        with pytest.raises(ValueError, match=field_name):
+            Run(**{field_name: start.replace(tzinfo=None)})
+        with pytest.raises(ValueError, match=field_name):
+            Run.from_obj({field_name: "2026-01-02T03:04:05"})
+    with pytest.raises(ValueError, match="name"):
+        Run(name=" padded ")

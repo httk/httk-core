@@ -18,7 +18,7 @@ from typing import Annotated, Any, ClassVar, Self
 from .storage import IdentitySkip, Indexed, StorageInfo, StrongLink, Unique
 
 RUNS_DEFINITION_ID = "https://schemas.httk.org/defs/v0.1/entrytypes/runs"
-_TIMESTAMP_FIELDS = frozenset({"last_modified"})
+_TIMESTAMP_FIELDS = frozenset({"last_modified", "started_at", "finished_at"})
 
 
 def _validate_string(value: Any, field_name: str) -> None:
@@ -143,6 +143,12 @@ class Run:
     :param id: The human-readable entry id shared by all revisions; minted by the store when None.
     :param immutable_id: The per-revision immutable id; minted by the store when None.
     :param last_modified: The optional timezone-aware metadata timestamp.
+    :param name: The optional human-readable run name; metadata outside content
+        identity and equality.
+    :param started_at: When the run started, as a timezone-aware datetime;
+        metadata outside content identity and equality.
+    :param finished_at: When the run finished, as a timezone-aware datetime;
+        metadata outside content identity and equality.
     """
 
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
@@ -160,6 +166,9 @@ class Run:
     id: Annotated[str | None, IdentitySkip(), Indexed()] = field(default=None, compare=False)
     immutable_id: Annotated[str | None, IdentitySkip(), Unique()] = field(default=None, compare=False)
     last_modified: Annotated[datetime.datetime | None, IdentitySkip()] = field(default=None, compare=False)
+    name: Annotated[str | None, IdentitySkip()] = field(default=None, compare=False)
+    started_at: Annotated[datetime.datetime | None, IdentitySkip()] = field(default=None, compare=False)
+    finished_at: Annotated[datetime.datetime | None, IdentitySkip()] = field(default=None, compare=False)
 
     @property
     def type(self) -> str:
@@ -170,6 +179,7 @@ class Run:
         _validate_uri(self.workflow_declaration_uri, "workflow_declaration_uri")
         _validate_uri(self.workflow_definition_uri, "workflow_definition_uri")
         _validate_uri(self.source_id, "source_id")
+        _validate_uri(self.name, "name")
         for side in ("inputs", "artifacts", "outputs"):
             values = _edges(getattr(self, side))
             labels: set[str] = set()
@@ -178,7 +188,8 @@ class Run:
                     raise ValueError(f"Duplicate label {edge.label!r} on Run {side}.")
                 labels.add(edge.label)
             object.__setattr__(self, side, values)
-        _validate_timestamp(self.last_modified, "last_modified")
+        for field_name in ("last_modified", "started_at", "finished_at"):
+            _validate_timestamp(getattr(self, field_name), field_name)
 
     @classmethod
     def from_obj(cls, obj: "Run | Mapping[str, Any]") -> Self:
