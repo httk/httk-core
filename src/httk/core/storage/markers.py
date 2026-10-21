@@ -123,8 +123,10 @@ class IdentitySkipWhenNone:
 
 @dataclass(frozen=True)
 class KeepStored:
-    """Field marker: on a save that deduplicates onto an existing row, keep the stored value and ignore a differing incoming value.
+    """Field marker: on a save that deduplicates onto an existing row, the first non-null value wins.
 
+    A stored non-null value is always kept and a differing incoming value is
+    ignored; a stored null is filled in place by a non-null incoming value.
     Only meaningful together with :class:`IdentitySkip`.
     """
 

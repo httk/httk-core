@@ -3,10 +3,13 @@
 ``FileRecord`` stores file metadata and a flat ``sha256`` digest. Files are
 deduplicated by content: identity is the media type, the httk format name when
 set, and the SHA-256 digest, so every path to the same bytes is one entry.
+A record with ``url=None`` names content whose bytes are lost (known only by
+digest) and serves its ``url`` as an RFC 6920 ``ni:///sha-256;...`` URI.
 The mapping-valued ``checksums`` field is skipped because SQL storage cannot
 persist mappings; use ``sha256`` for the storable digest.
 """
 
+import base64
 import datetime
 import re
 from collections.abc import Mapping
@@ -40,11 +43,15 @@ class FileRecord(File):
     bytes used in many places are one entry. The human-readable and immutable
     identifiers, size, version, description, timestamps, and other metadata
     are excluded from content identity as well. A repeated save of the same
-    content from another location keeps the stored location and metadata.
+    content keeps each stored non-null location and metadata value and fills
+    each stored null from the incoming record (first non-null wins), so a lost
+    file (``url=None``) gets its location from a later save of the same bytes.
     ``checksums`` is skipped because mapping fields are not SQL-storable;
     store the flat ``sha256`` value when a storable digest is needed.
+    ``url`` is None when the bytes are lost: the record then names content that
+    existed (its digest) but has no location; served as an ``ni:`` URI.
 
-    :param url: The URL to get the contents of the file.
+    :param url: The URL to get the contents of the file, or None when the bytes are lost.
     :param name: The base name of the file.
     :param id: The human-readable entry id shared by all revisions; minted by the store when None.
     :param immutable_id: The per-revision immutable id; minted by the store when None.
@@ -61,6 +68,7 @@ class FileRecord(File):
     :param mtime: The optional POSIX modification timestamp.
     :param sha256: The flat SHA-256 hexadecimal digest of the file bytes; required, keyword-only.
     :param format: The httk reader format name usable as ``httk.core.load(path, format=...)`` (e.g. ``"poscar"``), if known; part of identity only when set.
+    :raises TypeError: If ``url`` is neither a string nor None.
     :raises ValueError: If ``sha256`` is not a lowercase hexadecimal SHA-256 digest.
     """
 
@@ -70,7 +78,8 @@ class FileRecord(File):
         indexes=(("url",), ("name",), ("sha256",)),
     )
 
-    url: Annotated[str, IdentitySkip(), KeepStored()]
+    # A lost-bytes record widens the generated ``File.url: str``; served as an ``ni:`` URI.
+    url: Annotated[str | None, IdentitySkip(), KeepStored()]  # type: ignore[assignment]  # pyright: ignore[reportIncompatibleVariableOverride]
     name: Annotated[str, IdentitySkip(), KeepStored()]
     id: Annotated[str | None, IdentitySkip(), Indexed()] = field(default=None, compare=False)
     immutable_id: Annotated[str | None, IdentitySkip(), Unique()] = field(default=None, compare=False)
@@ -96,6 +105,8 @@ class FileRecord(File):
 
     def __post_init__(self) -> None:
         super().__post_init__()
+        if self.url is not None and not isinstance(self.url, str):
+            raise TypeError(f"FileRecord url must be a str or None, got {type(self.url).__name__}")
         if not isinstance(self.sha256, str) or re.fullmatch(r"[0-9a-f]{64}", self.sha256) is None:
             raise ValueError(f"FileRecord sha256 must be a lowercase hex SHA-256 digest, got {self.sha256!r}")
 
@@ -132,6 +143,28 @@ def _served_file_value(field_name: str) -> StoredPropertyProjection:
     return StoredPropertyProjection(response=lambda record: getattr(record, field_name))
 
 
+def _content_uri(sha256: str) -> str:
+    """Return the RFC 6920 ``ni:`` URI naming the bytes with SHA-256 digest *sha256*.
+
+    :param sha256: The lowercase hexadecimal SHA-256 digest.
+    :return: ``ni:///sha-256;`` followed by the unpadded base64url digest.
+    """
+    return "ni:///sha-256;" + base64.urlsafe_b64encode(bytes.fromhex(sha256)).rstrip(b"=").decode("ascii")
+
+
+def _served_url(served: object) -> str:
+    """Return the served ``url``, a content ``ni:`` URI when the bytes are lost.
+
+    OPTIMADE requires a string ``url``, so a ``url=None`` record serves the URI
+    naming its bytes by digest instead of claiming a location.
+
+    :param served: The ``FileRecord`` whose url is served.
+    :return: The stored url, or the record's ``ni:`` content URI.
+    """
+    record = cast(FileRecord, served)
+    return _content_uri(record.sha256) if record.url is None else record.url
+
+
 def _served_checksums(served: object) -> Mapping[str, str]:
     """Return the served ``checksums``, derived from the flat ``sha256`` when unset.
 
@@ -155,10 +188,10 @@ def _served_checksums(served: object) -> Mapping[str, str]:
 # ``files`` property, so it is served through ``checksums`` instead. Keys are the
 # served (wire) ``files`` property names.
 cast(Any, FileRecord).__httk_stored_properties__ = {
+    "url": StoredPropertyProjection(response=_served_url),
     **{
         name: _served_file_value(name)
         for name in (
-            "url",
             "name",
             "url_stable_until",
             "size",

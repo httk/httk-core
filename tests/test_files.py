@@ -146,3 +146,26 @@ def test_file_record_stored_property_projections() -> None:
     # and an explicit checksums mapping wins.
     assert projections["checksums"].response(record) == {"sha256": record.sha256}
     assert projections["checksums"].response(replace(record, checksums={"md5": "abc"})) == {"md5": "abc"}
+
+
+def test_file_record_lost_bytes_url_none() -> None:
+    """``url=None`` marks lost bytes: same identity, served as an RFC 6920 ``ni:`` URI."""
+    import base64
+    import hashlib
+
+    from httk.core.storage import stored_property_projections
+
+    digest = hashlib.sha256(b"").hexdigest()
+    lost = FileRecord(None, "x", sha256=digest)
+    assert lost.url is None
+    assert content_id(lost) == content_id(FileRecord("data/x", "x", sha256=digest))
+
+    projections = stored_property_projections(FileRecord)
+    expected = "ni:///sha-256;" + base64.urlsafe_b64encode(hashlib.sha256(b"").digest()).decode().rstrip("=")
+    assert expected == "ni:///sha-256;47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU"
+    assert projections["url"].response(lost) == expected
+    assert projections["url"].response(replace(lost, url="data/x")) == "data/x"
+    assert projections["checksums"].response(lost) == {"sha256": digest}
+
+    with pytest.raises(TypeError, match="url must be a str or None"):
+        FileRecord(cast(Any, b"data/x"), "x", sha256=digest)
