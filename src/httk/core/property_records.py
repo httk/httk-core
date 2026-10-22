@@ -32,12 +32,14 @@ from httk.core import (
     IdentitySkip,
     Indexed,
     PropertyDefinition,
+    ReferenceRecord,
     RunEdge,
     StorageInfo,
     StrongLink,
     TypedRecord,
     TypedRecordSpec,
     Unique,
+    WeakLink,
 )
 from httk.core.storage import StoredPropertyProjection
 
@@ -72,6 +74,7 @@ class AtomicForceRecord(TypedRecord):
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
         storage_name="core_atomic_force",
         identity_name="core_atomic_force",
+        links=(WeakLink("references", ReferenceRecord, exposed_relationship=True),),
     )
     __httk_typed_record__: ClassVar[TypedRecordSpec] = TypedRecordSpec(
         "https://schemas.httk.org/defs/v0.1/properties/core/atomic_force",
@@ -105,6 +108,7 @@ class EnthalpyRecord(TypedRecord):
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
         storage_name="core_enthalpy",
         identity_name="core_enthalpy",
+        links=(WeakLink("references", ReferenceRecord, exposed_relationship=True),),
     )
     __httk_typed_record__: ClassVar[TypedRecordSpec] = TypedRecordSpec(
         "https://schemas.httk.org/defs/v0.1/properties/core/enthalpy",
@@ -137,6 +141,7 @@ class KineticEnergyRecord(TypedRecord):
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
         storage_name="core_kinetic_energy",
         identity_name="core_kinetic_energy",
+        links=(WeakLink("references", ReferenceRecord, exposed_relationship=True),),
     )
     __httk_typed_record__: ClassVar[TypedRecordSpec] = TypedRecordSpec(
         "https://schemas.httk.org/defs/v0.1/properties/core/kinetic_energy",
@@ -170,6 +175,7 @@ class PotentialEnergyRecord(TypedRecord):
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
         storage_name="core_potential_energy",
         identity_name="core_potential_energy",
+        links=(WeakLink("references", ReferenceRecord, exposed_relationship=True),),
     )
     __httk_typed_record__: ClassVar[TypedRecordSpec] = TypedRecordSpec(
         "https://schemas.httk.org/defs/v0.1/properties/core/potential_energy",
@@ -202,6 +208,7 @@ class PressureRecord(TypedRecord):
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
         storage_name="core_pressure",
         identity_name="core_pressure",
+        links=(WeakLink("references", ReferenceRecord, exposed_relationship=True),),
     )
     __httk_typed_record__: ClassVar[TypedRecordSpec] = TypedRecordSpec(
         "https://schemas.httk.org/defs/v0.1/properties/core/pressure",
@@ -234,6 +241,7 @@ class StressTensorRecord(TypedRecord):
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
         storage_name="core_stress_tensor",
         identity_name="core_stress_tensor",
+        links=(WeakLink("references", ReferenceRecord, exposed_relationship=True),),
     )
     __httk_typed_record__: ClassVar[TypedRecordSpec] = TypedRecordSpec(
         "https://schemas.httk.org/defs/v0.1/properties/core/stress_tensor",
@@ -266,6 +274,7 @@ class TemperatureRecord(TypedRecord):
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
         storage_name="core_temperature",
         identity_name="core_temperature",
+        links=(WeakLink("references", ReferenceRecord, exposed_relationship=True),),
     )
     __httk_typed_record__: ClassVar[TypedRecordSpec] = TypedRecordSpec(
         "https://schemas.httk.org/defs/v0.1/properties/core/temperature",
@@ -298,6 +307,7 @@ class VolumeRecord(TypedRecord):
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
         storage_name="core_volume",
         identity_name="core_volume",
+        links=(WeakLink("references", ReferenceRecord, exposed_relationship=True),),
     )
     __httk_typed_record__: ClassVar[TypedRecordSpec] = TypedRecordSpec(
         "https://schemas.httk.org/defs/v0.1/properties/core/volume",

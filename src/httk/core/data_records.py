@@ -10,8 +10,9 @@ from typing import Annotated, Any, ClassVar, Self
 from .definition_ids import AVERAGE_TOTAL_ENERGY, TOTAL_ENERGY
 from .property_definitions import PropertyDefinition
 from .provenance import RunEdge, _edges
+from .references import ReferenceRecord
 from .register.schemas import load_property_definition
-from .storage import IdentitySkip, Indexed, StorageInfo, StrongLink, Unique, stored_property
+from .storage import IdentitySkip, Indexed, StorageInfo, StrongLink, Unique, WeakLink, stored_property
 from .storage.stored_properties import QueryContext, QueryExpression, StoredPropertyProjection
 
 RECORDS_DEFINITION_ID = "https://schemas.httk.org/defs/v0.1/entrytypes/records"
@@ -126,6 +127,7 @@ class DataRecord:
         storage_name="core_data_record",
         identity_name="core_data_record",
         indexes=(("definition_id",), ("name",)),
+        links=(WeakLink("references", ReferenceRecord, exposed_relationship=True),),
     )
 
     definition_id: str
@@ -228,6 +230,7 @@ class DerivedDataRecord:
         storage_name="core_derived_data_record",
         identity_name="core_derived_data_record",
         indexes=(("definition_id",), ("derivation",), ("name",)),
+        links=(WeakLink("references", ReferenceRecord, exposed_relationship=True),),
     )
 
     definition_id: str
@@ -348,7 +351,9 @@ class TotalEnergyRecord:
     """
 
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
-        storage_name="core_total_energy", identity_name="core_total_energy"
+        storage_name="core_total_energy",
+        identity_name="core_total_energy",
+        links=(WeakLink("references", ReferenceRecord, exposed_relationship=True),),
     )
     __httk_property_definitions__: ClassVar[Mapping[str, PropertyDefinition]] = _TotalEnergyDefinitions()
     __httk_stored_properties__: ClassVar[Mapping[str, StoredPropertyProjection]] = {
@@ -442,7 +447,9 @@ class AverageTotalEnergyRecord:
     """
 
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
-        storage_name="core_average_total_energy", identity_name="core_average_total_energy"
+        storage_name="core_average_total_energy",
+        identity_name="core_average_total_energy",
+        links=(WeakLink("references", ReferenceRecord, exposed_relationship=True),),
     )
     __httk_property_definitions__: ClassVar[Mapping[str, PropertyDefinition]] = _AverageTotalEnergyDefinitions()
     __httk_stored_properties__: ClassVar[Mapping[str, StoredPropertyProjection]] = {

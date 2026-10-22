@@ -75,6 +75,7 @@ from .property_definitions import (
     standard_entry_type,
 )
 from .provenance import ProductLink, Run, RunEdge, RunEntry
+from .references import PersonRecord, ReferenceEntry, ReferenceRecord
 from .register.cli import register_cli_command
 from .register.entries import (
     known_entry_providers,
@@ -177,10 +178,13 @@ __all__ = [
     "MissingType",
     "MutableFracVector",
     "NumericVector",
+    "PersonRecord",
     "ProductLink",
     "Property",
     "PropertyDefinition",
     "Reference",
+    "ReferenceEntry",
+    "ReferenceRecord",
     "Related",
     "RelatedEntry",
     "Run",

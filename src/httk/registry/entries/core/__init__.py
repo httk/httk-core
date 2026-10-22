@@ -65,6 +65,17 @@ for _name, _record in (
         definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/records",
     )
 
+register_entry_family(
+    name="references",
+    family="httk.core.references:ReferenceEntry",
+    definition_id="https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/references",
+)
+register_entry_record(
+    name="core-reference-record",
+    record="httk.core.references:ReferenceRecord",
+    family="references",
+    definition_id="https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/references",
+)
 register_entry_record(
     name="core-reference",
     record="httk.core.entry_types:Reference",
