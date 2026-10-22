@@ -81,12 +81,12 @@ assert FracVector(((1,),), denom=2) == FracVector(((2,),), denom=4)   # both are
 | leaf type            | example                          | becomes                       |
 | -------------------- | -------------------------------- | ----------------------------- |
 | `int`                | `1`                              | `1`                           |
-| `str` (decimal)      | `"8.04"`                         | `804/100` (at stated digits)  |
+| `str` (decimal)      | `"8.04"`                         | `804/100` (as written)        |
 | `str` (fraction)     | `"2/3"`                          | `2/3`                         |
-| `str` (uncertainty)  | `"0.33342(10)"`                  | best rational in the interval |
+| `str` (uncertainty)  | `"0.33342(10)"`                  | `33342/100000` (central value) |
 | `decimal.Decimal`    | `Decimal("2.125")`               | `17/8` (exact)                |
 | `fractions.Fraction` | `Fraction(2, 3)`                 | `2/3` (exact)                 |
-| `float`              | `8.04`                           | the exact **binary** rational |
+| `float`              | `8.04`                           | `804/100` (shortest decimal)  |
 
 ```python
 import decimal
@@ -99,35 +99,35 @@ assert FracVector([fractions.Fraction(2, 3), fractions.Fraction(3, 4)]).to_tuple
 assert FracVector("2/3").to_fraction() == fractions.Fraction(2, 3)
 ```
 
-String input is parsed for significant digits, so a written decimal is taken at its stated
-precision (and an explicit standard deviation is honored) rather than as an exact binary float:
+Values are never snapped by default. A `float` embeds as its shortest round-trip decimal (exact for
+float64; narrower numpy floats are widened first), so `FracVector([8.04])` equals
+`FracVector(["8.04"])`. Snapping a written decimal to the simplest rational within its precision
+(or within an explicit standard deviation) is an opt-in `min_accuracy`:
 
 ```python
 import fractions
 from httk.core.vectors import FracVector
 
-FracVector("0.33")                      # -> 33/100  (0.33 assumed to mean 0.3300)
-FracVector("0.3333")                    # -> 1/3     (enough digits to imply 1/3)
-FracVector("0.33", min_accuracy=None)   # -> 33/100, converted exactly
-FracVector(["0.33342(10)"])             # -> 1/3, using the explicit standard deviation
+F = fractions.Fraction
+assert FracVector("0.3333").to_fraction() == F(3333, 10000)
+assert FracVector(["0.33342(10)"]).to_fractions() == [F(33342, 100000)]
+assert FracVector([8.04]) == FracVector(["8.04"])
 
-assert FracVector("0.33").to_fraction() == fractions.Fraction(33, 100)
-assert FracVector("0.3333").to_fraction() == fractions.Fraction(1, 3)
-assert FracVector("0.3333", min_accuracy=None).to_fraction() == fractions.Fraction(3333, 10000)
-assert FracVector(["0.33342(10)"]) == FracVector(["1/3"])
+# Opt-in snapping: 0.33 means 0.3300, while 0.3333 implies 1/3.
+assert FracVector("0.33", min_accuracy=F(1, 10000)).to_fraction() == F(33, 100)
+assert FracVector("0.3333", min_accuracy=F(1, 10000)).to_fraction() == F(1, 3)
+assert FracVector(["0.33342(10)"], min_accuracy=F(1, 10000)) == FracVector(["1/3"])
 ```
 
-The **binary-rational caveat**: a Python `float` literal is *already* a binary rational, so
-`8.04` is not `804/100`. `FracVector([8.04])` therefore stores `fractions.Fraction(8.04)`
-(a value with a huge denominator), *not* `804/100`. Use the string form `"8.04"` (or an explicit
-`Decimal`) when you mean the decimal value:
+`str()` shows exact values as decimals when they terminate and as `p/q` otherwise; the `repr` of a
+terminating scalar is its decimal-string constructor:
 
 ```python
-import fractions
-from httk.core.vectors import FracVector
+from fractions import Fraction
+from httk.core.vectors import FracScalar, FracVector
 
-assert FracVector([8.04]).to_fractions() == [fractions.Fraction(8.04)]
-assert FracVector([8.04]) != FracVector(["8.04"])
+assert str(FracVector([["5.64", 0], [0, Fraction(1, 3)]])) == "((5.64, 0), (0, 1/3))"
+assert repr(FracScalar("5.64")) == 'FracScalar("5.64")'
 ```
 
 ### The laziness / simplify contract
@@ -169,7 +169,7 @@ from httk.core.vectors import FracVector
 assert FracVector([[1, 2, 3]], denom=6).to_tuple() == (6, ((1, 2, 3),))
 assert FracVector([["1/3", "2/7"]]).set_denominator(1000).to_tuple() == (1000, ((333, 286),))
 
-binary = fractions.Fraction(6004799503160661, 18014398509481984)  # float64 of 1/3
+binary = fractions.Fraction(6004799503160661, 18014398509481984)  # exact binary value of float64 1/3
 assert FracVector([[binary]]).limit_denominator(1000) == FracVector([["1/3"]])
 ```
 
@@ -356,7 +356,7 @@ assert SurdVector.sqrt_of(F(4, 9)) == SurdVector(F(2, 3))           # perfect sq
 assert SurdVector.sqrt_of(F(1, 2)) == SurdVector.sqrt_of(2) * SurdVector(F(1, 2))  # sqrt(2)/2
 assert SurdVector.sqrt_of(2) * SurdVector.sqrt_of(3) == SurdVector.sqrt_of(6)
 assert SurdVector.sqrt_of(2) * SurdVector.sqrt_of(2) == SurdVector(2)
-assert str(SurdVector.sqrt_of(3) * SurdVector(F(1, 2))) == "(1/2)*sqrt(3)"
+assert str(SurdVector.sqrt_of(3) * SurdVector(F(1, 2))) == "0.5*sqrt(3)"
 ```
 
 The field is closed under `+`, `-`, `*`, and full `/` (division rationalizes the denominator by
@@ -460,7 +460,7 @@ from httk.core.vectors import SurdVector, SurdScalar
 F = fractions.Fraction
 
 # Exact for multiples of 15 / 36 degrees; angle reduced mod 360; int / Fraction / str accepted:
-assert SurdScalar.cos_degrees(30) == SurdVector.sqrt_of(3) / 2      # (1/2)*sqrt(3)
+assert SurdScalar.cos_degrees(30) == SurdVector.sqrt_of(3) / 2      # 0.5*sqrt(3)
 assert SurdScalar.sin_degrees(60) == SurdVector.sqrt_of(3) / 2
 assert SurdScalar.cos_degrees(15) == (SurdVector.sqrt_of(6) + SurdVector.sqrt_of(2)) / 4
 assert SurdScalar.cos_degrees(36) == (SurdVector.one() + SurdVector.sqrt_of(5)) / 4
@@ -527,8 +527,8 @@ assert VectorNativeView([["1/3", "2/3"]], leaf="fraction") == ((fractions.Fracti
 
 The canonical interchange between representations is **exactness-preserving**: every backend
 exposes `.fractions` (a nested tuple of `fractions.Fraction`, or a bare `Fraction` for a scalar)
-and `.dim`. Because numpy float64 values are themselves binary rationals, even a numpy array
-produces `.fractions` *exactly*.
+and `.dim`. A numpy array's `.fractions` embeds each float as its shortest round-trip decimal, which
+converts back to the identical float64.
 
 On top of the hub, the `VectorAPI` contract guarantees the float renderings `to_floats()`
 (nested plain-`float` **lists**, matching the `numpy.ndarray.tolist()` convention and directly
@@ -811,9 +811,9 @@ path, the already-built presentation array on the conversion path. (`numpy.asarr
 the same base-class result; note it may share the presentation storage — it is *shed*, not
 *detached*.)
 
-Going the other way, `VectorFracView(ndarray)` captures a float64 array's values as **exact**
-binary rationals. A value that has genuinely passed through a raw float64 array therefore does not
-return as its original decimal fraction — but `limit_denominator` recovers the intended small
+Going the other way, `VectorFracView(ndarray)` captures each float64 as its shortest round-trip
+decimal. A non-terminating value that has genuinely passed through a raw float64 array therefore
+does not return as its original fraction — but `limit_denominator` recovers the intended small
 rational:
 
 ```python
@@ -822,7 +822,7 @@ from httk.core.vectors import FracVector, VectorNumpyView, VectorFracView
 
 one_third = FracVector([["1/3"]])
 plain = numpy.asarray(VectorNumpyView(one_third))      # a plain float64 array (may share storage)
-back = VectorFracView(plain)                           # captures the binary rational exactly
+back = VectorFracView(plain)                           # 0.3333333333333333, as a decimal
 
 assert back.simplify() != one_third                    # it is the float64 value of 1/3
 assert back.limit_denominator(100).simplify() == one_third
@@ -870,8 +870,9 @@ assert arr.tolist() == cell.to_floats()
 assert to_numeric(F(1, 4)) == 0.25
 assert type(to_numeric(SurdVector.sqrt_of(2))) is float
 
-# to_numeric_scalar is the numpy-free single-value helper:
+# to_numeric_scalar is the numpy-free single-value helper; strings convert as written:
 assert to_numeric_scalar("1/3") == to_numeric(F(1, 3))
+assert to_numeric_scalar("0.3333") == 0.3333
 ```
 
 Use `to_numeric` when you just want numpy numbers; reach for a specific view (`VectorNumpyView`,

@@ -2,8 +2,9 @@
 Backend wrapping a numpy ndarray (numpy is an optional dependency, imported lazily).
 """
 
-import fractions
 from typing import Any, Self
+
+from httk.core import exactmath
 
 from .vector_api import Fractions
 from .vector_backend import VectorBackend
@@ -22,9 +23,10 @@ class VectorNumpyBackend(VectorBackend):
     numpy is an optional dependency (``httk-core[numpy]``) and is imported lazily; if numpy is
     not installed, this backend's ``_backend_adopt`` returns None so it is simply never selected.
 
-    numpy float64 values are themselves binary rationals, so the ``fractions`` interchange is
-    produced *exactly* from the array (each float becomes its exact rational value). Only the
-    reverse direction (building a numpy view) is lossy. ``unwrap`` returns the wrapped array.
+    The ``fractions`` interchange embeds each element through
+    :func:`~httk.core.exactmath.any_to_fraction`: a float becomes its shortest round-trip decimal
+    (``0.1`` -> ``1/10``), which converts back to the identical float64. Only the reverse
+    direction (building a numpy view) is lossy. ``unwrap`` returns the wrapped array.
 
     :param obj: The source data to wrap.
     :param \**hints: Optional backend-selection hints.
@@ -60,7 +62,7 @@ class VectorNumpyBackend(VectorBackend):
         def rec(x: Any) -> Fractions:
             if isinstance(x, list):
                 return tuple(rec(e) for e in x)
-            return fractions.Fraction(x)
+            return exactmath.any_to_fraction(x)
 
         return rec(self._array.tolist())
 

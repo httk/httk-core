@@ -56,7 +56,7 @@ def center(vector: VectorLike) -> VectorLike:
 import numpy
 from httk.core import FracVector
 
-print(center(FracVector(["1/2", "1/3", "1/4"])))  # prints: (1/144)*(0, -24, -36)
+print(center(FracVector(["1/2", "1/3", "1/4"])))  # prints: (0, -1/6, -0.25)
 print(center(numpy.array([0.5, 1 / 3, 0.25])))  # prints: [ 0.         -0.16666667 -0.25      ]
 ```
 

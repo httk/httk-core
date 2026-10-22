@@ -161,3 +161,10 @@ def test_nonsense_entries_are_ignored() -> None:
 
 def test_mixed_literals_and_precisions() -> None:
     assert combined_precision(["0.1234", F(1, 100), "0.123456"]) == F(1, 100)
+
+
+def test_an_oversized_literal_is_rejected_like_exact_conversion() -> None:
+    assert decimal_precision("1.5e-4290") == F(1, 10**4291)
+    for literal in ("1e-1000000", "0." + "1" * 4301):
+        with pytest.raises(ValueError):
+            decimal_precision(literal)

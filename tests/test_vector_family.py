@@ -201,9 +201,9 @@ def test_backend_fractions_are_exact() -> None:
 
 
 def test_native_string_uncertainty_parsing() -> None:
-    # Conversion goes through FracVector, so uncertainty strings parse here too.
+    # Conversion goes through FracVector, so uncertainty strings parse here too (central value).
     backend = VectorBackend._select_backend(["0.33342(10)"])
-    assert backend.fractions == (F(1, 3),)
+    assert backend.fractions == (F(33342, 100000),)
 
 
 # ------------------------------------------------------------------ views
@@ -414,9 +414,9 @@ def test_frac_to_numpy_to_frac_is_binary_rational() -> None:
     # A detached raw float64 array (as one truly has when handed a numpy array).
     detached = numpy.asarray(VectorNumpyView(one_third))
     lossy = VectorFracView(detached)
-    # 1/3 does NOT come back exactly: it is the float64 binary rational.
+    # 1/3 does NOT come back exactly: it is the float64's shortest decimal.
     assert lossy.simplify() != one_third
-    assert lossy.to_fractions() == [[fractions.Fraction(1.0 / 3.0)]]
+    assert lossy.to_fractions() == [[fractions.Fraction(repr(1.0 / 3.0))]]
     # limit_denominator recovers the intended small rational.
     assert lossy.limit_denominator(100).simplify() == one_third
 

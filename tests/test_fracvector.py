@@ -93,11 +93,30 @@ def test_create_from_decimal_strings_matches_int_form() -> None:
     assert strings.simplify().denom == ints.simplify().denom
 
 
-def test_create_from_python_float_is_binary_rational() -> None:
-    # A Python float literal is a binary rational; 8.04 is NOT 804/100.
-    v = FracVector([8.04])
-    assert v.to_fractions() == [fractions.Fraction(8.04)]
-    assert v != FracVector(["8.04"])
+def test_create_from_python_float_is_shortest_decimal() -> None:
+    # A Python float embeds as its shortest round-trip decimal: 8.04 is 804/100.
+    v = FracVector([8.04, 0.1])
+    assert v.to_fractions() == [F(201, 25), F(1, 10)]
+    assert v == FracVector(["8.04", "0.1"])
+    assert FracScalar(0.1).to_fraction() == F(1, 10)
+    with pytest.raises(ValueError):
+        FracVector([float("nan")])
+
+
+def test_create_from_numpy_floats_is_shortest_decimal() -> None:
+    numpy = pytest.importorskip("numpy")
+    assert FracVector(numpy.array([0.1])).to_fractions() == [F(1, 10)]
+    assert FracVector([numpy.float64(0.1)]).to_fractions() == [F(1, 10)]
+    assert FracScalar(numpy.float64(0.1)).to_fraction() == F(1, 10)
+    assert FracScalar(numpy.float32(0.5)).to_fraction() == F(1, 2)
+
+
+def test_complex_numpy_input_is_rejected() -> None:
+    numpy = pytest.importorskip("numpy")
+    with pytest.raises(TypeError):
+        FracVector(numpy.array([1 + 2j, 3]))
+    with pytest.raises(TypeError):
+        FracScalar(numpy.complex128(1 + 2j))
 
 
 def test_create_from_decimal() -> None:
@@ -112,10 +131,17 @@ def test_create_from_fraction() -> None:
     assert v.denom == 1656
 
 
-def test_create_string_min_accuracy_default() -> None:
+def test_create_string_exact_by_default() -> None:
+    assert FracVector("3.567").to_fraction() == F(3567, 1000)
+    assert FracVector("0.3333").to_fraction() == F(3333, 10000)
+    assert FracScalar("3.567").to_fraction() == F(3567, 1000)
+
+
+def test_create_string_explicit_min_accuracy_snaps() -> None:
     # 0.33 assumed to be 0.3300 = 33/100; 0.3333 assumed to mean 1/3.
-    assert FracVector("0.33").to_fraction() == F(33, 100)
-    assert FracVector("0.3333").to_fraction() == F(1, 3)
+    assert FracVector("0.33", min_accuracy=F(1, 10000)).to_fraction() == F(33, 100)
+    assert FracVector("0.3333", min_accuracy=F(1, 10000)).to_fraction() == F(1, 3)
+    assert FracVector("3.567", min_accuracy=F(1, 10000)).to_fraction() == F(346, 97)
 
 
 def test_create_string_infinite_accuracy() -> None:
@@ -124,11 +150,16 @@ def test_create_string_infinite_accuracy() -> None:
 
 
 def test_create_uncertainty_string() -> None:
-    assert FracVector(["0.33342(10)"]).noms == (1,)
-    assert FracVector(["0.33342(10)"]).denom == 3
-    assert FracVector(["0.33352(10)"]).noms == (388,)
-    assert FracVector(["0.33352(10)"]).denom == 1163
-    both = FracVector(["0.33342(10)", "0.33352(10)"])
+    # By default the esd does not change the central value.
+    assert FracVector(["0.33342(10)"]).to_fractions() == [F(33342, 100000)]
+    assert FracVector("0.3333(2)").to_fraction() == F(3333, 10000)
+    # With an explicit min_accuracy the esd interval snaps.
+    acc = F(1, 10000)
+    assert FracVector(["0.33342(10)"], min_accuracy=acc).noms == (1,)
+    assert FracVector(["0.33342(10)"], min_accuracy=acc).denom == 3
+    assert FracVector(["0.33352(10)"], min_accuracy=acc).noms == (388,)
+    assert FracVector(["0.33352(10)"], min_accuracy=acc).denom == 1163
+    both = FracVector(["0.33342(10)", "0.33352(10)"], min_accuracy=acc)
     assert both.noms == (1163, 1164)
     assert both.denom == 3489
 
@@ -351,9 +382,33 @@ def test_fracscalar_creation_and_conversions() -> None:
     assert s.to_fraction() == F(3, 4)
 
 
-def test_fracscalar_create_ignores_min_accuracy() -> None:
-    # Unlike FracVector, FracScalar converts strings exactly (legacy behavior).
-    assert FracScalar("0.33").to_fraction() == F(33, 100)
+def test_fracscalar_create_honors_min_accuracy() -> None:
+    assert FracScalar("0.3333").to_fraction() == F(3333, 10000)
+    assert FracScalar("0.3333", min_accuracy=F(1, 10000)).to_fraction() == F(1, 3)
+
+
+def test_str_renders_exact_decimals() -> None:
+    assert str(FracScalar("5.64")) == "5.64"
+    assert str(FracScalar(F(1, 3))) == "1/3"
+    assert str(FracVector([["5.64", 0, 0], [0, F(1, 3), 0]])) == "((5.64, 0, 0), (0, 1/3, 0))"
+    assert str(FracVector([F(-1, 8)])) == "(-0.125,)"
+    assert str(MutableFracVector([0.1, 2])) == "(0.1, 2)"
+
+
+def test_scalar_repr_decimal_form_round_trips() -> None:
+    namespace = {"FracScalar": FracScalar}
+    s = FracScalar("5.64")
+    assert repr(s) == 'FracScalar("5.64")'
+    assert repr(FracScalar(F(1, 10**30))) == 'FracScalar("1E-30")'
+    for value in (s, FracScalar(F(1, 3)), FracScalar(1, denom=4), FracScalar(-7), FracScalar(F(1, 10**30))):
+        back = eval(repr(value), namespace)
+        assert back == value
+        assert (back.noms, back.denom) == (value.noms, value.denom)
+    # A decimal beyond Python's int/str digit limit keeps the exact-state form.
+    assert repr(FracScalar(F(1, 2**10000))) == f"FracScalar(1, denom={2**10000})"
+    # A non-reduced state keeps the exact-state form.
+    unreduced = FracScalar._of(2, 4)
+    assert repr(unreduced) == "FracScalar(2, denom=4)"
 
 
 # ------------------------------------------------------------------ stacking / chaining

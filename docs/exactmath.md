@@ -20,7 +20,13 @@ exactmath.cos(17, degrees=True)     # no exact form: a controlled rational appro
 exactmath.sqrt(2, exact=False)      # ask for the approximation explicitly
 exactmath.sqrt(2, prec=Fraction(1, 10**12), exact=False)  # ... at a chosen precision
 exactmath.any_to_fraction("8.04")   # Fraction(201, 25) — the written value, exactly
+exactmath.any_to_fraction(8.04)     # Fraction(201, 25) — a float's shortest decimal
+exactmath.exact_text(Fraction(2803221, 15625))  # '179.406144'
 ```
+
+Numbers are never snapped behind your back: `"0.3333"` stays `3333/10000`.
+Snapping to a simpler rational is an explicit request (`min_accuracy=`,
+`best_rational_in_interval`, `limit_denominator`).
 
 Symbolic results are `SurdScalar`/`SurdVector` values (see {doc}`vectors`),
 which mix with `int`/`Fraction` exactly and with `float` as `Fraction` does.
@@ -43,7 +49,7 @@ exactmath.sqrt(Decimal(2), digits=30)
 exists; `exact=False` always approximates. The functions accept scalars and
 vectors alike.
 
-The full guide, {doc}`details/exactmath`, covers uncertainty-notation parsing,
+The full guide, {doc}`details/exactmath`, covers parsing and explicit snapping,
 best-rational approximation and continued fractions, the `coerce=` keyword,
 rounding versus truncation modes, determinism and the context default, and the
 termination guarantees behind correct rounding.

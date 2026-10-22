@@ -55,8 +55,8 @@ approximation. Concretely, ``sqrt`` and the degree-mode trigonometric functions 
   :class:`~httk.core.vectors.surdvector.SurdScalar`/:class:`~httk.core.vectors.surdvector.SurdVector`
   and a rational result (perfect squares, ``cos(60°)``, ``acos(1/2)`` in degrees) is returned
   exactly in the ordinary presentation. Where no exact form exists (``cos(17°)``, radians, nested
-  radicals) or the square-root radicand exceeds ``2**32`` (squarefree factoring is trial division
-  to the cube root), the approximation below is returned instead.
+  radicals) or the square-root radicand exceeds ``2**32`` (beyond which squarefree factoring
+  needs more than trial division), the approximation below is returned instead.
 - ``exact=True``: the exact surd or exact degree angle regardless of cost; unsupported values raise
   ``ValueError``. Exact trigonometry requires ``degrees=True`` and is available for the complete
   surd-cosine angle set: multiples of 15 and 36 degrees. Exact inverse trigonometry accepts surd
@@ -86,6 +86,8 @@ The implementation uses the standard-library :mod:`fractions`.
 import decimal
 import fractions
 import math
+import numbers
+import re
 from collections.abc import Callable, Iterator
 from functools import lru_cache, reduce
 from typing import Any
@@ -162,6 +164,39 @@ def fraction_from_continued_fraction(cf: list[int]) -> fractions.Fraction:
     return cf[0] + reduce(lambda d, n: 1 / (d + n), cf[:0:-1], fractions.Fraction(0))
 
 
+_ESD_DIGITS = re.compile(r"[0-9]+")
+_EXPONENT = re.compile(r"E[+-]?[0-9]+")
+# Python's default int/str conversion digit limit (sys.int_info.default_max_str_digits).
+_MAX_TEXT_DIGITS = 4300
+
+
+def _check_text_size(text: str) -> None:
+    """Reject decimal text whose exact value would need more than ``_MAX_TEXT_DIGITS`` digits."""
+    mantissa, _e, exponent = text.partition("E")
+    try:
+        magnitude = abs(int(exponent)) if exponent.strip() else 0
+    except ValueError:
+        raise ValueError(f"invalid numeric text: {text[:60]!r}") from None
+    if sum(c.isdigit() for c in mantissa) + magnitude > _MAX_TEXT_DIGITS:
+        raise ValueError(f"numeric text {text[:60]!r} exceeds {_MAX_TEXT_DIGITS} digits of exact value")
+
+
+def _split_esd(arg: str) -> tuple[str, str | None]:
+    """Validate upper-cased decimal text; return its value text and its esd digits (or None)."""
+    sd_start = arg.find("(")
+    if sd_start < 0:
+        _check_text_size(arg)
+        return arg, None
+    sd_end = arg.find(")")
+    sd = arg[sd_start + 1 : sd_end]
+    tail = arg[sd_end + 1 :]
+    if sd_end < sd_start or not _ESD_DIGITS.fullmatch(sd) or (tail and not _EXPONENT.fullmatch(tail)):
+        raise ValueError(f"invalid uncertainty notation: {arg[:60]!r}")
+    _check_text_size(arg[:sd_start] + sd + tail)
+    # The exponent may follow the esd ("1.23(4)E-2"); it scales value and delta alike.
+    return arg[:sd_start] + tail, sd
+
+
 def string_to_val_and_delta(
     arg: str, min_accuracy: fractions.Fraction | None = fractions.Fraction(1, 10000)
 ) -> tuple[fractions.Fraction, fractions.Fraction]:
@@ -175,19 +210,20 @@ def string_to_val_and_delta(
     :param arg: Numeric text, including a decimal, fraction, scientific notation, or uncertainty notation.
     :param min_accuracy: Upper bound for inferred uncertainty, or ``None`` to disable inference.
     :return: The central value and its absolute uncertainty.
+    :raises ValueError: If the text is malformed, or its digit count plus exponent magnitude
+        exceeds 4300.
     """
     arg = arg.upper()
 
     if arg.find("/") >= 0:
         return fractions.Fraction(arg), fractions.Fraction(0)
 
-    sd_start = arg.find("(")
-    if sd_start >= 0:
+    val, esd = _split_esd(arg)
+    exponent = ""
+    if esd is not None:
         infered_delta = False
-        sd_end = arg.find(")")
-        val = arg[:sd_start]
-        m, _e, _exp = val.partition("E")
-        sd = arg[sd_start + 1 : sd_end]
+        sd = esd
+        m, _e, exponent = val.partition("E")
     elif min_accuracy is not None:
         infered_delta = True
         val = arg
@@ -199,38 +235,92 @@ def string_to_val_and_delta(
         sd = "5"
     else:
         return fractions.Fraction(arg), fractions.Fraction(0)
-    numdigits = reduce(lambda y, x: y + 1 if x.isdigit() else y, m, 0)
-    replacelist = list("0" * (numdigits - len(sd)) + sd)
-    delta = fractions.Fraction("".join(replacelist.pop(0) if c.isdigit() else c for c in m))
+    # The esd counts units of the mantissa's last written digit ("1.5(23)" -> 2.3).
+    fraction_digits = sum(c.isdigit() for c in m.partition(".")[2])
+    delta = fractions.Fraction(int(sd), 10**fraction_digits)
+    if exponent:
+        delta *= fractions.Fraction(10) ** int(exponent)
     if infered_delta and min_accuracy is not None and delta > min_accuracy:
         delta = min_accuracy
     value = fractions.Fraction(val)
     return value, delta
 
 
-def any_to_fraction(
-    arg: Any, min_accuracy: fractions.Fraction | None = fractions.Fraction(1, 10000)
-) -> fractions.Fraction:
-    """Convert a numeric-like object into a :class:`fractions.Fraction`.
+def _float_to_fraction(arg: Any) -> fractions.Fraction:
+    """Embed a float as its shortest round-trip decimal (``0.1`` -> ``1/10``).
 
-    Strings are parsed for uncertainty via :func:`string_to_val_and_delta`. With the default
-    ``1/10000``, ``0.33`` is taken to mean ``0.3300`` (= 33/100), whereas ``0.3333`` is taken
-    to mean ``1/3``. Set ``min_accuracy`` to ``None`` to convert strings exactly.
+    Exact for float64; narrower or wider floats (e.g. ``numpy.float32``) are converted with
+    ``float()`` first. Non-finite values raise :class:`ValueError`.
+    """
+    return fractions.Fraction(float.__repr__(float(arg)))
 
-    :param arg: Value accepted by the :class:`fractions.Fraction` constructor.
-    :param min_accuracy: Minimum assumed accuracy for string input, or ``None`` for exact conversion.
+
+def any_to_fraction(arg: Any, min_accuracy: fractions.Fraction | None = None) -> fractions.Fraction:
+    """Convert a numeric-like object into a :class:`fractions.Fraction`, exactly as written by default.
+
+    A string converts to the value it spells (``"3.567"`` -> ``3567/1000``, ``"1/3"`` -> ``1/3``);
+    a written standard deviation does not change it (``"0.33342(10)"`` -> ``33342/100000``). A
+    real non-rational number (``float``, ``numpy.float64``, any :class:`numbers.Real`) embeds as
+    the shortest round-trip decimal of ``float(arg)`` (``0.1`` -> ``1/10``; exact for float64,
+    narrower floats such as ``numpy.float32`` are widened first). Rationals (``int``, numpy
+    integers, :class:`fractions.Fraction`) and :class:`decimal.Decimal` convert exactly.
+
+    Snapping is opt-in: with a non-None ``min_accuracy``, a string's uncertainty (the stated
+    standard deviation, or half a unit in the last written digit capped at ``min_accuracy``) is
+    taken from :func:`string_to_val_and_delta` and the simplest rational within it is returned
+    via :func:`best_rational_in_interval` (``"0.3333"`` -> ``1/3`` with ``Fraction(1, 10000)``).
+
+    :param arg: A string, float, or value accepted by the :class:`fractions.Fraction` constructor.
+    :param min_accuracy: Uncertainty cap for snapping string input, or ``None`` (default) for exact conversion.
     :return: The converted rational value.
+    :raises ValueError: If ``arg`` is a non-finite float, malformed numeric text, or text whose
+        digit count plus exponent magnitude exceeds 4300.
+    :raises TypeError: If ``arg`` is complex or not numeric.
     """
     if type(arg) is fractions.Fraction:
         return arg
     if isinstance(arg, str):
+        if min_accuracy is None:
+            text = arg.upper()
+            return fractions.Fraction(text if "/" in text else _split_esd(text)[0])
         val, delta = string_to_val_and_delta(arg, min_accuracy=min_accuracy)
         if delta == 0:
-            return fractions.Fraction(val)
-        else:
-            return best_rational_in_interval(val - delta, val + delta)
-    else:
+            return val
+        return best_rational_in_interval(val - delta, val + delta)
+    if isinstance(arg, (numbers.Rational, decimal.Decimal)):
         return fractions.Fraction(arg)
+    if isinstance(arg, numbers.Real):
+        return _float_to_fraction(arg)
+    if isinstance(arg, numbers.Complex):
+        raise TypeError(f"cannot convert the complex value {arg!r} to a Fraction")
+    return fractions.Fraction(arg)
+
+
+def exact_text(value: fractions.Fraction | int) -> str:
+    """Render an exact rational as text that :class:`fractions.Fraction` parses back exactly.
+
+    Integers render as ``"3"``; terminating rationals as their exact decimal without trailing
+    zeros (``"179.406144"``, ``"-0.125"``), positional up to 20 fractional digits and in
+    scientific form beyond (``"1E-30"``, ``"1.5E-25"``); anything else, or a decimal longer than
+    Python's int/str digit limit, as ``"p/q"``. A value whose numerator or denominator itself
+    exceeds that limit cannot be rendered and raises, as ``str`` of such an integer does.
+
+    :param value: The exact value to render.
+    :return: The exact text.
+    :raises ValueError: If the numerator or denominator exceeds Python's int/str digit limit.
+    """
+    value = fractions.Fraction(value)
+    if value.denominator == 1:
+        return str(value.numerator)
+    try:
+        finite = _finite_decimal_expansion(value)
+    except ValueError:  # more digits than Python's int/str conversion limit: fall back to p/q
+        finite = None
+    if finite is None:
+        return f"{value.numerator}/{value.denominator}"
+    if -int(finite.as_tuple().exponent) <= 20:
+        return f"{finite:f}"
+    return f"{finite:E}"
 
 
 def integer_sqrt(n: int) -> int:
@@ -808,6 +898,22 @@ def _quantize_fraction(r: fractions.Fraction, sig: int, rounding: str) -> decima
     return decimal.Decimal((sign, digits, -k))
 
 
+def _remove_factor(m: int, p: int) -> tuple[int, int]:
+    """Divide every factor ``p`` out of ``m`` by repeated squaring; return ``(m', exponent)``."""
+    powers: list[int] = []
+    q = p
+    while m % q == 0:
+        m //= q
+        powers.append(q)
+        q *= q
+    exponent = (1 << len(powers)) - 1
+    for k in range(len(powers) - 1, -1, -1):
+        if m % powers[k] == 0:
+            m //= powers[k]
+            exponent += 1 << k
+    return m, exponent
+
+
 def _finite_decimal_expansion(value: fractions.Fraction) -> decimal.Decimal | None:
     """
     Return the exact :class:`decimal.Decimal` for ``value`` if it has a finite decimal expansion.
@@ -817,15 +923,9 @@ def _finite_decimal_expansion(value: fractions.Fraction) -> decimal.Decimal | No
     context. Returns None when no finite expansion exists. This is the shared home of the
     finite-expansion logic reused by :mod:`httk.core.vectors.leaf_codecs`'s decimal codec.
     """
-    stripped = value.denominator
-    twos = 0
-    fives = 0
-    while stripped % 2 == 0:
-        stripped //= 2
-        twos += 1
-    while stripped % 5 == 0:
-        stripped //= 5
-        fives += 1
+    denominator = value.denominator
+    twos = (denominator & -denominator).bit_length() - 1
+    stripped, fives = _remove_factor(denominator >> twos, 5)
     if stripped != 1:
         return None
     scale = max(twos, fives)
@@ -1397,9 +1497,9 @@ def _is_decimal(*args: Any) -> bool:
     return any(isinstance(a, decimal.Decimal) for a in args)
 
 
-# Radicand bound for best-effort symbolic square roots: ``square_part`` trial-divides up to the
-# cube root of the radicand, so 2**32 keeps the worst case a few hundred microseconds. Beyond it
-# the default falls back to the rational approximation; ``exact=True`` ignores the bound.
+# Radicand bound for best-effort symbolic square roots: below 2**32 ``square_part`` needs only
+# trial division, so the default stays cheap. Beyond it the default falls back to the rational
+# approximation; ``exact=True`` ignores the bound.
 _SYMBOLIC_RADICAND_LIMIT = 1 << 32
 
 

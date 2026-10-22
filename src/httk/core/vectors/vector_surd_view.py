@@ -26,8 +26,8 @@ class VectorSurdView(VectorView, SurdVector):
     exact SurdVector directly, and from a frac/native/numpy backend it embeds the backend's exact
     rational ``fractions`` at radicand 1 — exactly, since every rational is a surd.
 
-    (numpy values are binary rationals, so a numpy source embeds the exact float64 rational, not
-    necessarily the original decimal fraction — the same caveat as
+    (a numpy source embeds each float64 as its shortest round-trip decimal, not necessarily the
+    original fraction — the same caveat as
     :class:`~httk.core.vectors.vector_frac_view.VectorFracView`.)
 
     :param obj: The source value to present.

@@ -13,38 +13,49 @@ from httk.core import exactmath
 
 ## Parsing values exactly
 
-`any_to_fraction` converts numbers and strings into exact rationals. Decimal
-strings are taken at their written value (unlike `float`s, which carry binary
-rounding):
+`any_to_fraction` converts numbers and strings into exact rationals, **exactly
+as written** by default. A string gives the value it spells; a trailing
+parenthesized uncertainty (the common experimental notation) does not change
+the value. A `float` gives its shortest round-trip decimal, the digits Python
+prints for it; this is exact for float64, and narrower floats such as
+`numpy.float32` are widened with `float()` first:
 
 ```python
-exactmath.any_to_fraction("8.04")        # Fraction(201, 25)
-exactmath.any_to_fraction("1/3")         # Fraction(1, 3)
+exactmath.any_to_fraction("8.04")         # Fraction(201, 25)
+exactmath.any_to_fraction("1/3")          # Fraction(1, 3)
+exactmath.any_to_fraction("0.3333")       # Fraction(3333, 10000)
+exactmath.any_to_fraction("0.33342(10)")  # Fraction(16671, 50000)
+exactmath.any_to_fraction(0.1)            # Fraction(1, 10)
 ```
 
-A trailing parenthesized uncertainty (the common experimental notation) makes
-the parser pick the **simplest rational inside the stated interval**:
+Snapping is opt-in. With an explicit `min_accuracy`, the parser picks the
+**simplest rational inside the uncertainty interval**: the stated one, or else
+half a unit in the last written digit capped at `min_accuracy`:
 
 ```python
-exactmath.any_to_fraction("0.33342(10)")  # Fraction(1, 3)
+exactmath.any_to_fraction("0.33342(10)", min_accuracy=Fraction(1, 10000))  # Fraction(1, 3)
+exactmath.any_to_fraction("0.3333", min_accuracy=Fraction(1, 10000))       # Fraction(1, 3)
 exactmath.string_to_val_and_delta("0.33342(10)")
 # (Fraction(16671, 50000), Fraction(1, 10000))
 ```
 
-Here `0.33342 ± 0.00010` brackets `1/3`, so `1/3` is returned. Without an
-explicit uncertainty, `min_accuracy` (default `1/10000`) plays the same role;
-pass `min_accuracy=None` to take a value exactly as written — including the
-exact binary rational of a `float`:
+Here `0.33342 ± 0.00010` brackets `1/3`, so `1/3` is returned.
+
+`exact_text` renders an exact rational as text that `Fraction` parses back:
+terminating values as decimals (scientific form beyond 20 fractional digits),
+others as `p/q`. Exact vectors print the same way (`str(FracScalar("5.64"))`
+is `5.64`):
 
 ```python
-exactmath.any_to_fraction(0.1, min_accuracy=None)
-# Fraction(3602879701896397, 36028797018963968)
+exactmath.exact_text(Fraction(2803221, 15625))  # '179.406144'
+exactmath.exact_text(Fraction(1, 10**30))       # '1E-30'
+exactmath.exact_text(Fraction(1, 3))            # '1/3'
 ```
 
 ## Best rationals and continued fractions
 
 `best_rational_in_interval` returns the rational with the smallest denominator
-in a closed interval — the workhorse behind the uncertainty parsing:
+in a closed interval — the workhorse behind explicit snapping:
 
 ```python
 exactmath.best_rational_in_interval("3.14", "3.15")   # Fraction(22, 7)
@@ -88,9 +99,10 @@ assert isinstance(exactmath.sqrt(3.0), float)                           # float 
 ```
 
 "Reasonable computational effort" is concrete: canonicalizing a radical needs its squarefree
-factorization, which is trial division up to the cube root of the radicand. The default therefore
-falls back to the approximation when the radicand (`numerator * denominator`) exceeds `2**32`, a
-few hundred microseconds at worst; `exact=True` ignores the bound. Where the surd form does not
+factorization. Below `2**32` that is plain trial division; the default falls back to the
+approximation when the radicand (`numerator * denominator`) exceeds it. `exact=True` ignores the
+bound and factors larger radicands with Miller-Rabin and Pollard-Brent rho, raising `ValueError` if
+a radicand cannot be factored within a fixed budget. Where the surd form does not
 exist at all — radians, unsupported angles, nested radicals such as `sqrt(sqrt(3))` — the default
 approximates silently and `exact=True` raises.
 
@@ -136,8 +148,9 @@ is supplied, with omitted `digits` using the active Decimal context precision.
 
 Ordinary Fraction-mode calls on a genuinely irrational `SurdScalar` use its deterministic Fraction
 hub: the value is approximated at the active Decimal context precision plus three guard digits.
-Exact symbolic calls preserve the surd and never use this lossy conversion. Floats are embedded as
-their exact binary `Fraction` value.
+Exact symbolic calls preserve the surd and never use this lossy conversion. Float arguments to these
+functions are embedded as their exact binary `Fraction` value (the float result is computed for the
+float's actual value).
 
 The `exact` keyword is available for `sqrt` and degree-mode `cos`, `sin`, `tan`, `asin`, `acos`,
 `atan`, and `atan2`. Symbolic trigonometry requires `degrees=True`; cosine and sine values are

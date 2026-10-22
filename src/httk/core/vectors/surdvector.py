@@ -66,7 +66,7 @@ linearly independent over :math:`\\mathbb{Q}`. Consequences used throughout:
 
 - **Equality and zero-detection are exact**: equal values have equal coefficient maps.
 - **Products combine radicands**: :math:`\\sqrt r\\,\\sqrt s = c\\,\\sqrt t` where
-  :math:`r s = c^2 t` with :math:`t` squarefree (see ``square_part``).
+  :math:`c = \\gcd(r, s)` and :math:`t = rs/c^2` squarefree.
 - **Division is a true field inverse** via iterated per-prime conjugation: for each prime :math:`p`
   dividing a radicand of the denominator, multiply numerator and denominator by the conjugate that
   flips the sign of every :math:`\\sqrt r` with :math:`p \\mid r`; each such step eliminates :math:`p`.
@@ -85,13 +85,14 @@ linearly independent over :math:`\\mathbb{Q}`. Consequences used throughout:
 
 import decimal
 import fractions
+import math
 import operator
 from collections.abc import Callable
 from typing import Any, Self, cast
 
 from httk.core import exactmath
 from httk.core._sentinel import MISSING
-from httk.core.vectors._squarefree import square_part
+from httk.core.vectors._squarefree import prime_factor, square_part
 from httk.core.vectors.fracvector import FracVector, FracVectorBase
 from httk.core.vectors.vector_api import Fractions
 from httk.core.vectors.vector_backend import VectorBackend
@@ -123,16 +124,6 @@ def _max_abs_leaf(fv: FracVectorBase) -> fractions.Fraction:
     return fractions.Fraction(biggest, fv.denom)
 
 
-def _smallest_prime_factor(n: int) -> int:
-    """Return the smallest prime factor of ``n >= 2`` (trivial trial division; radicands are tiny)."""
-    d = 2
-    while d * d <= n:
-        if n % d == 0:
-            return d
-        d += 1
-    return n
-
-
 def _scalar_to_fraction(value: Any) -> fractions.Fraction:
     """Coerce an int/Fraction/scalar-FracVector/rational-SurdScalar/str into an exact Fraction."""
     if isinstance(value, fractions.Fraction):
@@ -147,7 +138,7 @@ def _scalar_to_fraction(value: Any) -> fractions.Fraction:
         return value._rational_fraction()
     if isinstance(value, FracVectorBase):
         return value.to_fraction()
-    return fractions.Fraction(value)
+    return exactmath.any_to_fraction(value)
 
 
 def _add_component(components: dict[int, FracVector], radicand: int, fv: FracVectorBase) -> None:
@@ -409,7 +400,10 @@ class SurdVector(VectorBackend):
         result: dict[int, FracVector] = {}
         for r, a in self._components.items():
             for s, b in other._components.items():
-                c, t = square_part(r * s)  # sqrt(r)*sqrt(s) = c*sqrt(t)
+                # r, s squarefree: sqrt(r)*sqrt(s) = g*sqrt((r/g)*(s/g)) with g = gcd(r, s), and
+                # (r/g)*(s/g) is squarefree, so no factoring is needed.
+                c = math.gcd(r, s)
+                t = (r // c) * (s // c)
                 _add_component(result, t, a.mul(b) * c)
         result_dim = _zero_fracvector(self._dim).mul(_zero_fracvector(other._dim)).dim
         return self._make(result, result_dim)
@@ -683,8 +677,9 @@ class SurdVector(VectorBackend):
 
     def _term_str(self, radicand: int, comp: FracVector) -> str:
         if comp.dim == ():
-            coeff = comp.to_fraction()
-            coeff_str = str(coeff.numerator) if coeff.denominator == 1 else f"({coeff.numerator}/{coeff.denominator})"
+            coeff_str = exactmath.exact_text(comp.to_fraction())
+            if "/" in coeff_str:
+                coeff_str = f"({coeff_str})"
             return coeff_str if radicand == 1 else f"{coeff_str}*sqrt({radicand})"
         return str(comp) if radicand == 1 else f"sqrt({radicand})*{comp}"
 
@@ -737,6 +732,13 @@ class SurdScalar(SurdVector):
         existing SurdVector or SurdScalar, returned unchanged.
     """
 
+    def __repr__(self) -> str:
+        if self.is_rational:
+            text = exactmath.exact_text(self._rational_fraction())
+            if "/" not in text:
+                return f'{type(self).__name__}("{text}")'
+        return super().__repr__()
+
     #### Field inverse
 
     def _conjugate(self, p: int) -> "SurdScalar":
@@ -747,10 +749,10 @@ class SurdScalar(SurdVector):
         return SurdScalar._of(comps, ())
 
     def _some_prime(self) -> int:
-        """The smallest prime dividing some radicand ``> 1`` present (assumes one exists)."""
+        """A prime dividing some radicand ``> 1`` present (assumes one exists)."""
         for radicand in sorted(self._components):
             if radicand > 1:
-                return _smallest_prime_factor(radicand)
+                return prime_factor(radicand)
         raise ValueError("SurdScalar: no irrational radicand present")
 
     def _inverse(self) -> "SurdScalar":

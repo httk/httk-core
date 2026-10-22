@@ -19,6 +19,8 @@ import fractions
 import re
 from collections.abc import Iterable
 
+from httk.core import exactmath
+
 __all__ = ["combined_precision", "decimal_precision"]
 
 #: A decimal literal: optional sign, then digits with an optional point in any of the
@@ -66,6 +68,7 @@ def decimal_precision(text: object) -> fractions.Fraction | None:
 
     :param text: Value whose textual representation supplies the precision claim.
     :return: The absolute precision bound, or ``None`` when the value makes no measured-precision claim.
+    :raises ValueError: If the literal's digit count plus exponent magnitude exceeds 4300.
     """
     if text is None:
         return None
@@ -96,6 +99,8 @@ def decimal_precision(text: object) -> fractions.Fraction | None:
             return None
         digits_after_point = len(match.group("frac"))
 
+    # Same size bound as exact conversion of the literal (exactmath.any_to_fraction).
+    exactmath._check_text_size(literal.upper())
     exponent = int(match.group("exponent") or 0)
     return fractions.Fraction(10) ** (exponent - digits_after_point)
 

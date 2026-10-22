@@ -22,9 +22,9 @@ class VectorFracView(VectorView, FracVector):
     and it exposes the full exact-rational algebra (``det``/``inv``/``*``/...). It is built
     lazily on first access — adopting a frac backend's FracVector directly, otherwise
     converting from the backend's exact ``fractions`` interchange — so the
-    round-trip is exactness-preserving for the frac and native backends. (numpy values are
-    binary rationals, so a numpy source round-trips to the exact float64 rational, not
-    necessarily the original decimal fraction.)
+    round-trip is exactness-preserving for the frac and native backends. (A numpy source
+    embeds each float64 as its shortest round-trip decimal, not necessarily the original
+    fraction.)
 
     Because inherited FracVector algebra builds its results with the low-level
     ``self.__class__._of(noms, denom)`` constructor, results built that way are

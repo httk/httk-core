@@ -24,7 +24,7 @@ def center(vector: VectorLike) -> VectorLike:
     return coerce_view(result, vector)  # answer in the caller's own kind
 
 
-print(center(FracVector(["1/2", "2/3", "3/4"])))  # prints: (1/144)*(0, 24, 36)
+print(center(FracVector(["1/2", "2/3", "3/4"])))  # prints: (0, 1/6, 0.25)
 print(center(numpy.array([0.5, 2 / 3, 0.75])))  # prints: [0.         0.16666667 0.25      ]
 ```
 

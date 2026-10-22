@@ -19,6 +19,8 @@ from fractions import Fraction
 from types import MappingProxyType
 from typing import Any, Literal
 
+from httk.core import exactmath
+
 __all__ = ["Conversion", "UnitDefinition", "UnitRegistry", "default_registry"]
 
 _FACTOR = re.compile(r"([A-Za-z_][A-Za-z_0-9]*)(?:\^(-?[1-9][0-9]*))?")
@@ -46,8 +48,8 @@ def _scale(scale: Mapping[str, Any] | None) -> tuple[Fraction, bool]:
         return Fraction(1), False
     approximate = bool(scale.get("standard_uncertainty"))
     if "value" in scale:
-        # Float scales (approximate relations) become the float's exact binary value.
-        return Fraction(scale["value"]), True
+        # Float scales (JSON numbers of approximate relations) embed as their shortest decimal.
+        return exactmath.any_to_fraction(scale["value"]), True
     ratio = Fraction(_number(scale, "numerator", 1), _number(scale, "denominator", 1))
     return ratio * Fraction(_number(scale, "base", 10)) ** _number(scale, "exponent", 0), approximate
 

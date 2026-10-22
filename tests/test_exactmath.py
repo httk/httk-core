@@ -44,10 +44,53 @@ def test_pi_default_reference_value() -> None:
     assert abs(float(exactmath.pi()) - math.pi) < 1e-15
 
 
-def test_any_to_fraction_string_min_accuracy() -> None:
+def test_any_to_fraction_string_exact_by_default() -> None:
     assert exactmath.any_to_fraction("0.33") == F(33, 100)
-    assert exactmath.any_to_fraction("0.3333") == F(1, 3)
+    assert exactmath.any_to_fraction("0.3333") == F(3333, 10000)
     assert exactmath.any_to_fraction("2/3") == F(2, 3)
+    assert exactmath.any_to_fraction("1.2E-3") == F(12, 10000)
+    # A written esd does not change the central value.
+    assert exactmath.any_to_fraction("0.33342(10)") == F(33342, 100000)
+
+
+def test_any_to_fraction_explicit_min_accuracy_snaps() -> None:
+    # Inferred half-ulp uncertainty, capped at min_accuracy.
+    assert exactmath.any_to_fraction("0.3333", min_accuracy=F(1, 10000)) == F(1, 3)
+    assert exactmath.any_to_fraction("0.33", min_accuracy=F(1, 10000)) == F(33, 100)
+    # Stated esd.
+    assert exactmath.any_to_fraction("0.33342(10)", min_accuracy=F(1, 10000)) == F(1, 3)
+
+
+def test_any_to_fraction_float_is_shortest_decimal() -> None:
+    assert exactmath.any_to_fraction(0.1) == F(1, 10)
+    assert exactmath.any_to_fraction(3.567) == F(3567, 1000)
+    assert exactmath.any_to_fraction(-2.0) == -2
+    for bad in (float("nan"), float("inf")):
+        with pytest.raises(ValueError):
+            exactmath.any_to_fraction(bad)
+    with pytest.raises(TypeError):
+        exactmath.any_to_fraction(object())
+
+
+def test_any_to_fraction_numpy_floats() -> None:
+    numpy = pytest.importorskip("numpy")
+    assert exactmath.any_to_fraction(numpy.float64(0.1)) == F(1, 10)
+    # Narrower floats are widened to float64 first.
+    assert exactmath.any_to_fraction(numpy.float32(0.1)) == F(repr(float(numpy.float32(0.1))))
+    assert exactmath.any_to_fraction(numpy.float32(0.5)) == F(1, 2)
+
+
+def test_exact_text() -> None:
+    assert exactmath.exact_text(3) == "3"
+    assert exactmath.exact_text(F(-2)) == "-2"
+    assert exactmath.exact_text(F(2803221, 15625)) == "179.406144"
+    assert exactmath.exact_text(F(-1, 8)) == "-0.125"
+    assert exactmath.exact_text(F(1, 10**20)) == "0.00000000000000000001"
+    assert exactmath.exact_text(F(1, 3)) == "1/3"
+    assert exactmath.exact_text(F(-2, 3)) == "-2/3"
+    for value, text in ((F(1, 10**30), "1E-30"), (F(15, 10**26), "1.5E-25")):
+        assert exactmath.exact_text(value) == text
+        assert F(text) == value
 
 
 def test_any_to_fraction_infinite_accuracy() -> None:
@@ -411,3 +454,56 @@ def test_max_refinements_validation() -> None:
         exactmath.sqrt(decimal.Decimal(2), digits=5, max_refinements=-1)
     with pytest.raises(ValueError, match="max_refinements"):
         exactmath.sqrt(decimal.Decimal(2), digits=5, max_refinements=1.5)  # type: ignore[arg-type]
+
+
+def test_esd_counts_units_of_the_last_digit() -> None:
+    assert exactmath.string_to_val_and_delta("1(234)") == (F(1), F(234))
+    assert exactmath.string_to_val_and_delta("1.5(23)") == (F(3, 2), F(23, 10))
+    assert exactmath.string_to_val_and_delta("0.33342(10)") == (F(33342, 100000), F(10, 100000))
+    assert exactmath.string_to_val_and_delta("-0.33342(10)")[1] == F(10, 100000)
+
+
+def test_esd_exponent_scales_value_and_delta() -> None:
+    assert exactmath.string_to_val_and_delta("1.23(4)E-2") == (F(123, 10000), F(4, 10000))
+    assert exactmath.any_to_fraction("1.23(4)E-2") == F(123, 10000)
+    # The explicit snap uses the scaled interval [0.0119, 0.0127].
+    assert exactmath.any_to_fraction("1.23(4)E-2", min_accuracy=F(1, 10000)) == F(1, 79)
+
+
+def test_any_to_fraction_classifies_before_fraction() -> None:
+    numpy = pytest.importorskip("numpy")
+    # Same answer on every Python version (3.14's Fraction accepts numpy floats as binary).
+    assert exactmath.any_to_fraction(numpy.float32(0.1)) == F("0.10000000149011612")
+    assert exactmath.any_to_fraction(numpy.float16(0.5)) == F(1, 2)
+    assert exactmath.any_to_fraction(numpy.int64(3)) == 3
+    assert exactmath.any_to_fraction(True) == 1
+    for bad in (1 + 2j, numpy.complex128(1 + 2j), numpy.complex64(1)):
+        with pytest.raises(TypeError):
+            exactmath.any_to_fraction(bad)
+
+
+def test_numeric_text_size_is_bounded() -> None:
+    assert exactmath.any_to_fraction("1e4299") == 10**4299
+    esd_heavy = "0." + "1" * 4000 + "(" + "2" * 100000 + ")"
+    for text in ("1e-1000000", "1(2)E-5000", "1" * 4301, esd_heavy):
+        with pytest.raises(ValueError):
+            exactmath.any_to_fraction(text)
+        with pytest.raises(ValueError):
+            exactmath.any_to_fraction(text, min_accuracy=F(1, 10000))
+
+
+def test_exact_text_is_fast_for_huge_denominators() -> None:
+    assert exactmath.exact_text(F(1, 10**100000)) == "1E-100000"
+    value = F(3, 2**4000 * 5**10)
+    assert F(exactmath.exact_text(value)) == value
+
+
+def test_exact_text_beyond_int_str_limit_falls_back_to_ratio() -> None:
+    value = F(1, 2**10000)  # its decimal needs 6990 digits
+    assert exactmath.exact_text(value) == f"1/{2**10000}"
+
+
+def test_esd_grammar_is_validated() -> None:
+    for text in ("1.2(3)4", "1(2)3", "0.1(2", "1(a)", "1(2)E"):
+        with pytest.raises(ValueError):
+            exactmath.any_to_fraction(text)

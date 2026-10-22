@@ -86,7 +86,7 @@ class MutableFracVector(FracVectorBase):
         denom: int | None = None,
         simplify: bool = False,
         chain: bool = False,
-        min_accuracy: fractions.Fraction | None = fractions.Fraction(1, 10000),
+        min_accuracy: fractions.Fraction | None = None,
     ) -> None:
         super().__init__(
             values,

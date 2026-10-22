@@ -167,10 +167,12 @@ class FracVectorBase:
     :param chain: Whether to remove the outermost dimension and chain the sub-sequences. I.e.,
         if ``input=[[1, 2, 3], [4, 5, 6]]`` then ``FracVector(input, chain=True)`` gives
         ``[1, 2, 3, 4, 5, 6]``.
-    :param min_accuracy: The minimum accuracy assumed in string input. The default is
-        ``1/10000``, i.e. ``0.33 = 0.3300 = 33/100``, whereas ``0.3333 = 1/3``. Set it
-        to None to assume infinite accuracy, i.e. convert exactly whatever string is
-        given (unless a standard deviation is given as a parenthesis after the string).
+    :param min_accuracy: ``None`` (default) converts every leaf exactly as written: strings to
+        the value they spell (a written standard deviation such as ``"0.3333(2)"`` does not
+        change it) and floats to their shortest round-trip decimal. A Fraction opts in to
+        snapping string input to the simplest rational within its uncertainty, see
+        :func:`~httk.core.exactmath.any_to_fraction` (with ``Fraction(1, 10000)``,
+        ``"0.3333"`` becomes ``1/3``).
 
     Note: FracVector itself implements ``.to_fractions()``, and hence the same constructor
     allows stacking several FracVector objects like this::
@@ -204,7 +206,7 @@ class FracVectorBase:
         denom: int | None = None,
         simplify: bool = False,
         chain: bool = False,
-        min_accuracy: fractions.Fraction | None = fractions.Fraction(1, 10000),
+        min_accuracy: fractions.Fraction | None = None,
     ) -> None:
         noms, denominator = self._normalized_noms_and_denom(values, denom=denom, chain=chain, min_accuracy=min_accuracy)
         self._assign_raw(noms, denominator)
@@ -1490,7 +1492,13 @@ class FracVectorBase:
         return f"{self.__class__.__name__}({self.noms!r}, denom={self.denom!r})"
 
     def __str__(self) -> str:
-        return "(1/" + str(self.denom) + ")*" + str(self.noms)
+        def render(node: Any) -> str:
+            if isinstance(node, (tuple, list)):
+                inner = ", ".join(render(item) for item in node)
+                return f"({inner},)" if len(node) == 1 else f"({inner})"
+            return exactmath.exact_text(fractions.Fraction(node, self.denom))
+
+        return render(self.noms)
 
     def __hash__(self) -> int:
         """
@@ -1719,14 +1727,16 @@ class FracScalar(FracVector):
     ``FracScalar(something)`` where ``something`` may be any object that can be used
     in the constructor of the Python Fraction class (also works with strings!).
 
-    For signature compatibility with the :class:`~httk.core.vectors.fracvector.FracVector` constructor, this accepts but ignores
-    ``chain`` and ``min_accuracy``, and converts strings exactly via the Fraction constructor.
+    The value converts as a :class:`~httk.core.vectors.fracvector.FracVector` leaf does, via
+    :func:`~httk.core.exactmath.any_to_fraction`: exactly as written by default. For signature
+    compatibility with the FracVector constructor, ``chain`` is accepted but ignored.
 
     :param value: The scalar value or values to convert.
     :param denom: An optional additional denominator.
     :param simplify: Whether to reduce the resulting denominator.
     :param chain: An accepted compatibility parameter; it does not affect scalar creation.
-    :param min_accuracy: An accepted compatibility parameter; scalar strings are exact.
+    :param min_accuracy: ``None`` (default) for exact conversion, or a Fraction to snap string
+        input as :func:`~httk.core.exactmath.any_to_fraction` describes.
     """
 
     def __init__(
@@ -1736,20 +1746,13 @@ class FracScalar(FracVector):
         denom: int | None = None,
         simplify: bool = False,
         chain: bool = False,
-        min_accuracy: fractions.Fraction | None = fractions.Fraction(1, 10000),
+        min_accuracy: fractions.Fraction | None = None,
     ) -> None:
-        def lcd_op(a: Any, y: Any) -> Any:
-            try:
-                b = abs(fractions.Fraction(y)).denominator
-            except TypeError:
-                b = abs(fractions.Fraction(str(y))).denominator
-            return a * b // calc_gcd(a, b)
-
-        def frac(x: Any) -> Any:
-            return (fractions.Fraction(x) * lcd).numerator
-
-        lcd = nested_reduce_fractions(lambda x, y: lcd_op(x, y), value, initializer=1)
-        v_noms = self.nested_map_fractions(lambda x: frac(x), value)
+        fracs = self.nested_map_fractions(lambda x: exactmath.any_to_fraction(x, min_accuracy=min_accuracy), value)
+        lcd = nested_reduce_fractions(
+            lambda a, y: a * y.denominator // calc_gcd(a, y.denominator), fracs, initializer=1
+        )
+        v_noms = self.nested_map_fractions(lambda x: (x * lcd).numerator, fracs)
 
         if denom is None:
             denominator = lcd
@@ -1770,3 +1773,11 @@ class FracScalar(FracVector):
         instance._assign_raw(noms, denom)
         instance._dim = ()
         return instance
+
+    def __repr__(self) -> str:
+        nom, denom = self.noms, self.denom
+        if type(nom) is int and denom > 0 and calc_gcd(nom, denom) == 1:
+            text = exactmath.exact_text(fractions.Fraction(nom, denom))
+            if "/" not in text:
+                return f'{type(self).__name__}("{text}")'
+        return super().__repr__()

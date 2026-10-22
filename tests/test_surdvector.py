@@ -33,6 +33,84 @@ def test_square_part_basic() -> None:
     assert square_part(1000003) == (1, 1000003)  # a large prime stays squarefree
 
 
+def _next_prime(n: int) -> int:
+    from httk.core.vectors._squarefree import _is_probable_prime
+
+    while not _is_probable_prime(n):
+        n += 1
+    return n
+
+
+def test_square_part_large_radicands() -> None:
+    p, q = _next_prime(10**9), _next_prime(10**11)
+    assert square_part(p * p * q * 6) == (p, 6 * q)
+    big = _next_prime(10**30)
+    assert square_part(big * big * 2**101 * 5**7) == (big * 2**50 * 5**3, 10)
+
+
+def test_square_part_budget_exhaustion_raises(monkeypatch: pytest.MonkeyPatch) -> None:
+    from httk.core.vectors import _squarefree
+
+    hard = _next_prime(10**12) * _next_prime(10**13)
+    monkeypatch.setattr(_squarefree, "_RHO_BUDGET", 1)
+    with pytest.raises(ValueError, match="cannot factor"):
+        square_part(hard)
+    # Each batch is debited before it runs, so the iterations performed never exceed the budget.
+    for allowance in (1, 5, 300, 5000):
+        budget = [allowance]
+        with pytest.raises(ValueError, match="cannot factor"):
+            _squarefree._brent(hard, budget)
+        assert 0 <= budget[0] <= allowance
+
+
+def test_prime_factor() -> None:
+    from httk.core.vectors._squarefree import prime_factor
+
+    assert prime_factor(2) == 2
+    assert prime_factor(15) == 3
+    assert prime_factor(1000003) == 1000003
+    p, q = _next_prime(10**11), _next_prime(10**12)
+    assert prime_factor(p * q) in (p, q)
+
+
+def test_division_by_large_prime_radicand_is_fast_and_exact() -> None:
+    row = SurdVector([700000001, 699999914, 0])
+    length = row.length()  # sqrt of the prime 979999881000007397
+    assert length.radicands == (979999881000007397,)
+    assert (row / length).length() == 1
+    x = SurdScalar.sqrt_of(_next_prime(10**30)) + 1
+    assert x * x.inverse() == 1
+
+
+def test_factoring_budget_scales_with_size() -> None:
+    import random
+    import time
+
+    rng = random.Random(1)
+    semiprime = _next_prime(rng.getrandbits(332)) * _next_prime(rng.getrandbits(332))  # ~200 digits
+    start = time.perf_counter()
+    with pytest.raises(ValueError, match="cannot factor"):
+        square_part(semiprime)
+    assert time.perf_counter() - start < 3
+    with pytest.raises(ValueError, match="above 2048 bits"):
+        square_part(_next_prime(10**30) ** 69 * 3)
+
+
+def test_exact_decimal_length_completes() -> None:
+    third = fractions.Fraction("0.3333333333333333")
+    length = SurdVector(["0.3333333333333333", "1", "1"]).length()
+    assert length * length == third * third + 2
+    assert str(SurdVector(["1/3", "1", "1"]).length()) == "(1/3)*sqrt(19)"
+
+
+def test_complex_input_is_rejected() -> None:
+    numpy = pytest.importorskip("numpy")
+    with pytest.raises(TypeError):
+        SurdScalar(numpy.complex128(1 + 2j))
+    with pytest.raises(TypeError):
+        SurdVector(numpy.array([1 + 2j]))
+
+
 def test_square_part_rejects_nonpositive() -> None:
     with pytest.raises(ValueError):
         square_part(0)
@@ -123,6 +201,24 @@ def test_surdvector_and_surdscalar_copy_round_trip() -> None:
         assert pickle.loads(pickle.dumps(value)) == value
         assert copy.copy(value) == value
         assert copy.deepcopy(value) == value
+
+
+def test_surdscalar_string_is_exact_as_written() -> None:
+    assert SurdScalar("3.567") == SurdScalar(fractions.Fraction(3567, 1000))
+
+
+def test_surd_str_and_scalar_repr_use_exact_decimals() -> None:
+    namespace = {"SurdScalar": SurdScalar, "SurdVector": SurdVector, "FracVector": FracVector}
+    volume = SurdVector([["5.64", 0, 0], [0, "5.64", 0], [0, 0, "5.64"]]).det()
+    assert str(volume) == "179.406144"
+    assert repr(volume) == 'SurdScalar("179.406144")'
+    assert str(SurdScalar({3: "1.5", 1: "1/3"})) == "(1/3) + 1.5*sqrt(3)"
+    for value in (volume, SurdScalar("1/3"), SurdScalar({3: "1.5"}), SurdScalar(0)):
+        assert eval(repr(value), namespace) == value
+    assert repr(SurdScalar("1/3")) == "SurdScalar({1: FracVector(1, denom=3)}, ())"
+    assert (
+        repr(SurdScalar(fractions.Fraction(1, 2**10000))) == f"SurdScalar({{1: FracVector(1, denom={2**10000})}}, ())"
+    )
 
 
 def test_repr_roundtrips_via_public_constructor() -> None:
