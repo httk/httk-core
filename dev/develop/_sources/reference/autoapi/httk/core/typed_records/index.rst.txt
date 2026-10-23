@@ -1,0 +1,276 @@
+httk.core.typed_records
+=======================
+
+.. py:module:: httk.core.typed_records
+
+.. autoapi-nested-parse::
+
+   Storage layouts of typed result records, derived from OPTIMADE property definitions.
+
+   A typed result record stores the value of one property definition as plain fields. :func:`member_layout`
+   derives those fields: one per member of a dictionary-typed definition (in document order), or a single
+   field named after the definition for a scalar or list definition.
+
+   **Flattened storage rule.** A scalar member is stored as-is. A list-valued member of any depth, with fixed
+   or variable sizes, is stored as *one* flat ``tuple`` of its leaves in row-major order; the nested value is
+   reassembled from the definition's ``x-optimade-dimensions``. Fixed sizes come from the definition. A
+   variable outermost size comes from a sibling member whose outermost dimension has the same name, else from
+   the flat length divided by the product of the inner sizes. A variable inner size must be supplied by such a
+   sibling, so it cannot be reconstructed from nothing; a layout that would need one is rejected.
+
+   **Runtime.** A typed record class is a frozen dataclass deriving from :class:`TypedRecord` whose
+   ``__httk_typed_record__`` :class:`TypedRecordSpec` names the definition. Its value fields follow the
+   layout (required members first, then non-required members), followed by the standard ``product_of``,
+   ``id``, ``immutable_id`` and ``last_modified`` fields. :meth:`TypedRecordSpec.projections` serves and
+   queries the value from those fields.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.typed_records.MemberLayout
+   httk.core.typed_records.TypedRecordSpec
+   httk.core.typed_records.TypedRecord
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.typed_records.member_layout
+
+
+Module Contents
+---------------
+
+.. py:class:: MemberLayout
+
+   How one member of a property definition's value is stored in a typed record.
+
+   :param field: The record field name: ``"_".join(path)``, or the definition name for a non-dictionary
+       definition.
+   :param path: The member path within the value; ``()`` for a scalar or list definition's own value.
+   :param fulltype: The compact fulltype, e.g. ``"float"`` or ``"list of list of float"``.
+   :param leaf: The scalar leaf type: ``"float"``, ``"integer"``, ``"string"`` or ``"boolean"``.
+   :param required: Whether the member is a required dictionary member (always true for a non-dictionary
+       definition's value).
+   :param nullable: Whether the member or value itself may be null.
+   :param element_nullable: Whether list leaf items may be null (false for scalars).
+   :param dimensions: The ``(name, size)`` of every list level, outermost first; ``size`` is ``None`` for a
+       variable dimension. Empty for scalars.
+
+
+   .. py:attribute:: field
+      :type:  str
+
+
+   .. py:attribute:: path
+      :type:  tuple[str, ...]
+
+
+   .. py:attribute:: fulltype
+      :type:  str
+
+
+   .. py:attribute:: leaf
+      :type:  str
+
+
+   .. py:attribute:: required
+      :type:  bool
+
+
+   .. py:attribute:: nullable
+      :type:  bool
+
+
+   .. py:attribute:: element_nullable
+      :type:  bool
+
+
+   .. py:attribute:: dimensions
+      :type:  tuple[tuple[str, int | None], ...]
+
+
+.. py:function:: member_layout(definition)
+
+   Derive the typed-record storage layout of *definition*.
+
+   A dictionary definition gives one layout per member in document order; any other definition gives a
+   single layout for its own value, with ``path == ()``. The derivation is deterministic and shared by the
+   record generator and the runtime. A top-level value is never stored as null, even when the definition
+   is nullable (a typed record always holds a value); ``nullable`` then only describes the definition.
+
+   :param definition: The property definition to lay out.
+   :return: The member layouts.
+   :raises ValueError: Naming the definition and member, for a timestamp or other unsupported leaf, a nested
+       dictionary or list of dictionaries, a nullable inner list level, a list level without exactly one dimension declaration, a
+       variable inner dimension no sibling's outermost dimension supplies (any variable inner dimension of
+       a non-dictionary definition), or a reserved or colliding field name.
+
+
+.. py:class:: TypedRecordSpec
+
+   The property definition a typed record class stores, resolved lazily on first use.
+
+   :param definition_id: The IRI of the stored property definition.
+   :param served_name: The served (prefixed) property name, e.g. ``"_httk_temperature"``.
+   :param derivation: The derivation-term IRI for a record of a statistic of the base property
+       ``definition_id``, else ``None``.
+   :param derivation_label: The human-readable derivation name (e.g. ``"root-mean-square error"``); required
+       exactly when ``derivation`` is given.
+   :raises ValueError: If a name is empty or unstripped, or ``derivation_label`` is given without
+       ``derivation`` or missing with it.
+
+
+   .. py:attribute:: definition_id
+      :type:  str
+
+
+   .. py:attribute:: served_name
+      :type:  str
+
+
+   .. py:attribute:: derivation
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: derivation_label
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:property:: definition
+      :type: httk.core.property_definitions.PropertyDefinition
+
+
+      Return the (base) property definition ``definition_id``.
+
+
+   .. py:property:: served_definition
+      :type: httk.core.property_definitions.PropertyDefinition
+
+
+      Return the served property definition; its name must be ``served_name``.
+
+      :return: The served form of the base definition, or of the synthesized derived definition.
+      :raises ValueError: If the served definition is named otherwise.
+
+
+   .. py:property:: layout
+      :type: tuple[MemberLayout, ...]
+
+
+      Return the member layout of the stored (base or derived) definition.
+
+
+   .. py:method:: definitions()
+
+      Return ``{served_name: served definition}``, loaded on first lookup.
+
+      :return: A lazy read-only mapping; iterating it or taking its length loads nothing.
+
+
+
+   .. py:method:: projections()
+
+      Return ``{served_name: projection}`` serving and querying the value, built on first lookup.
+
+      Scalars are queried on their column: comparisons, string matching and ``IS KNOWN``/``IS UNKNOWN``;
+      float equality is exact binary64 equality. A list member (or list value) supports ``HAS``,
+      ``HAS ALL``, ``HAS ANY`` and ``HAS ONLY`` when one-dimensional (exact binary64 equality on floats;
+      ``HAS ONLY`` ignores null elements) and ``LENGTH``, the outer length, when every inner size is fixed.
+      A dictionary value serves its members as nested names (``name.member``) and is always known.
+
+      A dictionary value also supports zip filters (``name.a:name.b HAS ...``, ``HAS ALL``/``ANY``/``ONLY``)
+      over two or more distinct one-dimensional list members sharing their dimension name; slot comparisons
+      on a null element are unknown, so that position never matches (``HAS ONLY`` ignores it). A zip over
+      a member that may be None is unknown when that member is None. Other zips are not supported.
+
+      :return: A lazy read-only mapping; iterating it or taking its length loads nothing.
+
+
+
+.. py:class:: TypedRecord
+
+   Mixin base of generated typed result records: one frozen dataclass per property definition.
+
+   A subclass sets ``__httk_typed_record__`` to its :class:`TypedRecordSpec` and declares the layout's
+   value fields (required members, then non-required members defaulting to ``None``) followed by the
+   standard ``product_of``, ``id``, ``immutable_id`` and ``last_modified`` fields. Construction coerces
+   integers to floats for float members and lists to tuples, validates the provenance edges and the
+   timestamp, and checks the reassembled :attr:`value` against the served definition. The value itself is
+   never ``None``, even for a nullable definition; dictionary members may be ``None`` when nullable or
+   not required.
+
+
+   .. py:property:: type
+      :type: str
+
+
+      Return the internal (unprefixed) entry type name.
+
+
+   .. py:property:: definition_id
+      :type: str
+
+
+      Return the IRI of the property definition whose value this record holds, as on ``DataRecord``.
+
+      For a derived (statistics) kind this is the base definition, qualified by :attr:`derivation`.
+
+
+   .. py:property:: derivation
+      :type: str | None
+
+
+      Return the derivation-term IRI qualifying :attr:`definition_id`, as on ``DerivedDataRecord``; ``None`` for a plain kind.
+
+
+   .. py:property:: value
+      :type: Any
+
+
+      Return the JSON value reassembled from the record's fields.
+
+
+   .. py:method:: from_value(value, *, product_of = (), id = None, immutable_id = None, last_modified = None)
+      :classmethod:
+
+
+      Build a record from a JSON-like value of the definition.
+
+      :param value: The property value (a dictionary for a dictionary definition); never ``None``.
+      :param product_of: The entries this value is a product of, as labeled edges.
+      :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+      :param immutable_id: The per-revision immutable id; minted by the store when None.
+      :param last_modified: The optional timezone-aware metadata timestamp.
+      :return: The typed record.
+      :raises ValueError: If the value is ``None``, cannot be flattened, or fails the definition check.
+
+
+
+   .. py:method:: from_data_record(record)
+      :classmethod:
+
+
+      Build a typed record from the generic data record of the same property definition.
+
+      The generic record's ``name`` is not kept, since the class fixes the property; its value, provenance
+      edges, ids and timestamp are.
+
+      :param record: A data record whose definition is this kind's property definition.
+      :return: The typed record.
+      :raises TypeError: If this is a derived (statistics) kind.
+      :raises ValueError: If ``record`` is not a data record of this kind's definition, or its value is
+          ``None`` or fails the definition.
+
+
+

@@ -1,0 +1,358 @@
+httk.core.storage.markers
+=========================
+
+.. py:module:: httk.core.storage.markers
+
+.. autoapi-nested-parse::
+
+   Stdlib-only marker vocabulary for declaring storable record classes.
+
+   A *storable* class is a plain frozen dataclass whose fields a storage layer
+   (such as the database layer in *httk-store*) can resolve into a relational
+   schema. Storability is non-intrusive: there is no base class to inherit.
+   This module holds only the declaration vocabulary — the markers attached to
+   fields via :class:`typing.Annotated`, the optional class-level
+   :class:`StorageInfo` declaration, and the :class:`stored_property` decorator
+   for derived, queryable properties — so that any httk module (or application)
+   can declare storable classes while depending only on httk-core. All schema
+   resolution and storage work happens in the storage layer.
+
+   Storage may optionally call a record class's ``__httk_validate__`` classmethod
+   when saving a record instance; implementations may raise to reject invalid data.
+
+   Markers are used like this::
+
+       @dataclass(frozen=True)
+       class StructureRecord:
+           __httk_storage__: ClassVar[StorageInfo] = StorageInfo(indexes=(("spacegroup", "formula"),))
+
+           formula: Annotated[str, Indexed()]
+           spacegroup: int
+           cell_basis: Annotated[FracVector, Shape(3, 3)]
+           symbols: list[str]
+
+           @stored_property
+           def natoms(self) -> int:
+               return len(self.symbols)
+
+   The class-level declaration is optional; a storage layer must accept plain
+   frozen dataclasses with no markers at all, and may also accept an external
+   :class:`StorageInfo` override for classes that cannot be modified.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.storage.markers.STORAGE_INFO_ATTRIBUTE
+   httk.core.storage.markers.DedupPolicy
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.storage.markers.Indexed
+   httk.core.storage.markers.Unique
+   httk.core.storage.markers.Skip
+   httk.core.storage.markers.IdentitySkip
+   httk.core.storage.markers.Shape
+   httk.core.storage.markers.Related
+   httk.core.storage.markers.WeakLink
+   httk.core.storage.markers.StrongLink
+   httk.core.storage.markers.StorageInfo
+   httk.core.storage.markers.stored_property
+
+
+Module Contents
+---------------
+
+.. py:data:: STORAGE_INFO_ATTRIBUTE
+   :type:  Final
+   :value: '__httk_storage__'
+
+
+   Class attribute name where a storable class may attach its :class:`StorageInfo`.
+
+.. py:type:: DedupPolicy
+   :canonical: Literal['content_id', 'by_value', 'none']
+
+
+   How a storage layer deduplicates saved instances of a class.
+
+   - ``"content_id"``: reuse an existing row whose stored content identity matches
+     (the default; suited to immutable value objects).
+   - ``"by_value"``: reuse an existing row whose stored columns all match (suited
+     to join-objects such as tags and references, whose identity is their value).
+   - ``"none"``: always insert a new row.
+
+   Values equal across ``int`` and ``Fraction`` can hash differently, while
+   ``Decimal`` and ``Fraction`` unify; naive and aware datetimes are distinct.
+   Records combining those sources may therefore not deduplicate.
+
+.. py:class:: Indexed
+
+   Field marker: request a single-column index on this field's column(s).
+
+
+.. py:class:: Unique
+
+   Field marker: request a unique index on this field's column(s).
+
+
+.. py:class:: Skip
+
+   Field marker: the field exists on the dataclass but is not stored.
+
+
+.. py:class:: IdentitySkip
+
+   Field marker: exclude the field from content identity.
+
+
+.. py:class:: Shape
+
+   Field marker: fixed or variable shape for a vector-valued field.
+
+   ``rows >= 1`` declares a fixed-shape value stored inline (flattened
+   row-major into columns). ``rows == 0`` declares a variable number of rows
+   with ``cols`` fixed columns each, stored out-of-line (one row per entry,
+   in insertion order).
+
+   :param rows: Number of rows; ``0`` means variable-length.
+   :param cols: Number of columns per row; must be at least ``1``.
+   :raises ValueError: If ``rows`` is negative or ``cols`` is less than ``1``.
+
+
+   .. py:attribute:: rows
+      :type:  int
+
+
+   .. py:attribute:: cols
+      :type:  int
+      :value: 1
+
+
+
+.. py:class:: Related
+
+   Field marker: relationship metadata for a reference or list-of-storable field.
+
+   Applies to a field holding another storable class (a *reference* field) or
+   a ``list``/``tuple`` of storable classes. When the field's target class is
+   served alongside the declaring class, the storage layer surfaces the field
+   as a relationship; this marker attaches the OPTIMADE per-identifier
+   metadata that flows into each emitted
+   :class:`~httk.core.entry_provider.RelatedEntry` — ``role`` (machine
+   readable, OPTIMADE v1.3 ``meta.role``) and ``description`` (human readable,
+   OPTIMADE v1.2 ``meta.description``). ``serve=False`` suppresses the field
+   as a relationship entirely.
+
+   :param role: The machine-readable relationship role, if any.
+   :param description: The human-readable relationship description, if any.
+   :param serve: Whether the field is served as a relationship at all.
+
+
+   .. py:attribute:: role
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: description
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: serve
+      :type:  bool
+      :value: True
+
+
+
+.. py:class:: WeakLink
+
+   Class-level declaration of a store-managed, lineage-level link to another storable class.
+
+   Declared in :attr:`StorageInfo.links` on the *source* class (links are
+   directed). A weak link is a store-managed association living in a dedicated
+   link table, not in any record field: it binds *lineages*, associating this
+   record's logical id with a ``target`` record's logical id, and both
+   endpoints always resolve to the *latest* revision on their respective side
+   (this is what makes the link *weak*, in contrast to sid-pinned reference and
+   child fields). Link rows are themselves append-only lineages — they are
+   revisable, retractable, and ``as_of``-aware — and are set-valued: a source
+   lineage may link many targets under the same declaration. Because links are
+   not part of a record's value, they do **not** participate in content
+   identity; adding or retracting a link never changes the record's
+   ``content_id``.
+
+   Only links declared ``exposed_relationship=True`` are served through the
+   OPTIMADE relationship facility; ``role`` and ``description`` carry the same
+   per-identifier OPTIMADE metadata as :class:`Related` into each served
+   relationship. ``target`` is the storable frozen dataclass this link points
+   at; only that it is a class is checked here, as deep storability validation
+   is performed by the storage layer.
+
+   See :class:`StrongLink` for the contrasting record-content edge marker
+   (inside content identity, revision-pinned) versus this store-managed,
+   lineage-live link (outside content identity).
+
+   :param name: The link name; must be a valid Python identifier. Namespaces the link (e.g. accessed as ``record.links.<name>``).
+   :param target: The storable class this link points at.
+   :param exposed_relationship: Whether the link is served through the OPTIMADE relationship facility.
+   :param role: The machine-readable relationship role, if any.
+   :param description: The human-readable relationship description, if any.
+   :raises ValueError: If ``name`` is not a valid Python identifier.
+   :raises TypeError: If ``target`` is not a class.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: target
+      :type:  type
+
+
+   .. py:attribute:: exposed_relationship
+      :type:  bool
+      :value: False
+
+
+
+   .. py:attribute:: role
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: description
+      :type:  str | None
+      :value: None
+
+
+
+.. py:class:: StrongLink
+
+   Field marker: a record-content edge collection servable as OPTIMADE relationships.
+
+   Attached via :class:`typing.Annotated` to a child field holding a tuple of
+   edge records whose element class carries the string fields ``label``,
+   ``entry_type``, and ``entry_id``. Unlike :class:`WeakLink` — a store-managed,
+   mutable curation association that lives in a dedicated link table, stays
+   outside content identity, and always resolves to each endpoint's *latest*
+   revision (lineage-live) — a strong link is *record content*: it is part of
+   the declaring record's value, so it participates in content identity and is
+   pinned to that record's revision. Both directions are servable as OPTIMADE
+   relationships.
+
+   Exposure is the declaration: a present ``relationship`` exposes the forward
+   edge under that key; a present ``reverse`` additionally exposes the reverse
+   edge under that key (the reverse view is derived at serving time from the
+   stored forward edges, never stored). The names declared here are INTERNAL
+   and unprefixed; the serving edge applies the provider prefix. This marker is
+   code-only: it is never persisted, is stripped by content-identity
+   canonicalization, and is excluded from the schema fingerprint.
+
+   :param relationship: The internal (unprefixed) forward relationship key; must be a valid Python identifier.
+   :param reverse: The internal (unprefixed) reverse relationship key, or ``None`` to expose no reverse edge; when set, must be a valid Python identifier.
+   :param role: The machine-readable relationship role, if any.
+   :param description: The human-readable relationship description, if any.
+   :raises ValueError: If ``relationship`` (or ``reverse`` when not ``None``) is not a valid Python identifier.
+
+
+   .. py:attribute:: relationship
+      :type:  str
+
+
+   .. py:attribute:: reverse
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: role
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: description
+      :type:  str | None
+      :value: None
+
+
+
+.. py:class:: StorageInfo
+
+   Optional class-level storage declaration for a storable dataclass.
+
+   Attach as the class attribute named by
+   :data:`~httk.core.storage.markers.STORAGE_INFO_ATTRIBUTE`
+   (``__httk_storage__``), annotated ``ClassVar[StorageInfo]`` so dataclass
+   processing ignores it. A storage layer may also accept an instance as an
+   external override for classes that cannot be modified.
+
+   :param storage_name: The physical storage name; ``None`` derives one from the class name. Relational backends use it as the table name, and document stores use it as the collection name.
+   :param indexes: Composite indexes, each a tuple of field names.
+   :param dedup: The deduplication policy applied when saving; see :data:`~httk.core.storage.markers.DedupPolicy`.
+   :param links: Class-level weak-link declarations; see :class:`~httk.core.storage.markers.WeakLink`.
+   :param identity_name: The logical name included in content identity; ``None`` derives it from the declaring class and its bases.
+   :raises ValueError: If ``dedup`` or an identity name or index declaration is invalid.
+
+
+   .. py:attribute:: storage_name
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: indexes
+      :type:  tuple[tuple[str, Ellipsis], Ellipsis]
+      :value: ()
+
+
+
+   .. py:attribute:: dedup
+      :type:  DedupPolicy
+      :value: 'content_id'
+
+
+
+   .. py:attribute:: links
+      :type:  tuple[WeakLink, Ellipsis]
+      :value: ()
+
+
+
+   .. py:attribute:: identity_name
+      :type:  str | None
+      :value: None
+
+
+
+.. py:class:: stored_property(fget = None, fset = None, fdel = None, doc = None)
+
+   Bases: :py:obj:`property`
+
+
+   A derived property that a storage layer stores and makes queryable.
+
+   Use exactly like :class:`property` (getter only). The value type is read
+   from the getter's return annotation. On save, the storage layer evaluates
+   and stores the value alongside the declared fields; on load, the value is
+   recomputed by the property rather than passed to ``__init__``. The getter
+   must declare a return annotation when the property is created.
+
+   :param fget: The getter function whose derived value is stored.
+   :param fset: An optional setter, normally unused by storage declarations.
+   :param fdel: An optional deleter, normally unused by storage declarations.
+   :param doc: An optional property documentation string.
+   :raises TypeError: If ``fget`` has no return annotation.
+
+

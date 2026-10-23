@@ -1,0 +1,46 @@
+httk.core.datastream.datastream_url
+===================================
+
+.. py:module:: httk.core.datastream.datastream_url
+
+.. autoapi-nested-parse::
+
+   Explicit URL intent for lazy datastream consumers.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.datastream.datastream_url.DatastreamURL
+
+
+Module Contents
+---------------
+
+.. py:class:: DatastreamURL(url, *, timeout = None)
+
+   An explicit network-consent value carrying a URL and optional timeout for lazy consumers, which resolve it through the existing
+   fetch/loader machinery; constructing it performs no network I/O.
+
+   :param url: URL whose explicit use permits network-backed lazy access.
+   :param timeout: Optional timeout to apply when the URL is opened.
+   :raises ValueError: If the URL uses an unsupported scheme.
+
+
+   .. py:property:: url
+      :type: str
+
+
+      Return the explicit URL.
+
+
+   .. py:property:: timeout
+      :type: float | None
+
+
+      Return the timeout to use when opening the URL.
+
+

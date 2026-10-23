@@ -1,0 +1,50 @@
+httk.core.plugins.cli
+=====================
+
+.. py:module:: httk.core.plugins.cli
+
+.. autoapi-nested-parse::
+
+   The core-owned ``httk plugin`` command.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.plugins.cli.Handler
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.plugins.cli.build_parser
+   httk.core.plugins.cli.command
+
+
+Module Contents
+---------------
+
+.. py:data:: Handler
+
+.. py:function:: build_parser(program)
+
+   Build the core-owned plugin command tree.
+
+   :param program: Program name used by the parser in help and errors.
+   :return: Configured plugin command parser.
+
+
+.. py:function:: command(argv, context)
+
+   Handle the registered top-level plugin command.
+
+   :param argv: Arguments following the plugin command name.
+   :param context: Root CLI invocation context.
+   :return: Command exit status.
+
+

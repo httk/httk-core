@@ -1,0 +1,42 @@
+httk.core.userdirs
+==================
+
+.. py:module:: httk.core.userdirs
+
+.. autoapi-nested-parse::
+
+   Provide per-user httk configuration and data directories.
+
+   Use XDG configuration and data conventions by default: configuration lives
+   under ``~/.config/httk`` and data under ``~/.local/share/httk``. The
+   ``HTTK_CONFIG_HOME`` and ``HTTK_DATA_HOME`` environment variables override
+   those directories.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.userdirs.config_home
+   httk.core.userdirs.data_home
+
+
+Module Contents
+---------------
+
+.. py:function:: config_home()
+
+   Return the httk configuration directory.
+
+   :return: Resolved per-user configuration directory.
+
+
+.. py:function:: data_home()
+
+   Return the httk data directory.
+
+   :return: Resolved per-user data directory.
+
+

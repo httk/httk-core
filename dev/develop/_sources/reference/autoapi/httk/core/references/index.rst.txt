@@ -1,0 +1,170 @@
+httk.core.references
+====================
+
+.. py:module:: httk.core.references
+
+.. autoapi-nested-parse::
+
+   Stdlib-only storage records for OPTIMADE ``references`` entries.
+
+   ``ReferenceRecord`` is the storable backing of the OPTIMADE ``references``
+   entry type. References are content-deduplicated: identity is every
+   bibliographic field, so the same reference cited from many entries is one
+   entry. The generated ``authors``/``editors`` mappings are not SQL-storable, so
+   the record stores them as :class:`PersonRecord` children and serves them back
+   in the OPTIMADE ``{"name", "firstname", "lastname"}`` dictionary shape.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.references.REFERENCES_DEFINITION_ID
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.references.PersonRecord
+   httk.core.references.ReferenceRecord
+   httk.core.references.ReferenceEntry
+
+
+Module Contents
+---------------
+
+.. py:data:: REFERENCES_DEFINITION_ID
+   :value: 'https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/references'
+
+
+.. py:class:: PersonRecord
+
+   Store one author or editor of a :class:`ReferenceRecord`.
+
+   :param name: The full name of the person.
+   :param firstname: The first name, if given separately.
+   :param lastname: The last name, if given separately.
+   :raises TypeError: If a name part is not a string (``firstname``/``lastname`` may be None).
+   :raises ValueError: If ``name`` is empty.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: firstname
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: lastname
+      :type:  str | None
+      :value: None
+
+
+
+.. py:class:: ReferenceRecord
+
+   Bases: :py:obj:`httk.core.entry_types.Reference`
+
+
+   Store one OPTIMADE ``references`` entry with content identity.
+
+   A reference record is identified by its bibliographic content: every field
+   except the store-minted ``id``/``immutable_id`` and ``last_modified``.
+   ``authors`` and ``editors`` accept :class:`PersonRecord` values or OPTIMADE
+   person mappings (``name`` with optional ``firstname``/``lastname``), which
+   are coerced to :class:`PersonRecord`.
+
+   :param immutable_id: The per-revision immutable id; minted by the store when None.
+   :param last_modified: The optional timezone-aware metadata timestamp.
+   :param address: The publisher or institution address.
+   :param annote: Additional notes on the reference.
+   :param booktitle: The title of a book being cited.
+   :param chapter: The chapter, section, or similar part number.
+   :param crossref: The database key of a cross-referenced entry.
+   :param edition: The edition of a book.
+   :param howpublished: The method of publication.
+   :param institution: The sponsoring institution of a technical report.
+   :param journal: The journal name.
+   :param key: The alphabetizing and cross-referencing label.
+   :param month: The three-letter month abbreviation.
+   :param note: Additional information about the reference.
+   :param number: The journal, report, or series number.
+   :param organization: The conference or manual sponsoring organization.
+   :param pages: The page number(s).
+   :param publisher: The publisher name.
+   :param school: The school where a thesis was written.
+   :param series: The series name.
+   :param title: The title of the work.
+   :param volume: The volume number.
+   :param year: The year of publication, as a string.
+   :param bib_type: The BibTeX entry type.
+   :param authors: The authors, as person records or OPTIMADE person mappings.
+   :param editors: The editors, as person records or OPTIMADE person mappings.
+   :param doi: The DOI of the referenced object.
+   :param url: The URL of the referenced object.
+   :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+   :raises TypeError: If a scalar field is neither a string nor None, or an author/editor has the wrong type.
+   :raises ValueError: If an author/editor mapping has unknown keys or an empty ``name``.
+
+
+   .. py:attribute:: immutable_id
+      :type:  Annotated[str | None, IdentitySkip(), Unique()]
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+   .. py:attribute:: authors
+      :type:  tuple[PersonRecord, ...] | None
+      :value: None
+
+
+
+   .. py:attribute:: editors
+      :type:  tuple[PersonRecord, ...] | None
+      :value: None
+
+
+
+   .. py:attribute:: id
+      :type:  Annotated[str | None, IdentitySkip(), Indexed()]
+      :value: None
+
+
+
+   .. py:property:: type
+      :type: str
+
+
+      Return the served entry type name.
+
+
+.. py:class:: ReferenceEntry
+
+   Logical entry family for served :class:`ReferenceRecord` records.
+
+   This family is not itself storable; store a ``ReferenceRecord`` directly.
+
+
+   .. py:attribute:: type
+      :value: 'references'
+
+
+
+   .. py:attribute:: definition_id
+      :value: 'https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/references'
+
+
+
