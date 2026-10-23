@@ -50,6 +50,7 @@ register_entry_record(
 # Generated typed records (httk.core.property_records), one per core property definition.
 for _name, _record in (
     ("atomic-force", "AtomicForceRecord"),
+    ("cartesian-site-forces", "CartesianSiteForcesRecord"),
     ("enthalpy", "EnthalpyRecord"),
     ("kinetic-energy", "KineticEnergyRecord"),
     ("potential-energy", "PotentialEnergyRecord"),

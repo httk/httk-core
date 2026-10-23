@@ -63,3 +63,7 @@ register_property_definition(
     definition_id="https://schemas.httk.org/defs/v0.1/properties/core/atomic_force",
     resource="httk.registry.schemas.core:atomic_force.json",
 )
+register_property_definition(
+    definition_id="https://schemas.httk.org/defs/v0.1/properties/core/cartesian_site_forces",
+    resource="httk.registry.schemas.core:cartesian_site_forces.json",
+)

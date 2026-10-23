@@ -5,7 +5,7 @@ from typing import Any
 import pytest
 
 from httk.core import PropertyDefinition, load_property_definition
-from httk.core.definition_ids import ATOMIC_FORCE, STRESS_TENSOR, TEMPERATURE
+from httk.core.definition_ids import ATOMIC_FORCE, CARTESIAN_SITE_FORCES, STRESS_TENSOR, TEMPERATURE
 from httk.core.typed_records import MemberLayout, _flatten_value, _reassemble_value, member_layout
 
 
@@ -198,6 +198,11 @@ def test_top_level_list_and_core_definitions() -> None:
     assert _summary(member_layout(stress)) == [("stress_tensor", "list of float", (("_httk_dim_voigt", 6),))]
     _roundtrip(stress, [1.0, 2.0, 3.0, 0.0, 0.0, 0.0])
     _roundtrip(load_property_definition(ATOMIC_FORCE), [0.0, 0.5, -0.5])
+    forces = load_property_definition(CARTESIAN_SITE_FORCES)
+    assert _summary(member_layout(forces)) == [
+        ("cartesian_site_forces", "list of list of float", (("dim_sites", None), ("dim_spatial", 3)))
+    ]
+    assert len(_roundtrip(forces, [[0.0, 0.5, -0.5]] * 5)["cartesian_site_forces"]) == 15  # Sites from the length.
     temperature = load_property_definition(TEMPERATURE)
     (scalar,) = member_layout(temperature)
     assert (scalar.fulltype, scalar.leaf, scalar.dimensions, scalar.element_nullable) == ("float", "float", (), False)

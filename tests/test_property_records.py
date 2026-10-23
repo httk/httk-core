@@ -12,8 +12,9 @@ import pytest
 
 from httk.core import DataRecord, PropertyDefinition, ReferenceRecord, RunEdge, WeakLink, typed_records
 from httk.core._typed_record_tool import generate_typed_records
-from httk.core.definition_ids import STRESS_TENSOR, TEMPERATURE
-from httk.core.property_records import RECORD_KINDS
+from httk.core.data_records import DataRecordEntry
+from httk.core.definition_ids import CARTESIAN_SITE_FORCES, STRESS_TENSOR, TEMPERATURE
+from httk.core.property_records import RECORD_KINDS, CartesianSiteForcesRecord
 from httk.core.register.entries import resolve_entry_record
 from httk.core.typed_records import MemberLayout, TypedRecord
 
@@ -69,6 +70,34 @@ def test_generated_record_kind_from_data_record(cls: type[TypedRecord]) -> None:
     record = cast(Any, cls.from_data_record(generic))
     assert record.value == generic.value and record.product_of == edges
     assert (record.id, record.immutable_id, record.last_modified) == ("x1", "i1", stamp)
+
+
+_FORCES = [[0.0, 0.5, -0.5], [1.25, -2.0, 0.0], [-1.25, 1.5, 0.5], [0.0, 0.0, 0.0]]
+
+
+def test_cartesian_site_forces_record_nests_one_vector_per_site() -> None:
+    record = CartesianSiteForcesRecord.from_value(_FORCES)
+    assert RECORD_KINDS[CARTESIAN_SITE_FORCES] is CartesianSiteForcesRecord
+    assert record.cartesian_site_forces == tuple(itertools.chain.from_iterable(_FORCES))  # Row-major storage.
+    assert record.value == _FORCES
+    projection = vars(CartesianSiteForcesRecord)["__httk_stored_properties__"]["_httk_cartesian_site_forces"]
+    assert projection.response(record) == _FORCES
+    with pytest.raises(ValueError):
+        CartesianSiteForcesRecord.from_value([[0.0, 0.5], [1.0, 2.0]])  # Not a 3-vector per site.
+
+
+def test_cartesian_site_forces_round_trip_through_sql_store() -> None:
+    sql = pytest.importorskip("httk.store.backend.sql")
+    from httk.store import EntryIdScheme
+
+    entry_records = {DataRecordEntry: (CartesianSiteForcesRecord,)}
+    ids = EntryIdScheme("httk.test", "1")
+    record = CartesianSiteForcesRecord.from_value(_FORCES, product_of=(RunEdge("input", "structures", "s1"),))
+    with sql.Backend.sqlite() as database:
+        sql.SqlStore(database, entry_records=entry_records, entry_ids=ids).save(record)
+        search = sql.SqlStore(database, entry_records=entry_records, entry_ids=ids).searcher()
+        (stored,) = [row.record for row in search.results(record=search.variable(CartesianSiteForcesRecord))]
+        assert stored == record and stored.value == _FORCES and stored.product_of == record.product_of
 
 
 def test_import_loads_no_definition(monkeypatch: pytest.MonkeyPatch) -> None:

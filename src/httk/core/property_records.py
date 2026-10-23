@@ -46,6 +46,7 @@ from httk.core.storage import StoredPropertyProjection
 __all__ = [
     "RECORD_KINDS",
     "AtomicForceRecord",
+    "CartesianSiteForcesRecord",
     "EnthalpyRecord",
     "KineticEnergyRecord",
     "PotentialEnergyRecord",
@@ -84,6 +85,46 @@ class AtomicForceRecord(TypedRecord):
     __httk_stored_properties__: ClassVar[Mapping[str, StoredPropertyProjection]] = __httk_typed_record__.projections()
 
     atomic_force: tuple[float, ...]
+    product_of: Annotated[tuple[RunEdge, ...], StrongLink("product_of", reverse="has_product", role="subject")] = ()
+    id: Annotated[str | None, IdentitySkip(), Indexed()] = field(default=None, compare=False)
+    immutable_id: Annotated[str | None, IdentitySkip(), Unique()] = field(default=None, compare=False)
+    last_modified: Annotated[datetime.datetime | None, IdentitySkip()] = field(default=None, compare=False)
+
+
+@dataclass(frozen=True)
+class CartesianSiteForcesRecord(TypedRecord):
+    """Cartesian site forces as a typed record.
+
+    The force on every site of a structure (the negative gradient of the total energy with respect to the Cartesian position of each site), in electronvolt per angstrom.
+
+    **Requirements/Conventions**:
+
+    - The value is a list over the dimension ``dim_sites`` of vectors over ``dim_spatial``: one 3-vector per site, in the Cartesian frame of the structure the value belongs to (the frame of ``lattice_vectors`` and ``cartesian_site_positions``).
+    - The list MUST have one vector per site of that structure, in the order of its sites. The structure is the input structure of the calculation the value is a product of, as that calculation read it.
+    - The force on one atom is the singular property ``atomic_force``, which is the per-atom base of this property.
+
+    A null value means the quantity is not available or not recorded.
+
+    :param cartesian_site_forces: The cartesian site forces value. Unit: angstrom^-1*eV.
+    :param product_of: The entries this value is a product of, as labeled edges.
+    :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+    :param immutable_id: The per-revision immutable id; minted by the store when None.
+    :param last_modified: The optional timezone-aware metadata timestamp.
+    """
+
+    __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
+        storage_name="core_cartesian_site_forces",
+        identity_name="core_cartesian_site_forces",
+        links=(WeakLink("references", ReferenceRecord, exposed_relationship=True),),
+    )
+    __httk_typed_record__: ClassVar[TypedRecordSpec] = TypedRecordSpec(
+        "https://schemas.httk.org/defs/v0.1/properties/core/cartesian_site_forces",
+        "_httk_cartesian_site_forces",
+    )
+    __httk_property_definitions__: ClassVar[Mapping[str, PropertyDefinition]] = __httk_typed_record__.definitions()
+    __httk_stored_properties__: ClassVar[Mapping[str, StoredPropertyProjection]] = __httk_typed_record__.projections()
+
+    cartesian_site_forces: tuple[float, ...]
     product_of: Annotated[tuple[RunEdge, ...], StrongLink("product_of", reverse="has_product", role="subject")] = ()
     id: Annotated[str | None, IdentitySkip(), Indexed()] = field(default=None, compare=False)
     immutable_id: Annotated[str | None, IdentitySkip(), Unique()] = field(default=None, compare=False)
@@ -327,6 +368,7 @@ class VolumeRecord(TypedRecord):
 RECORD_KINDS: Mapping[str, type[TypedRecord]] = MappingProxyType(
     {
         "https://schemas.httk.org/defs/v0.1/properties/core/atomic_force": AtomicForceRecord,
+        "https://schemas.httk.org/defs/v0.1/properties/core/cartesian_site_forces": CartesianSiteForcesRecord,
         "https://schemas.httk.org/defs/v0.1/properties/core/enthalpy": EnthalpyRecord,
         "https://schemas.httk.org/defs/v0.1/properties/core/kinetic_energy": KineticEnergyRecord,
         "https://schemas.httk.org/defs/v0.1/properties/core/potential_energy": PotentialEnergyRecord,

@@ -54,6 +54,7 @@ example *httk-workflow* collect hooks validating output `ref`s) resolve them.
 | `pressure.json` | `https://schemas.httk.org/defs/v0.1/properties/core/pressure` | `schemas-source/output/defs/v0.1/properties/core/pressure.json` | [`LICENSE.httk`](./LICENSE.httk) |
 | `stress_tensor.json` | `https://schemas.httk.org/defs/v0.1/properties/core/stress_tensor` | `schemas-source/output/defs/v0.1/properties/core/stress_tensor.json` | [`LICENSE.httk`](./LICENSE.httk) |
 | `atomic_force.json` | `https://schemas.httk.org/defs/v0.1/properties/core/atomic_force` | `schemas-source/output/defs/v0.1/properties/core/atomic_force.json` | [`LICENSE.httk`](./LICENSE.httk) |
+| `cartesian_site_forces.json` | `https://schemas.httk.org/defs/v0.1/properties/core/cartesian_site_forces` | `schemas-source/output/defs/v0.1/properties/core/cartesian_site_forces.json` | [`LICENSE.httk`](./LICENSE.httk) |
 
 ## Unit, prefix and constant definitions
 
@@ -77,6 +78,6 @@ Run `make optimade-defs` from the repository root to re-fetch the three
 Materials-Consortia files (and the `LICENSE`) from the URLs above. Refresh the
 httk-authored files by re-copying `runs.json` and `records.json` from the local
 `schemas-source/output/defs/v0.1/entrytypes/` build output and
-the httk-authored property definitions (`total_energy.json`, `average_total_energy.json`, `potential_energy.json`, `kinetic_energy.json`, `enthalpy.json`, `temperature.json`, `volume.json`, `pressure.json`, `stress_tensor.json`, `atomic_force.json`) from `schemas-source/output/defs/v0.1/properties/core/`. These are source
+the httk-authored property definitions (`total_energy.json`, `average_total_energy.json`, `potential_energy.json`, `kinetic_energy.json`, `enthalpy.json`, `temperature.json`, `volume.json`, `pressure.json`, `stress_tensor.json`, `atomic_force.json`, `cartesian_site_forces.json`) from `schemas-source/output/defs/v0.1/properties/core/`. These are source
 tasks; ordinary builds and tests read the committed copies offline. After a
 refresh, review the diff and re-commit only intended version changes.

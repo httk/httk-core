@@ -3,6 +3,7 @@
 __all__ = [
     "ATOMIC_FORCE",
     "AVERAGE_TOTAL_ENERGY",
+    "CARTESIAN_SITE_FORCES",
     "ENTHALPY",
     "KINETIC_ENERGY",
     "POTENTIAL_ENERGY",
@@ -42,3 +43,6 @@ STRESS_TENSOR = "https://schemas.httk.org/defs/v0.1/properties/core/stress_tenso
 
 #: Definition IRI of the per-atom force vectors (eV/angstrom).
 ATOMIC_FORCE = "https://schemas.httk.org/defs/v0.1/properties/core/atomic_force"
+
+#: Definition IRI of the forces on all sites of a structure, one Cartesian 3-vector per site (eV/angstrom).
+CARTESIAN_SITE_FORCES = "https://schemas.httk.org/defs/v0.1/properties/core/cartesian_site_forces"

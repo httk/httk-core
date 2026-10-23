@@ -270,6 +270,7 @@ def generate_core_records() -> str:
 #: The core property definitions with generated typed records (total energies keep hand-written records).
 PROPERTY_RECORD_IDS = (
     definition_ids.ATOMIC_FORCE,
+    definition_ids.CARTESIAN_SITE_FORCES,
     definition_ids.ENTHALPY,
     definition_ids.KINETIC_ENERGY,
     definition_ids.POTENTIAL_ENERGY,

@@ -413,6 +413,7 @@ _CORE_IDS = [
     "volume",
     "pressure",
     "stress_tensor",
+    "cartesian_site_forces",
 ]
 
 
