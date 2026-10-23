@@ -71,6 +71,27 @@ def test_duplicate_registration() -> None:
     assert code_support("vasp").bash_api == "pkg:a.sh"
 
 
+def test_settings_sorted_deduplicated_default_empty() -> None:
+    register_code("vasp", bridge="pkg", settings=["vasp.b", "vasp.a.c", "vasp.b"])
+    register_code("qe", bridge="pkg2")
+    assert code_support("vasp").settings == ("vasp.a.c", "vasp.b")
+    assert code_support("qe").settings == ()
+
+
+@pytest.mark.parametrize("settings", ["vasp.command", b"vasp.command", 5, ["qe.command"], ["vasp"], ["vasp."], [3]])
+def test_settings_validation(settings: object) -> None:
+    with pytest.raises(ValueError):
+        register_code("vasp", bridge="pkg", settings=settings)  # type: ignore[arg-type]
+    assert known_codes() == ()
+
+
+def test_settings_reregistration() -> None:
+    register_code("vasp", bridge="pkg", settings=("vasp.a",))
+    register_code("vasp", bridge="pkg", settings=["vasp.a"])
+    with pytest.raises(ValueError, match="different values"):
+        register_code("vasp", bridge="pkg", settings=("vasp.b",))
+
+
 def test_bridge_and_bash_api_resolve_lazily(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     package = tmp_path / "httk_test_code_pkg"
     package.mkdir()

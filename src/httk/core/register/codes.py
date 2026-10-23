@@ -19,6 +19,7 @@
 import importlib
 import importlib.util
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass
 from importlib.resources import files
 from pathlib import Path
@@ -46,11 +47,14 @@ class CodeSupport:
         ``add_commands(subparsers)`` and ``run_command(namespace) -> int``.
     :param bash_api: The ``"package:filename"`` resource of the Bash API
         script, or ``None``.
+    :param settings: The application-setting keys this code support recognizes,
+        sorted, each in the ``<name>.`` namespace.
     """
 
     name: str
     bridge: str
     bash_api: str | None
+    settings: tuple[str, ...] = ()
 
     def resolve_bridge(self) -> ModuleType:
         """Import and return the bridge module.
@@ -84,7 +88,7 @@ _BASH_API = re.compile(_DOTTED + r":[A-Za-z0-9_][A-Za-z0-9_.-]*")
 _codes: dict[str, CodeSupport] = {}
 
 
-def register_code(name: str, *, bridge: str, bash_api: str | None = None) -> None:
+def register_code(name: str, *, bridge: str, bash_api: str | None = None, settings: Sequence[str] = ()) -> None:
     """Register a simulation-code support package.
 
     Registration stores strings only; nothing is imported or resolved until
@@ -95,7 +99,9 @@ def register_code(name: str, *, bridge: str, bash_api: str | None = None) -> Non
     :param bridge: The dotted bridge module path, e.g. ``"httk.codes.vasp._bridge"``.
     :param bash_api: The ``"package:filename"`` Bash API resource, e.g.
         ``"httk.codes.vasp:httk-vasp.sh"``, or ``None``.
-    :raises ValueError: If a value is invalid or ``name`` is registered with different values.
+    :param settings: The application-setting keys the code recognizes, each a dotted
+        name in the ``<name>.`` namespace; stored sorted and deduplicated.
+    :raises ValueError: If a value (including a setting) is invalid or ``name`` is registered with different values.
     """
 
     if not isinstance(name, str) or _CODE_NAME.fullmatch(name) is None:
@@ -104,7 +110,13 @@ def register_code(name: str, *, bridge: str, bash_api: str | None = None) -> Non
         raise ValueError(f"code bridge must be a dotted module path: {bridge!r}")
     if bash_api is not None and (not isinstance(bash_api, str) or _BASH_API.fullmatch(bash_api) is None):
         raise ValueError(f"code Bash API must be a 'package:filename' resource: {bash_api!r}")
-    support = CodeSupport(name=name, bridge=bridge, bash_api=bash_api)
+    if isinstance(settings, str | bytes) or not isinstance(settings, Sequence):
+        raise ValueError(f"code settings must be a sequence of setting names: {settings!r}")
+    key_pattern = re.compile(re.escape(name) + r"\." + _DOTTED)
+    for key in settings:
+        if not isinstance(key, str) or key_pattern.fullmatch(key) is None:
+            raise ValueError(f"code {name!r} setting must be a dotted name in the {name!r} namespace: {key!r}")
+    support = CodeSupport(name=name, bridge=bridge, bash_api=bash_api, settings=tuple(sorted(set(settings))))
     existing = _codes.setdefault(name, support)
     if existing != support:
         raise ValueError(f"code is already registered with different values: {name!r}")

@@ -217,14 +217,17 @@ core seal, manifest, repair, and verify verbs delegate to (see {doc}`/projects`)
 
 ## Simulation codes
 
-`register_code(name, bridge=..., bash_api=...)` registers a simulation-code
+`register_code(name, bridge=..., bash_api=..., settings=...)` registers a simulation-code
 support package, typically an `httk-workflow-<code>` distribution providing
 `httk.codes.<code>`, from a registration package under
 `httk.registry.codes.<code>`. `bridge` is the dotted path of a module defining
 `add_commands(subparsers)` and `run_command(namespace) -> int`, and the
 optional `bash_api` is a `"package:filename"` resource holding the code's Bash
 API script. The name, matching `[a-z][a-z0-9_]*`, also serves as the `<name>-`
-bridge command prefix and the environment-variable stem. Registration stores
+bridge command prefix and the environment-variable stem. `settings=(...)`
+declares the application-setting keys (in the code's own `<name>.` namespace)
+its workflows read, so httk-workflow can mark them as recognized when showing
+settings. Registration stores
 strings only; `code_support(name)` returns a `CodeSupport` whose
 `resolve_bridge()` and `bash_api_path()` import the bridge and locate the script
 on demand, and `known_codes()` lists the registered names. Re-registering a name
