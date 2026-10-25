@@ -113,6 +113,10 @@ def coerce_view(value: Any, target: Any) -> Any:
         candidate = _try_view(tcls, value)
         if candidate is not None:
             return candidate
+    # The builtin vector/scalar coercers register when httk.core.vectors is imported; the lazy package root
+    # no longer guarantees that, so resolve it here (a sys.modules lookup after the first call).
+    import httk.core.vectors  # noqa: F401
+
     for targets, coercer in _coercers:
         if not issubclass(tcls, targets):
             continue

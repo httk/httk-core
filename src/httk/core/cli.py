@@ -4,7 +4,6 @@ import os
 import sys
 from collections.abc import Sequence
 from dataclasses import dataclass
-from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 from .register.cli import cli_command, known_cli_commands
@@ -23,6 +22,8 @@ class CLIContext:
 
 
 def _version() -> str:
+    from importlib.metadata import PackageNotFoundError, version  # deferred: keeps CLI start cheap
+
     try:
         return version("httk-core")
     except PackageNotFoundError:

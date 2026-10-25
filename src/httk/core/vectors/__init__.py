@@ -28,6 +28,9 @@ import decimal
 import fractions
 from typing import Any
 
+# exactmath first: it imports the vector modules mid-module, and they import it back (the package root
+# no longer imports it eagerly).
+from httk.core import exactmath  # noqa: F401
 from httk.core.views import register_coercer, view_class_coercer
 
 from .fracvector import FracScalar, FracVector, FracVectorBase

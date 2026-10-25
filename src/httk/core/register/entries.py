@@ -17,6 +17,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import dataclasses
+import re
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from types import MappingProxyType
@@ -199,6 +200,32 @@ def _validate_optimade_reference(reference: str, *, label: str) -> None:
         raise ValueError(f"{label} must use strict 'module:attr' syntax")
 
 
+_VERSION = re.compile(r"^(\d+)\.(\d+)(?:\.\d+)?(?:[-+].*)?$")
+
+
+def parse_optimade_api_version(value: object) -> tuple[int, int] | None:
+    """Return the ``(major, minor)`` of a major-1 OPTIMADE version, or ``None``.
+
+    ``MAJOR.MINOR`` and ``MAJOR.MINOR.PATCH`` are accepted with optional trailing
+    pre-release or build text ignored. Only the ``(major, minor)`` pair is
+    compared. A value whose major version is not 1, or which does not parse,
+    yields ``None`` (the client supports major version 1 only).
+
+    :param value: Candidate version value.
+    :return: The ``(major, minor)`` pair, or ``None`` when unusable.
+    """
+
+    if not isinstance(value, str):
+        return None
+    match = _VERSION.match(value)
+    if match is None:
+        return None
+    major = int(match.group(1))
+    if major != 1:
+        return None
+    return (major, int(match.group(2)))
+
+
 def _validate_nonempty_optimade_string(value: str, *, label: str) -> None:
     if not isinstance(value, str) or not value.strip() or value != value.strip():
         raise ValueError(f"{label} must be a nonempty string without surrounding whitespace")
@@ -253,8 +280,6 @@ class OptimadeEntryBinding:
                 seen.add(definition_id)
         if not isinstance(self.standard_property_versions, Mapping):
             raise TypeError("standard_property_versions must be a mapping of property names to spec versions")
-        from httk.core.optimade.standard_names import parse_optimade_api_version
-
         versions: dict[str, str] = {}
         for property_name, version in self.standard_property_versions.items():
             _validate_nonempty_optimade_string(property_name, label="standard property name")

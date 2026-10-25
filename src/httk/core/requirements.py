@@ -7,7 +7,6 @@ dependency: a pre or dev release of the required release does not satisfy
 it, while a post release or local label does.
 """
 
-import importlib.metadata
 import re
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -99,6 +98,8 @@ def unmet_requirements(requirements: Iterable[Requirement]) -> tuple[str, ...]:
     :param requirements: Check these requirements.
     :return: One message per unmet requirement, e.g. ``"httk-workflow>=2.2.0 (installed: 2.1.1)"``.
     """
+
+    import importlib.metadata  # deferred: keeps CLI start cheap
 
     unmet: list[str] = []
     for requirement in requirements:

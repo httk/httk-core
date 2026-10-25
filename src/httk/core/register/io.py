@@ -21,11 +21,12 @@ from pathlib import PurePath
 from threading import Lock
 from typing import Any
 
-from ..datastream.compression import split_compression_suffix
 from ._base import PluginRegistry, _same_callable_reference
 
 
 def _reader_key(name: str) -> tuple[PluginRegistry, str] | None:
+    from ..datastream.compression import split_compression_suffix  # deferred: keeps registration cheap
+
     basename = PurePath(name).name
     inner, _codec = split_compression_suffix(basename)
     ext = PurePath(inner).suffix.lower()

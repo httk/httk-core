@@ -1,0 +1,238 @@
+"""Public core APIs for loading, reporting, project anchors, and registration.
+
+Importing this package discovers installed capability modules and exposes
+their registered readers, writers, adapters, and related public APIs.
+
+The deliberate public surface is defined by ``__all__``.
+"""
+
+from . import exactmath as exactmath
+from ._sentinel import MISSING, MissingType
+from .citations import credits, register_citation
+from .cli import CLIContext
+from .data_records import AverageTotalEnergyRecord, DataRecord, DataRecordEntry, DerivedDataRecord, TotalEnergyRecord
+from .dataset_loader import DatasetLoader, DatasetLoaderRecord, DatasetMeta
+from .datasets import Dataset, DatasetDistribution, DatasetRecord
+from .datastream import (
+    BytestreamFileView,
+    BytestreamLike,
+    BytestreamURLView,
+    CompressionCodec,
+    DatastreamLike,
+    DatastreamURL,
+    TextstreamFileView,
+    TextstreamLike,
+    TextstreamURLView,
+    known_compressions,
+    register_compression,
+)
+from .entry_ids import (
+    ALTERNATIVE_ID_PATTERN,
+    ALTERNATIVE_KIND_PATTERN,
+    ENTRY_ID_PATTERN,
+    IMMUTABLE_ID_PATTERN,
+    check_entry_id,
+    check_immutable_id,
+    format_alternative_id,
+    format_entry_id,
+    format_immutable_id,
+    is_url_safe_id,
+    parse_alternative_id,
+    parse_entry_id,
+    parse_immutable_id,
+)
+from .entry_provider import EntryProvider, RelatedEntry
+from .entry_records import DataEntryRecord, EntryRecord, Property, entry_record
+from .entry_types import Calculation, File, Reference
+from .fetching import fetch
+from .files import FileEntry, FileRecord
+from .loading import has_reader_for, load, load_many, load_source, reader_format_for
+from .precision import combined_precision, decimal_precision
+from .property_definitions import (
+    EntryTypeDefinition,
+    PropertyDefinition,
+    apply_definition_prefix,
+    known_definition_prefixes,
+    register_definition_prefix,
+    standard_entry_type,
+)
+from .provenance import ProductLink, Run, RunEdge, RunEntry
+from .references import PersonRecord, ReferenceEntry, ReferenceRecord
+from .register.cli import register_cli_command
+from .register.entries import (
+    known_entry_providers,
+    register_entry_family,
+    register_entry_provider,
+    register_entry_record,
+    register_optimade_entry_binding,
+)
+from .register.io import register_format_adapter, register_format_serializer, register_reader, register_writer
+from .register.members import known_project_member_kinds, project_member_handler, register_project_member_kind
+from .register.schemas import (
+    load_entry_type_definition,
+    load_property_definition,
+    register_entry_type_definition,
+    register_property_definition,
+)
+from .saving import has_writer_for, save
+from .services import Service, ServiceRecord
+from .storage.identity import content_id
+from .storage.markers import (
+    IdentitySkip,
+    IdentitySkipWhenNone,
+    Indexed,
+    KeepStored,
+    Related,
+    Shape,
+    Skip,
+    StorageInfo,
+    StrongLink,
+    Unique,
+    WeakLink,
+    stored_property,
+)
+from .typed_records import MemberLayout, TypedRecord, TypedRecordSpec, member_layout
+from .vectors import (
+    FracScalar,
+    FracVector,
+    MutableFracVector,
+    NumericVector,
+    ScalarLike,
+    SurdScalar,
+    SurdVector,
+    VectorLike,
+    numpy_available,
+    to_numeric,
+    to_numeric_scalar,
+)
+from .views import Backend, View, coerce, coerce_view, unview, unwrap
+
+__all__ = [
+    "ALTERNATIVE_ID_PATTERN",
+    "ALTERNATIVE_KIND_PATTERN",
+    "ENTRY_ID_PATTERN",
+    "IMMUTABLE_ID_PATTERN",
+    "MISSING",
+    "AverageTotalEnergyRecord",
+    "Backend",
+    "BytestreamFileView",
+    "BytestreamLike",
+    "BytestreamURLView",
+    "CLIContext",
+    "Calculation",
+    "CompressionCodec",
+    "DataEntryRecord",
+    "DataRecord",
+    "DataRecordEntry",
+    "Dataset",
+    "DatasetDistribution",
+    "DatasetLoader",
+    "DatasetLoaderRecord",
+    "DatasetMeta",
+    "DatasetRecord",
+    "DatastreamLike",
+    "DatastreamURL",
+    "DerivedDataRecord",
+    "EntryProvider",
+    "EntryRecord",
+    "EntryTypeDefinition",
+    "File",
+    "FileEntry",
+    "FileRecord",
+    "FracScalar",
+    "FracVector",
+    "IdentitySkip",
+    "IdentitySkipWhenNone",
+    "Indexed",
+    "KeepStored",
+    "MemberLayout",
+    "MissingType",
+    "MutableFracVector",
+    "NumericVector",
+    "PersonRecord",
+    "ProductLink",
+    "Property",
+    "PropertyDefinition",
+    "Reference",
+    "ReferenceEntry",
+    "ReferenceRecord",
+    "Related",
+    "RelatedEntry",
+    "Run",
+    "RunEdge",
+    "RunEntry",
+    "ScalarLike",
+    "Service",
+    "ServiceRecord",
+    "Shape",
+    "Skip",
+    "StorageInfo",
+    "StrongLink",
+    "SurdScalar",
+    "SurdVector",
+    "TextstreamFileView",
+    "TextstreamLike",
+    "TextstreamURLView",
+    "TotalEnergyRecord",
+    "TypedRecord",
+    "TypedRecordSpec",
+    "Unique",
+    "VectorLike",
+    "View",
+    "WeakLink",
+    "apply_definition_prefix",
+    "check_entry_id",
+    "check_immutable_id",
+    "coerce",
+    "coerce_view",
+    "combined_precision",
+    "content_id",
+    "credits",
+    "decimal_precision",
+    "entry_record",
+    "fetch",
+    "format_alternative_id",
+    "format_entry_id",
+    "format_immutable_id",
+    "has_reader_for",
+    "has_writer_for",
+    "is_url_safe_id",
+    "known_compressions",
+    "known_definition_prefixes",
+    "known_entry_providers",
+    "known_project_member_kinds",
+    "load",
+    "load_entry_type_definition",
+    "load_many",
+    "load_property_definition",
+    "load_source",
+    "member_layout",
+    "numpy_available",
+    "parse_alternative_id",
+    "parse_entry_id",
+    "parse_immutable_id",
+    "project_member_handler",
+    "reader_format_for",
+    "register_citation",
+    "register_cli_command",
+    "register_compression",
+    "register_definition_prefix",
+    "register_entry_family",
+    "register_entry_provider",
+    "register_entry_record",
+    "register_entry_type_definition",
+    "register_format_adapter",
+    "register_format_serializer",
+    "register_optimade_entry_binding",
+    "register_project_member_kind",
+    "register_property_definition",
+    "register_reader",
+    "register_writer",
+    "save",
+    "standard_entry_type",
+    "stored_property",
+    "to_numeric",
+    "to_numeric_scalar",
+    "unview",
+    "unwrap",
+]

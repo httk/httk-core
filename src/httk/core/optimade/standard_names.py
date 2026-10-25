@@ -15,7 +15,6 @@ is the registry-driven wrapper that every code path building an
 """
 
 import dataclasses
-import re
 from collections import Counter
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -25,38 +24,18 @@ from typing import cast
 from weakref import WeakKeyDictionary
 
 from ..property_definitions import EntryTypeDefinition
-from ..register.entries import OptimadeEntryBinding, known_optimade_entry_bindings, optimade_entry_binding
+from ..register.entries import (
+    OptimadeEntryBinding,
+    known_optimade_entry_bindings,
+    optimade_entry_binding,
+    parse_optimade_api_version,
+)
 from ..register.schemas import load_entry_type_definition
 from .entries import _is_definition_iri
 from .resources import OptimadeDocument, OptimadeSchemaSnapshot, optimade_document_root
 
 STANDARD_NAME_EVIDENCE = "standard-name"
 """Evidence tag recorded for a name inferred from the standard namespace rule."""
-
-_VERSION = re.compile(r"^(\d+)\.(\d+)(?:\.\d+)?(?:[-+].*)?$")
-
-
-def parse_optimade_api_version(value: object) -> tuple[int, int] | None:
-    """Return the ``(major, minor)`` of a major-1 OPTIMADE version, or ``None``.
-
-    ``MAJOR.MINOR`` and ``MAJOR.MINOR.PATCH`` are accepted with optional trailing
-    pre-release or build text ignored. Only the ``(major, minor)`` pair is
-    compared. A value whose major version is not 1, or which does not parse,
-    yields ``None`` (the client supports major version 1 only).
-
-    :param value: Candidate version value.
-    :return: The ``(major, minor)`` pair, or ``None`` when unusable.
-    """
-
-    if not isinstance(value, str):
-        return None
-    match = _VERSION.match(value)
-    if match is None:
-        return None
-    major = int(match.group(1))
-    if major != 1:
-        return None
-    return (major, int(match.group(2)))
 
 
 @dataclass(frozen=True)
