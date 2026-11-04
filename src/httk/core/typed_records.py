@@ -13,9 +13,10 @@ sibling, so it cannot be reconstructed from nothing; a layout that would need on
 
 **Runtime.** A typed record class is a frozen dataclass deriving from :class:`TypedRecord` whose
 ``__httk_typed_record__`` :class:`TypedRecordSpec` names the definition. Its value fields follow the
-layout (required members first, then non-required members), followed by the standard ``product_of``,
-``id``, ``immutable_id`` and ``last_modified`` fields. :meth:`TypedRecordSpec.projections` serves and
-queries the value from those fields.
+layout (required members first, then non-required members), then the normalization count field when the
+stored definition declares a ``field`` normalization (see :class:`TypedRecordSpec`), followed by the
+standard ``product_of``, ``id``, ``immutable_id`` and ``last_modified`` fields.
+:meth:`TypedRecordSpec.projections` serves and queries the value from those fields.
 """
 
 import datetime
@@ -23,11 +24,12 @@ import keyword
 import math
 from collections.abc import Callable, Iterable, Iterator, Mapping
 from dataclasses import dataclass, fields
-from functools import cached_property
+from functools import cached_property, partial
 from typing import Any, ClassVar, Self, cast
 
 from .data_records import DataRecord, _validate_string, _validate_timestamp
-from .property_definitions import _HTTK_DEFS_BASE, PropertyDefinition
+from .definition_ids import NATOMS, NFORMULA_UNITS
+from .property_definitions import _HTTK_DEFS_BASE, _NORMALIZATION_KEY, PropertyDefinition
 from .provenance import RunEdge, _edges
 from .register.schemas import load_property_definition
 from .storage.stored_properties import (
@@ -42,6 +44,8 @@ from .storage.stored_properties import (
 
 __all__ = ["MemberLayout", "TypedRecord", "TypedRecordSpec", "member_layout"]
 
+#: The served count properties a ``field`` normalization of a typed record may name, and their definitions.
+_COUNT_DEFINITIONS = {"_httk_natoms": NATOMS, "_httk_nformula_units": NFORMULA_UNITS}
 _LEAVES = frozenset({"float", "integer", "string", "boolean"})
 # Must contain the store's reserved field names (httk-store backend/schema.py, pinned by a store test).
 _RESERVED_FIELDS = frozenset(
@@ -361,25 +365,22 @@ def _reassemble_value(layouts: tuple[MemberLayout, ...], flats: Mapping[str, Any
 
 
 class _LazyMapping[V](Mapping[str, V]):
-    """A one-key read-only mapping whose value is computed on first lookup; iteration loads nothing."""
+    """A read-only mapping with fixed keys whose values are computed on first lookup; iteration loads nothing."""
 
-    def __init__(self, key: str, compute: Callable[[], V]) -> None:
-        self._key = key
-        self._compute = compute
-        self._cache: list[V] = []
+    def __init__(self, computes: Mapping[str, Callable[[], V]]) -> None:
+        self._computes = dict(computes)
+        self._cache: dict[str, V] = {}
 
     def __getitem__(self, key: str) -> V:
-        if key != self._key:
-            raise KeyError(key)
-        if not self._cache:
-            self._cache.append(self._compute())
-        return self._cache[0]
+        if key not in self._cache:
+            self._cache[key] = self._computes[key]()
+        return self._cache[key]
 
     def __iter__(self) -> Iterator[str]:
-        return iter((self._key,))
+        return iter(self._computes)
 
     def __len__(self) -> int:
-        return 1
+        return len(self._computes)
 
 
 @dataclass(frozen=True)
@@ -392,14 +393,21 @@ class TypedRecordSpec:
         ``definition_id``, else ``None``.
     :param derivation_label: The human-readable derivation name (e.g. ``"root-mean-square error"``); required
         exactly when ``derivation`` is given.
-    :raises ValueError: If a name is empty or unstripped, or ``derivation_label`` is given without
-        ``derivation`` or missing with it.
+    :param count_name: The served name of the count sibling (``"_httk_natoms"`` or
+        ``"_httk_nformula_units"``) that a plain stored definition's ``field`` normalization names, else
+        ``None``. The record then stores the count in the field named after the count definition
+        (``natoms``), served under ``count_name``; ``None`` means the count is unknown. A derived definition
+        declares no normalization: a statistic over configurations of different sizes has no single count.
+    :raises ValueError: If a name is empty or unstripped, ``derivation_label`` is given without
+        ``derivation`` or missing with it, or ``count_name`` is not a known count or is given for a
+        derivation.
     """
 
     definition_id: str
     served_name: str
     derivation: str | None = None
     derivation_label: str | None = None
+    count_name: str | None = None
 
     def __post_init__(self) -> None:
         _validate_string(self.definition_id, "definition_id")
@@ -409,6 +417,15 @@ class TypedRecordSpec:
                 _validate_string(getattr(self, name), name)
         if (self.derivation_label is None) != (self.derivation is None):
             raise ValueError("Fields 'derivation' and 'derivation_label' must be given together.")
+        if self.count_name is not None and (self.count_name not in _COUNT_DEFINITIONS or self.derivation):
+            raise ValueError(
+                f"{self.definition_id}: count_name {self.count_name!r} must be one of {sorted(_COUNT_DEFINITIONS)} and needs a plain kind"
+            )
+
+    @property
+    def count_field(self) -> str | None:
+        """Return the record field holding the normalization count (e.g. ``"natoms"``), if any."""
+        return None if self.count_name is None else self.count_name.removeprefix("_httk_")
 
     @cached_property
     def definition(self) -> PropertyDefinition:
@@ -430,7 +447,7 @@ class TypedRecordSpec:
         base = self.definition
         name = f"{base.name}_{self.derivation.rstrip('/').rsplit('/', 1)[-1]}"
         document = base.as_optimade()
-        for key in ("x-optimade-implementation", "sortable"):
+        for key in ("x-optimade-implementation", "sortable", _NORMALIZATION_KEY):
             document.pop(key, None)
         title = document.get("title") or base.name.replace("_", " ")
         label = self.derivation_label
@@ -458,6 +475,27 @@ class TypedRecordSpec:
         served = self._stored_definition.served_form()
         if served.name != self.served_name:
             raise ValueError(f"{self.definition_id} is served as {served.name!r}, not {self.served_name!r}")
+        normalization = served.normalization
+        declared = None if normalization is None else normalization.field
+        if declared != self.count_name:
+            raise ValueError(
+                f"{self.served_name} declares the normalization count {declared!r}, but the spec has"
+                f" count_name {self.count_name!r} (typed records support {sorted(_COUNT_DEFINITIONS)})"
+            )
+        return served
+
+    @cached_property
+    def count_definition(self) -> PropertyDefinition | None:
+        """Return the served definition of the normalization count sibling, if any.
+
+        :return: The served count definition, named :attr:`count_name`, or ``None``.
+        :raises ValueError: If the count definition is served under another name.
+        """
+        if self.count_name is None:
+            return None
+        served = load_property_definition(_COUNT_DEFINITIONS[self.count_name]).served_form()
+        if served.name != self.count_name or served.optimade_type != "integer":
+            raise ValueError(f"{_COUNT_DEFINITIONS[self.count_name]} is not the integer property {self.count_name}")
         return served
 
     @cached_property
@@ -466,14 +504,17 @@ class TypedRecordSpec:
         return member_layout(self._stored_definition)
 
     def definitions(self) -> Mapping[str, PropertyDefinition]:
-        """Return ``{served_name: served definition}``, loaded on first lookup.
+        """Return ``{served_name: served definition}``, plus the count sibling's, loaded on first lookup.
 
         :return: A lazy read-only mapping; iterating it or taking its length loads nothing.
         """
-        return _LazyMapping(self.served_name, lambda: self.served_definition)
+        computes: dict[str, Callable[[], PropertyDefinition]] = {self.served_name: lambda: self.served_definition}
+        if self.count_name is not None:
+            computes[self.count_name] = lambda: cast(PropertyDefinition, self.count_definition)
+        return _LazyMapping(computes)
 
     def projections(self) -> Mapping[str, StoredPropertyProjection]:
-        """Return ``{served_name: projection}`` serving and querying the value, built on first lookup.
+        """Return ``{served_name: projection}``, plus the count sibling's, built on first lookup.
 
         Scalars are queried on their column: comparisons, string matching and ``IS KNOWN``/``IS UNKNOWN``;
         float equality is exact binary64 equality. A list member (or list value) supports ``HAS``,
@@ -486,9 +527,18 @@ class TypedRecordSpec:
         on a null element are unknown, so that position never matches (``HAS ONLY`` ignores it). A zip over
         a member that may be None is unknown when that member is None. Other zips are not supported.
 
+        The count sibling is stored as a typed integer column, which the store's search DSL can filter on;
+        OPTIMADE filter support follows its definition's ``query-support``, currently ``none`` for the core
+        counts, so they are response-only there.
+
         :return: A lazy read-only mapping; iterating it or taking its length loads nothing.
         """
-        return _LazyMapping(self.served_name, lambda: _projection(self.layout))
+        computes: dict[str, Callable[[], StoredPropertyProjection]] = {
+            self.served_name: lambda: _projection(self.layout)
+        }
+        if self.count_field is not None:
+            computes[cast(str, self.count_name)] = partial(_scalar_projection, self.count_field)
+        return _LazyMapping(computes)
 
 
 _STANDARD_FIELDS = ("product_of", "id", "immutable_id", "last_modified")
@@ -496,16 +546,18 @@ _COMPARISONS = frozenset({"=", "!=", "<", "<=", ">", ">=", "CONTAINS", "STARTS",
 _VERIFIED_CLASSES: set[type] = set()
 
 
-def _check_class(cls: type, layout: tuple[MemberLayout, ...]) -> None:
-    """Verify once per class that *cls* is a frozen dataclass whose fields match *layout*.
+def _check_class(cls: type, spec: TypedRecordSpec) -> None:
+    """Verify once per class that *cls* is a frozen dataclass whose fields match its spec.
 
     :param cls: The typed record class.
-    :param layout: Its spec's layout.
-    :raises TypeError: If the class is not frozen or its fields differ from the layout.
+    :param spec: Its spec.
+    :raises TypeError: If the class is not frozen or its fields differ from the layout and count field.
     """
     if cls in _VERIFIED_CLASSES:
         return
+    layout = spec.layout
     expected = [item.field for item in layout if item.required] + [item.field for item in layout if not item.required]
+    expected += [spec.count_field] if spec.count_field else []
     actual = [item.name for item in fields(cast(Any, cls))]
     if not cast(Any, cls).__dataclass_params__.frozen or actual != [*expected, *_STANDARD_FIELDS]:
         raise TypeError(
@@ -524,8 +576,9 @@ class TypedRecord:
     """Mixin base of generated typed result records: one frozen dataclass per property definition.
 
     A subclass sets ``__httk_typed_record__`` to its :class:`TypedRecordSpec` and declares the layout's
-    value fields (required members, then non-required members defaulting to ``None``) followed by the
-    standard ``product_of``, ``id``, ``immutable_id`` and ``last_modified`` fields. Construction coerces
+    value fields (required members, then non-required members defaulting to ``None``), the optional
+    normalization count field (a non-negative ``int`` or ``None``), and the standard ``product_of``,
+    ``id``, ``immutable_id`` and ``last_modified`` fields. Construction coerces
     integers to floats for float members and lists to tuples, validates the provenance edges and the
     timestamp, and checks the reassembled :attr:`value` against the served definition. The value itself is
     never ``None``, even for a nullable definition; dictionary members may be ``None`` when nullable or
@@ -561,7 +614,11 @@ class TypedRecord:
     def __post_init__(self) -> None:
         cls = self.__class__
         spec = self.__httk_typed_record__
-        _check_class(cls, spec.layout)
+        _check_class(cls, spec)
+        if spec.count_field is not None:
+            count = getattr(self, spec.count_field)
+            if count is not None and (type(count) is not int or count < 0):
+                raise ValueError(f"Field {spec.count_field!r} must be a non-negative integer or None.")
         for item in spec.layout:
             value = getattr(self, item.field)
             if value is None:

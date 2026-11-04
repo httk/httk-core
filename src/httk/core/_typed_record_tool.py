@@ -126,6 +126,10 @@ def _record_lines(spec: TypedRecordSpec, storage_prefix: str) -> tuple[str, list
             level, first = document, f"The {_lower_first(title)} value."
         unit = _unit(level)
         doc.append(f":param {item.field}: {first}" + ("" if unit is None else f" Unit: {unit}."))
+    count = spec.count_definition
+    if count is not None:
+        what = count.title or _doc_lines(count.description)[0]
+        doc.append(f":param {spec.count_field}: {what}, the count the value is normalized by; None when unknown.")
     doc.extend(_STANDARD_PARAMS)
     storage_name = f"{storage_prefix}_{definition.name}"
     lines = [
@@ -144,11 +148,13 @@ def _record_lines(spec: TypedRecordSpec, storage_prefix: str) -> tuple[str, list
         f'        "{spec.definition_id}",',
         f'        "{spec.served_name}",',
         *([f'        "{spec.derivation}",', f'        "{spec.derivation_label}",'] if spec.derivation else []),
+        *([f'        count_name="{spec.count_name}",'] if spec.count_name else []),
         "    )",
         "    __httk_property_definitions__: ClassVar[Mapping[str, PropertyDefinition]] = __httk_typed_record__.definitions()",
         "    __httk_stored_properties__: ClassVar[Mapping[str, StoredPropertyProjection]] = __httk_typed_record__.projections()",
         "",
         *(f"    {item.field}: {_annotation(item)}" for item in ordered),
+        *([f"    {spec.count_field}: Annotated[int | None, IdentitySkipWhenNone()] = None"] if count else []),
         *_STANDARD_FIELDS,
     ]
     return class_name, lines
@@ -161,9 +167,13 @@ def _spec(definition_id: str, derivation: str | None = None, label: str | None =
     :param derivation: The derivation-term IRI of a derived kind.
     :param label: The derivation label of a derived kind.
     :return: The spec.
+    :raises ValueError: If a plain definition's ``field`` normalization names an unsupported count.
     """
     if derivation is None:
-        return TypedRecordSpec(definition_id, load_property_definition(definition_id).served_form().name)
+        served = load_property_definition(definition_id).served_form()
+        normalization = served.normalization
+        count_name = None if normalization is None else normalization.field
+        return TypedRecordSpec(definition_id, served.name, count_name=count_name)
     probe = TypedRecordSpec(definition_id, "_", derivation, label)
     return TypedRecordSpec(definition_id, probe._stored_definition.served_form().name, derivation, label)
 
@@ -230,6 +240,7 @@ def generate_typed_records(
         "",
         "from httk.core import (",
         "    IdentitySkip,",
+        *(["    IdentitySkipWhenNone,"] if any(spec.count_name for spec in specs) else []),
         "    Indexed,",
         "    PropertyDefinition,",
         "    ReferenceRecord,",

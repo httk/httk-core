@@ -51,6 +51,7 @@ import copy
 import math
 import re
 from collections.abc import Mapping
+from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Any, Self
 
@@ -401,6 +402,79 @@ def _generated_metadata_definition(name: str) -> dict[str, Any]:
     }
 
 
+#: The provider-specific property-definition key declaring a value's normalization.
+_NORMALIZATION_KEY = "x-httk-normalization"
+
+
+@dataclass(frozen=True)
+class Normalization:
+    """The entity a property value is normalized to, served as ``x-httk-normalization``.
+
+    The property value multiplied by the count (the sibling ``field``'s value in
+    the same entry, or the constant ``count``) is the extensive quantity for the
+    system the entry describes. Normalization never changes ``x-optimade-unit``,
+    which stays the physical unit of the value (``"eV"``, not ``"eV/atom"``).
+    An omitted or ``null`` declaration means: No normalization is declared, and
+    thus none should be inferred. While all normalizations SHOULD be declared,
+    the description text may contain undeclared normalizations.
+
+    :param per: A singular lowercase noun phrase naming the entity, such as
+        ``"atom"``, ``"formula unit"`` or ``"simulation cell"``.
+    :param field: The name of a sibling property on the same entry type whose
+        OPTIMADE type is ``integer`` and whose value (possibly null when unknown)
+        is the count; exclusive with ``count``.
+    :param count: A positive constant count, e.g. ``1`` for "per simulation
+        cell"; exclusive with ``field``.
+    :raises ValueError: If ``per`` is empty, not exactly one of ``field`` and
+        ``count`` is set, ``field`` is not an identifier, or ``count`` is not a
+        positive integer.
+    """
+
+    per: str
+    field: str | None = None
+    count: int | None = None
+
+    def __post_init__(self) -> None:
+        """Validate the normalization shape."""
+        if not isinstance(self.per, str) or not self.per or self.per != self.per.strip():
+            raise ValueError("Normalization.per must be a nonempty string without surrounding whitespace")
+        if (self.field is None) == (self.count is None):
+            raise ValueError("Normalization requires exactly one of field and count")
+        if self.field is not None and (not isinstance(self.field, str) or not self.field.isidentifier()):
+            raise ValueError(f"Normalization.field must be an identifier, not {self.field!r}")
+        if self.count is not None and (type(self.count) is not int or self.count < 1):
+            raise ValueError(f"Normalization.count must be a positive integer, not {self.count!r}")
+
+    @property
+    def label(self) -> str:
+        """Return the human-readable form, e.g. ``"per atom"``."""
+        return f"per {self.per}"
+
+    def as_optimade(self) -> dict[str, Any]:
+        """Return the ``x-httk-normalization`` JSON object.
+
+        :return: ``{"per": ..., "field": ...}`` or ``{"per": ..., "count": ...}``.
+        """
+        if self.field is not None:
+            return {"per": self.per, "field": self.field}
+        return {"per": self.per, "count": self.count}
+
+    @classmethod
+    def from_optimade(cls, document: Mapping[str, Any]) -> Self:
+        """Parse an ``x-httk-normalization`` JSON object.
+
+        :param document: The JSON object.
+        :return: The validated normalization.
+        :raises ValueError: If ``document`` is not a mapping, has unknown keys, or violates the shape.
+        """
+        if not isinstance(document, Mapping):
+            raise ValueError(f"{_NORMALIZATION_KEY} must be an object, not {type(document).__name__}")
+        unknown = set(document) - {"per", "field", "count"}
+        if unknown:
+            raise ValueError(f"{_NORMALIZATION_KEY} has unknown key(s): {', '.join(sorted(map(str, unknown)))}")
+        return cls(document.get("per", ""), document.get("field"), document.get("count"))
+
+
 class PropertyDefinition:
     """An immutable wrapper around one full OPTIMADE property definition.
 
@@ -458,6 +532,7 @@ class PropertyDefinition:
         metadata_definition: Mapping[str, Any] | None = None,
         required_response: bool = False,
         definition_id: str | None = None,
+        normalization: Normalization | None = None,
     ) -> Self:
         """Generate a property definition from a compact description.
 
@@ -493,6 +568,8 @@ class PropertyDefinition:
         :param metadata_definition: An explicit metadata definition for the property.
         :param required_response: Whether responses must contain a non-null value.
         :param definition_id: An explicit property-definition IRI.
+        :param normalization: The value's normalization, emitted as ``x-httk-normalization``; its ``field``
+            is the served name of an integer sibling property.
         :return: A generated property definition.
         :raises ValueError: If ``unit`` is not a valid Compound Unit Expression of known symbols.
         """
@@ -546,6 +623,8 @@ class PropertyDefinition:
             payload["x-optimade-metadata-definition"] = copy.deepcopy(dict(metadata_definition))
         elif dimensions is not None:
             payload["x-optimade-metadata-definition"] = _generated_metadata_definition(name)
+        if normalization is not None:
+            payload[_NORMALIZATION_KEY] = normalization.as_optimade()
 
         return cls(name, payload)
 
@@ -589,6 +668,20 @@ class PropertyDefinition:
     def unit(self) -> str | None:
         """Return the property's declared unit, if any."""
         return self._payload.get("x-optimade-unit")
+
+    @property
+    def normalization(self) -> Normalization | None:
+        """Return the declared ``x-httk-normalization``, or ``None`` when absent or null.
+
+        :raises ValueError: If the declaration is malformed.
+        """
+        document = self._payload.get(_NORMALIZATION_KEY)
+        if document is None:
+            return None
+        try:
+            return Normalization.from_optimade(document)
+        except ValueError as exc:
+            raise ValueError(f"Property definition {self._name!r}: invalid {_NORMALIZATION_KEY}: {exc}") from exc
 
     @property
     def unit_definitions(self) -> tuple[Mapping[str, Any], ...]:

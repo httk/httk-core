@@ -57,6 +57,10 @@
             }
         }
     ],
+    "x-httk-normalization": {
+        "per": "simulation cell",
+        "count": 1
+    },
     "x-optimade-requirements": {
         "support": "may",
         "sortable": false,

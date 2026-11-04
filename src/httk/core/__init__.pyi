@@ -50,6 +50,7 @@ from .loading import has_reader_for, load, load_many, load_source, reader_format
 from .precision import combined_precision, decimal_precision
 from .property_definitions import (
     EntryTypeDefinition,
+    Normalization,
     PropertyDefinition,
     apply_definition_prefix,
     known_definition_prefixes,
@@ -148,6 +149,7 @@ __all__ = [
     "MemberLayout",
     "MissingType",
     "MutableFracVector",
+    "Normalization",
     "NumericVector",
     "PersonRecord",
     "ProductLink",

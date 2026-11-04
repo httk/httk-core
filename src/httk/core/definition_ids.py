@@ -6,6 +6,8 @@ __all__ = [
     "CARTESIAN_SITE_FORCES",
     "ENTHALPY",
     "KINETIC_ENERGY",
+    "NATOMS",
+    "NFORMULA_UNITS",
     "POTENTIAL_ENERGY",
     "PRESSURE",
     "STRESS_TENSOR",
@@ -46,3 +48,9 @@ ATOMIC_FORCE = "https://schemas.httk.org/defs/v0.1/properties/core/atomic_force"
 
 #: Definition IRI of the forces on all sites of a structure, one Cartesian 3-vector per site (eV/angstrom).
 CARTESIAN_SITE_FORCES = "https://schemas.httk.org/defs/v0.1/properties/core/cartesian_site_forces"
+
+#: Definition IRI of the number of atoms in an ordered structure's cell, the per-atom normalization count.
+NATOMS = "https://schemas.httk.org/defs/v0.1/properties/structure/natoms"
+
+#: Definition IRI of the number of formula units in an ordered structure's cell.
+NFORMULA_UNITS = "https://schemas.httk.org/defs/v0.1/properties/structure/nformula_units"

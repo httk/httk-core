@@ -293,6 +293,23 @@ property-definition validation built on the definitions above. That keeps
 httk-core a dependency-free layer of *contracts and models*, with the concrete
 *capabilities* provided by the modules built on top of it.
 
+## Typed result records and normalization counts
+
+A generated typed result record (`httk.core.typed_records.TypedRecordSpec`,
+one frozen dataclass per property definition) stores its normalization count
+next to the value when the stored definition declares a `field` normalization
+(see {doc}`../property_definitions`): a definition normalized by `_httk_natoms`
+gives the record a `natoms: int | None` field, served as `_httk_natoms` with the
+core `natoms` definition. The count is stored as a typed column, so the store's
+search DSL can filter on it; OPTIMADE filter support follows the definition's
+`query-support`, currently `none` for `_httk_natoms` and `_httk_nformula_units`,
+so they are response-only there. `None` means the count is unknown and leaves the record's content id unchanged. Only the core
+counts `_httk_natoms` and `_httk_nformula_units` are supported; a definition
+naming another count fails generation, and a `count` normalization adds no
+field. A derived (statistic) record drops `x-httk-normalization` from its
+definition: a statistic over configurations of different sizes has no single
+count, and an undeclared normalization must not be inferred.
+
 ## Dataset and service metadata records
 
 Alongside the per-entry record models, *httk-core* carries neutral, DCAT-shaped

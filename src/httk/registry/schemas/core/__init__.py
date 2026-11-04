@@ -67,3 +67,11 @@ register_property_definition(
     definition_id="https://schemas.httk.org/defs/v0.1/properties/core/cartesian_site_forces",
     resource="httk.registry.schemas.core:cartesian_site_forces.json",
 )
+register_property_definition(
+    definition_id="https://schemas.httk.org/defs/v0.1/properties/structure/natoms",
+    resource="httk.registry.schemas.core:natoms.json",
+)
+register_property_definition(
+    definition_id="https://schemas.httk.org/defs/v0.1/properties/structure/nformula_units",
+    resource="httk.registry.schemas.core:nformula_units.json",
+)

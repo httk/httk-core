@@ -1,0 +1,24 @@
+{
+    "$id": "https://schemas.httk.org/defs/v0.1/properties/structure/natoms",
+    "$schema": "https://schemas.optimade.org/meta/v1.3/optimade/property_definition.json",
+    "title": "Number of atoms",
+    "x-optimade-type": "integer",
+    "x-optimade-unit": "dimensionless",
+    "x-optimade-definition": {
+        "kind": "property",
+        "version": "0.1.0",
+        "format": "1.3",
+        "name": "natoms",
+        "label": "natoms_structure_httk"
+    },
+    "x-optimade-requirements": {
+        "support": "may",
+        "sortable": false,
+        "query-support": "none"
+    },
+    "type": [
+        "integer",
+        "null"
+    ],
+    "description": "The number of atoms in the cell spanned by `lattice_vectors` (the full cell, also when `site_coordinate_span` lists only an asymmetric unit or fundamental domain).\nDefined only for ordered structures, where every site is fully occupied by exactly one chemical species (no vacancies, mixed occupancy or implicit atoms); for such a structure with `site_coordinate_span` `unit_cell` it equals `nsites`.\nA null value means the structure is disordered or the count is not available.\nThis is the reference count for properties whose `x-httk-normalization` names `_httk_natoms`."
+}

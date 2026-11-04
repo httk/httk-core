@@ -12,13 +12,17 @@ from httk.core import (
     DataRecord,
     DerivedDataRecord,
     IdentitySkip,
+    IdentitySkipWhenNone,
     Indexed,
+    Normalization,
     PropertyDefinition,
     RunEdge,
     StrongLink,
     TypedRecord,
     TypedRecordSpec,
     Unique,
+    _typed_record_tool,
+    content_id,
     load_property_definition,
     typed_records,
 )
@@ -97,7 +101,32 @@ ZIP = PropertyDefinition.from_optimade(
         },
     },
 )
-_TEST_DEFINITIONS = {SAMPLE_ID: SAMPLE, NULLABLE_ID: NULLABLE, NVE_ID: NVE, ZIP_ID: ZIP}
+PER_ATOM_ID = "https://schemas.httk.org/defs/v0.1/properties/test/per_atom_sample"
+PER_ATOM = PropertyDefinition.from_simple(
+    "per_atom_sample",
+    description="A test energy per atom.",
+    fulltype="float",
+    unit="eV",
+    required_response=True,
+    definition_id=PER_ATOM_ID,
+    normalization=Normalization(per="atom", field="_httk_natoms"),
+)
+PER_THING_ID = "https://schemas.httk.org/defs/v0.1/properties/test/per_thing_sample"
+PER_THING = PropertyDefinition.from_simple(
+    "per_thing_sample",
+    description="A test value per thing.",
+    fulltype="float",
+    definition_id=PER_THING_ID,
+    normalization=Normalization(per="thing", field="_httk_nthings"),
+)
+_TEST_DEFINITIONS = {
+    SAMPLE_ID: SAMPLE,
+    NULLABLE_ID: NULLABLE,
+    NVE_ID: NVE,
+    ZIP_ID: ZIP,
+    PER_ATOM_ID: PER_ATOM,
+    PER_THING_ID: PER_THING,
+}
 
 
 @pytest.fixture(autouse=True)
@@ -106,6 +135,7 @@ def _sample_definition(monkeypatch: pytest.MonkeyPatch) -> None:
         return _TEST_DEFINITIONS.get(definition_id) or load_property_definition(definition_id)
 
     monkeypatch.setattr(typed_records, "load_property_definition", load)
+    monkeypatch.setattr(_typed_record_tool, "load_property_definition", load)
 
 
 type Edges = Annotated[tuple[RunEdge, ...], StrongLink("product_of", reverse="has_product", role="subject")]
@@ -638,3 +668,100 @@ def test_dictionary_zip_query() -> None:
 
     # Top-level lists are single lists: no zip.
     assert Stress.__httk_typed_record__.projections()["_httk_stress_tensor"].zip_query is None
+
+
+# --- Normalization count siblings ------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class PerAtom(TypedRecord):
+    __httk_typed_record__: ClassVar[TypedRecordSpec] = TypedRecordSpec(
+        PER_ATOM_ID, "_httk_per_atom_sample", count_name="_httk_natoms"
+    )
+
+    per_atom_sample: float
+    natoms: Annotated[int | None, IdentitySkipWhenNone()] = None
+    product_of: Edges = ()
+    id: Annotated[str | None, IdentitySkip(), Indexed()] = field(default=None, compare=False)
+    immutable_id: Annotated[str | None, IdentitySkip(), Unique()] = field(default=None, compare=False)
+    last_modified: Annotated[datetime.datetime | None, IdentitySkip()] = field(default=None, compare=False)
+
+
+def test_count_sibling_is_served_and_queried() -> None:
+    spec = PerAtom.__httk_typed_record__
+    definitions = spec.definitions()
+    assert list(definitions) == ["_httk_per_atom_sample", "_httk_natoms"]
+    assert definitions["_httk_natoms"].optimade_type == "integer"
+    assert definitions["_httk_per_atom_sample"].normalization == Normalization(per="atom", field="_httk_natoms")
+    record = PerAtom(-3.2, natoms=4)
+    projections = spec.projections()
+    assert list(projections) == ["_httk_per_atom_sample", "_httk_natoms"]
+    count = projections["_httk_natoms"]
+    assert count.response(record) == 4 and count.response(PerAtom(-3.2)) is None
+    column = ("field", "record", "natoms")
+    assert _query(count, ">", 2) == ("cmp", column, ">", ("const", 2))
+    assert _query(count, "IS_UNKNOWN") == ("null", column)
+    assert count.sort is not None and count.sort(cast(Any, FakeContext())) == column
+    assert PerAtom.from_value(-3.2).natoms is None
+    assert content_id(PerAtom(-3.2)) != content_id(record)
+    for bad in (-1, True, 1.5):
+        with pytest.raises(ValueError, match="non-negative integer"):
+            PerAtom(-3.2, natoms=cast(Any, bad))
+
+
+def test_count_sibling_declarations_are_lazy(monkeypatch: pytest.MonkeyPatch) -> None:
+    def refuse(definition_id: str) -> PropertyDefinition:
+        raise RuntimeError("registry touched")
+
+    monkeypatch.setattr(typed_records, "load_property_definition", refuse)
+    spec = TypedRecordSpec(PER_ATOM_ID, "_httk_per_atom_sample", count_name="_httk_natoms")
+    for mapping in (spec.definitions(), spec.projections()):
+        assert list(mapping) == ["_httk_per_atom_sample", "_httk_natoms"] and len(mapping) == 2
+    with pytest.raises(RuntimeError, match="registry touched"):
+        spec.definitions()["_httk_natoms"]
+
+
+def test_count_sibling_must_match_the_definition() -> None:
+    with pytest.raises(ValueError, match="count_name '_httk_nthings' must be one of"):
+        TypedRecordSpec(PER_THING_ID, "_httk_per_thing_sample", count_name="_httk_nthings")
+    with pytest.raises(ValueError, match="needs a plain kind"):
+        TypedRecordSpec(PER_ATOM_ID, "_httk_per_atom_sample_rmse", RMSE, "rmse", count_name="_httk_natoms")
+    with pytest.raises(ValueError, match="declares the normalization count '_httk_natoms'"):
+        _ = TypedRecordSpec(PER_ATOM_ID, "_httk_per_atom_sample").served_definition
+    with pytest.raises(ValueError, match="count_name '_httk_nthings' must be one of"):
+        _typed_record_tool._spec(PER_THING_ID)
+
+    @dataclass(frozen=True)
+    class Missing(TypedRecord):
+        __httk_typed_record__: ClassVar[TypedRecordSpec] = PerAtom.__httk_typed_record__
+
+        per_atom_sample: float
+        product_of: Edges = ()
+        id: str | None = None
+        immutable_id: str | None = None
+        last_modified: datetime.datetime | None = None
+
+    with pytest.raises(TypeError, match="natoms"):
+        Missing(1.0)
+
+
+def test_derived_definition_drops_the_normalization() -> None:
+    spec = TypedRecordSpec(PER_ATOM_ID, "_httk_per_atom_sample_rmse", RMSE, "root-mean-square error")
+    assert "x-httk-normalization" not in spec.served_definition.as_optimade()
+    assert spec.served_definition.normalization is None and list(spec.definitions()) == [spec.served_name]
+
+
+def test_generator_emits_the_count_field() -> None:
+    spec = _typed_record_tool._spec(PER_ATOM_ID)
+    assert spec.count_name == "_httk_natoms"
+    _, lines = _typed_record_tool._record_lines(spec, "test")
+    assert "    natoms: Annotated[int | None, IdentitySkipWhenNone()] = None" in lines
+    assert '        count_name="_httk_natoms",' in lines
+    assert any(line.strip().startswith(":param natoms: Number of atoms") for line in lines)
+    source = _typed_record_tool.generate_typed_records(
+        [PER_ATOM_ID], module_doc="Test.", storage_prefix="test", command="test"
+    )
+    assert "    IdentitySkipWhenNone,\n" in source
+    assert "IdentitySkipWhenNone" not in _typed_record_tool.generate_typed_records(
+        [NVE_ID], module_doc="Test.", storage_prefix="test", command="test"
+    )

@@ -9,6 +9,7 @@ import pytest
 from httk.core import (
     DataEntryRecord,
     EntryRecord,
+    Normalization,
     Property,
     PropertyDefinition,
     content_id,
@@ -159,7 +160,9 @@ def test_property_unit_is_checked_at_declaration():
     class PerAtom(DataEntryRecord):
         energy: Annotated[float, Property(description="Energy per atom.", unit="eV/atom")]
 
-    with pytest.raises(ValueError, match=r"Property 'energy' on PerAtom: invalid unit 'eV/atom'.*'atom' is not a unit"):
+    with pytest.raises(
+        ValueError, match=r"Property 'energy' on PerAtom: invalid unit 'eV/atom'.*'atom' is not a unit.*normalization="
+    ):
         entry_record("tests.per_atom")(PerAtom)
 
     class Unordered(DataEntryRecord):
@@ -286,3 +289,70 @@ def test_known_unknown_operators_route_to_null_checks():
     null = ("null", ("field", "energy"))
     assert query(Recorder(), "IS_UNKNOWN", None) == null
     assert query(Recorder(), "IS_KNOWN", None) == ("not", null)
+
+
+def test_property_normalization_resolves_sibling_served_names():
+    @entry_record("tests.normalized")
+    class Normalized(DataEntryRecord):
+        e: Annotated[
+            float, Property(description="E", unit="eV", normalization=Normalization(per="atom", field="natoms"))
+        ]
+        natoms: Annotated[int | None, Property(description="N")]
+        cell: Annotated[float, Property(description="C", normalization=Normalization(per="simulation cell", count=1))]
+
+    definitions = Normalized.__httk_property_definitions__
+    assert definitions["_httk_custom_e"].normalization == Normalization(per="atom", field="_httk_custom_natoms")
+    assert definitions["_httk_custom_e"].unit == "eV"
+    assert definitions["_httk_custom_cell"].normalization == Normalization(per="simulation cell", count=1)
+    assert definitions["_httk_custom_natoms"].normalization is None
+
+
+@pytest.mark.parametrize(
+    ("reference", "sibling"),
+    [
+        ("missing", Annotated[int, Property(description="N")]),
+        ("natoms", int),  # not served
+        ("natoms", Annotated[float, Property(description="N")]),  # not an integer
+    ],
+)
+def test_property_normalization_rejects_bad_siblings(reference, sibling):
+    class Bad(DataEntryRecord):
+        e: Annotated[
+            float, Property(description="E", unit="eV", normalization=Normalization(per="atom", field=reference))
+        ]
+        natoms: sibling  # type: ignore[valid-type]
+
+    with pytest.raises(ValueError, match=f"normalization field '{reference}' must be a served integer field"):
+        entry_record("tests.bad_normalization")(Bad)
+
+
+def test_property_normalization_cannot_reference_itself():
+    class SelfReference(DataEntryRecord):
+        n: Annotated[int, Property(description="N", normalization=Normalization(per="atom", field="n"))]
+
+    with pytest.raises(ValueError, match="must be a served integer field"):
+        entry_record("tests.self_normalization")(SelfReference)
+
+
+def test_curated_definition_normalization_requires_served_integer_sibling():
+    curated = PropertyDefinition.from_simple(
+        "_httk_custom_e",
+        description="E",
+        fulltype="float",
+        unit="eV",
+        normalization=Normalization(per="atom", field="_httk_custom_natoms"),
+    )
+
+    @entry_record("tests.curated_normalized")
+    class Accepted(DataEntryRecord):
+        e: Annotated[float, curated]
+        natoms: Annotated[int, Property(description="N")]
+
+    assert Accepted.__httk_property_definitions__["_httk_custom_e"].normalization == curated.normalization
+
+    class Rejected(DataEntryRecord):
+        e: Annotated[float, curated]
+        natoms: Annotated[float, Property(description="N")]
+
+    with pytest.raises(ValueError, match="'_httk_custom_natoms' must be a served integer field"):
+        entry_record("tests.curated_rejected")(Rejected)

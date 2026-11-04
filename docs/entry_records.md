@@ -7,17 +7,27 @@ containing this API when installing from PyPI.
 
 ```python
 from typing import Annotated
-from httk.core import DataEntryRecord, Property, entry_record
+from httk.core import DataEntryRecord, Normalization, Property, entry_record
 
 @entry_record("example.measurement")
 class Measurement(DataEntryRecord):
-    energy: Annotated[float, Property(description="Energy per atom.", unit="eV")]
+    energy: Annotated[
+        float,
+        Property(
+            description="Energy per atom.",
+            unit="eV",
+            normalization=Normalization(per="atom", field="natoms"),
+        ),
+    ]
+    natoms: Annotated[int | None, Property(description="Number of atoms in the cell.")]
     label: str
 
-measurement = Measurement(-1.2, "sample-1")
+measurement = Measurement(-1.2, 2, "sample-1")
 assert measurement.id is None
 assert measurement.energy == -1.2
 assert Measurement.entry_type_definition().served_form().name == "_httk_records"
+energy = Measurement.__httk_property_definitions__["_httk_custom_energy"]
+assert energy.as_optimade()["x-httk-normalization"] == {"per": "atom", "field": "_httk_custom_natoms"}
 ```
 
 `EntryRecord` supplies keyword-only `id`, `immutable_id`, and `last_modified`
@@ -43,8 +53,8 @@ explicit physical name. Every concrete subclass needs its own decorator and
 identity; generated property mappings are specific to that class.
 
 Only fields marked with `Property` or `PropertyDefinition` are published as
-attributes. In the example, `energy` becomes `_httk_custom_energy`, while
-`label` remains local bookkeeping and still contributes to content identity.
+attributes. In the example, `energy` becomes `_httk_custom_energy` and `natoms`
+becomes `_httk_custom_natoms`, while `label` remains local bookkeeping and still contributes to content identity.
 Definitions, exact direct-field filtering, and sorting are generated for `str`,
 `int`, `float`, and `bool`, including nullable variants. Scientific meaning and
 units remain explicit. Other values, including exact rationals needing a
@@ -53,9 +63,17 @@ presentation conversion, use the existing explicit projection API.
 A `Property` unit follows the OPTIMADE compound-unit grammar (`*` between
 code-point-ordered factors, `^-1` for division, e.g. `angstrom^-1*eV`) and is
 checked when the record class is declared. Per-atom or per-formula-unit
-normalization belongs in the description (or a curated definition), not the
-unit, so `eV/atom` is rejected in favour of `unit="eV"`; changing a declared
-unit does not require rebuilding a store.
+normalization is not part of the unit, so `eV/atom` is rejected in favour of
+`unit="eV"` plus `normalization=Normalization(per="atom", field="natoms")`.
+In `Property`, `field` names a sibling field of the same record by its Python
+attribute name; it must itself be a served `int` (optionally `| None`) field,
+and is emitted under its served name. A constant count, such as
+`Normalization(per="simulation cell", count=1)`, is emitted unchanged. A
+curated `PropertyDefinition` declaring a `field` normalization requires another
+field of the record serving that name as an integer. Bad references fail when
+the class is declared; see {doc}`property_definitions` for the served
+`x-httk-normalization` contract. Changing a declared unit does not require
+rebuilding a store.
 
 An existing property definition can be attached directly:
 

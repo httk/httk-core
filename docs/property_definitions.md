@@ -36,5 +36,40 @@ the generated record models.
 
 Units of generated properties are checked and documented by the OPTIMADE unit
 engine; see {doc}`units`. They follow the OPTIMADE compound-unit grammar
-(`eV/atom` is rejected; state per-atom or per-formula-unit normalization in the
-description), and changing a declared unit does not require rebuilding a store.
+(`eV/atom` is rejected; declare the normalization separately, see below), and
+changing a declared unit does not require rebuilding a store.
+
+## Normalization
+
+A value normalized to some entity ("per atom", "per simulation cell") declares
+it in the provider-specific property-definition key `x-httk-normalization`. The
+OPTIMADE specification permits `x-<prefix>-<name>` keys in property definitions
+and requires clients to ignore unknown ones. The key holds an object with a
+required `per`, a singular lowercase noun phrase rendered as `"per " + per`,
+and exactly one of:
+
+- `field`: the served name of a sibling property on the same entry type whose
+  `x-optimade-type` is `integer`; its value in an entry may be `null` (count
+  unknown), e.g. `{"per": "atom", "field": "_httk_custom_natoms"}`;
+- `count`: a positive integer constant, e.g. `{"per": "simulation cell", "count": 1}`.
+
+The property value multiplied by the count is the extensive quantity for the
+system the entry describes. Normalization never replaces `x-optimade-unit`: the
+unit stays the physical unit of the value (`eV`). When the key is omitted or
+`null`: "No normalization is declared, and thus none should be inferred. While
+all normalizations SHOULD be declared, the description text may contain
+undeclared normalizations."
+
+```python
+from httk.core import Normalization
+
+per_atom = PropertyDefinition.from_simple(
+    "_httk_custom_energy",
+    fulltype="float",
+    unit="eV",
+    description="Energy per atom.",
+    normalization=Normalization(per="atom", field="_httk_custom_natoms"),
+)
+assert per_atom.as_optimade()["x-httk-normalization"] == {"per": "atom", "field": "_httk_custom_natoms"}
+assert per_atom.normalization.label == "per atom"
+```

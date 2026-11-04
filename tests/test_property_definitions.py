@@ -6,6 +6,7 @@ import pytest
 
 from httk.core import (
     EntryTypeDefinition,
+    Normalization,
     PropertyDefinition,
     load_entry_type_definition,
     standard_entry_type,
@@ -726,3 +727,61 @@ def test_member_fulltypes_empty_for_non_dictionaries() -> None:
         "d", description="d", fulltype="dict", dict_properties={"a": "list of float"}
     )
     assert dict(simple.member_fulltypes()) == {"a": "list of float"}
+
+
+# --- x-httk-normalization -----------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"per": "", "count": 1},
+        {"per": " atom", "count": 1},
+        {"per": "atom"},
+        {"per": "atom", "field": "natoms", "count": 1},
+        {"per": "atom", "count": 0},
+        {"per": "atom", "count": True},
+        {"per": "atom", "field": "not an identifier"},
+    ],
+)
+def test_normalization_validation(kwargs: dict[str, object]) -> None:
+    with pytest.raises(ValueError):
+        Normalization(**kwargs)  # type: ignore[arg-type]
+
+
+def test_normalization_label_and_optimade_forms() -> None:
+    per_atom = Normalization(per="atom", field="_httk_custom_natoms")
+    assert per_atom.label == "per atom"
+    assert per_atom.as_optimade() == {"per": "atom", "field": "_httk_custom_natoms"}
+    assert Normalization(per="simulation cell", count=1).as_optimade() == {"per": "simulation cell", "count": 1}
+    assert Normalization.from_optimade(per_atom.as_optimade()) == per_atom
+    for bad in (["atom"], {"per": "atom", "count": 1, "extra": 2}, {"field": "n"}):
+        with pytest.raises(ValueError):
+            Normalization.from_optimade(bad)  # type: ignore[arg-type]
+
+
+def test_from_simple_normalization_round_trip() -> None:
+    normalization = Normalization(per="atom", field="_httk_custom_natoms")
+    prop = PropertyDefinition.from_simple(
+        "_httk_custom_e", description="x", fulltype="float", unit="eV", normalization=normalization
+    )
+    document = prop.as_optimade()
+    assert document["x-httk-normalization"] == {"per": "atom", "field": "_httk_custom_natoms"}
+    assert document["x-optimade-unit"] == "eV"
+    assert prop.normalization == normalization
+    assert PropertyDefinition.from_optimade("_httk_custom_e", document).normalization == normalization
+    assert prop.with_implementation(sortable=True).served_form().normalization == normalization
+    plain = PropertyDefinition.from_simple("_httk_custom_e", description="x", fulltype="float")
+    assert plain.normalization is None
+    assert "x-httk-normalization" not in plain.as_optimade()
+
+
+def test_normalization_null_and_malformed_payloads() -> None:
+    document = PropertyDefinition.from_simple("_httk_custom_e", description="x", fulltype="float").as_optimade()
+    assert (
+        PropertyDefinition.from_optimade("_httk_custom_e", document | {"x-httk-normalization": None}).normalization
+        is None
+    )
+    malformed = PropertyDefinition.from_optimade("_httk_custom_e", document | {"x-httk-normalization": {"per": "atom"}})
+    with pytest.raises(ValueError, match="_httk_custom_e"):
+        _ = malformed.normalization

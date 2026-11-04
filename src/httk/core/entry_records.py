@@ -9,7 +9,7 @@ from inspect import get_annotations
 from typing import Annotated, Any, ClassVar, Union, dataclass_transform, get_args, get_origin, get_type_hints
 
 from .data_records import RECORDS_DEFINITION_ID
-from .property_definitions import EntryTypeDefinition, PropertyDefinition, known_definition_prefixes
+from .property_definitions import EntryTypeDefinition, Normalization, PropertyDefinition, known_definition_prefixes
 from .register.schemas import load_entry_type_definition
 from .storage import IdentitySkip, Indexed, Skip, StorageInfo, StoredPropertyProjection, Unique
 from .storage.stored_properties import QueryContext, QueryExpression
@@ -96,14 +96,18 @@ class Property:
     as the annotation metadata instead when a curated definition exists; a
     registered curated definition is served under its registered prefix.
 
-    :param description: Scientific meaning of the field, including normalization.
-    :param unit: Property unit; omitted means dimensionless.
+    :param description: Scientific meaning of the field.
+    :param unit: Physical property unit; omitted means dimensionless.
     :param name: Served name; omitted uses ``_httk_custom_<field>``.
+    :param normalization: What the value is normalized to (e.g. per atom). Its
+        ``field`` names a sibling field of the same record by its Python
+        attribute name; it must be a served integer property.
     """
 
     description: str
     unit: str | None = None
     name: str | None = None
+    normalization: Normalization | None = None
 
 
 def _scalar_type(annotation: Any) -> tuple[str, bool]:
@@ -120,6 +124,14 @@ def _scalar_type(annotation: Any) -> tuple[str, bool]:
             "Property fields require str, int, float, or bool (optionally | None); use explicit projections otherwise"
         )
     return names[annotation], nullable
+
+
+def _normalization_error(field_name: str, class_name: str, sibling: str) -> str:
+    """Describe an unresolvable normalization sibling reference."""
+    return (
+        f"Property {field_name!r} on {class_name}: normalization field {sibling!r}"
+        " must be a served integer field of the same record"
+    )
 
 
 def _projection(field_name: str) -> StoredPropertyProjection:
@@ -188,6 +200,21 @@ def entry_record[T: EntryRecord](name: str) -> Callable[[type[T]], type[T]]:
                     isinstance(marker, (Property, PropertyDefinition)) for marker in get_args(inner)[1:]
                 ):
                     raise TypeError(f"{field_name}: a served property must be an instance field, not ClassVar")
+        # Served names of marked integer fields, so normalizations can reference siblings.
+        integer_fields: dict[str, str] = {}
+        for item in fields(cls):
+            hint = hints[item.name]
+            if get_origin(hint) is not Annotated:
+                continue
+            annotation, *metadata = get_args(hint)
+            markers = [marker for marker in metadata if isinstance(marker, (Property, PropertyDefinition))]
+            if len(markers) == 1 and annotation in (int, int | None):
+                marker = markers[0]
+                integer_fields[item.name] = (
+                    marker.served_form().name
+                    if isinstance(marker, PropertyDefinition)
+                    else marker.name or f"_httk_custom_{item.name}"
+                )
         definitions: dict[str, PropertyDefinition] = {}
         projections: dict[str, StoredPropertyProjection] = {}
         for item in fields(cls):
@@ -221,22 +248,36 @@ def entry_record[T: EntryRecord](name: str) -> Callable[[type[T]], type[T]]:
                         )
                         if "/" in str(marker.unit) or "unknown unit symbol" in str(exc):
                             hint += (
-                                "; 'atom' is not a unit — declare unit='eV' and state 'per atom' in the description,"
+                                "; 'atom' is not a unit — declare unit='eV' and"
+                                " normalization=Normalization(per='atom', field='<integer sibling field>'),"
                                 " or annotate the field with a curated PropertyDefinition"
                             )
                         raise ValueError(
                             f"Property {item.name!r} on {cls.__name__}: invalid unit {marker.unit!r}: {exc}. {hint}."
                         ) from exc
+                normalization = marker.normalization
+                if normalization is not None and not isinstance(normalization, Normalization):
+                    raise TypeError(f"{item.name}: Property.normalization must be a Normalization")
+                if normalization is not None and normalization.field is not None:
+                    if normalization.field == item.name or normalization.field not in integer_fields:
+                        raise ValueError(_normalization_error(item.name, cls.__name__, normalization.field))
+                    normalization = replace(normalization, field=integer_fields[normalization.field])
                 definition = PropertyDefinition.from_simple(
                     marker.name or f"_httk_custom_{item.name}",
                     description=marker.description,
                     fulltype=fulltype,
                     unit=marker.unit,
+                    normalization=normalization,
                 )
             else:
                 definition = marker.served_form()
                 if definition.optimade_type != fulltype or (nullable and not definition.nullable):
                     raise ValueError(f"{item.name}: property definition conflicts with the Python field type")
+                normalization = definition.normalization
+                if normalization is not None and normalization.field is not None:
+                    siblings = {served for python, served in integer_fields.items() if python != item.name}
+                    if normalization.field not in siblings:
+                        raise ValueError(_normalization_error(item.name, cls.__name__, normalization.field))
             served_name = definition.name
             if served_name not in base.properties and not any(
                 served_name.startswith(prefix) for prefix in known_definition_prefixes()
