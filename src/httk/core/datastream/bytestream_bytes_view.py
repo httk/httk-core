@@ -2,6 +2,7 @@ from typing import Any, Self
 
 from ..views import unwrap
 from .bytestream_backend import BytestreamBackend
+from .bytestream_bytes import BytestreamBytes
 from .bytestream_like import BytestreamLike
 from .bytestream_view import BytestreamView
 
@@ -44,3 +45,11 @@ class BytestreamBytesView(BytestreamView, bytes):
         """
         # Shed to a plain bytes of the presented data (builtin subclass shedding copies).
         return bytes(self)
+
+    def __reduce_ex__(self, protocol: Any) -> Any:
+        """Pickle the presented bytes; the source stream was consumed at construction.
+
+        :param protocol: The pickle protocol requested.
+        :return: The view class and an in-memory backend holding the presented bytes.
+        """
+        return type(self), (BytestreamBytes(bytes(self)),)

@@ -350,6 +350,32 @@ class StoredPropertyProjection:
     value and is intentionally separate from filtering because not every
     predicate has a meaningful total ordering.
 
+    A ``query`` callback receives every filter operator applied to its
+    property, so it must handle (or deliberately reject) each of:
+
+    - the comparisons ``=``, ``!=``, ``<``, ``<=``, ``>``, ``>=`` with the
+      converted literal;
+    - ``IS_KNOWN`` and ``IS_UNKNOWN`` with a ``None`` literal (support for
+      ``IS KNOWN``/``IS UNKNOWN`` is mandatory in OPTIMADE);
+    - ``CONTAINS``, ``STARTS`` and ``ENDS`` with a string literal;
+    - ``HAS_ALL``, ``HAS_ANY`` and ``HAS_ONLY`` with a tuple of element
+      literals (list-valued properties);
+    - ``"LENGTH <op>"`` (e.g. ``"LENGTH >="``) with an integer literal
+      (list-valued properties).
+
+    ``context.compare`` implements only the comparison and string-matching
+    operators; forwarding any other operator to it is answered as not
+    implemented.  The canonical scalar callback therefore maps the unknown
+    tests onto ``is_null`` itself::
+
+        def query(context, operator, value):
+            field = context.field("value")
+            if operator == "IS_UNKNOWN":
+                return context.is_null(field)
+            if operator == "IS_KNOWN":
+                return context.not_(context.is_null(field))
+            return context.compare(field, operator, context.constant(value))
+
     ``members`` realizes OPTIMADE nested property names (``name.member``) of a
     dictionary-valued property: a filter on ``name.member`` is resolved by
     walking ``members`` from this projection, and the member projection's

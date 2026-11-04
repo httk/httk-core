@@ -728,6 +728,8 @@ def lexer(
     seen_token, seen_token_pos, seen_token_len = None, None, None
     last_good_pos: tuple[int, int, str] = (0, 0, "")
     last_good_pos_next: tuple[int, int, str] | None = (0, 0, "")
+    # Empty (or comment-only) input never assigns a position in the loop below.
+    pos: tuple[int, int, str] = (0, 0, "")
 
     token_regexes = {x: re.compile("(" + tokens[x] + r')\Z') for x in tokens}
     partial_token_regexes = {x: re.compile("(" + partial_tokens[x] + r')\Z') for x in partial_tokens}
@@ -761,7 +763,7 @@ def lexer(
             logger("LEX INPUT:'" + c + "'")
 
         if last_good_pos_next is None:
-            last_good_pos_next = pos  # pyright: ignore[reportPossiblyUnboundVariable]
+            last_good_pos_next = pos
 
         if c != '':
             try:
@@ -769,20 +771,20 @@ def lexer(
                     if stack == lit:
                         seen_token, seen_token_pos, seen_token_len = (
                             lit,
-                            pos,  # pyright: ignore[reportPossiblyUnboundVariable]
+                            pos,
                             len(lit),
                         )
-                        last_good_pos, last_good_pos_next = pos, None  # pyright: ignore[reportPossiblyUnboundVariable]
+                        last_good_pos, last_good_pos_next = pos, None
                         raise MatchFound()
 
                 for t in all_token_regexes:
                     if t in token_regexes and token_regexes[t].match(stack) is not None:
                         seen_token, seen_token_pos, seen_token_len = (
                             t,
-                            pos,  # pyright: ignore[reportPossiblyUnboundVariable]
+                            pos,
                             len(stack),
                         )
-                        last_good_pos, last_good_pos_next = pos, None  # pyright: ignore[reportPossiblyUnboundVariable]
+                        last_good_pos, last_good_pos_next = pos, None
                         raise MatchFound()
                     elif t in partial_token_regexes and partial_token_regexes[t].match(stack) is not None:
                         raise MatchFound()
@@ -821,7 +823,7 @@ def lexer(
         )
     if verbosity >= 4:
         logger("LEX YIELD:", (None, None))
-    yield (None, None, pos)  # pyright: ignore[reportPossiblyUnboundVariable]
+    yield (None, None, pos)
 
 
 def build_ls(

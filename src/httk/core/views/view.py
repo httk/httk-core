@@ -67,6 +67,25 @@ class View[BackendT: Backend]:
             return obj
         return cls._backend_base_cls._select_backend(obj, **hints)
 
+    def __reduce_ex__(self, protocol: Any) -> Any:
+        """
+        Pickle and copy the view by reconstructing it from its backend.
+
+        The constructor rebuilds the view (and any builtin value it subclasses) from the backend,
+        then the instance state is restored so view-level metadata and materialized caches
+        survive. Classes that own a ``__setstate__`` protocol (recognition options, ndarray
+        buffers) keep it. A backend-less instance built by inherited value-class algebra is
+        rebuilt from its plain presented value. An unpicklable backend (an open stream) fails
+        with the ``TypeError`` pickle raises for it.
+
+        :param protocol: The pickle protocol requested.
+        :return: The view class, its constructor argument and the instance state.
+        """
+        if hasattr(type(self), "__setstate__"):
+            return super().__reduce_ex__(protocol)
+        backend = getattr(self, "_backend", None)
+        return type(self), (self.unview() if backend is None else backend,), self.__getstate__()
+
     def unwrap(self) -> Any:
         """
         Return the most raw representation possible of this view, i.e., if it uses a backend with an internal representaion -

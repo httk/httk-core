@@ -35,4 +35,6 @@ schemas that publish no `$id` are completed to standard-property identities, and
 the generated record models.
 
 Units of generated properties are checked and documented by the OPTIMADE unit
-engine; see {doc}`units`.
+engine; see {doc}`units`. They follow the OPTIMADE compound-unit grammar
+(`eV/atom` is rejected; state per-atom or per-formula-unit normalization in the
+description), and changing a declared unit does not require rebuilding a store.

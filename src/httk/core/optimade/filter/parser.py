@@ -64,6 +64,10 @@ def _zip_width_error(properties: int, values: int) -> ParserSyntaxError:
 def parse_optimade_filter(filter_string: str, verbosity: int | Any = 0) -> FilterAst:
     """Parse an OPTIMADE filter into the public abstract syntax tree format.
 
+    A bare property (the OPTIONAL boolean shorthand ``prop`` for ``prop = TRUE``)
+    parses to ``('BOOLEAN_PROPERTY', ('Identifier', ...))`` so consumers can
+    support or reject that form explicitly.
+
     :param filter_string: OPTIMADE filter expression to parse.
     :param verbosity: Diagnostic verbosity setting passed to the parser.
     :return: Nested tuple abstract syntax tree in ``ojf`` format.
@@ -266,7 +270,13 @@ def optimade_parse_tree_to_ojf_recurse(node: tuple[Any, ...], recursion: int = 0
         else:
             assert node[1][0] == 'Constant'
             left = _fix_const(node[1][1])
-        if node[2][0] == "ValueOpRhs":
+        if len(node) == 2:
+            # Bare boolean property shorthand (``prop`` for ``prop = TRUE``); kept
+            # distinct so consumers can decide whether to support the optional form.
+            assert node[0] == 'PropertyFirstComparison'
+            pos[arg] = ('BOOLEAN_PROPERTY', left)
+            arg = None
+        elif node[2][0] == "ValueOpRhs":
             assert node[2][1][0] == 'Operator'
             op = node[2][1][1]
             assert node[2][2][0] == 'Value'

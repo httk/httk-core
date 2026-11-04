@@ -160,6 +160,31 @@ def test_syntax_errors(bad_filter: str) -> None:
         parse_optimade_filter(bad_filter)
 
 
+@pytest.mark.parametrize(
+    ("filter_string", "expected"),
+    [
+        ("prop", ("BOOLEAN_PROPERTY", ("Identifier", "prop"))),
+        (
+            "NOT prop AND x=1",
+            ("AND", ("NOT", ("BOOLEAN_PROPERTY", ("Identifier", "prop"))), ("=", ("Identifier", "x"), ("Number", "1"))),
+        ),
+        (
+            "(a OR b.c)",
+            ("OR", ("BOOLEAN_PROPERTY", ("Identifier", "a")), ("BOOLEAN_PROPERTY", ("Identifier", "b", "c"))),
+        ),
+    ],
+)
+def test_bare_boolean_property_shorthand(filter_string: str, expected: object) -> None:
+    assert parse_optimade_filter(filter_string) == expected
+
+
+@pytest.mark.parametrize("empty_filter", ["", "   ", "\t\n"])
+def test_empty_filter_is_a_syntax_error(empty_filter: str) -> None:
+    # OPTIMADE: Filter = [Spaces], Expression; the lexer must not crash on no input.
+    with pytest.raises(ParserSyntaxError):
+        parse_optimade_filter(empty_filter)
+
+
 def test_grammar_loads_from_package_data() -> None:
     from httk.core.optimade.filter.parser import _optimade_parser_ls
 

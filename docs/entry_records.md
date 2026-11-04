@@ -50,6 +50,13 @@ Definitions, exact direct-field filtering, and sorting are generated for `str`,
 units remain explicit. Other values, including exact rationals needing a
 presentation conversion, use the existing explicit projection API.
 
+A `Property` unit follows the OPTIMADE compound-unit grammar (`*` between
+code-point-ordered factors, `^-1` for division, e.g. `angstrom^-1*eV`) and is
+checked when the record class is declared. Per-atom or per-formula-unit
+normalization belongs in the description (or a curated definition), not the
+unit, so `eV/atom` is rejected in favour of `unit="eV"`; changing a declared
+unit does not require rebuilding a store.
+
 An existing property definition can be attached directly:
 
 ```python

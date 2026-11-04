@@ -25,6 +25,10 @@ Typical flow inside a function:
 
 This keeps APIs flexible for callers and keeps implementation logic simple and consistent.
 
+Views pickle (and copy) by reconstructing from their backend, so they cross process
+boundaries such as parallel ingestion; a view over an unpicklable backend, like an open file
+handle, raises `TypeError` instead.
+
 ## Why This Is Useful
 
 Callers can use whichever representation they already have:

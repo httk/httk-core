@@ -3,6 +3,7 @@ from typing import Any, Self
 from ..views import unwrap
 from .textstream_backend import TextstreamBackend
 from .textstream_like import TextstreamLike
+from .textstream_string import TextstreamString
 from .textstream_view import TextstreamView
 
 
@@ -44,3 +45,11 @@ class TextstreamStringView(TextstreamView, str):
         """
         # Shed to a plain str of the presented data (builtin subclass shedding copies).
         return str(self)
+
+    def __reduce_ex__(self, protocol: Any) -> Any:
+        """Pickle the presented text; the source stream was consumed at construction.
+
+        :param protocol: The pickle protocol requested.
+        :return: The view class and an in-memory backend holding the presented text.
+        """
+        return type(self), (TextstreamString(str(self)),)

@@ -155,6 +155,30 @@ def test_bad_or_conflicting_declarations_fail_early():
         entry_record("tests.incompatible")(Incompatible)
 
 
+def test_property_unit_is_checked_at_declaration():
+    class PerAtom(DataEntryRecord):
+        energy: Annotated[float, Property(description="Energy per atom.", unit="eV/atom")]
+
+    with pytest.raises(ValueError, match=r"Property 'energy' on PerAtom: invalid unit 'eV/atom'.*'atom' is not a unit"):
+        entry_record("tests.per_atom")(PerAtom)
+
+    class Unordered(DataEntryRecord):
+        force: Annotated[float, Property(description="Force.", unit="eV*angstrom^-1")]
+
+    with pytest.raises(ValueError, match="code-point order") as raised:
+        entry_record("tests.unordered")(Unordered)
+    assert "'atom'" not in str(raised.value)
+
+    @entry_record("tests.units_ok")
+    class Accepted(DataEntryRecord):
+        force: Annotated[float, Property(description="Force.", unit="angstrom^-1*eV")]
+        count: Annotated[int, Property(description="Count.")]
+
+    properties = Accepted.entry_type_definition().properties
+    assert properties["_httk_custom_force"].as_optimade()["x-optimade-unit"] == "angstrom^-1*eV"
+    assert properties["_httk_custom_count"].as_optimade()["x-optimade-unit"] == "dimensionless"
+
+
 def test_general_entry_record_reuses_standard_property_definition():
     from httk.core import standard_entry_type
 

@@ -13,6 +13,7 @@ from .property_definitions import EntryTypeDefinition, PropertyDefinition, known
 from .register.schemas import load_entry_type_definition
 from .storage import IdentitySkip, Indexed, Skip, StorageInfo, StoredPropertyProjection, Unique
 from .storage.stored_properties import QueryContext, QueryExpression
+from .units import default_registry
 
 __all__ = ["DataEntryRecord", "EntryRecord", "Property", "entry_record"]
 
@@ -210,6 +211,22 @@ def entry_record[T: EntryRecord](name: str) -> Callable[[type[T]], type[T]]:
                     raise ValueError(f"{item.name}: Property requires a nonempty description")
                 if marker.name is not None and (not isinstance(marker.name, str) or not marker.name.isidentifier()):
                     raise ValueError(f"{item.name}: Property.name must be a nonempty identifier")
+                if marker.unit not in (None, "inapplicable"):
+                    try:
+                        default_registry().parse(marker.unit)
+                    except (TypeError, AttributeError, ValueError) as exc:
+                        hint = (
+                            "Units are OPTIMADE compound unit expressions ('*' between factors, '^-1' for division,"
+                            " e.g. 'eV', 'angstrom^-1*eV', 'J*mol^-1')"
+                        )
+                        if "/" in str(marker.unit) or "unknown unit symbol" in str(exc):
+                            hint += (
+                                "; 'atom' is not a unit — declare unit='eV' and state 'per atom' in the description,"
+                                " or annotate the field with a curated PropertyDefinition"
+                            )
+                        raise ValueError(
+                            f"Property {item.name!r} on {cls.__name__}: invalid unit {marker.unit!r}: {exc}. {hint}."
+                        ) from exc
                 definition = PropertyDefinition.from_simple(
                     marker.name or f"_httk_custom_{item.name}",
                     description=marker.description,

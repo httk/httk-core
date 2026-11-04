@@ -34,13 +34,14 @@ Comparison = ConstantFirstComparison
 
 ConstantFirstComparison = Constant, ValueOpRhs ;
 
-PropertyFirstComparison = Property, ( ValueOpRhs
+PropertyFirstComparison = Property, [ ValueOpRhs
                                     | KnownOpRhs
                                     | FuzzyStringOpRhs
                                     | SetOpRhs
                                     | SetZipOpRhs
-                                    | LengthOpRhs ) ;
+                                    | LengthOpRhs ] ;
 (* Note: support for SetZipOpRhs in Comparison is OPTIONAL *)
+(* Note: a bare Property (boolean property shorthand) is OPTIONAL *)
 
 ValueOpRhs = Operator, Value ;
 
