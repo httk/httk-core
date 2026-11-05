@@ -1,0 +1,41 @@
+httk.registry.schemas.core
+==========================
+
+.. py:module:: httk.registry.schemas.core
+
+.. autoapi-nested-parse::
+
+   Register httk-core's vendored entry-type and property schemas.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.registry.schemas.core.register_entry_type_definition
+   httk.registry.schemas.core.register_property_definition
+
+
+Package Contents
+----------------
+
+.. py:function:: register_entry_type_definition(*, definition_id, resource)
+
+   Register one resource for an entry-type definition IRI.
+
+   :param definition_id: The entry-type definition IRI.
+   :param resource: The package resource reference to load.
+   :raises ValueError: If ``definition_id`` is already registered.
+
+
+.. py:function:: register_property_definition(*, definition_id, resource)
+
+   Register one resource for a property definition IRI.
+
+   :param definition_id: The property definition IRI.
+   :param resource: The package resource reference to load.
+   :raises ValueError: If ``definition_id`` is already registered.
+
+

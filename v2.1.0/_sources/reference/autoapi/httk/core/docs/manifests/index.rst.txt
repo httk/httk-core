@@ -1,0 +1,75 @@
+httk.core.docs.manifests
+========================
+
+.. py:module:: httk.core.docs.manifests
+
+.. autoapi-nested-parse::
+
+   JSON manifests used by the documentation site's root and selector.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.docs.manifests.build_version_manifest
+   httk.core.docs.manifests.write_version_manifest
+   httk.core.docs.manifests.read_version_manifest
+   httk.core.docs.manifests.build_page_manifest
+   httk.core.docs.manifests.write_page_manifest
+
+
+Module Contents
+---------------
+
+.. py:function:: build_version_manifest(slug, url, source_commit, release_versions, has_dev)
+
+   Build a root manifest with releases newest-first and optional dev last.
+
+   The default release points to the maintained ``latest/`` duplicate of
+   the newest release tree.
+
+   :param slug: Documentation-site project slug.
+   :param url: Public documentation-site URL.
+   :param source_commit: Source commit represented by the site, when known.
+   :param release_versions: Published release versions.
+   :param has_dev: Whether the replaceable development site is published.
+   :return: Root version manifest.
+
+
+.. py:function:: write_version_manifest(path, manifest)
+
+   Write one JSON version manifest using stable, human-readable formatting.
+
+   :param path: Destination manifest path.
+   :param manifest: Manifest to serialize.
+
+
+.. py:function:: read_version_manifest(path)
+
+   Read a JSON version manifest from *path*.
+
+   :param path: Manifest file to read.
+   :return: Parsed version manifest.
+   :raises ValueError: If the JSON value is not an object.
+
+
+.. py:function:: build_page_manifest(version_name, html_dir)
+
+   List every HTML page below *html_dir* as sorted POSIX paths.
+
+   :param version_name: Version name recorded in the manifest.
+   :param html_dir: Root directory containing generated HTML.
+   :return: Per-version page manifest.
+
+
+.. py:function:: write_page_manifest(path, manifest)
+
+   Write one per-version page manifest.
+
+   :param path: Destination manifest path.
+   :param manifest: Manifest to serialize.
+
+

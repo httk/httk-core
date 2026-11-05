@@ -1,0 +1,58 @@
+httk.core.datastream.bytestream_request
+=======================================
+
+.. py:module:: httk.core.datastream.bytestream_request
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.datastream.bytestream_request.BytestreamRequest
+
+
+Module Contents
+---------------
+
+.. py:class:: BytestreamRequest(request, **hints)
+
+   Bases: :py:obj:`httk.core.datastream.bytestream_common.BytestreamCommon`, :py:obj:`httk.core.datastream.bytestream_backend.BytestreamBackend`
+
+
+   Backend for streaming byte data fetched via a urllib.request.Request.
+   Response content is transparently decompressed according to the compression hint.
+
+   :param request: Request to execute lazily when data is first read.
+   :param \**hints: Backend-selection, timeout, and compression hints.
+   :raises ValueError: If the compression hint is unknown.
+
+
+   .. py:property:: name
+      :type: str | None
+
+
+      Report that a request backend has no filename.
+
+
+   .. py:property:: url
+      :type: str
+
+
+      Return the request URL.
+
+
+   .. py:property:: request
+      :type: urllib.request.Request
+
+
+      Return the request used to fetch the stream.
+
+
+   .. py:property:: closed
+      :type: bool
+
+
+      Report whether the request backend is closed.
+
+

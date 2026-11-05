@@ -1,0 +1,130 @@
+httk.core.vectors.leaf_codecs
+=============================
+
+.. py:module:: httk.core.vectors.leaf_codecs
+
+.. autoapi-nested-parse::
+
+   Leaf codecs: the element-domain axis of the Vector family.
+
+   The Vector backends model the *container* axis (``frac``/``native``/``numpy``); a **leaf codec**
+   models the orthogonal *element-domain* axis — how a single leaf value is presented (as an ``int``,
+   a :class:`fractions.Fraction`, a ``float``, a :class:`decimal.Decimal`, ...). Every codec converts
+   FROM the canonical Fraction hub (a backend's exact ``fractions`` interchange), so it is independent
+   of which backend holds the data.
+
+   Conversion policy (mirroring the CellParams lossiness philosophy): because a backend always retains
+   the exact original, a view that cannot represent the data exactly is still produced without raising
+   — each codec applies a *documented default conversion*, with options to choose alternatives. Only
+   configuration errors — an unknown codec name or invalid options — raise :class:`ValueError`.
+
+   This registry mirrors the compression-codec registry in
+   :mod:`httk.core.datastream.compression`: a frozen :class:`LeafCodec` dataclass plus
+   :func:`register_leaf_codec`/:func:`known_leaf_codecs` for extension.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.vectors.leaf_codecs.LeafCodec
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.vectors.leaf_codecs.register_leaf_codec
+   httk.core.vectors.leaf_codecs.known_leaf_codecs
+   httk.core.vectors.leaf_codecs.leaf_codec_for_name
+   httk.core.vectors.leaf_codecs.validate_leaf_codec
+   httk.core.vectors.leaf_codecs.apply_leaf_codec
+
+
+Module Contents
+---------------
+
+.. py:class:: LeafCodec
+
+   A leaf codec: a documented conversion of one exact :class:`fractions.Fraction` leaf into a
+   presentation leaf.
+
+   A codec is an orthogonal layer beside the vector backends: given a value already reduced to the
+   canonical Fraction hub, it produces the requested element type. Its :attr:`from_fraction`
+   documents both its exactness contract (when the result is exact) and its default conversion
+   (what it does when an exact result is impossible); on data it never raises.
+
+   :param name: The canonical name used to select the codec.
+   :param from_fraction: The conversion operation applied to each exact hub leaf.
+   :param check_options: The option-validation operation.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+      Canonical codec name (e.g. ``"int"``); also how an explicit ``leaf=`` hint selects it.
+
+
+   .. py:attribute:: from_fraction
+      :type:  collections.abc.Callable[Ellipsis, Any]
+
+      Convert ``(value: fractions.Fraction, **options) -> leaf`` from the canonical Fraction hub.
+
+
+   .. py:attribute:: check_options
+      :type:  collections.abc.Callable[[dict[str, Any]], None]
+
+      Validate an options mapping eagerly, raising :class:`ValueError` on any invalid option.
+
+
+.. py:function:: register_leaf_codec(codec)
+
+   Register or replace a codec under its :attr:`~LeafCodec.name`.
+
+   :param codec: The codec to register.
+
+
+.. py:function:: known_leaf_codecs()
+
+   Return the registered leaf-codec names in registration order.
+
+   :return: The registered codec names.
+
+
+.. py:function:: leaf_codec_for_name(name)
+
+   Return the registered codec named ``name``.
+
+   :param name: The codec name to resolve.
+   :return: The registered codec.
+   :raises ValueError: If ``name`` is not registered.
+
+
+.. py:function:: validate_leaf_codec(name, options)
+
+   Resolve and validate a leaf codec eagerly and return it.
+
+   Raises :class:`ValueError` if ``name`` is not a registered codec or if ``options`` are invalid
+   for it (the two configuration-error cases). This is called where a ``leaf=`` hint is received so
+   that mistakes surface at view construction, never mid-conversion.
+
+   :param name: The codec name to resolve.
+   :param options: The options to validate for the codec.
+   :return: The resolved and validated codec.
+   :raises ValueError: If the codec name or options are invalid.
+
+
+.. py:function:: apply_leaf_codec(codec, node, **options)
+
+   Map ``codec`` over a (possibly nested) tuple of :class:`fractions.Fraction`, returning the
+   converted nested structure (a bare leaf for a scalar ``node``).
+
+   :param codec: The codec to apply.
+   :param node: The scalar or nested exact data to convert.
+   :param \**options: Options passed to the codec for each leaf.
+   :return: The converted scalar or nested structure.
+
+

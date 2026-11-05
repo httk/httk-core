@@ -1,0 +1,109 @@
+httk.core.services
+==================
+
+.. py:module:: httk.core.services
+
+.. autoapi-nested-parse::
+
+   Neutral service identity and endpoint metadata contract.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.services.Service
+   httk.core.services.ServiceRecord
+
+
+Module Contents
+---------------
+
+.. py:class:: Service
+
+   Describe one service independently of its publication transport.
+
+   The service and endpoint identifiers are absolute IRIs; this neutral core
+   contract does not impose a particular scheme.  ``conforms_to`` names one
+   or more standards the service implements, and may be supplied as any
+   ordered non-string iterable.
+
+   :param id: The service's absolute IRI.
+   :param title: The service's human-readable title.
+   :param endpoint_url: The service endpoint's absolute IRI.
+   :param conforms_to: Non-empty unique absolute IRIs for implemented standards.
+   :param serves_dataset_ids: Optional non-empty unique absolute IRIs for served datasets.
+   :param endpoint_description: An optional absolute IRI describing the endpoint.
+
+
+   .. py:attribute:: id
+      :type:  str
+
+
+   .. py:attribute:: title
+      :type:  str
+
+
+   .. py:attribute:: endpoint_url
+      :type:  str
+
+
+   .. py:attribute:: conforms_to
+      :type:  tuple[str, Ellipsis]
+
+
+   .. py:attribute:: serves_dataset_ids
+      :type:  tuple[str, Ellipsis] | None
+      :value: None
+
+
+
+   .. py:attribute:: endpoint_description
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+      Coerce a mapping or existing service into a :class:`Service`.
+
+      :param obj: A service instance or a mapping with service fields.
+      :return: The existing or newly constructed service.
+      :raises TypeError: If ``obj`` is neither a service nor a mapping.
+      :raises ValueError: If the mapping has missing, unknown, or invalid fields.
+
+
+
+.. py:class:: ServiceRecord
+
+   Bases: :py:obj:`Service`
+
+
+   Store one :class:`Service` using the core service storage contract.
+
+   :param id: The service's absolute IRI.
+   :param title: The service's human-readable title.
+   :param endpoint_url: The service endpoint's absolute IRI.
+   :param conforms_to: Non-empty unique absolute IRIs for implemented standards.
+   :param serves_dataset_ids: Optional non-empty unique absolute IRIs for served datasets.
+   :param endpoint_description: An optional absolute IRI describing the endpoint.
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+      Coerce a service record, neutral service, or field mapping.
+
+      :param obj: A service record, neutral service, or service field mapping.
+      :return: The existing or newly constructed service record.
+      :raises TypeError: If ``obj`` is not a service or mapping.
+      :raises ValueError: If the mapping has unknown, missing, or invalid fields.
+
+
+

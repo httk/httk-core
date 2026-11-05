@@ -1,0 +1,224 @@
+httk.core.project.templates
+===========================
+
+.. py:module:: httk.core.project.templates
+
+.. autoapi-nested-parse::
+
+   Parse, resolve, and instantiate httk project templates.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.project.templates.TEMPLATE_MANIFEST
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.project.templates.TemplateParameter
+   httk.core.project.templates.ProjectTemplate
+   httk.core.project.templates.TemplateInstantiateRequest
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.project.templates.parse_template_manifest
+   httk.core.project.templates.available_templates
+   httk.core.project.templates.install_template
+   httk.core.project.templates.uninstall_templates
+   httk.core.project.templates.resolve_template
+   httk.core.project.templates.check_parameters
+   httk.core.project.templates.instantiate_template
+   httk.core.project.templates.template_instantiate_main
+
+
+Module Contents
+---------------
+
+.. py:data:: TEMPLATE_MANIFEST
+   :value: 'httk_project_template.toml'
+
+
+.. py:class:: TemplateParameter
+
+   Describe one template instantiate parameter.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: type
+      :type:  str
+
+
+   .. py:attribute:: description
+      :type:  str | None
+
+
+   .. py:attribute:: default
+      :type:  object | None
+
+
+   .. py:attribute:: has_default
+      :type:  bool
+
+
+.. py:class:: ProjectTemplate
+
+   Describe a validated project template.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: description
+      :type:  str | None
+
+
+   .. py:attribute:: files
+      :type:  tuple[str, ...]
+
+
+   .. py:attribute:: instantiate_file
+      :type:  str | None
+
+
+   .. py:attribute:: parameters
+      :type:  tuple[TemplateParameter, ...]
+
+
+   .. py:attribute:: root
+      :type:  pathlib.Path
+
+
+   .. py:attribute:: requires
+      :type:  tuple[httk.core.requirements.Requirement, ...]
+      :value: ()
+
+
+
+   .. py:method:: check_requires()
+
+      Require the template's ``[template] requires`` to be met.
+
+      :raises RequirementError: If an installed distribution is missing or too old.
+
+
+
+.. py:class:: TemplateInstantiateRequest
+
+   Describe the request received by a template instantiate hook.
+
+
+   .. py:attribute:: template
+      :type:  str
+
+
+   .. py:attribute:: parameters
+      :type:  collections.abc.Mapping[str, object]
+
+
+   .. py:attribute:: project
+      :type:  collections.abc.Mapping[str, object]
+
+
+.. py:function:: parse_template_manifest(directory)
+
+   Parse and validate one project-template manifest.
+
+   :param directory: Locate the template directory.
+   :return: The validated project template.
+   :raises ValueError: If the template directory or manifest is malformed.
+
+
+.. py:function:: available_templates()
+
+   Return all valid plugin and git-installed templates, without running git.
+
+   :return: ``(source, template)`` pairs sorted by source and name, where the
+       source is the plugin name or the canonical ``git+`` URI.
+
+
+.. py:function:: install_template(uri)
+
+   Fetch and install the template a git URI names.
+
+   :param uri: Supply a ``git+…`` URI whose member holds ``httk_project_template.toml``.
+   :return: The installed entry; its ``uri`` is the canonical pinned URI.
+   :raises RequirementError: If the template's ``requires`` are unmet; no entry is written.
+   :raises ValueError: If the URI is invalid, git fails, or the template is missing or invalid.
+
+
+.. py:function:: uninstall_templates(selector)
+
+   Remove installed git templates by URI or name, without running git.
+
+   A pinned URI removes that entry, an unpinned URI every entry of its
+   repository and subdirectory, and a name every entry of the lineage it
+   resolves to. Plugin templates are removed with their plugin instead.
+
+   :param selector: Give a ``git+…`` URI or a template name.
+   :return: The removed entries.
+   :raises ValueError: If the selector matches no installed git template, or
+       a name is claimed by several installed git sources.
+
+
+.. py:function:: resolve_template(selector)
+
+   Resolve a template path, git URI, qualified plugin selector, or bare name.
+
+   A ``git+…`` URI is fetched and installed (see :func:`install_template`). A
+   bare name considers plugin templates and installed git templates; it must
+   select exactly one of them. The selected template's ``requires``, and those
+   of the plugin providing it, are checked before it is returned.
+
+   :param selector: Select an explicit directory, ``git+…`` URI, ``plugin:name``, or bare name.
+   :return: The selected project template.
+   :raises RequirementError: If the template's or its plugin's requirements are unmet.
+   :raises ValueError: If the selector cannot identify exactly one template.
+
+
+.. py:function:: check_parameters(template, supplied)
+
+   Validate supplied parameters and apply declared defaults.
+
+   :param template: Validate against this template's declaration.
+   :param supplied: Supply user parameter values.
+   :return: Supplied values combined with optional defaults.
+   :raises ValueError: If names or values do not match the declaration.
+
+
+.. py:function:: instantiate_template(template, project_root, parameters, *, project_info, timeout = 3600.0)
+
+   Copy a template into an initialized project and run its optional hook.
+
+   :param template: Instantiate this validated template.
+   :param project_root: Initialized project root to populate.
+   :param parameters: Supply template parameter values.
+   :param project_info: Supply project metadata for the hook request.
+   :param timeout: Limit hook execution time in seconds.
+   :return: Hook notes, or an empty tuple when no notes are returned.
+   :raises RequirementError: If the template's ``requires`` are unmet; nothing is copied.
+   :raises ValueError: If validation, copying, or hook execution fails.
+
+
+.. py:function:: template_instantiate_main(fn)
+
+   Run a template hook function using the v1 JSON stdin/stdout protocol.
+
+   :param fn: Handle the decoded template instantiate request.
+   :return: Nothing; the response is written as one JSON document.
+
+

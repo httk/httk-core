@@ -1,0 +1,576 @@
+httk.core.vectors.vectormath
+============================
+
+.. py:module:: httk.core.vectors.vectormath
+
+.. autoapi-nested-parse::
+
+   Functional wrappers over the :mod:`math` module that also work on FracVector-like objects.
+
+   Each function first tries to dispatch to a method on the argument (so a FracVector computes
+   an exact-rational element-wise result), and otherwise falls back to the corresponding
+   :mod:`math` function on a plain scalar.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.vectors.vectormath.ceil
+   httk.core.vectors.vectormath.copysign
+   httk.core.vectors.vectormath.sign
+   httk.core.vectors.vectormath.fabs
+   httk.core.vectors.vectormath.factorial
+   httk.core.vectors.vectormath.floor
+   httk.core.vectors.vectormath.fmod
+   httk.core.vectors.vectormath.frexp
+   httk.core.vectors.vectormath.fsum
+   httk.core.vectors.vectormath.isinf
+   httk.core.vectors.vectormath.isanyinf
+   httk.core.vectors.vectormath.isnan
+   httk.core.vectors.vectormath.isanynan
+   httk.core.vectors.vectormath.ldexp
+   httk.core.vectors.vectormath.modf
+   httk.core.vectors.vectormath.trunc
+   httk.core.vectors.vectormath.exp
+   httk.core.vectors.vectormath.expm1
+   httk.core.vectors.vectormath.log
+   httk.core.vectors.vectormath.log1p
+   httk.core.vectors.vectormath.log10
+   httk.core.vectors.vectormath.pow
+   httk.core.vectors.vectormath.sqrt
+   httk.core.vectors.vectormath.acos
+   httk.core.vectors.vectormath.asin
+   httk.core.vectors.vectormath.atan
+   httk.core.vectors.vectormath.atan2
+   httk.core.vectors.vectormath.cos
+   httk.core.vectors.vectormath.hypot
+   httk.core.vectors.vectormath.sin
+   httk.core.vectors.vectormath.tan
+   httk.core.vectors.vectormath.degrees
+   httk.core.vectors.vectormath.radians
+   httk.core.vectors.vectormath.acosh
+   httk.core.vectors.vectormath.asinh
+   httk.core.vectors.vectormath.atanh
+   httk.core.vectors.vectormath.cosh
+   httk.core.vectors.vectormath.sinh
+   httk.core.vectors.vectormath.tanh
+   httk.core.vectors.vectormath.erf
+   httk.core.vectors.vectormath.erfc
+   httk.core.vectors.vectormath.gamma
+   httk.core.vectors.vectormath.lgamma
+   httk.core.vectors.vectormath.pi
+   httk.core.vectors.vectormath.e
+
+
+Module Contents
+---------------
+
+.. py:function:: ceil(x, **args)
+
+   Return the ceiling of x, the smallest integer value greater than or equal to x.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: copysign(x, y, **args)
+
+   Return x with the sign of y. If an element of y is zero, abs of the corresponding element
+   in x is returned.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param y: The second value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: sign(x, **args)
+
+   Return the sign of x: -1, 0, or 1 (the numpy convention, so sign(0) == 0).
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: fabs(x, **args)
+
+   Return the absolute value of x.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: factorial(x, **args)
+
+   Return x factorial. Raises ValueError if (any element of) x is negative.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+   :raises ValueError: If a value is negative.
+
+
+.. py:function:: floor(x, **args)
+
+   Return the floor of x, the largest integer value less than or equal to x.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: fmod(x, y, **args)
+
+   Equivalent to x % y.
+
+   :param x: The value to process element-wise.
+   :param y: The second value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: frexp(x, **args)
+
+   Return the mantissa and exponent of x as the pair (m, e). m is a float and e is an integer
+   such that x == m * 2**e exactly. If x is zero, returns (0.0, 0), otherwise 0.5 <= abs(m) < 1.
+
+   This decomposition is only meaningful for binary floating-point values; exact
+   rational types such as FracVector do not support it — convert with
+   ``to_floats()``/``to_float()`` first (a clear TypeError is raised otherwise).
+
+   (For vectors applied to each element and returns tuples nested in lists.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The mantissa and exponent, element-wise for vectors.
+   :raises TypeError: If exact rational input is not converted to a floating-point value first.
+
+
+.. py:function:: fsum(iterable, **args)
+
+   Equivalent to sum(iterable).
+
+   :param iterable: The values to sum.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The sum of the values.
+
+
+.. py:function:: isinf(x, **args)
+
+   Check if the float x is positive or negative infinity.
+
+   (For vectors applied to each element and returns True/False as nested lists.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: Whether each value is infinite.
+
+
+.. py:function:: isanyinf(x, **args)
+
+   Check if the float x is positive or negative infinity.
+
+   (For vectors returns True/False if any element is inf.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: Whether any value is infinite.
+
+
+.. py:function:: isnan(x, **args)
+
+   Check if the float x is a NaN (not a number).
+
+   (For vectors applied to each element and returns True/False as nested lists.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: Whether each value is NaN.
+
+
+.. py:function:: isanynan(x, **args)
+
+   Check if the float x is a NaN (not a number).
+
+   (For vectors returns True/False if any element is NaN.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: Whether any value is NaN.
+
+
+.. py:function:: ldexp(x, i, **args)
+
+   Return x * (2**i). This is essentially the inverse of function frexp().
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param i: The exponent applied to ``x``.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: modf(x, **args)
+
+   Return the fractional and integer parts of x. Both results carry the sign of x.
+
+   (For vectors applied to each element and returns tuples nested in lists.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The fractional and integer parts, element-wise for vectors.
+
+
+.. py:function:: trunc(x, **args)
+
+   Return the integer part of x.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: exp(x, **args)
+
+   Return e**x. (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: expm1(x, **args)
+
+   Return e**x - 1. (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: log(x, base = None, **args)
+
+   With one argument, return the natural logarithm of x (to base e).
+
+   With two arguments, return the logarithm of x to the given base, calculated as
+   log(x)/log(base).
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param base: The logarithm base; omit it for the natural logarithm.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: log1p(x, **args)
+
+   Return the natural logarithm of 1+x (base e). The result is calculated in a way which is
+   accurate for x near zero.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: log10(x, **args)
+
+   Return the base-10 logarithm of x. This is usually more accurate than log(x, 10).
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: pow(x, y, **args)
+
+   Return x raised to the power y. Equivalent with x**y.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param y: The second value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: sqrt(x, **args)
+
+   Return the square root of x.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: acos(x, **args)
+
+   Return the arc cosine of x, in radians.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: asin(x, **args)
+
+   Return the arc sine of x, in radians.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: atan(x, **args)
+
+   Return the arc tangent of x, in radians.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: atan2(y, x, **args)
+
+   Return atan(y / x), in radians, with the standard ``atan2(y, x)`` argument order
+   used by :func:`math.atan2`, numpy, and :func:`httk.core.exactmath.atan2`.
+   The result is between -pi and pi. The point of atan2() is that the signs of both
+   inputs are known to it, so it can compute the correct quadrant for the angle.
+
+   (For vectors applied to each element.)
+
+   :param y: The second value to process element-wise.
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: cos(x, **args)
+
+   Return the cosine of x radians.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: hypot(x, y, **args)
+
+   Return the Euclidean norm, sqrt(x*x + y*y). This is the length of the vector from the origin
+   to point (x, y).
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param y: The second value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: sin(x, **args)
+
+   Return the sine of x radians.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: tan(x, **args)
+
+   Return the tangent of x radians.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: degrees(x, **args)
+
+   Convert angle x from radians to degrees.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: radians(x, **args)
+
+   Convert angle x from degrees to radians.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: acosh(x, **args)
+
+   Return the inverse hyperbolic cosine of x.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: asinh(x, **args)
+
+   Return the inverse hyperbolic sine of x.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: atanh(x, **args)
+
+   Return the inverse hyperbolic tangent of x.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: cosh(x, **args)
+
+   Return the hyperbolic cosine of x.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: sinh(x, **args)
+
+   Return the hyperbolic sine of x.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: tanh(x, **args)
+
+   Return the hyperbolic tangent of x.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: erf(x, **args)
+
+   Return the error function at x.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: erfc(x, **args)
+
+   Return the complementary error function at x.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: gamma(x, **args)
+
+   Return the Gamma function at x.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: lgamma(x, **args)
+
+   Return the natural logarithm of the absolute value of the Gamma function at x.
+
+   (For vectors applied to each element.)
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The result of the operation.
+
+
+.. py:function:: pi(x, **args)
+
+   Return the value of pi represented using the same scalar or vector representation as x.
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The value of pi in the representation of ``x``.
+
+
+.. py:function:: e(x, **args)
+
+   Return the value of e represented using the same scalar or vector representation as x.
+
+   :param x: The value to process element-wise.
+   :param \**args: Additional options forwarded to the scalar or vector implementation.
+   :return: The value of e in the representation of ``x``.
+
+

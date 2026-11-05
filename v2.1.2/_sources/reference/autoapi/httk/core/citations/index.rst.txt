@@ -1,0 +1,76 @@
+httk.core.citations
+===================
+
+.. py:module:: httk.core.citations
+
+.. autoapi-nested-parse::
+
+   Import-tracked citation credits for scientific dependencies.
+
+   Modules register :class:`~httk.core.Reference` records for what they scientifically rely
+   on. ``print(httk.core.credits)`` shows what the running program ought to cite
+   and why.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.citations.credits
+   httk.core.citations.HTTK_REFERENCE
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.citations.Credits
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.citations.register_citation
+
+
+Module Contents
+---------------
+
+.. py:function:: register_citation(*, applies_to, references)
+
+   Register one or more references under a human-readable explanation.
+
+   References are normalized on registration and duplicate references under
+   the same explanation are retained only once. The registration is visible
+   through :data:`credits`, allowing imported modules to contribute their
+   citation requirements as they are loaded.
+
+   :param applies_to: Human-readable explanation of when the references apply.
+   :param references: One reference, mapping, or sequence of references to register.
+   :raises TypeError: If ``references`` is not a reference, mapping, or sequence of references.
+   :raises ValueError: If ``applies_to`` is invalid or ``references`` is empty.
+
+
+.. py:class:: Credits
+
+   Present the citation credits registered by imported modules.
+
+
+   .. py:method:: entries()
+
+      Return a snapshot of the registered citation entries.
+
+      :return: Explanations mapped to immutable snapshots of their references.
+
+
+
+.. py:data:: credits
+
+.. py:data:: HTTK_REFERENCE
+   :type:  httk.core.entry_types.Reference
+

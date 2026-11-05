@@ -1,0 +1,3984 @@
+httk.core
+=========
+
+.. py:module:: httk.core
+
+.. autoapi-nested-parse::
+
+   Public core APIs for loading, reporting, project anchors, and registration.
+
+   Importing this package discovers installed capability modules and exposes
+   their registered readers, writers, adapters, and related public APIs.
+
+   The deliberate public surface is defined by ``__all__``.
+
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /reference/autoapi/httk/core/atomic_write/index
+   /reference/autoapi/httk/core/building/index
+   /reference/autoapi/httk/core/citations/index
+   /reference/autoapi/httk/core/cli/index
+   /reference/autoapi/httk/core/converting/index
+   /reference/autoapi/httk/core/crypto/index
+   /reference/autoapi/httk/core/data_records/index
+   /reference/autoapi/httk/core/dataset_loader/index
+   /reference/autoapi/httk/core/datasets/index
+   /reference/autoapi/httk/core/datastream/index
+   /reference/autoapi/httk/core/digests/index
+   /reference/autoapi/httk/core/docs/index
+   /reference/autoapi/httk/core/entry_ids/index
+   /reference/autoapi/httk/core/entry_provider/index
+   /reference/autoapi/httk/core/entry_types/index
+   /reference/autoapi/httk/core/exactmath/index
+   /reference/autoapi/httk/core/fetching/index
+   /reference/autoapi/httk/core/files/index
+   /reference/autoapi/httk/core/identity/index
+   /reference/autoapi/httk/core/identity_cli/index
+   /reference/autoapi/httk/core/loading/index
+   /reference/autoapi/httk/core/memguard/index
+   /reference/autoapi/httk/core/optimade/index
+   /reference/autoapi/httk/core/plugins/index
+   /reference/autoapi/httk/core/precision/index
+   /reference/autoapi/httk/core/project/index
+   /reference/autoapi/httk/core/property_definitions/index
+   /reference/autoapi/httk/core/provenance/index
+   /reference/autoapi/httk/core/records/index
+   /reference/autoapi/httk/core/register/index
+   /reference/autoapi/httk/core/report/index
+   /reference/autoapi/httk/core/saving/index
+   /reference/autoapi/httk/core/schema_check/index
+   /reference/autoapi/httk/core/services/index
+   /reference/autoapi/httk/core/storage/index
+   /reference/autoapi/httk/core/system/index
+   /reference/autoapi/httk/core/userdirs/index
+   /reference/autoapi/httk/core/validation/index
+   /reference/autoapi/httk/core/vectors/index
+   /reference/autoapi/httk/core/views/index
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.MISSING
+   httk.core.credits
+   httk.core.BytestreamLike
+   httk.core.DatastreamLike
+   httk.core.TextstreamLike
+   httk.core.ALTERNATIVE_ID_PATTERN
+   httk.core.ALTERNATIVE_KIND_PATTERN
+   httk.core.ENTRY_ID_PATTERN
+   httk.core.IMMUTABLE_ID_PATTERN
+   httk.core.NumericVector
+   httk.core.ScalarLike
+   httk.core.VectorLike
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.MissingType
+   httk.core.CLIContext
+   httk.core.DataRecord
+   httk.core.DataRecordEntry
+   httk.core.DatasetLoader
+   httk.core.DatasetLoaderRecord
+   httk.core.DatasetMeta
+   httk.core.Dataset
+   httk.core.DatasetDistribution
+   httk.core.DatasetRecord
+   httk.core.BytestreamFileView
+   httk.core.BytestreamURLView
+   httk.core.CompressionCodec
+   httk.core.DatastreamURL
+   httk.core.TextstreamFileView
+   httk.core.TextstreamURLView
+   httk.core.EntryProvider
+   httk.core.RelatedEntry
+   httk.core.Calculation
+   httk.core.File
+   httk.core.Reference
+   httk.core.FileEntry
+   httk.core.FileRecord
+   httk.core.EntryTypeDefinition
+   httk.core.PropertyDefinition
+   httk.core.ProductLink
+   httk.core.Run
+   httk.core.RunEdge
+   httk.core.RunEntry
+   httk.core.Service
+   httk.core.ServiceRecord
+   httk.core.IdentitySkip
+   httk.core.Indexed
+   httk.core.Related
+   httk.core.Shape
+   httk.core.Skip
+   httk.core.StorageInfo
+   httk.core.StrongLink
+   httk.core.Unique
+   httk.core.WeakLink
+   httk.core.stored_property
+   httk.core.FracScalar
+   httk.core.FracVector
+   httk.core.MutableFracVector
+   httk.core.SurdScalar
+   httk.core.SurdVector
+   httk.core.Backend
+   httk.core.View
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.register_citation
+   httk.core.known_compressions
+   httk.core.register_compression
+   httk.core.check_entry_id
+   httk.core.check_immutable_id
+   httk.core.format_alternative_id
+   httk.core.format_entry_id
+   httk.core.format_immutable_id
+   httk.core.is_url_safe_id
+   httk.core.parse_alternative_id
+   httk.core.parse_entry_id
+   httk.core.parse_immutable_id
+   httk.core.fetch
+   httk.core.has_reader_for
+   httk.core.load
+   httk.core.load_many
+   httk.core.load_source
+   httk.core.combined_precision
+   httk.core.decimal_precision
+   httk.core.apply_definition_prefix
+   httk.core.known_definition_prefixes
+   httk.core.register_definition_prefix
+   httk.core.standard_entry_type
+   httk.core.register_cli_command
+   httk.core.known_entry_providers
+   httk.core.register_entry_family
+   httk.core.register_entry_provider
+   httk.core.register_entry_record
+   httk.core.register_optimade_entry_binding
+   httk.core.register_format_adapter
+   httk.core.register_format_serializer
+   httk.core.register_reader
+   httk.core.register_writer
+   httk.core.known_project_member_kinds
+   httk.core.project_member_handler
+   httk.core.register_project_member_kind
+   httk.core.load_entry_type_definition
+   httk.core.load_property_definition
+   httk.core.register_entry_type_definition
+   httk.core.register_property_definition
+   httk.core.has_writer_for
+   httk.core.save
+   httk.core.content_id
+   httk.core.numpy_available
+   httk.core.to_numeric
+   httk.core.to_numeric_scalar
+   httk.core.coerce
+   httk.core.coerce_view
+   httk.core.unview
+   httk.core.unwrap
+
+
+Package Contents
+----------------
+
+.. py:data:: MISSING
+   :type:  Final
+
+   The shared sentinel for an unset/not-provided value.
+
+.. py:class:: MissingType
+
+   The type of the :data:`MISSING` sentinel; a singleton with a stable pickle identity.
+
+
+.. py:data:: credits
+
+.. py:function:: register_citation(*, applies_to, references)
+
+   Register one or more references under a human-readable explanation.
+
+   References are normalized on registration and duplicate references under
+   the same explanation are retained only once. The registration is visible
+   through :data:`credits`, allowing imported modules to contribute their
+   citation requirements as they are loaded.
+
+   :param applies_to: Human-readable explanation of when the references apply.
+   :param references: One reference, mapping, or sequence of references to register.
+   :raises TypeError: If ``references`` is not a reference, mapping, or sequence of references.
+   :raises ValueError: If ``applies_to`` is invalid or ``references`` is empty.
+
+
+.. py:class:: CLIContext
+
+   Carry invocation context to a registered top-level command.
+
+   :param program: Program name used in command output and help.
+   :param cwd: Working directory selected for the command invocation.
+
+
+   .. py:attribute:: program
+      :type:  str
+
+
+   .. py:attribute:: cwd
+      :type:  pathlib.Path
+
+
+.. py:class:: DataRecord
+
+   Store one canonical JSON value of one declared property.
+
+   ``value_json`` is canonical JSON, with sorted object keys, compact
+   separators, and no non-finite numeric values. ``value`` decodes it on
+   access; ``value_number`` exposes finite numeric values for numeric queries.
+   The human-readable and immutable identifiers and timestamp metadata are
+   excluded from content identity.
+
+   :param definition_id: The property definition IRI for the value.
+   :param name: The property name.
+   :param value_json: The canonical JSON representation of the value.
+   :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+   :param immutable_id: The per-revision immutable id; minted by the store when None.
+   :param last_modified: The optional timezone-aware metadata timestamp.
+
+
+   .. py:attribute:: definition_id
+      :type:  str
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: value_json
+      :type:  str
+
+
+   .. py:attribute:: id
+      :type:  Annotated[str | None, IdentitySkip(), Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: immutable_id
+      :type:  Annotated[str | None, IdentitySkip(), Unique()]
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+   .. py:property:: type
+      :type: str
+
+
+      Return the internal (unprefixed) entry type name.
+
+
+   .. py:property:: value
+      :type: Any
+
+
+      Decode and return the stored property value.
+
+
+   .. py:property:: value_number
+      :type: float | None
+
+
+      The decoded numeric value, stored as a numeric SQL query column.
+
+
+   .. py:method:: from_value(definition_id, name, value, *, id = None, immutable_id = None, last_modified = None)
+      :classmethod:
+
+
+      Encode a value canonically and construct its data record.
+
+      :param definition_id: The property definition IRI for the value.
+      :param name: The property name.
+      :param value: The JSON value to encode.
+      :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+      :param immutable_id: The per-revision immutable id; minted by the store when None.
+      :param last_modified: The optional timezone-aware metadata timestamp.
+      :return: A data record containing the canonical JSON value.
+      :raises TypeError: If the value contains an unsupported object.
+      :raises ValueError: If the value is circular or contains a non-finite number, or if ``definition_id`` or ``name`` is invalid or ``last_modified`` is not timezone-aware.
+
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+      Coerce a mapping or existing record into a :class:`DataRecord`.
+
+      :param obj: A data record instance or field mapping.
+      :return: The existing or newly constructed data record.
+      :raises TypeError: If ``obj`` is neither a data record nor a mapping.
+      :raises ValueError: If the mapping has unknown or invalid fields.
+
+
+
+.. py:class:: DataRecordEntry
+
+   Logical entry family for served :class:`DataRecord` records.
+
+   This family is not itself storable; store a ``DataRecord`` directly.
+
+
+   .. py:attribute:: type
+      :value: 'records'
+
+
+
+   .. py:attribute:: definition_id
+      :value: 'https://schemas.httk.org/defs/v0.1/entrytypes/records'
+
+
+
+.. py:class:: DatasetLoader(identifier, source, decode_object = None, **hints)
+
+   Lazy loader for httk dataset files, resolved only when data is first accessed.
+
+   A ``DatasetLoader`` is a declare-time placeholder: constructing it records its arguments
+   and performs no I/O. The source is read the first time ``data``, ``meta``, or ``index``
+   is accessed. Files are either plain JSON (any JSON value is exposed as ``data`` with
+   ``meta``/``index`` set to ``None``) or a structured JSON-LD document (with ``@context``,
+   header fields, ``data``, and optional ``indicies``) whose header is exposed via ``meta``,
+   datasets via ``data.<name>``, and lookup indices via ``index.<name>``.
+
+   Loaders that share an ``identifier`` deduplicate through a class-level registry: the
+   first load wins, and later loaders reusing that identifier return the same result while
+   their ``source`` and ``decode_object`` arguments are ignored. Keeping identifiers unique
+   is the caller's responsibility. Not thread-safe.
+
+   Format is resolved from the source name after stripping any compression suffix: a ``.json``
+   name (e.g. ``data.json`` or ``data.json.gz``) is parsed as JSON; any other recognizable
+   suffix raises ``ValueError``; a source with no determinable name is treated as JSON.
+   Compression is handled transparently by the stream layer, so ``.json.gz`` and similar load
+   directly. A plain ``.sqlar`` file is an alternative structured JSON-LD representation. It
+   contains ``header.json``, optional ``indicies.json``, scalar ``data/{D}.json`` members, and
+   list members at ``data/{D}/{i:05d}.json`` or ``data/{D}/{i:05d}/{field}.json``. Sqlar sources
+   require a real filename because their immutable SQLite connection is retained for the
+   lifetime of the cached load; they cannot be compressed, streamed, or loaded from content.
+   Empty list datasets and empty dictionary records cannot be represented and are rejected by
+   the writer; individual members are limited to 256 MiB. Sqlar-backed record/sequence/data
+   views (and ``DatasetLoaderRecord``) pickle by
+   materializing to plain containers; live iterators over them are not picklable.
+   A ``str``/``Path`` source is interpreted as a filename unless its scheme marks it
+   as a URL (``http``, ``https``, ``ftp``, ``file``); bare network URLs are refused at read time,
+   so pass ``kind="url"`` or a ``urllib.request.Request``. Pass ``kind="content"`` for literal
+   content or ``kind="filename"`` to force a filename interpretation.
+
+   .. rubric:: Example
+
+   symmetry_basics = DatasetLoader("symmetry_basics", "data/spacegroup_symbols.json")
+   spacegroups = symmetry_basics.data.spacegroups  # first access triggers the load
+
+   :param identifier: The deduplication key for this load.
+   :param source: The filename, URL-like stream, request, or literal content to read.
+   :param decode_object: An optional callback for JSON-LD objects identified by context URLs.
+   :param \**hints: Stream interpretation hints such as ``kind``.
+
+
+   .. py:property:: data
+      :type: Any
+
+
+      Return the lazily loaded dataset value.
+
+
+   .. py:property:: meta
+      :type: DatasetMeta | None
+
+
+      Return structured-document metadata, or ``None`` for plain JSON.
+
+
+   .. py:property:: index
+      :type: DatasetLoaderRecord | None
+
+
+      Return structured-document lookup indices, or ``None`` when absent.
+
+
+.. py:class:: DatasetLoaderRecord(data)
+
+   Bases: :py:obj:`collections.abc.Mapping`\ [\ :py:obj:`str`\ , :py:obj:`Any`\ ]
+
+
+   Read-only attribute and mapping view over a ``Mapping[str, Any]``.
+
+   Top-level keys are reachable both as attributes (``record.name``) and as items
+   (``record["name"]``); the wrapped values are the plain parsed JSON and are not
+   themselves wrapped. Supports iteration over keys, ``len()``, ``in``, and ``keys()``.
+
+   :param data: The parsed top-level object exposed by this view.
+
+
+   .. py:method:: keys()
+
+      Return a dynamic view of the record's top-level keys.
+
+      :return: The wrapped mapping's keys view.
+
+
+
+.. py:class:: DatasetMeta
+
+   Describe header metadata extracted from a structured JSON-LD document.
+
+   :param context: The raw document context.
+   :param id: The document identifier, if present.
+   :param type_: The document type, if present.
+   :param header: Remaining top-level header fields.
+   :param dataset_ids: Dataset names mapped to their identifiers.
+   :param fields: Dataset names mapped to their field property URLs.
+
+
+   .. py:attribute:: context
+      :type:  dict[str, Any]
+
+      The raw ``@context`` object.
+
+
+   .. py:attribute:: id
+      :type:  str | None
+
+      The document ``@id``, or ``None`` if absent.
+
+
+   .. py:attribute:: type_
+      :type:  str | None
+
+      The document ``@type``, or ``None`` if absent (trailing underscore avoids the builtin ``type``).
+
+
+   .. py:attribute:: header
+      :type:  dict[str, Any]
+
+      All remaining top-level keys except ``data``, ``indicies``, and ``@``-keys (titles, creator, license, provenance, ...).
+
+
+   .. py:attribute:: dataset_ids
+      :type:  dict[str, str]
+
+      Mapping of dataset name to its ``@id``.
+
+
+   .. py:attribute:: fields
+      :type:  dict[str, dict[str, str]]
+
+      Mapping of dataset name to a mapping of field name to its property URL.
+
+
+.. py:class:: Dataset
+
+   Describe one published dataset independently of a transport or provider.
+
+   ``id`` and ``publisher_id`` are absolute IRIs.  The remaining fields are
+   human-readable metadata and retain their supplied text exactly.
+
+   :param id: The dataset's absolute IRI.
+   :param title: The dataset's human-readable title.
+   :param description: A non-empty description of the dataset.
+   :param publisher_id: The publisher's absolute IRI.
+   :param publisher_name: The publisher's human-readable name.
+   :param distributions: The dataset's retrievable representations.
+
+
+   .. py:attribute:: id
+      :type:  str
+
+
+   .. py:attribute:: title
+      :type:  str
+
+
+   .. py:attribute:: description
+      :type:  str
+
+
+   .. py:attribute:: publisher_id
+      :type:  str
+
+
+   .. py:attribute:: publisher_name
+      :type:  str
+
+
+   .. py:attribute:: distributions
+      :type:  tuple[DatasetDistribution, Ellipsis]
+      :value: ()
+
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+      Coerce a mapping or existing dataset into a :class:`Dataset`.
+
+      :param obj: A dataset instance or a mapping with exactly the dataset fields.
+      :return: The existing or newly constructed dataset.
+      :raises TypeError: If ``obj`` is neither a dataset nor a mapping.
+      :raises ValueError: If the mapping has missing, unknown, or invalid fields.
+
+
+
+.. py:class:: DatasetDistribution
+
+   Describe one retrievable representation of a dataset.
+
+   Identifier and vocabulary fields must be well-formed absolute IRIs.
+   ``access_url`` may instead be a root-relative URL for later resolution by
+   a serving application. ``byte_size`` is a non-negative integer, and
+   ``sha256`` is a lowercase hexadecimal digest.
+
+   :param id: An optional identifier for this representation.
+   :param access_url: An optional URL from which the representation can be retrieved.
+   :param media_type_iri: An optional IRI identifying the media type.
+   :param format_iri: An optional IRI identifying the representation format.
+   :param byte_size: The optional representation size in bytes.
+   :param sha256: The optional lowercase SHA-256 digest.
+
+
+   .. py:attribute:: id
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: access_url
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: media_type_iri
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: format_iri
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: byte_size
+      :type:  int | None
+      :value: None
+
+
+
+   .. py:attribute:: sha256
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+      Coerce a distribution instance or exact-field mapping.
+
+      :param obj: A distribution instance or a mapping of distribution fields.
+      :return: The existing or newly constructed distribution.
+      :raises TypeError: If ``obj`` is neither a distribution nor a mapping.
+      :raises ValueError: If the mapping has unknown or invalid fields.
+
+
+
+.. py:class:: DatasetRecord
+
+   Bases: :py:obj:`Dataset`
+
+
+   Store one :class:`Dataset` using the core dataset storage contract.
+
+   :param id: The dataset's absolute IRI.
+   :param title: The dataset's human-readable title.
+   :param description: A non-empty description of the dataset.
+   :param publisher_id: The publisher's absolute IRI.
+   :param publisher_name: The publisher's human-readable name.
+   :param distributions: The dataset's retrievable representations.
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+      Coerce a dataset record, neutral dataset, or field mapping.
+
+      :param obj: A dataset record, neutral dataset, or exact-field mapping.
+      :return: The existing or newly constructed dataset record.
+      :raises TypeError: If ``obj`` is not a dataset or mapping.
+      :raises ValueError: If the mapping has unknown, missing, or invalid fields.
+
+
+
+.. py:class:: BytestreamFileView(obj, **hints)
+
+   Bases: :py:obj:`httk.core.datastream.bytestream_view.BytestreamView`, :py:obj:`io.IOBase`, :py:obj:`httk.core.datastream.bytestream_api.BytestreamAPI`
+
+
+   A view presenting an underlying data streaming backend via an io.IOBase-like API.
+
+   :param obj: Byte-stream source to present through the file API.
+   :param \**hints: Backend-selection and compression hints.
+
+
+   .. py:method:: unwrap()
+
+      Return the raw representation of the wrapped backend.
+
+      :return: The backend's most raw available representation.
+
+
+
+   .. py:property:: name
+      :type: str | None
+
+
+      Return the backend's source name when one exists.
+
+
+   .. py:property:: closed
+      :type: bool
+
+
+      Report whether the backend is closed.
+
+
+   .. py:method:: close()
+
+      Close the underlying backend.
+
+
+
+   .. py:method:: readable()
+
+      Report that the view supports reading.
+
+      :return: Always ``True``.
+
+
+
+   .. py:method:: writable()
+
+      Report that the view does not support writing.
+
+      :return: Always ``False``.
+
+
+
+   .. py:method:: seekable()
+
+      Report whether the backend supports seeking and telling.
+
+      :return: Whether both operations are available.
+
+
+
+   .. py:method:: flush()
+
+      Flush the backend when it provides flushing.
+
+      :raises ValueError: If the view is closed.
+
+
+
+   .. py:method:: read(size = -1)
+
+      Read up to ``size`` bytes, or all remaining bytes when ``size`` is negative.
+
+      :param size: Maximum number of bytes to read; ``None`` also means all remaining bytes.
+      :return: The bytes read from the stream.
+      :raises ValueError: If the view is closed.
+
+
+
+   .. py:method:: readline(size = -1)
+
+      Read one line, optionally limited to ``size`` bytes.
+
+      :param size: Maximum number of bytes to read; ``None`` means no limit.
+      :return: The line read, including its newline when present.
+      :raises ValueError: If the view is closed.
+
+
+
+   .. py:method:: readlines(hint = -1)
+
+      Read lines until EOF or until the accumulated size reaches ``hint``.
+
+      :param hint: Approximate minimum number of bytes to collect, or a negative value for no limit.
+      :return: The lines read from the stream.
+      :raises ValueError: If the view is closed.
+
+
+
+   .. py:method:: seek(offset, whence = io.SEEK_SET)
+
+      Move the stream position and discard buffered line data.
+
+      :param offset: Position adjustment interpreted according to ``whence``.
+      :param whence: Reference point for ``offset``.
+      :return: The resulting absolute stream position.
+      :raises ValueError: If the view is closed.
+      :raises io.UnsupportedOperation: If the backend is not seekable.
+
+
+
+   .. py:method:: tell()
+
+      Return the logical stream position before buffered line data.
+
+      :return: The logical absolute stream position.
+      :raises ValueError: If the view is closed.
+      :raises io.UnsupportedOperation: If the backend does not support telling.
+
+
+
+   .. py:method:: detach()
+
+      Reject detaching because the view owns its backend interface.
+
+      :raises io.UnsupportedOperation: Always, because detaching is unsupported.
+
+
+
+.. py:type:: BytestreamLike
+   :canonical: bytestream_backend.BytestreamBackend | bytestream_view.BytestreamView | io.IOBase | io.BytesIO | bytes | bytearray | str | pathlib.Path | urllib.request.Request
+
+
+.. py:class:: BytestreamURLView(obj, **hints)
+
+   Bases: :py:obj:`httk.core.datastream.bytestream_view.BytestreamView`, :py:obj:`str`
+
+
+   A view presenting an underlying data streaming backend via a URL string.
+   This view is mostly useful for providing a URL to functions that will open it.
+   Note: this view is not lazy (this is impossible for views inheriting str, since str is immutable).
+
+   Raises TypeError if created with a streaming data source that does not come with a URL.
+
+   :param obj: Byte-stream source whose URL should be presented.
+   :param \**hints: Backend-selection, consent, timeout, and compression hints.
+   :raises TypeError: If the source has no URL.
+
+
+   .. py:method:: unwrap()
+
+      Return the raw representation of the wrapped backend.
+
+      :return: The backend's most raw available representation.
+
+
+
+.. py:class:: CompressionCodec
+
+   A decompression codec for a single container format.
+
+   A codec is an orthogonal layer below the datastream backends: it turns a compressed
+   binary stream into an uncompressed binary stream, independently of where the compressed
+   bytes come from (a filename, an open file, raw bytes, or a remote response).
+
+   :param name: Canonical name used to select the codec explicitly.
+   :param extensions: Filename suffixes that identify the codec.
+   :param magics: Leading byte signatures used to detect the codec.
+   :param open_stream: Function that wraps compressed bytes for reading.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+      Canonical, lower-case codec name (e.g. ``"gzip"``); also how an explicit hint selects it.
+
+
+   .. py:attribute:: extensions
+      :type:  tuple[str, Ellipsis]
+
+      Recognized filename suffixes including the leading dot (e.g. ``(".gz",)``).
+
+
+   .. py:attribute:: magics
+      :type:  tuple[bytes, Ellipsis]
+
+      Leading magic-byte signatures; an empty tuple means the format cannot be sniffed.
+
+
+   .. py:attribute:: open_stream
+      :type:  collections.abc.Callable[[io.IOBase], io.IOBase]
+
+      Wrap a compressed binary stream and return a readable, decompressed binary stream.
+
+
+.. py:type:: DatastreamLike
+   :canonical: BytestreamLike | TextstreamLike | DatastreamURL
+
+
+.. py:class:: DatastreamURL(url, *, timeout = None)
+
+   An explicit network-consent value carrying a URL and optional timeout for lazy consumers, which resolve it through the existing
+   fetch/loader machinery; constructing it performs no network I/O.
+
+   :param url: URL whose explicit use permits network-backed lazy access.
+   :param timeout: Optional timeout to apply when the URL is opened.
+   :raises ValueError: If the URL uses an unsupported scheme.
+
+
+   .. py:property:: url
+      :type: str
+
+
+      Return the explicit URL.
+
+
+   .. py:property:: timeout
+      :type: float | None
+
+
+      Return the timeout to use when opening the URL.
+
+
+.. py:class:: TextstreamFileView(obj, **hints)
+
+   Bases: :py:obj:`httk.core.datastream.textstream_view.TextstreamView`, :py:obj:`io.TextIOBase`, :py:obj:`httk.core.datastream.textstream_api.TextstreamAPI`
+
+
+   A view presenting an underlying data streaming backend via the full io.TextIOBase API, which is a superset of TextstreamAPI.
+
+   :param obj: Text-stream source to present through the text file API.
+   :param \**hints: Backend-selection, encoding, and compression hints.
+
+
+   .. py:method:: unwrap()
+
+      Return the raw representation of the wrapped backend.
+
+      :return: The backend's most raw available representation.
+
+
+
+   .. py:property:: name
+      :type: str | None
+
+
+      Return the backend's source name when one exists.
+
+
+   .. py:property:: closed
+      :type: bool
+
+
+      Report whether the backend is closed.
+
+
+   .. py:method:: close()
+
+      Close the underlying backend.
+
+
+
+   .. py:method:: readable()
+
+      Report that the view supports reading.
+
+      :return: Always ``True``.
+
+
+
+   .. py:method:: writable()
+
+      Report that the view does not support writing.
+
+      :return: Always ``False``.
+
+
+
+   .. py:method:: seekable()
+
+      Report whether the backend supports seeking and telling.
+
+      :return: Whether both operations are available.
+
+
+
+   .. py:method:: flush()
+
+      Flush the backend when it provides flushing.
+
+      :raises ValueError: If the view is closed.
+
+
+
+   .. py:method:: read(size = -1)
+
+      Read up to ``size`` characters, or all remaining characters when ``size`` is negative.
+
+      :param size: Maximum number of characters to read; ``None`` also means all remaining characters.
+      :return: The text read from the stream.
+      :raises ValueError: If the view is closed.
+
+
+
+   .. py:method:: readline(size = -1)
+
+      Read one line, optionally limited to ``size`` characters.
+
+      :param size: Maximum number of characters to read; ``None`` means no limit.
+      :return: The line read, including its newline when present.
+      :raises ValueError: If the view is closed.
+
+
+
+   .. py:method:: readlines(hint = -1)
+
+      Read lines until EOF or until the accumulated size reaches ``hint``.
+
+      :param hint: Approximate minimum number of characters to collect, or a negative value for no limit.
+      :return: The lines read from the stream.
+      :raises ValueError: If the view is closed.
+
+
+
+   .. py:method:: seek(offset, whence = io.SEEK_SET)
+
+      Move the stream position and discard buffered line data.
+
+      :param offset: Position adjustment interpreted according to ``whence``.
+      :param whence: Reference point for ``offset``.
+      :return: The resulting absolute stream position.
+      :raises ValueError: If the view is closed.
+      :raises io.UnsupportedOperation: If the backend is not seekable.
+
+
+
+   .. py:method:: tell()
+
+      Return the logical stream position before buffered line data.
+
+      :return: The logical absolute stream position.
+      :raises ValueError: If the view is closed.
+      :raises io.UnsupportedOperation: If the backend does not support telling.
+
+
+
+   .. py:method:: detach()
+
+      Reject detaching because the view owns its backend interface.
+
+      :raises io.UnsupportedOperation: Always, because detaching is unsupported.
+
+
+
+   .. py:property:: encoding
+      :type: str | None
+
+
+      Return the backend's text encoding when available.
+
+
+   .. py:property:: errors
+      :type: str | None
+
+
+      Return the backend's error handling mode when available.
+
+
+   .. py:property:: newlines
+      :type: str | tuple[str, Ellipsis] | None
+
+
+      Return the newline conventions observed by the backend when available.
+
+
+.. py:type:: TextstreamLike
+   :canonical: textstream_backend.TextstreamBackend | textstream_view.TextstreamView | io.TextIOBase | io.StringIO | str | pathlib.Path | urllib.request.Request
+
+
+.. py:class:: TextstreamURLView(obj, **hints)
+
+   Bases: :py:obj:`httk.core.datastream.textstream_view.TextstreamView`, :py:obj:`str`
+
+
+   A view presenting an underlying data streaming backend via a URL string.
+   This view is mostly useful for providing a URL to functions that will open it.
+   Note: this view is not lazy (this is impossible for views inheriting str, since str is immutable).
+
+   Raises TypeError if created with a streaming data source that does not come with a URL.
+
+   :param obj: Text-stream source whose URL should be presented.
+   :param \**hints: Backend-selection, consent, encoding, timeout, and compression hints.
+   :raises TypeError: If the source has no URL.
+
+
+   .. py:method:: unwrap()
+
+      Return the raw representation of the wrapped backend.
+
+      :return: The backend's most raw available representation.
+
+
+
+.. py:function:: known_compressions()
+
+   Return the registered codec names, in registration order.
+
+   :return: The registered codec names.
+
+
+.. py:function:: register_compression(codec)
+
+   Register (or replace) a codec under its :attr:`~CompressionCodec.name` (case-insensitive).
+
+   :param codec: Codec to add to the registry.
+
+
+.. py:data:: ALTERNATIVE_ID_PATTERN
+
+.. py:data:: ALTERNATIVE_KIND_PATTERN
+
+.. py:data:: ENTRY_ID_PATTERN
+
+.. py:data:: IMMUTABLE_ID_PATTERN
+
+.. py:function:: check_entry_id(value)
+
+   Check an entry identifier, warning for recommended-syntax deviations.
+
+   :param value: Entry identifier to check.
+   :return: The unchanged identifier.
+   :raises ValueError: If the identifier is not URL-safe.
+
+
+.. py:function:: check_immutable_id(value)
+
+   Check an immutable identifier, warning for recommended-syntax deviations.
+
+   :param value: Immutable identifier to check.
+   :return: The unchanged identifier.
+   :raises ValueError: If the identifier is not URL-safe.
+
+
+.. py:function:: format_alternative_id(entry_id, kind, revision = None)
+
+   Format an alternative identifier for a named alternative representation of an entry.
+
+   :param entry_id: URL-safe entry identifier, including non-conforming user identifiers.
+   :param kind: Alternative-kind token matching ``[a-z][a-z0-9_]*``.
+   :param revision: Optional positive revision number of the alternative.
+   :return: The formatted alternative identifier.
+   :raises TypeError: If ``revision`` is given and is not a non-boolean integer.
+   :raises ValueError: If ``kind`` is malformed, ``entry_id`` is not URL-safe, or ``revision`` is less than one.
+
+
+.. py:function:: format_entry_id(base, series, number)
+
+   Format a recommended entry identifier.
+
+   :param base: Dot-separated identifier namespace.
+   :param series: Identifier series token.
+   :param number: Positive entry number.
+   :return: The formatted entry identifier.
+   :raises TypeError: If ``number`` is not a non-boolean integer.
+   :raises ValueError: If the formatted identifier does not match the recommended syntax.
+
+
+.. py:function:: format_immutable_id(entry_id, revision)
+
+   Format an immutable identifier for an entry revision.
+
+   :param entry_id: URL-safe entry identifier, including non-conforming user identifiers.
+   :param revision: Positive revision number.
+   :return: The formatted immutable identifier.
+   :raises TypeError: If ``revision`` is not a non-boolean integer.
+   :raises ValueError: If ``entry_id`` is not URL-safe or ``revision`` is less than one.
+
+
+.. py:function:: is_url_safe_id(value)
+
+   Return whether an identifier is safe for use in a URL path segment.
+
+   :param value: Identifier to inspect.
+   :return: ``True`` if the value is non-empty printable ASCII without ``/``.
+
+
+.. py:function:: parse_alternative_id(value)
+
+   Parse an alternative identifier with a recommended embedded entry id.
+
+   :param value: Alternative identifier to parse.
+   :return: The ``(entry_id, kind, revision)`` parts (``revision`` ``None`` when absent), or ``None`` if invalid.
+
+
+.. py:function:: parse_entry_id(value)
+
+   Parse a recommended entry identifier.
+
+   :param value: Entry identifier to parse.
+   :return: The ``(base, series, number)`` parts, or ``None`` if invalid.
+
+
+.. py:function:: parse_immutable_id(value)
+
+   Parse an immutable identifier with a recommended embedded entry id.
+
+   :param value: Immutable identifier to parse.
+   :return: The ``(entry_id, revision)`` parts, or ``None`` if invalid.
+
+
+.. py:class:: EntryProvider
+
+   Bases: :py:obj:`abc.ABC`
+
+
+   Supplies described, queryable entry types as plain JSON-able records.
+
+   A provider serves one or more *entry types*, each identified by a name (e.g.
+   ``"structures"``). For every entry type it describes the entry type and its
+   properties, states how each served property maps to a record key, and
+   yields the records themselves.
+
+   Three notions define the contract:
+
+   - **Definitions** (:meth:`entry_types`) are first-class
+     :class:`~httk.core.property_definitions.EntryTypeDefinition` objects — the
+     OPTIMADE property-definition model shared across httk₂ modules. A provider
+     obtains them from the vendored standards (via
+     :func:`~httk.core.property_definitions.standard_entry_type` or
+     :func:`~httk.core.register.load_entry_type_definition`) or
+     builds them from
+     :meth:`~httk.core.property_definitions.EntryTypeDefinition.from_optimade`
+     and :meth:`~httk.core.property_definitions.PropertyDefinition.from_simple`.
+     A standard definition typically describes more properties than a provider
+     serves; the served subset is exactly the property names in
+     :meth:`property_keys`.
+   - **Property keys** (:meth:`property_keys`) map each served property name to
+     the key under which that property's value is found in a record. Every entry
+     type's property-key map MUST cover at least ``id`` and ``type``, and every
+     served name MUST be described by the entry type's definition (custom
+     properties must therefore live in an
+     :meth:`~httk.core.property_definitions.EntryTypeDefinition.extended`
+     definition).
+   - **Records** (:meth:`records`) are plain JSON-able mappings keyed by the
+     record keys named in :meth:`property_keys` (values are strings, numbers,
+     booleans, ``None``, or nested lists/dicts of the same).
+
+   A consumer combines the three: the definitions become the served schema, the
+   property keys drive both response-field extraction and filter handling, and
+   the records are loaded into a store the consumer queries.
+
+   A provider may additionally declare **relationships**
+   (:meth:`relationships`): a flat tuple of :class:`~httk.core.RelatedEntry` values per
+   entry id, each naming a related entry (and optionally the relationship's
+   ``description``/``role`` metadata) that the consumer serves as the entry's
+   relationships block.
+
+
+   .. py:method:: entry_types()
+      :abstractmethod:
+
+
+      Return the served entry types keyed by name.
+
+      Each value is an
+      :class:`~httk.core.property_definitions.EntryTypeDefinition` describing
+      the entry type and its properties. The subset a provider actually serves
+      is named by :meth:`property_keys`; a definition may describe more
+      properties than are served.
+
+      :return: The served entry-type definitions keyed by entry type name.
+
+
+
+   .. py:method:: property_keys(entry_type)
+      :abstractmethod:
+
+
+      Return the served-property-name to record-key map for ``entry_type``.
+
+      The mapping MUST include entries for at least ``id`` and ``type``. Every
+      key names a property described by :meth:`entry_types`; every value names
+      the key under which that property's value is found in a record from
+      :meth:`records`.
+
+      :param entry_type: The entry type whose property mapping is requested.
+      :return: The served property names mapped to record keys.
+
+
+
+   .. py:method:: records(entry_type)
+      :abstractmethod:
+
+
+      Yield the records for ``entry_type`` as plain JSON-able mappings.
+
+      Each record is a mapping keyed by the record keys named in
+      :meth:`property_keys`; values are JSON-able (strings, numbers, booleans,
+      ``None``, or nested lists/dicts of the same).
+
+      :param entry_type: The entry type whose records are requested.
+      :return: An iterable of JSON-able records.
+
+
+
+   .. py:method:: relationships(entry_type)
+
+      Return the related entries for each record of ``entry_type``.
+
+      The result maps an entry id to a flat tuple of :class:`~httk.core.RelatedEntry`
+      values, e.g. ``{"struct-1": (RelatedEntry("references", "ref-1"),
+      RelatedEntry("references", "ref-2", description="Cites the method"))}``.
+      Grouping the related entries by related entry type is the serving
+      layer's concern (JSON:API groups them at render time). This is the
+      neutral source of an OPTIMADE **relationships** block: a consumer turns
+      each related entry into a resource identifier under its entry type
+      (carrying the ``description``/``role`` metadata when present), and an
+      ``include=<type>`` request then embeds those related resources. The
+      default implementation returns an empty mapping (no relationships); a
+      provider overrides it to declare them. Ids referring to records this
+      provider (or a sibling provider serving the related type) does not supply
+      are simply not resolvable by the consumer.
+
+      :param entry_type: The entry type whose relationships are requested.
+      :return: Related entries keyed by the source record identifier.
+
+
+
+   .. py:method:: reverse_relationships()
+
+      Return derived reverse related entries keyed by target entry type and id.
+
+      A provider that owns edge records (e.g. run provenance edges) exposes,
+      through this hook, the *reverse* view of those edges: for every entry it
+      points at, the related entries a consumer should attach to that target
+      entry's relationships block. The result maps a target entry type to a
+      mapping of target entry id to a flat tuple of
+      :class:`~httk.core.RelatedEntry` values, e.g. ``{"structures":
+      {"struct-1": (RelatedEntry("_httk_runs", "run-1", role="input",
+      relationship="_httk_is_input"),)}}``.
+
+      Unlike :meth:`relationships`, which is keyed by a provider's *own* served
+      records, this is keyed by the *target* entry type and id — the reverse
+      edge belongs to an entry another (sibling) provider serves. A consumer
+      merges these related entries into the target entry's block; targets no
+      served provider supplies are simply not resolvable. The default
+      implementation returns an empty mapping (no reverse relationships); a
+      provider that owns servable edges overrides it.
+
+      :return: Related entries keyed by target entry type and then target entry id.
+
+
+
+.. py:class:: RelatedEntry
+
+   One related entry of a record, as reported by :meth:`EntryProvider.relationships`.
+
+   Mirrors the OPTIMADE v1.3 relationships model: a related entry is named by
+   its entry type and id, optionally carrying the per-identifier metadata the
+   standard defines — ``description`` (the human-readable relationship
+   description introduced in OPTIMADE v1.2 as ``meta.description``) and
+   ``role`` (the machine-readable relationship role introduced in OPTIMADE
+   v1.3 as ``meta.role``, e.g. ``"input"``/``"output"`` for the
+   calculations↔files relationship). An absent ``role`` means exactly that —
+   no role is declared and no default is assumed. ``label`` is the provenance
+   edge label (the OPTIMADE relation-object ``label``); until relation-object
+   serving exists, it is served on the OPTIMADE side as prefixed relationship
+   metadata. ``relationship`` is the served semantic relationship key (wire
+   form, set by serving edges) under which this related entry is grouped;
+   ``None`` means group by ``entry_type`` (the existing behavior).
+
+   :param entry_type: The entry type of the related entry.
+   :param id: The identifier of the related entry.
+   :param description: The human-readable relationship description, if declared.
+   :param role: The machine-readable relationship role, if declared.
+   :param label: The provenance edge label, if declared.
+   :param relationship: The served semantic relationship key this entry is grouped under, or ``None`` to group by ``entry_type``.
+
+
+   .. py:attribute:: entry_type
+      :type:  str
+
+      The entry type of the related entry (e.g. ``"references"``).
+
+
+   .. py:attribute:: id
+      :type:  str
+
+      The id of the related entry.
+
+
+   .. py:attribute:: description
+      :type:  str | None
+      :value: None
+
+
+      A human-readable description of the relationship, if declared.
+
+
+   .. py:attribute:: role
+      :type:  str | None
+      :value: None
+
+
+      The machine-readable role of the relationship, if declared.
+
+
+   .. py:attribute:: label
+      :type:  str | None
+      :value: None
+
+
+      The provenance edge label, if declared.
+
+
+   .. py:attribute:: relationship
+      :type:  str | None
+      :value: None
+
+
+      The served semantic relationship key (wire form) this entry is grouped under; ``None`` groups by ``entry_type``.
+
+
+.. py:class:: Calculation
+
+   The ``calculations`` entry type.
+
+   The calculations entry type describes calculations. Related `files` entries specified as relationships list files used or produced by a calculation. They MAY be defined as either input or output files by the `role` field inside the `meta` dictionary of the JSON:API resource identifier object. The allowed values are `input` for input files and `output` for output files. If the `role` field is not provided or the value is set to `null`, a default role SHOULD NOT be assumed. It is RECOMMENDED to order the output files in the list of calculation's relationships in a way that prioritizes the files most likely to contain details which could be used to automatically analyze the performed calculation. Such an approach minimizes the number of calculation output files that need to be analyzed to possibly identify the code, type and parameters of the performed calculation.
+
+   Schema properties:
+
+   :ivar immutable_id: The entry's immutable ID (e.g., a UUID).
+
+       **Requirements/Conventions:**
+
+       - This is important for databases having preferred IDs that point to "the latest version" of a record, but still offer access to older variants.
+       - This ID maps to the version-specific record, in case it changes in the future.
+
+   :ivar last_modified: Date and time representing when the entry was last modified.
+
+
+   .. py:attribute:: immutable_id
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  datetime.datetime | None
+      :value: None
+
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+
+.. py:class:: File
+
+   The ``files`` entry type.
+
+   The files entry type describes a file with metadata and a URL to retrieve it
+
+   Schema properties:
+
+   :ivar immutable_id: The entry's immutable ID (e.g., a UUID).
+
+       **Requirements/Conventions:**
+
+       - This is important for databases having preferred IDs that point to "the latest version" of a record, but still offer access to older variants.
+       - This ID maps to the version-specific record, in case it changes in the future.
+
+   :ivar last_modified: Date and time representing when the entry was last modified.
+
+   :ivar url: The URL to get the contents of a file.
+
+       **Requirements/Conventions:**
+
+       - The URL MUST point to the actual contents of a file (i.e. byte stream), not an intermediate (preview) representation. For example, if referring to a file on GitHub, a link should point to raw contents.
+
+   :ivar url_stable_until: Point in time until which the URL in `url` is guaranteed to stay stable.
+
+       **Requirements/Conventions:**
+
+       - `null` means that there is no stability guarantee for the URL in `url`.
+         Indefinite support could be communicated by providing a date sufficiently far in the future, for example, 9999-12-31.
+
+   :ivar name: Base name of a file.
+
+       **Requirements/Conventions:**
+
+       - File name extension is an integral part of a file name and, if available, MUST be included.
+
+   :ivar size: Size of a file in bytes.
+
+       **Requirements/Conventions:**
+
+       - If provided, it MUST be guaranteed that either exact size of a file is given or its upper bound.
+         This way if a client reserves a static buffer or truncates the download stream after this many bytes the whole file would be received.
+         Such provision is included to allow the providers to serve on-the-fly compressed files.
+
+   :ivar media_type: Media type identifier (also known as MIME type), for a file as per [RFC 6838 Media Type Specifications and Registration Procedures](https://datatracker.ietf.org/doc/html/rfc6838).
+
+   :ivar version: Version information of a file (e.g., commit, revision, timestamp).
+
+       **Requirements/Conventions:**
+
+       - If provided, it MUST be guaranteed that file contents pertaining to the same combination of id and version are the same.
+
+   :ivar modification_timestamp: Timestamp of the last modification of file contents. A modification is understood as an addition, change or deletion of one or more bytes, resulting in file contents different from the previous.
+
+       **Requirements/Conventions:**
+
+       - Timestamps of subsequent file modifications SHOULD be increasing (not earlier than previous timestamps).
+
+   :ivar description: Free-form description of a file.
+
+   :ivar checksums: Dictionary providing checksums of file contents.
+
+       **Requirements/Conventions:**
+
+       - The keys in the dictionary identify checksum functions and the values are strings containing the corresponding checksum.
+
+       - Supported dictionary keys: `md5`, `sha1`, `sha224`, `sha256`, `sha384`, `sha512`.
+         Checksums outside this list MAY be used, but their names MUST be prefixed by database-provider-specific namespace prefix.
+
+   :ivar atime: Time of last access of a file as per POSIX standard.
+
+   :ivar ctime: Time of last status change of a file as per POSIX standard.
+
+   :ivar mtime: Time of last modification of a file as per POSIX standard.
+
+       **Requirements/Conventions:**
+
+       - It should be noted that the values of `last_modified`, `modification_timestamp` and `mtime` do not necessary match.
+         `last_modified` pertains to the modification of the OPTIMADE metadata, `modification_timestamp` pertains to file contents and `mtime` pertains to the modification of the file (not necessary changing its contents).
+         For example, appending an empty string to a file would result in the change of `mtime` in some operating systems, but this would not be deemed as a modification of its contents.
+
+
+   .. py:attribute:: url
+      :type:  str
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: immutable_id
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  datetime.datetime | None
+      :value: None
+
+
+
+   .. py:attribute:: url_stable_until
+      :type:  datetime.datetime | None
+      :value: None
+
+
+
+   .. py:attribute:: size
+      :type:  int | None
+      :value: None
+
+
+
+   .. py:attribute:: media_type
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: version
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: modification_timestamp
+      :type:  datetime.datetime | None
+      :value: None
+
+
+
+   .. py:attribute:: description
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: checksums
+      :type:  collections.abc.Mapping[str, str] | None
+      :value: None
+
+
+
+   .. py:attribute:: atime
+      :type:  datetime.datetime | None
+      :value: None
+
+
+
+   .. py:attribute:: ctime
+      :type:  datetime.datetime | None
+      :value: None
+
+
+
+   .. py:attribute:: mtime
+      :type:  datetime.datetime | None
+      :value: None
+
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+
+.. py:class:: Reference
+
+   The ``references`` entry type.
+
+   The references entry type describes a reference
+
+   Schema properties:
+
+   :ivar immutable_id: The entry's immutable ID (e.g., a UUID).
+
+       **Requirements/Conventions:**
+
+       - This is important for databases having preferred IDs that point to "the latest version" of a record, but still offer access to older variants.
+       - This ID maps to the version-specific record, in case it changes in the future.
+
+   :ivar last_modified: Date and time representing when the entry was last modified.
+
+   :ivar address: Typically the location of the publisher or institution (the address field in the BibTeX specification).
+
+   :ivar annote: Additional notes or comments on the reference (the annote field in the BibTeX specification).
+
+   :ivar booktitle: The title of a book being cited; for parts of a book, use the title field instead (the booktitle field in the BibTeX specification).
+
+   :ivar chapter: The chapter, section, or similar part number (the chapter field in the BibTeX specification).
+
+   :ivar crossref: The database key of the entry being cross referenced (the crossref field in the BibTeX specification).
+
+   :ivar edition: The edition of a book (the edition field in the BibTeX specification).
+
+   :ivar howpublished: The method of publication (the howpublished field in the BibTeX specification)
+
+   :ivar institution: The sponsoring institution of a technical report (the institution field in the BibTeX specification).
+
+   :ivar journal: The name of a journal (the journal field in the BibTeX specification).
+
+   :ivar key: Used for alphabetizing, cross-referencing, and creating a label (the key field in the BibTeX specification).
+
+   :ivar month: The three-letter abbreviation of the month of publication or writing (the month field in the BibTeX specification).
+
+   :ivar note: Additional information about the reference (the note field in the BibTeX specification).
+
+   :ivar number: The number of a journal, magazine, technical report, or work in a series (the number field in the BibTeX specification).
+
+   :ivar organization: The organization sponsoring a conference or publishing a manual (the organization field in the BibTeX specification)
+
+   :ivar pages: The page number(s) of the reference (the pages field in the BibTeX specification).
+
+   :ivar publisher: The name of the publisher (the publisher field in the BibTeX specification).
+
+   :ivar school: The name of the school where a thesis was written (the school field in the BibTeX specification).
+
+   :ivar series: The name of a series or set of books (the series field in the BibTeX specification).
+
+   :ivar title: The title of the work (the title field in the BibTeX specification).
+
+   :ivar volume: The volume number of a journal or multivolume book (the volume field in the BibTeX specification).
+
+   :ivar year: The year of publication or writing.
+
+   :ivar bib_type: Type of the reference (the type field in the BibTeX specification).
+
+   :ivar authors: A list of dictionaries with names of the authors.
+
+       **Requirements/Conventions**:
+
+       - Each list member MUST be a dictionary with the following keys:
+
+           - **name**: Full name of the person, REQUIRED.
+           - **firstname**, **lastname**: Parts of the person's name, OPTIONAL.
+
+   :ivar editors: A list of dictionaries with names of the editors.
+
+       **Requirements/Conventions**:
+
+       - Each list member MUST be a dictionary with the following keys:
+
+           - **name**: Full name of the person, REQUIRED.
+           - **firstname**, **lastname**: Parts of the person's name, OPTIONAL.
+
+   :ivar doi: The doi identifier of the object being referenced.
+
+   :ivar url: The URL of the object being referenced.
+
+
+   .. py:attribute:: immutable_id
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  datetime.datetime | None
+      :value: None
+
+
+
+   .. py:attribute:: address
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: annote
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: booktitle
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: chapter
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: crossref
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: edition
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: howpublished
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: institution
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: journal
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: key
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: month
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: note
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: number
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: organization
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: pages
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: publisher
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: school
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: series
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: title
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: volume
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: year
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: bib_type
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: authors
+      :type:  tuple[collections.abc.Mapping[str, Any], Ellipsis] | None
+      :value: None
+
+
+
+   .. py:attribute:: editors
+      :type:  tuple[collections.abc.Mapping[str, Any], Ellipsis] | None
+      :value: None
+
+
+
+   .. py:attribute:: doi
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: url
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+
+.. py:function:: fetch(url, *, raw = False, timeout = None, kind = None, **kwargs)
+
+   Fetch a URL as an OPTIMADE entry or a registered file format.
+
+   ``kind="optimade"`` forces OPTIMADE handling and ``kind="load"`` forces
+   file-reader handling. With no ``kind``, a reader-claimed extension wins over
+   an OPTIMADE-shaped path; a reader-claimed basename is ambiguous and requires
+   an explicit ``kind``. ``file://`` URLs are supported in either branch.
+   Redirects follow ``urllib`` defaults.
+
+   As the explicit URL entry point, this function supplies the same network
+   consent represented by :class:`~httk.core.DatastreamURL`; it does not use
+   implicit bare-string network access for the reader branch.
+
+   :param url: URL to fetch.
+   :param raw: Whether to return a neutral payload without a format adapter.
+   :param timeout: Optional timeout for URL-backed reader access or OPTIMADE requests.
+   :param kind: Optional branch selector: ``"optimade"`` or ``"load"``.
+   :param \**kwargs: Additional options passed to the file reader.
+   :return: The fetched OPTIMADE resource or loaded file value.
+   :raises ValueError: If the URL, ``kind``, or automatic branch selection is invalid.
+
+
+.. py:class:: FileEntry
+
+   Logical entry family for served :class:`FileRecord` records.
+
+   This family is not itself storable; store a ``FileRecord`` directly.
+
+
+   .. py:attribute:: type
+      :value: 'files'
+
+
+
+   .. py:attribute:: definition_id
+      :value: 'https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files'
+
+
+
+.. py:class:: FileRecord
+
+   Bases: :py:obj:`httk.core.entry_types.File`
+
+
+   Store one OPTIMADE ``files`` entry with content identity metadata.
+
+   URL and name remain required positional fields. The URL is included in
+   identity so separate paths to identical bytes remain separate entries.
+   The human-readable and immutable identifiers, metadata timestamps, and
+   other metadata are excluded from content identity.
+   ``checksums`` is skipped because mapping fields are not SQL-storable;
+   store the flat ``sha256`` value when a storable digest is needed.
+
+   :param url: The URL to get the contents of the file.
+   :param name: The base name of the file.
+   :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+   :param immutable_id: The per-revision immutable id; minted by the store when None.
+   :param last_modified: The optional timezone-aware metadata timestamp.
+   :param url_stable_until: The optional URL stability deadline.
+   :param size: The file size in bytes, if known.
+   :param media_type: The file MIME type, if known.
+   :param version: The file version, if known.
+   :param modification_timestamp: The optional content modification timestamp.
+   :param description: An optional free-form file description.
+   :param checksums: Optional checksums, kept out of SQL storage.
+   :param atime: The optional POSIX access timestamp.
+   :param ctime: The optional POSIX status-change timestamp.
+   :param mtime: The optional POSIX modification timestamp.
+   :param sha256: The optional flat SHA-256 digest.
+
+
+   .. py:attribute:: id
+      :type:  Annotated[str | None, IdentitySkip(), Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: immutable_id
+      :type:  Annotated[str | None, IdentitySkip(), Unique()]
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+   .. py:attribute:: url_stable_until
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+   .. py:attribute:: size
+      :type:  int | None
+      :value: None
+
+
+
+   .. py:attribute:: media_type
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: version
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: modification_timestamp
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+   .. py:attribute:: description
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: checksums
+      :type:  Annotated[collections.abc.Mapping[str, str] | None, Skip()]
+      :value: None
+
+
+
+   .. py:attribute:: atime
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+   .. py:attribute:: ctime
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+   .. py:attribute:: mtime
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+   .. py:attribute:: sha256
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:property:: type
+      :type: str
+
+
+      Return the served entry type name.
+
+
+.. py:function:: has_reader_for(name)
+
+   Return whether ``name`` matches a registered reader key.
+
+   :param name: Filename or URL path whose reader registration is checked.
+   :return: Whether the name matches a registered extension or exact basename.
+
+
+.. py:function:: load(filename, *, raw = False, **kwargs)
+
+   Load ``filename`` and adapt its neutral payload to a domain object.
+
+   Dispatch strips at most one recognized compression suffix (``.gz``,
+   ``.bz2``, ...) to obtain an *inner* name, then selects a reader by that
+   inner name's extension (``.cif``, ``.poscar``, ...) or, failing that, by its
+   exact basename (``POSCAR``, ``CONTCAR``; case-insensitive). The selected
+   reader always receives the **original** ``filename``; readers open it
+   through the datastream layer, which transparently decompresses. By default,
+   a mapping with a string ``"format"`` tag is passed to the registered domain
+   adapter for that format. ``raw=True`` is the neutral-payload escape hatch.
+   Payloads with unknown formats, and non-mapping reader results, pass through
+   unchanged.
+
+   :param filename: Local filename to read.
+   :param raw: Whether to return the neutral reader result without adaptation.
+   :param \**kwargs: Additional options passed to the selected reader.
+   :return: The loaded and optionally adapted value.
+   :raises ValueError: If ``filename`` is a URL or no reader matches it.
+
+
+.. py:function:: load_many(sources, *, processes = None, errors = 'raise', **kwargs)
+
+   Load multiple sources lazily, preserving input order.
+
+   ``processes=None`` uses the process-pool default. ``processes=0`` or
+   ``processes=1`` loads in the current process, which is also the guaranteed
+   path for readers registered at runtime. Parallel workers rediscover
+   installed registration packages, but runtime registrations are not
+   guaranteed to be present in a fresh worker. Parallel work uses bounded
+   ordered futures rather than :meth:`~concurrent.futures.Executor.map` so
+   worker failures and result-pickling failures can be returned per source.
+
+   :param sources: Sources accepted by :func:`load`.
+   :param processes: Number of worker processes, or ``None`` for the default.
+   :param errors: Whether to raise failures or yield them as exception values.
+   :param \**kwargs: Options forwarded to every :func:`load` call.
+   :return: A lazy iterator of ``(source, result)`` pairs in input order.
+   :raises ValueError: If ``errors`` is not ``"raise"`` or ``"return"``, or if
+       ``processes`` is negative.
+   :raises TypeError: If ``processes`` is not an integer or ``None``.
+
+
+.. py:function:: load_source(source, name, *, raw = False, **kwargs)
+
+   Load ``source`` using the reader selected by ``name``.
+
+   :param source: Source passed to the selected reader.
+   :param name: Name used for extension or exact-basename dispatch.
+   :param raw: Whether to return the neutral reader result without adaptation.
+   :param \**kwargs: Additional options passed to the selected reader.
+   :return: The reader result, optionally adapted to a domain value.
+   :raises ValueError: If no reader matches the name; the error lists known extensions and basenames.
+
+
+.. py:function:: combined_precision(values)
+
+   Return the precision of a set of values taken together: the **coarsest** of them.
+
+   A structure is only as precisely stated as its least precisely stated number, so one
+   sloppy ``0.5`` among a table of six-decimal coordinates really does mean the table is
+   good to ``1e-1``. Taking the coarsest is the conservative reading and the one that
+   keeps a derived tolerance from being too tight to match anything.
+
+   Each value may be a literal to be interpreted by :func:`decimal_precision`, or an
+   already-computed precision, such as a standard uncertainty read from a file. Numeric
+   values convert through their decimal spelling, so ``0.005`` lands on ``1/200`` rather
+   than a binary approximation of it. Values that state no precision are skipped, and
+   ``None`` is returned when none of them state one.
+
+   :param values: Values or precision bounds to combine.
+   :return: The largest absolute precision bound, or ``None`` if none is stated.
+
+
+.. py:function:: decimal_precision(text)
+
+   Return the absolute precision implied by how a number was written, or ``None``.
+
+   ``None`` means the literal makes no precision claim, which is a different thing from
+   claiming perfect precision. It is returned for an empty or missing value, for CIF's
+   ``?`` and ``.`` placeholders, for anything that is not a decimal literal, and — this
+   one matters — for an exact rational such as ``"1/3"``, which states a value rather
+   than a measurement and so should not drag a structure's precision down to
+   the width of its last digit.
+
+   Examples, all exact:
+
+   * ``"0.123"`` -> ``1/1000`` — three digits after the point
+   * ``"-0.5"`` -> ``1/10`` — the sign is not part of the claim
+   * ``".25"`` -> ``1/100`` — a leading point is still two digits
+   * ``"5."`` -> ``None`` — a trailing point makes no precision claim
+   * ``"10"`` -> ``None`` — an integer literal states a value exactly, like a rational
+   * ``"1.2e-3"`` -> ``1/10000`` — one digit, then scaled by the exponent
+   * ``"1/3"`` -> ``None`` — exact, not measured
+   * ``"?"`` -> ``None`` — no value at all
+
+   :param text: Value whose textual representation supplies the precision claim.
+   :return: The absolute precision bound, or ``None`` when the value makes no measured-precision claim.
+
+
+.. py:class:: EntryTypeDefinition(name, description, properties, definition_id = None, extends_id = None)
+
+   An immutable OPTIMADE entry-type definition.
+
+   Bundles the entry type's ``name`` and ``description`` with an
+   insertion-ordered mapping of :class:`PropertyDefinition` objects (one per
+   described property). A standard definition typically describes more
+   properties than any given deployment serves; the served subset is chosen
+   separately (an :class:`~httk.core.EntryProvider` names it through its
+   :meth:`~httk.core.EntryProvider.property_keys`).
+
+   ``definition_id`` identifies the source document when present. An extended
+   definition is a new document, so it clears that identity and retains the
+   original standard IRI in ``extends_id`` instead.
+
+   :param name: The entry type name.
+   :param description: The human-readable entry type description.
+   :param properties: Property definitions keyed by property name.
+   :param definition_id: The source document IRI, if one exists.
+   :param extends_id: The standard document IRI extended by this definition, if any.
+
+
+   .. py:method:: from_optimade(name, entrytype)
+      :classmethod:
+
+
+      Build an entry-type definition from a vendored OPTIMADE entry type.
+
+      ``entrytype`` is the vendored document shape: a ``description`` string,
+      an optional top-level ``$id``, and a ``properties`` mapping of property
+      name to full property definition. A clear :class:`ValueError` is raised
+      when either required field is missing. The optional ID identifies the
+      source document; ad-hoc definitions remain valid without one.
+
+      :param name: The entry type name.
+      :param entrytype: The vendored entry-type definition document.
+      :return: An entry-type definition built from the document.
+      :raises ValueError: If ``description`` or ``properties`` is missing.
+
+
+
+   .. py:property:: name
+      :type: str
+
+
+      Return the entry type name.
+
+
+   .. py:property:: description
+      :type: str
+
+
+      Return the entry type description.
+
+
+   .. py:property:: definition_id
+      :type: str | None
+
+
+      Return this definition's document IRI, if it has a standard one.
+
+
+   .. py:property:: extends_id
+      :type: str | None
+
+
+      Return the original standard IRI extended to make this definition, if any.
+
+
+   .. py:property:: properties
+      :type: collections.abc.Mapping[str, PropertyDefinition]
+
+
+      Return a copy of the property definitions keyed by name.
+
+
+   .. py:method:: extended(extra, *, allow_unprefixed = False)
+
+      Return a copy with ``extra`` custom property definitions merged in.
+
+      Each name in ``extra`` MUST be new (a collision with an existing
+      property raises :class:`ValueError` naming it) and, unless
+      ``allow_unprefixed`` is set, MUST carry a registered database-specific
+      prefix (see :func:`register_definition_prefix` /
+      :func:`known_definition_prefixes`); a custom property that does not is
+      rejected with a :class:`ValueError` explaining the OPTIMADE prefix rule.
+      The result deliberately has no ``definition_id``: it is a new document,
+      not the standard resource. Its ``extends_id`` records the original
+      standard ID so repeated extensions retain that provenance.
+
+      :param extra: New custom property definitions to add.
+      :param allow_unprefixed: Whether to allow custom names without a registered prefix.
+      :return: A new definition containing the original and extra properties.
+      :raises ValueError: If a property collides or violates the prefix rule.
+
+
+
+   .. py:method:: served_form()
+
+      Return the OPTIMADE wire form of this definition.
+
+      This is the single authority for provider wire-naming. Internally every
+      entry type and property carries its bare, unprefixed name; the prefix is
+      applied only here, at the serving edge:
+
+      - The entry-type name gets a registered prefix when this definition's
+        identity IRI (``definition_id`` or, failing that, ``extends_id``) lies
+        under one of that prefix's registered ``id_base`` values (see
+        :func:`register_definition_prefix`); a standard definition, whose IRI
+        matches no registered base, keeps its bare name.
+      - Each property whose own ``$id`` lies under a registered base gets that
+        prefix; standard-``$id`` properties and the OPTIMADE intrinsics
+        (``id``, ``type``, ``immutable_id``, ``last_modified``) stay bare.
+
+      A renamed result is a new document, so — like :meth:`extended` — it
+      clears ``definition_id`` and records the internal IRI in ``extends_id``,
+      honouring the meta-schema rule that a redefinition MUST change ``$id``.
+
+      The transform is pure (it mutates no registry state and returns a new
+      definition) and idempotent: an already-prefixed name is never
+      re-prefixed, so an already-served or fully-standard definition compares
+      equal to its :meth:`served_form` (and the same object is returned when
+      nothing changes).
+
+      :return: The wire-named entry-type definition.
+
+
+
+   .. py:method:: as_optimade()
+
+      Return the entry type as a vendored-shape OPTIMADE document.
+
+      :return: The entry-type document with independent property payloads.
+
+
+
+.. py:class:: PropertyDefinition(name, payload)
+
+   An immutable wrapper around one full OPTIMADE property definition.
+
+   Instances are constructed from a vendored definition document
+   (:meth:`from_optimade`) or generated from a compact description
+   (:meth:`from_simple`). The wrapped document is always deep-copied on the way
+   in and out, so an instance never shares mutable state with its inputs or its
+   callers.
+
+   :param name: The canonical property name.
+   :param payload: The complete property-definition document.
+
+
+   .. py:method:: from_optimade(name, definition)
+      :classmethod:
+
+
+      Wrap a full vendored OPTIMADE property definition.
+
+      ``definition`` must at least carry ``$id``, ``description``,
+      ``x-optimade-type``, and ``type``; a clear :class:`ValueError` is raised
+      otherwise. The document is deep-copied.
+
+      :param name: The canonical property name.
+      :param definition: The full property-definition document to wrap.
+      :return: A validated property definition.
+      :raises ValueError: If a required property-definition field is missing.
+
+
+
+   .. py:method:: from_simple(name, *, description, fulltype = 'string', unit = None, dimensions = None, dict_properties = None, metadata_definition = None, required_response = False, definition_id = None)
+      :classmethod:
+
+
+      Generate a property definition from a compact description.
+
+      This mirrors the OPTIMADE property-definition generator: it emits the
+      ``$schema`` meta-schema reference, a synthesized ``$id`` (under the base
+      registered for a matching prefix via
+      :func:`register_definition_prefix` — e.g. ``httk.org`` for ``_httk_`` —
+      under ``schemas.optimade.org`` otherwise, unless
+      ``definition_id`` overrides it), a title, the ``description``, the OPTIMADE type derived
+      from ``fulltype`` (``"string"``, ``"integer"``, ``"float"``,
+      ``"boolean"``, ``"timestamp"``, ``"dict"``, or ``"list of ..."``), the
+      ``x-optimade-unit`` (with an ångström unit definition when
+      ``unit == "angstrom"``), the ``x-optimade-definition`` stamp (format
+      ``"1.2"``; see the module docstring), the JSON ``type`` with nullability
+      derived from ``required_response``, ``items`` for lists, a ``date-time``
+      format for timestamps, inner ``properties`` for dicts (from
+      ``dict_properties``), ``x-optimade-dimensions`` from ``dimensions``, and
+      an ``x-optimade-metadata-definition`` (explicit, or a generated
+      ``list_axes`` definition when ``dimensions`` is given).
+
+      The result is implementation-neutral: per-deployment ``sortable`` and
+      ``response-default`` flags are layered on later via
+      :meth:`with_implementation`.
+
+      :param name: The canonical property name.
+      :param description: The human-readable property description.
+      :param fulltype: The OPTIMADE property type description.
+      :param unit: The unit associated with numeric or list values.
+      :param dimensions: Dimension names and sizes for list values.
+      :param dict_properties: Inner property names and type descriptions for dictionaries.
+      :param metadata_definition: An explicit metadata definition for the property.
+      :param required_response: Whether responses must contain a non-null value.
+      :param definition_id: An explicit property-definition IRI.
+      :return: A generated property definition.
+
+
+
+   .. py:property:: name
+      :type: str
+
+
+      Return the canonical property name.
+
+
+   .. py:property:: definition_id
+      :type: str
+
+
+      Return the property's definition IRI.
+
+
+   .. py:property:: title
+      :type: str | None
+
+
+      Return the property's title, if declared.
+
+
+   .. py:property:: description
+      :type: str
+
+
+      Return the property's human-readable description.
+
+
+   .. py:property:: optimade_type
+      :type: str
+
+
+      Return the property's OPTIMADE type name.
+
+
+   .. py:property:: json_type
+      :type: Any
+
+
+      Return the property's JSON Schema type declaration.
+
+
+   .. py:property:: nullable
+      :type: bool
+
+
+      Return whether the property's JSON type permits null.
+
+
+   .. py:property:: unit
+      :type: str | None
+
+
+      Return the property's declared unit, if any.
+
+
+   .. py:property:: format_version
+      :type: str | None
+
+
+      Return the property's definition-format version, if declared.
+
+
+   .. py:property:: requirements
+      :type: collections.abc.Mapping[str, Any]
+
+
+      Return the property's OPTIMADE requirements mapping.
+
+
+   .. py:property:: dimensions
+      :type: collections.abc.Mapping[str, Any] | None
+
+
+      Return the property's dimensions declaration, if any.
+
+
+   .. py:property:: metadata_definition
+      :type: collections.abc.Mapping[str, Any] | None
+
+
+      Return the property's metadata definition, if any.
+
+
+   .. py:method:: with_implementation(*, sortable = None, response_default = None)
+
+      Return a copy carrying this deployment's implementation flags.
+
+      Adds an ``x-optimade-implementation`` object with the ``sortable`` and
+      ``response-default`` keys that are provided (a ``None`` argument leaves
+      that key unset), and — when ``sortable`` is given — mirrors it in a
+      top-level ``sortable`` field. The original instance is untouched. The
+      original ``$id`` and ``x-optimade-definition`` are retained because
+      the vendored v1.2 ``Property Definitions`` meta-schema says definitions
+      "SHOULD be regarded as the same if they only differ by" changes to
+      ``x-optimade-implementation``; the specification says a redefinition
+      "MUST change the $id". Top-level ``sortable`` is the additional field
+      required by the ``Entry Listing Info Endpoints`` section.
+
+      :param sortable: Whether the property can be sorted by the deployment.
+      :param response_default: Whether the property is included by default in responses.
+      :return: A copy with the requested implementation flags.
+
+
+
+   .. py:method:: as_optimade()
+
+      Return a deep copy of the wrapped property-definition document.
+
+      :return: The wrapped document, independent of the instance's state.
+
+
+
+.. py:function:: apply_definition_prefix(name, definition_id)
+
+   Return ``name`` carrying the registered prefix of a definition's IRI.
+
+   The public serving-edge transform: it looks up the database-specific prefix
+   registered for ``definition_id`` (see :func:`register_definition_prefix` /
+   :func:`known_definition_prefixes`) and applies it to ``name`` idempotently,
+   exactly as :meth:`EntryTypeDefinition.served_form` prefixes names. A
+   ``definition_id`` of ``None`` (or one under no registered prefix) leaves
+   ``name`` unchanged, and an already-prefixed ``name`` is never re-prefixed.
+
+   :param name: The internal (unprefixed) name to transform.
+   :param definition_id: The definition IRI whose registered prefix is applied, or ``None``.
+   :return: The name carrying the definition's registered prefix, or unchanged.
+
+
+.. py:function:: known_definition_prefixes()
+
+   Return the registered database-specific property-name prefixes.
+
+   The tuple reflects the current state of the prefix registry (see
+   :func:`register_definition_prefix`); ``_httk_`` is pre-registered.
+
+   :return: The registered prefixes in registration order.
+
+
+.. py:function:: register_definition_prefix(prefix, id_base)
+
+   Register a database-specific OPTIMADE property-name ``prefix``.
+
+   A custom property served by a database MUST use such a prefix (see the
+   OPTIMADE specification, "Database-Specific Properties"). Once registered, a
+   property name carrying ``prefix`` gets its ``$id`` synthesized under
+   ``id_base`` by :meth:`PropertyDefinition.from_simple`, and
+   :meth:`EntryTypeDefinition.extended` accepts it as a custom property.
+
+   ``prefix`` must be a lower-case alphanumeric token wrapped in single
+   underscores (matching ``_[a-z0-9]+_``); anything else raises a clear
+   :class:`ValueError`. The first ``id_base`` registered for a prefix is the
+   one under which :meth:`PropertyDefinition.from_simple` synthesizes ``$id``
+   values; re-registering the same prefix with a different ``id_base`` adds it
+   as another recognized base (used only to classify definition ``$id`` values)
+   without changing that synthesis base.
+
+   :param prefix: The database-specific property-name prefix to register.
+   :param id_base: The IRI base used for synthesized property definition IDs.
+   :raises ValueError: If ``prefix`` does not match ``_[a-z0-9]+_``.
+
+
+.. py:function:: standard_entry_type(name)
+
+   Return one of httk-core's vendored standard OPTIMADE entry types.
+
+   Supported names are ``"references"``, ``"files"``, and ``"calculations"``;
+   an unknown name raises a :class:`ValueError` listing the known ones. The
+   ``structures`` standard is vendored by *httk-atomistic*, not httk-core.
+
+   :param name: The standard entry type name to load.
+   :return: The vendored entry-type definition.
+   :raises ValueError: If ``name`` is not vendored by httk-core.
+
+
+.. py:class:: ProductLink
+
+   A curation ``has_product``/``is_product`` edge between data entries.
+
+   A label is unique per source entry across links; that constraint is
+   enforced at the serving projection rather than on each record.
+
+   :param source_type: The source entry type name.
+   :param source_id: The source entry identifier.
+   :param target_type: The target entry type name.
+   :param target_id: The target entry identifier.
+   :param label: The relationship label, unique per source entry at serving time.
+   :param workflow_declaration_uri: The workflow declaration IRI, if declared.
+
+
+   .. py:attribute:: source_type
+      :type:  str
+
+
+   .. py:attribute:: source_id
+      :type:  str
+
+
+   .. py:attribute:: target_type
+      :type:  str
+
+
+   .. py:attribute:: target_id
+      :type:  str
+
+
+   .. py:attribute:: label
+      :type:  str
+
+
+   .. py:attribute:: workflow_declaration_uri
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+      Coerce a mapping or existing link into a :class:`ProductLink`.
+
+      :param obj: A product-link instance or field mapping.
+      :return: The existing or newly constructed product link.
+      :raises TypeError: If ``obj`` is neither a product link nor a mapping.
+      :raises ValueError: If the mapping has unknown or invalid fields.
+
+
+
+.. py:class:: Run
+
+   One workflow execution with loose provenance edges.
+
+   ``inputs`` are ``has_input`` edges to consumed entries, ``artifacts`` are
+   ``has_artifact`` edges to created entries, and ``outputs`` are
+   ``has_output`` edges to returned entries. Artifact single-creator
+   exclusivity across runs is documented here, not enforced per record.
+
+   Every invariant is cheap and total, so there is deliberately no
+   ``__httk_validate__`` hook.
+
+   Edges remain loose string triples by design, never object references: each
+   edge names an entry by its INTERNAL (unprefixed) ``entry_type`` and raw
+   store-minted ``entry_id`` in the SAME database (cross-provider linking is not
+   supported). Labels are unique independently on each of ``inputs``,
+   ``artifacts``, and ``outputs``. The three sides carry
+   :class:`~httk.core.storage.StrongLink` markers declaring their internal
+   (unprefixed) relationship keys, so each side is servable as an OPTIMADE
+   semantic relationship in both directions (forward under the marker's
+   ``relationship`` key, reverse derived at serving time); the provider prefix
+   is applied at the serving edge, not here.
+
+   :param workflow_declaration_uri: The workflow declaration IRI, if declared.
+   :param inputs: The labeled entries consumed by the run.
+   :param artifacts: The labeled entries created by the run.
+   :param outputs: The labeled entries returned by the run.
+   :param source_id: The run's identifier in the system that executed it; part
+       of the content identity so re-collecting the same job deduplicates to
+       one row while distinct jobs stay distinct.
+   :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+   :param immutable_id: The per-revision immutable id; minted by the store when None.
+   :param last_modified: The optional timezone-aware metadata timestamp.
+
+
+   .. py:attribute:: workflow_declaration_uri
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: inputs
+      :type:  Annotated[tuple[RunEdge, Ellipsis], StrongLink('has_input', reverse='is_input', role='input')]
+      :value: ()
+
+
+
+   .. py:attribute:: artifacts
+      :type:  Annotated[tuple[RunEdge, Ellipsis], StrongLink('has_artifact', reverse='is_artifact', role='artifact')]
+      :value: ()
+
+
+
+   .. py:attribute:: outputs
+      :type:  Annotated[tuple[RunEdge, Ellipsis], StrongLink('has_output', reverse='is_output', role='output')]
+      :value: ()
+
+
+
+   .. py:attribute:: source_id
+      :type:  Annotated[str | None, Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: id
+      :type:  Annotated[str | None, IdentitySkip(), Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: immutable_id
+      :type:  Annotated[str | None, IdentitySkip(), Unique()]
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+   .. py:property:: type
+      :type: str
+
+
+      Return the internal (unprefixed) entry type name.
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+      Coerce a mapping or existing run into a :class:`Run`.
+
+      :param obj: A run instance or field mapping.
+      :return: The existing or newly constructed run.
+      :raises TypeError: If ``obj`` is neither a run nor a mapping.
+      :raises ValueError: If the mapping has unknown or invalid fields.
+
+
+
+.. py:class:: RunEdge
+
+   Store one loose labeled reference from a run to another entry.
+
+   Edges deliberately keep the related entry's type and identifier as
+   strings rather than object references. ``entry_type`` is the INTERNAL
+   (unprefixed) entry-type name and ``entry_id`` is the raw store-minted id of
+   an entry in the SAME database; cross-provider linking is not supported. Edges
+   are servable as OPTIMADE semantic relationships — the forward direction under
+   the owning field's :class:`~httk.core.storage.StrongLink` ``relationship``
+   key, the reverse direction derived at serving time — so the composite
+   ``(entry_type, entry_id)`` index exists for those reverse lookups.
+
+   :param label: The relationship label.
+   :param entry_type: The related entry type name (internal, unprefixed).
+   :param entry_id: The related entry identifier (raw store-minted id, same database).
+
+
+   .. py:attribute:: label
+      :type:  str
+
+
+   .. py:attribute:: entry_type
+      :type:  str
+
+
+   .. py:attribute:: entry_id
+      :type:  str
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+      Coerce a mapping or existing edge into a :class:`RunEdge`.
+
+      :param obj: A run edge instance or field mapping.
+      :return: The existing or newly constructed run edge.
+      :raises TypeError: If ``obj`` is neither a run edge nor a mapping.
+      :raises ValueError: If the mapping has unknown or invalid fields.
+
+
+
+.. py:class:: RunEntry
+
+   Logical entry family for served :class:`Run` records.
+
+   This family is not itself storable; store a ``Run`` directly.
+
+
+   .. py:attribute:: type
+      :value: 'runs'
+
+
+
+   .. py:attribute:: definition_id
+      :value: 'https://schemas.httk.org/defs/v0.1/entrytypes/runs'
+
+
+
+.. py:function:: register_cli_command(name, handler, summary)
+
+   Register a lazy top-level :command:`httk` command.
+
+   A handler is either a callable or a lazy ``"module:callable"`` reference
+   with the contract ``(argv: Sequence[str], context: CLIContext) -> int``.
+   Names use lowercase, hyphen-separated command syntax. Registration is
+   intentionally strict: reserved names and duplicate registrations are
+   errors rather than order-dependent overrides.
+
+   :param name: The lowercase hyphen-separated command name.
+   :param handler: The command callable or lazy ``"module:callable"`` reference.
+   :param summary: The nonempty one-line command summary.
+   :raises TypeError: If ``handler`` is neither callable nor a lazy reference.
+   :raises ValueError: If the name, handler reference, summary, or registration is invalid.
+
+
+.. py:function:: known_entry_providers()
+
+   Return registered entry-provider names.
+
+   :return: Registered provider names.
+
+
+.. py:function:: register_entry_family(*, name, family, definition_id = None)
+
+   Register a lazy entry-family class reference without importing it.
+
+   :param name: The entry-family registry name.
+   :param family: The lazy ``"module:class"`` family reference.
+   :param definition_id: The family's definition IRI, if any.
+   :raises ValueError: If validation fails or ``name`` is already registered.
+
+
+.. py:function:: register_entry_provider(*, name, factory)
+
+   Register an :class:`~httk.core.entry_provider.EntryProvider` factory under ``name``.
+
+   ``factory`` is a lazy ``"module:callable"`` reference to a callable that
+   constructs a provider (providers need data, so applications call the factory
+   themselves; the registry only records how to reach it). This mirrors
+   ``register_reader``.
+
+   :param name: The provider registry name.
+   :param factory: The lazy ``"module:callable"`` factory reference.
+
+
+.. py:function:: register_entry_record(*, name, record, family = None, definition_id = None)
+
+   Register a lazy record-class reference and optional family and definition IRI.
+
+   :param name: The record registry name.
+   :param record: The lazy ``"module:class"`` record reference.
+   :param family: The logical entry-family name, if any.
+   :param definition_id: The record's definition IRI, if any.
+   :raises ValueError: If validation fails or ``name`` is already registered.
+
+
+.. py:function:: register_optimade_entry_binding(*, name, definition_id, backend, view, property_decoders = None, query_fields = None)
+
+   Register one lazy typed binding, selected only by exact definition IRI.
+
+   :param name: The binding registry name.
+   :param definition_id: The exact entry-type definition IRI selected by the binding.
+   :param backend: The lazy backend class reference.
+   :param view: The lazy view class reference.
+   :param property_decoders: Property definition IRIs mapped to lazy decoder references.
+   :param query_fields: Property definition IRIs supported for querying, if restricted.
+   :raises ValueError: If the definition IRI is already registered or input is invalid.
+
+
+.. py:function:: register_format_adapter(*, name, adapter, formats)
+
+   Register one lazy adapter for each neutral payload format in ``formats``.
+
+   ``adapter`` may be a callable or a lazy ``"module:callable"`` reference.
+   A format tag has one owner: registering it again raises an error naming both
+   the existing and attempted registrants.
+
+   :param name: The registry name for the adapter.
+   :param adapter: The adapter callable or lazy ``"module:callable"`` reference.
+   :param formats: Neutral payload format tags served by the adapter.
+   :raises ValueError: If a format tag is invalid, duplicated, or already owned.
+
+
+.. py:function:: register_format_serializer(*, format, serializer)
+
+   Register one lazy serializer for a neutral payload format tag.
+
+   :param format: The neutral payload format tag.
+   :param serializer: The serializer callable or lazy reference.
+   :raises ValueError: If ``format`` is invalid or already has another serializer.
+
+
+.. py:function:: register_reader(*, name, reader, extensions = (), filenames = ())
+
+   Register a reader under one or more file ``extensions`` and/or ``filenames``.
+
+   ``extensions`` are matched (case-insensitively) against a file's suffix, e.g.
+   ``".cif"``. ``filenames`` are exact basenames matched (case-insensitively)
+   against a file's name with any recognized compression suffix stripped, e.g.
+   ``"POSCAR"`` matches ``POSCAR``, ``poscar``, and ``POSCAR.bz2``.
+
+   :param name: The registry name for the reader.
+   :param reader: A lazy ``"module:callable"`` reference to the reader.
+   :param extensions: File suffixes that select the reader.
+   :param filenames: Exact basenames that select the reader.
+
+
+.. py:function:: register_writer(*, name, writer, format, extensions = (), filenames = ())
+
+   Register a writer under one or more extensions and/or exact basenames.
+
+   A format can have one writer owner; registering a conflicting writer raises
+   an error. Extension and basename keys are matched case-insensitively.
+
+   :param name: The registry name for the writer.
+   :param writer: The writer callable or lazy ``"module:callable"`` reference.
+   :param format: The neutral payload format emitted by the writer.
+   :param extensions: File suffixes that select the writer.
+   :param filenames: Exact basenames that select the writer.
+   :raises ValueError: If ``format`` is invalid or conflicts with an existing writer.
+
+
+.. py:function:: known_project_member_kinds()
+
+   Return the registered member-kind names.
+
+   :return: Registered member-kind names in sorted order.
+
+
+.. py:function:: project_member_handler(kind)
+
+   Return the handler object for one project-member *kind*.
+
+   The registered reference is resolved lazily and called with no arguments to
+   build the handler, so a module contributes a kind without core importing it
+   until a member of that kind is actually acted on.
+
+   :param kind: The member kind whose handler to resolve.
+   :return: The handler object implementing the member protocol.
+   :raises LookupError: If no module has registered a handler for the kind.
+
+
+.. py:function:: register_project_member_kind(kind, handler)
+
+   Register the handler that implements one project-member *kind*.
+
+   A *handler* is either a callable or a lazy ``"module:callable"`` reference
+   that takes no arguments and returns an object implementing
+   :class:`~httk.core.project.members.ProjectMemberHandler`. Registering a kind
+   is how an installed module teaches the core seal, manifest, and repair verbs
+   to delegate that member's internals to it. This mirrors
+   :func:`~httk.core.register.entries.register_entry_provider`.
+
+   :param kind: The member kind name to register.
+   :param handler: The handler callable or lazy ``"module:callable"`` reference.
+
+
+.. py:function:: load_entry_type_definition(definition_id)
+
+   Load and verify a registered entry-type definition resource.
+
+   :param definition_id: The registered entry-type definition IRI.
+   :return: The loaded and validated entry-type definition.
+   :raises ValueError: If the IRI is unregistered or disagrees with the document.
+
+
+.. py:function:: load_property_definition(definition_id)
+
+   Load and verify a registered property definition resource.
+
+   :param definition_id: The registered property definition IRI.
+   :return: The loaded and validated property definition.
+   :raises ValueError: If the IRI is unregistered or disagrees with the document.
+
+
+.. py:function:: register_entry_type_definition(*, definition_id, resource)
+
+   Register one resource for an entry-type definition IRI.
+
+   :param definition_id: The entry-type definition IRI.
+   :param resource: The package resource reference to load.
+   :raises ValueError: If ``definition_id`` is already registered.
+
+
+.. py:function:: register_property_definition(*, definition_id, resource)
+
+   Register one resource for a property definition IRI.
+
+   :param definition_id: The property definition IRI.
+   :param resource: The package resource reference to load.
+   :raises ValueError: If ``definition_id`` is already registered.
+
+
+.. py:function:: has_writer_for(name)
+
+   Return whether ``name`` matches a registered writer key.
+
+   :param name: Destination filename whose writer registration is checked.
+   :return: Whether the name matches a registered extension or exact basename.
+
+
+.. py:function:: save(obj, destination, *, format = None, **kwargs)
+
+   Save ``obj`` to a local destination selected by its name or ``format`` hint.
+
+   The writer registry selects by extension first and exact basename second,
+   case-insensitively after stripping one recognized compression suffix, unless
+   ``format`` selects a registered writer directly. The format-serializer
+   registry converts non-neutral objects before writing, and a recognized
+   compression suffix wraps the destination transparently.
+
+   Filename output replaces its destination only after writing and closing
+   successfully, so lazy inputs may safely be saved over their source file.
+   Existing symlinks are followed and permission bits retained; other hard
+   links retain the old data. This is not a crash-durability guarantee.
+
+   :param obj: Object or neutral payload to serialize and write.
+   :param destination: Local filename or path to write.
+   :param format: Optional registered format name that selects the writer.
+   :param \**kwargs: Additional options passed to the selected writer.
+   :raises ValueError: If the destination or format has no writer, no serializer exists, or the destination is a URL.
+
+
+.. py:class:: Service
+
+   Describe one service independently of its publication transport.
+
+   The service and endpoint identifiers are absolute IRIs; this neutral core
+   contract does not impose a particular scheme.  ``conforms_to`` names one
+   or more standards the service implements, and may be supplied as any
+   ordered non-string iterable.
+
+   :param id: The service's absolute IRI.
+   :param title: The service's human-readable title.
+   :param endpoint_url: The service endpoint's absolute IRI.
+   :param conforms_to: Non-empty unique absolute IRIs for implemented standards.
+   :param serves_dataset_ids: Optional non-empty unique absolute IRIs for served datasets.
+   :param endpoint_description: An optional absolute IRI describing the endpoint.
+
+
+   .. py:attribute:: id
+      :type:  str
+
+
+   .. py:attribute:: title
+      :type:  str
+
+
+   .. py:attribute:: endpoint_url
+      :type:  str
+
+
+   .. py:attribute:: conforms_to
+      :type:  tuple[str, Ellipsis]
+
+
+   .. py:attribute:: serves_dataset_ids
+      :type:  tuple[str, Ellipsis] | None
+      :value: None
+
+
+
+   .. py:attribute:: endpoint_description
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+      Coerce a mapping or existing service into a :class:`Service`.
+
+      :param obj: A service instance or a mapping with service fields.
+      :return: The existing or newly constructed service.
+      :raises TypeError: If ``obj`` is neither a service nor a mapping.
+      :raises ValueError: If the mapping has missing, unknown, or invalid fields.
+
+
+
+.. py:class:: ServiceRecord
+
+   Bases: :py:obj:`Service`
+
+
+   Store one :class:`Service` using the core service storage contract.
+
+   :param id: The service's absolute IRI.
+   :param title: The service's human-readable title.
+   :param endpoint_url: The service endpoint's absolute IRI.
+   :param conforms_to: Non-empty unique absolute IRIs for implemented standards.
+   :param serves_dataset_ids: Optional non-empty unique absolute IRIs for served datasets.
+   :param endpoint_description: An optional absolute IRI describing the endpoint.
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+      Coerce a service record, neutral service, or field mapping.
+
+      :param obj: A service record, neutral service, or service field mapping.
+      :return: The existing or newly constructed service record.
+      :raises TypeError: If ``obj`` is not a service or mapping.
+      :raises ValueError: If the mapping has unknown, missing, or invalid fields.
+
+
+
+.. py:function:: content_id(obj, *, as_record = None, projector = project_storage_record, extras = None)
+
+   Return the lowercase SHA-256 content identity of ``obj``.
+
+   The digest covers :func:`~httk.core.storage.identity.canonical_form`, including exact-type leaf
+   encodings and excluding fields marked with :class:`~httk.core.storage.markers.IdentitySkip`.
+
+   ``extras`` fold additional save-time key/value pairs into the root record's
+   identity (see :func:`~httk.core.storage.identity.canonical_form`). Extras-bearing calls bypass the
+   trusted per-instance cache entirely, so they never read or poison it.
+
+   :param obj: The record or projected source to identify.
+   :param as_record: An explicit record class override, if supplied.
+   :param projector: The record-level projection function.
+   :param extras: Root-only identity contributions encoded through the value machinery.
+   :return: The lowercase SHA-256 hexadecimal digest.
+   :raises TypeError: If a value or projection cannot be represented.
+   :raises ValueError: If a projection is invalid or contains a cycle.
+
+
+.. py:class:: IdentitySkip
+
+   Field marker: exclude the field from content identity.
+
+
+.. py:class:: Indexed
+
+   Field marker: request a single-column index on this field's column(s).
+
+
+.. py:class:: Related
+
+   Field marker: relationship metadata for a reference or list-of-storable field.
+
+   Applies to a field holding another storable class (a *reference* field) or
+   a ``list``/``tuple`` of storable classes. When the field's target class is
+   served alongside the declaring class, the storage layer surfaces the field
+   as a relationship; this marker attaches the OPTIMADE per-identifier
+   metadata that flows into each emitted
+   :class:`~httk.core.entry_provider.RelatedEntry` — ``role`` (machine
+   readable, OPTIMADE v1.3 ``meta.role``) and ``description`` (human readable,
+   OPTIMADE v1.2 ``meta.description``). ``serve=False`` suppresses the field
+   as a relationship entirely.
+
+   :param role: The machine-readable relationship role, if any.
+   :param description: The human-readable relationship description, if any.
+   :param serve: Whether the field is served as a relationship at all.
+
+
+   .. py:attribute:: role
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: description
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: serve
+      :type:  bool
+      :value: True
+
+
+
+.. py:class:: Shape
+
+   Field marker: fixed or variable shape for a vector-valued field.
+
+   ``rows >= 1`` declares a fixed-shape value stored inline (flattened
+   row-major into columns). ``rows == 0`` declares a variable number of rows
+   with ``cols`` fixed columns each, stored out-of-line (one row per entry,
+   in insertion order).
+
+   :param rows: Number of rows; ``0`` means variable-length.
+   :param cols: Number of columns per row; must be at least ``1``.
+   :raises ValueError: If ``rows`` is negative or ``cols`` is less than ``1``.
+
+
+   .. py:attribute:: rows
+      :type:  int
+
+
+   .. py:attribute:: cols
+      :type:  int
+      :value: 1
+
+
+
+.. py:class:: Skip
+
+   Field marker: the field exists on the dataclass but is not stored.
+
+
+.. py:class:: StorageInfo
+
+   Optional class-level storage declaration for a storable dataclass.
+
+   Attach as the class attribute named by
+   :data:`~httk.core.storage.markers.STORAGE_INFO_ATTRIBUTE`
+   (``__httk_storage__``), annotated ``ClassVar[StorageInfo]`` so dataclass
+   processing ignores it. A storage layer may also accept an instance as an
+   external override for classes that cannot be modified.
+
+   :param storage_name: The physical storage name; ``None`` derives one from the class name. Relational backends use it as the table name, and document stores use it as the collection name.
+   :param indexes: Composite indexes, each a tuple of field names.
+   :param dedup: The deduplication policy applied when saving; see :data:`~httk.core.storage.markers.DedupPolicy`.
+   :param links: Class-level weak-link declarations; see :class:`~httk.core.storage.markers.WeakLink`.
+   :param identity_name: The logical name included in content identity; ``None`` derives it from the declaring class and its bases.
+   :raises ValueError: If ``dedup`` or an identity name or index declaration is invalid.
+
+
+   .. py:attribute:: storage_name
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: indexes
+      :type:  tuple[tuple[str, Ellipsis], Ellipsis]
+      :value: ()
+
+
+
+   .. py:attribute:: dedup
+      :type:  DedupPolicy
+      :value: 'content_id'
+
+
+
+   .. py:attribute:: links
+      :type:  tuple[WeakLink, Ellipsis]
+      :value: ()
+
+
+
+   .. py:attribute:: identity_name
+      :type:  str | None
+      :value: None
+
+
+
+.. py:class:: StrongLink
+
+   Field marker: a record-content edge collection servable as OPTIMADE relationships.
+
+   Attached via :class:`typing.Annotated` to a child field holding a tuple of
+   edge records whose element class carries the string fields ``label``,
+   ``entry_type``, and ``entry_id``. Unlike :class:`WeakLink` — a store-managed,
+   mutable curation association that lives in a dedicated link table, stays
+   outside content identity, and always resolves to each endpoint's *latest*
+   revision (lineage-live) — a strong link is *record content*: it is part of
+   the declaring record's value, so it participates in content identity and is
+   pinned to that record's revision. Both directions are servable as OPTIMADE
+   relationships.
+
+   Exposure is the declaration: a present ``relationship`` exposes the forward
+   edge under that key; a present ``reverse`` additionally exposes the reverse
+   edge under that key (the reverse view is derived at serving time from the
+   stored forward edges, never stored). The names declared here are INTERNAL
+   and unprefixed; the serving edge applies the provider prefix. This marker is
+   code-only: it is never persisted, is stripped by content-identity
+   canonicalization, and is excluded from the schema fingerprint.
+
+   :param relationship: The internal (unprefixed) forward relationship key; must be a valid Python identifier.
+   :param reverse: The internal (unprefixed) reverse relationship key, or ``None`` to expose no reverse edge; when set, must be a valid Python identifier.
+   :param role: The machine-readable relationship role, if any.
+   :param description: The human-readable relationship description, if any.
+   :raises ValueError: If ``relationship`` (or ``reverse`` when not ``None``) is not a valid Python identifier.
+
+
+   .. py:attribute:: relationship
+      :type:  str
+
+
+   .. py:attribute:: reverse
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: role
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: description
+      :type:  str | None
+      :value: None
+
+
+
+.. py:class:: Unique
+
+   Field marker: request a unique index on this field's column(s).
+
+
+.. py:class:: WeakLink
+
+   Class-level declaration of a store-managed, lineage-level link to another storable class.
+
+   Declared in :attr:`StorageInfo.links` on the *source* class (links are
+   directed). A weak link is a store-managed association living in a dedicated
+   link table, not in any record field: it binds *lineages*, associating this
+   record's logical id with a ``target`` record's logical id, and both
+   endpoints always resolve to the *latest* revision on their respective side
+   (this is what makes the link *weak*, in contrast to sid-pinned reference and
+   child fields). Link rows are themselves append-only lineages — they are
+   revisable, retractable, and ``as_of``-aware — and are set-valued: a source
+   lineage may link many targets under the same declaration. Because links are
+   not part of a record's value, they do **not** participate in content
+   identity; adding or retracting a link never changes the record's
+   ``content_id``.
+
+   Only links declared ``exposed_relationship=True`` are served through the
+   OPTIMADE relationship facility; ``role`` and ``description`` carry the same
+   per-identifier OPTIMADE metadata as :class:`Related` into each served
+   relationship. ``target`` is the storable frozen dataclass this link points
+   at; only that it is a class is checked here, as deep storability validation
+   is performed by the storage layer.
+
+   See :class:`StrongLink` for the contrasting record-content edge marker
+   (inside content identity, revision-pinned) versus this store-managed,
+   lineage-live link (outside content identity).
+
+   :param name: The link name; must be a valid Python identifier. Namespaces the link (e.g. accessed as ``record.links.<name>``).
+   :param target: The storable class this link points at.
+   :param exposed_relationship: Whether the link is served through the OPTIMADE relationship facility.
+   :param role: The machine-readable relationship role, if any.
+   :param description: The human-readable relationship description, if any.
+   :raises ValueError: If ``name`` is not a valid Python identifier.
+   :raises TypeError: If ``target`` is not a class.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: target
+      :type:  type
+
+
+   .. py:attribute:: exposed_relationship
+      :type:  bool
+      :value: False
+
+
+
+   .. py:attribute:: role
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: description
+      :type:  str | None
+      :value: None
+
+
+
+.. py:class:: stored_property(fget = None, fset = None, fdel = None, doc = None)
+
+   Bases: :py:obj:`property`
+
+
+   A derived property that a storage layer stores and makes queryable.
+
+   Use exactly like :class:`property` (getter only). The value type is read
+   from the getter's return annotation. On save, the storage layer evaluates
+   and stores the value alongside the declared fields; on load, the value is
+   recomputed by the property rather than passed to ``__init__``. The getter
+   must declare a return annotation when the property is created.
+
+   :param fget: The getter function whose derived value is stored.
+   :param fset: An optional setter, normally unused by storage declarations.
+   :param fdel: An optional deleter, normally unused by storage declarations.
+   :param doc: An optional property documentation string.
+   :raises TypeError: If ``fget`` has no return annotation.
+
+
+.. py:class:: FracScalar(value, *, denom = None, simplify = False, chain = False, min_accuracy = fractions.Fraction(1, 10000))
+
+   Bases: :py:obj:`FracVector`
+
+
+   Represents the fractional number ``nom/denom``. This is a subclass of FracVector with the
+   purpose of making it clear when a scalar fracvector is needed/used.
+
+   Convert a value into a FracScalar.
+
+   ``FracScalar(something)`` where ``something`` may be any object that can be used
+   in the constructor of the Python Fraction class (also works with strings!).
+
+   For signature compatibility with the :class:`~httk.core.vectors.fracvector.FracVector` constructor, this accepts but ignores
+   ``chain`` and ``min_accuracy``, and converts strings exactly via the Fraction constructor.
+
+   :param value: The scalar value or values to convert.
+   :param denom: An optional additional denominator.
+   :param simplify: Whether to reduce the resulting denominator.
+   :param chain: An accepted compatibility parameter; it does not affect scalar creation.
+   :param min_accuracy: An accepted compatibility parameter; scalar strings are exact.
+
+
+.. py:class:: FracVector(values, *, denom = None, simplify = False, chain = False, min_accuracy = fractions.Fraction(1, 10000))
+
+   Bases: :py:obj:`FracVectorBase`, :py:obj:`httk.core.vectors.vector_backend.VectorBackend`
+
+
+   Immutable exact-rational vector that is also its own vector backend.
+
+
+   .. py:property:: fractions
+      :type: httk.core.vectors.vector_api.Fractions
+
+
+      Return this vector in the exact nested Fraction interchange format.
+
+
+.. py:class:: MutableFracVector(values, *, denom = None, simplify = False, chain = False, min_accuracy = fractions.Fraction(1, 10000))
+
+   Bases: :py:obj:`httk.core.vectors.fracvector.FracVectorBase`
+
+
+   Same as :class:`~httk.core.vectors.fracvector.FracVector`, only this version allows
+   assignment of elements, e.g.::
+
+       mfracvec[2, 7] = 5
+
+   and, e.g.::
+
+       mfracvec[:, 7] = [1, 2, 3, 4]
+
+   Other than this, the FracVector methods exist and do the same, i.e., they return *copies*
+   of the fracvector, rather than modifying it.
+
+   :param values: A rational value-like to convert, such as nested sequences or scalars.
+   :param denom: An optional additional common denominator.
+   :param simplify: Whether to reduce the resulting denominator.
+   :param chain: Whether to flatten the outermost nested sequence.
+   :param min_accuracy: Minimum accuracy for decimal values, or ``None`` for exact conversion.
+
+   Methods with ``set_*`` prefixes perform mutating operations, e.g.::
+
+      A.set_T()
+
+   replaces A with its own transpose, whereas::
+
+      A.T()
+
+   just returns a new MutableFracVector that is the transpose of A, leaving A unmodified.
+
+
+   .. py:attribute:: nested_map
+      :type:  ClassVar[collections.abc.Callable[Ellipsis, Any]]
+
+
+   .. py:attribute:: nested_inmap
+      :type:  ClassVar[collections.abc.Callable[Ellipsis, Any]]
+
+
+   .. py:attribute:: nested_map_fractions
+      :type:  ClassVar[collections.abc.Callable[Ellipsis, Any]]
+
+
+   .. py:attribute:: noms
+      :type:  Any
+
+
+   .. py:method:: validate()
+
+      Return whether the vector's stored list structure is valid.
+
+
+
+   .. py:method:: invalidate()
+
+      Internal method to call when the MutableFracVector is changed in such a way that cached
+      properties are invalidated (e.g., ``_dim``).
+
+      :return: None.
+
+
+
+   .. py:method:: set_negative()
+
+      Change the MutableFracVector inline into its own negative: ``self -> -self``.
+
+
+
+   .. py:method:: set_T()
+
+      Change the MutableFracVector inline into its own transpose: ``self -> self.T``.
+
+
+
+   .. py:method:: set_inv()
+
+      Change the MutableFracVector inline into its own inverse: ``self -> self^-1``.
+
+      :return: The inverse scalar when ``self`` is scalar; otherwise ``None`` after mutation.
+
+
+
+   .. py:method:: set_simplify()
+
+      Change the MutableFracVector; reduces any common factor between the denominator and all
+      nominators.
+
+
+
+   .. py:method:: set_set_denominator(resolution = 1000000000)
+
+      Change the MutableFracVector; reduces resolution.
+
+      :param resolution: The new denominator; each element becomes the closest numerical
+              approximation using this denominator.
+
+
+
+   .. py:method:: set_normalize()
+
+      Add/remove an integer +/-N to each element to place it in the range [0, 1).
+
+
+
+   .. py:method:: set_normalize_half()
+
+      Add/remove an integer +/-N to each element to place it in the range [-1/2, 1/2).
+
+      This is useful to find the shortest vector C between two points A, B in a space with
+      periodic boundary conditions [0, 1)::
+
+         C = (A - B).normalize_half()
+
+
+
+.. py:type:: NumericVector
+   :canonical: float | numpy.ndarray
+
+
+.. py:type:: ScalarLike
+   :canonical: int | float | str | fractions.Fraction | decimal.Decimal | fracvector.FracScalar | surdvector.SurdScalar
+
+
+.. py:class:: SurdScalar(value, dim = None)
+
+   Bases: :py:obj:`SurdVector`
+
+
+   A scalar :class:`SurdVector` (shape ``()``): a single field element
+   :math:`\sum_r q_r\sqrt r`.
+
+   Adds the scalar-only operations — the field inverse, exact sign and ordering, and Decimal
+   rendering — that need a single value rather than a tensor.
+
+   :param value: A rational scalar/nested sequence accepted by :class:`~httk.core.vectors.fracvector.FracVector`, or an
+       existing SurdVector or SurdScalar, returned unchanged.
+
+
+   .. py:method:: inverse()
+
+      Return the multiplicative inverse ``1/self`` (raises :class:`ZeroDivisionError` on zero).
+
+      :return: The exact multiplicative inverse.
+
+
+
+   .. py:method:: sign()
+
+      Return the exact sign of the value: ``-1``, ``0`` or ``1``.
+
+      For an irrational value the sign is decided by refining rational lower/upper bounds on each
+      ``sqrt(r)`` (from :func:`~httk.core.exactmath.integer_sqrt` at increasing precision)
+      and summing the weighted intervals until the total interval excludes zero — which always
+      happens in finitely many steps because a nonzero surd is bounded away from zero.
+
+      :return: ``-1``, ``0``, or ``1`` according to the exact sign.
+
+
+
+   .. py:method:: cos_degrees(q)
+      :classmethod:
+
+
+      Return ``cos(q degrees)`` as an exact :class:`SurdScalar`, or None when it is not a surd.
+
+      The value lies in the squarefree-radical field precisely when the angle, reduced modulo
+      360, is a **multiple of 15 or of 36 degrees** — e.g. :math:`\cos 30° = \tfrac{\sqrt3}2`,
+      :math:`\cos 15° = \tfrac{\sqrt6+\sqrt2}4`, :math:`\cos 36° = \tfrac{1+\sqrt5}4`.
+      ``q`` may be an int, :class:`~fractions.Fraction`, or numeric string (parsed via
+      :func:`~httk.core.exactmath.any_to_fraction`).
+
+      That list is **complete**: :math:`\cos(2\pi a/b)` lies in a field generated by square
+      roots of rationals iff the Galois group :math:`(\mathbb{Z}/b)^\times/\{\pm1\}` of
+      :math:`\mathbb{Q}(\cos 2\pi/b)` has exponent at most 2, which holds exactly for
+      :math:`b \in \{1,2,3,4,5,6,8,10,12,24\}` — the rational-degree angles that are multiples
+      of 15° or 36°. (Niven's theorem is the rational-value special case of this classification.)
+      A ``None`` result is therefore a proof that the exact cosine lies outside
+      :math:`\mathbb{Q}[\sqrt n]` — use :func:`~httk.core.exactmath.cos` with
+      ``degrees=True`` for a deterministic rational approximation in that case.
+
+      :param q: The angle in degrees.
+      :return: The exact cosine, or ``None`` outside the surd field.
+
+
+
+   .. py:method:: sin_degrees(q)
+      :classmethod:
+
+
+      Return ``sin(q degrees)`` as an exact :class:`SurdScalar`, or ``None`` when the value lies
+      outside the supported surd field (when ``90 - q`` is not in the exact surd-cosine set).
+
+      Computed as ``cos(90 - q)`` degrees, so exactness follows the same classification as
+      :meth:`cos_degrees` applied to ``90 - q``: exact when ``90 - q`` is a multiple of 15 or
+      36 degrees, and ``None`` otherwise (a proof that the exact sine is outside the field).
+      For example, ``sin(54°)`` is exact because it is ``cos(36°)``.
+
+      :param q: The angle in degrees.
+      :return: The exact sine, or ``None`` outside the surd field.
+
+
+
+   .. py:method:: acos_degrees()
+
+      Return the exact ``arccos`` of this value in **degrees** over :math:`[0, 180]`, or None.
+
+      This is the reverse table lookup: the result is an exact rational number of degrees
+      precisely when the value equals the cosine of a multiple of 15° or 36° (the complete set of
+      rational-degree angles with surd cosines — see :meth:`cos_degrees`), decided by exact surd
+      equality; otherwise None (the exact angle is then irrational in degrees). Raises
+      :class:`ValueError` — decided exactly via :meth:`sign` — when the value lies outside
+      :math:`[-1, 1]`.
+
+      :return: The exact angle in degrees, or ``None`` when not represented by the table.
+
+
+
+   .. py:method:: to_float(prec = fractions.Fraction(1, 10**30))
+
+      Return the value as a float via a high-precision exact rational approximation.
+
+      :param prec: The maximum approximation error.
+      :return: The value as a float.
+
+
+
+   .. py:method:: to_decimal(digits = None, rounding = 'half_even', max_refinements = None)
+
+      Render the value as a correctly-rounded :class:`decimal.Decimal`.
+
+      Reuses the exact-math module's Ziv refinement loop
+      (``_to_decimal``): a rational value renders exactly (its
+      finite expansion when it fits, else quantized), and an irrational surd — never on a rational
+      rounding boundary — is rendered by refining the rational approximation until the rounding is
+      determined. ``digits`` (significant digits; default: the active decimal context precision),
+      ``rounding`` (``"half_even"``/``"down"``) and ``max_refinements`` match
+      :func:`~httk.core.exactmath.sqrt` in Decimal mode.
+
+      :param digits: The number of significant decimal digits, or the active context precision when omitted.
+      :param rounding: The decimal rounding mode.
+      :param max_refinements: The maximum number of approximation refinements.
+      :return: The correctly rounded decimal value.
+
+
+
+.. py:class:: SurdVector(value, dim = None)
+
+   Bases: :py:obj:`httk.core.vectors.vector_backend.VectorBackend`
+
+
+   An *immutable* exact tensor over the squarefree-radical field
+   :math:`\mathbb{Q}[\sqrt n : n\ \text{squarefree}]`.
+
+   A SurdVector is a map ``{squarefree radicand -> FracVector coefficient}`` (all coefficients
+   sharing one ``dim``); radicand ``1`` is the rational part. It is stored **canonically** —
+   coefficients simplified, all-zero coefficients dropped — so the representation is unique and
+   equality/zero-detection are exact. Like :class:`~httk.core.vectors.fracvector.FracVector` it is
+   immutable and hashable.
+
+   See the module docstring for the field facts, the fractional-vs-Cartesian motivation, and the
+   magnitude-vs-linear-structure purpose boundary.
+
+   :param value: An existing SurdVector or SurdScalar, returned unchanged; a rational
+       scalar/nested sequence accepted by :class:`~httk.core.vectors.fracvector.FracVector` (which becomes the
+       radicand-1 component); or a ``{squarefree radicand -> FracVector coefficient}`` mapping in
+       canonical component form (as emitted by ``repr()``). Non-squarefree radicands are not
+       folded here — use :meth:`from_radicand_map` for that.
+   :param dim: The shared coefficient shape, used only with the mapping form; inferred from the
+       coefficients when omitted, and required to pin the shape of an all-zero (empty) mapping.
+
+
+   .. py:method:: from_radicand_map(mapping)
+      :classmethod:
+
+
+      Compose a SurdVector from a ``{radicand -> coefficient}`` mapping.
+
+      Radicands are positive integers and need not be squarefree — each is normalized via
+      ``square_part`` (``sqrt(radicand) = s*sqrt(r)``) and the
+      coefficients (FracVector-like, all of one shape) folded together canonically.
+
+      :param mapping: Radicands mapped to their coefficient tensors.
+      :return: The canonical SurdVector representation.
+
+
+
+   .. py:method:: sqrt_of(q)
+      :classmethod:
+
+
+      Return the exact square root of a nonnegative rational ``q`` as a :class:`SurdScalar`.
+
+      The result is a plain rational when ``q`` is a perfect square (e.g. ``sqrt_of(4/9) == 2/3``)
+      and otherwise a single-radical surd (``sqrt_of(8) == 2*sqrt(2)``). ``sqrt(p/q)`` is
+      normalized as ``sqrt(p*q)/q`` so the stored radicand is always a positive squarefree integer
+      (``sqrt_of(1/2) == sqrt(2)/2``). Raises :class:`ValueError` on a negative argument — there is
+      no exact square root of a surd (no nested radicals), only of a rational.
+
+      :param q: A nonnegative rational value.
+      :return: Its exact square root.
+
+
+
+   .. py:method:: zero(dim = ())
+      :classmethod:
+
+
+      The zero SurdVector of shape ``dim`` (a :class:`SurdScalar` for the default ``()``).
+
+      :param dim: The shape of the zero tensor.
+      :return: The zero SurdVector or SurdScalar.
+
+
+
+   .. py:method:: one()
+      :classmethod:
+
+
+      The scalar ``1``.
+
+
+
+   .. py:property:: dim
+      :type: tuple[int, Ellipsis]
+
+
+      The shape tuple, as for :attr:`~httk.core.vectors.fracvector.FracVectorBase.dim`.
+
+
+   .. py:property:: is_rational
+      :type: bool
+
+
+      True iff the value is purely rational (only the radicand-1 term is present).
+
+
+   .. py:method:: is_zero()
+
+      True iff the value is exactly zero (empty canonical form).
+
+
+
+   .. py:property:: radicands
+      :type: tuple[int, Ellipsis]
+
+
+      The sorted squarefree radicands present in the canonical form.
+
+
+   .. py:method:: coefficient(radicand)
+
+      Return the FracVector coefficient of ``sqrt(radicand)`` (a zero tensor when absent).
+
+      :param radicand: The radicand whose coefficient to retrieve.
+      :return: The coefficient, or a zero tensor when absent.
+
+
+
+   .. py:method:: T()
+
+      Return the transpose, transposing each radicand's coefficient tensor.
+
+      :return: The transposed tensor.
+
+
+
+   .. py:method:: dot(other)
+
+      Return the vector dot product of two 1-D SurdVectors (``sum a_i b_i``).
+
+      :param other: The other 1-D SurdVector.
+      :return: The exact scalar dot product.
+
+
+
+   .. py:method:: lengthsqr()
+
+      Return the squared length ``A * A^T`` as a :class:`SurdScalar`.
+
+      :return: The exact squared length.
+
+
+
+   .. py:method:: length()
+
+      Return the exact length ``sqrt(lengthsqr)`` as a :class:`SurdScalar`.
+
+      Exact precisely when ``lengthsqr`` is rational — which canonical arithmetic guarantees for a
+      difference of Cartesian sites under a rational metric (the crystallographic case). When
+      ``lengthsqr`` is itself irrational the length would be a nested radical
+      (``sqrt(a + b*sqrt(c))``), which is outside the field, so this raises :class:`ValueError`.
+
+      :return: The exact length when the squared length is rational.
+
+
+
+   .. py:method:: det()
+
+      Return the determinant of a 3x3 SurdVector as a :class:`SurdScalar`.
+
+      :return: The exact determinant.
+
+
+
+   .. py:method:: inv()
+
+      Return the inverse of a 3x3 SurdVector via the adjugate and the scalar field inverse.
+
+      :return: The exact inverse matrix.
+
+
+
+   .. py:method:: to_fractions_approx(prec = fractions.Fraction(1, 10**30))
+
+      A deterministic nested list of :class:`fractions.Fraction` within ``prec`` of the true value.
+
+      Exact (not merely within ``prec``) whenever the value is rational. This is the
+      ``compute(prec)``-shaped rational approximation reused by the Decimal rendering.
+
+      :param prec: The maximum elementwise approximation error.
+      :return: Nested rational approximations of the values.
+
+
+
+   .. py:method:: to_floats(prec = fractions.Fraction(1, 10**30))
+
+      Return a nested list of floats via a high-precision exact rational approximation.
+
+      :param prec: The maximum elementwise approximation error.
+      :return: Nested floating-point approximations of the values.
+
+
+
+   .. py:property:: fractions
+      :type: httk.core.vectors.vector_api.Fractions
+
+
+      Return the exact or deterministic rational hub representation.
+
+
+   .. py:property:: fractions_exact
+      :type: bool
+
+
+      Return whether the Fraction interchange is exact for this surd.
+
+
+.. py:type:: VectorLike
+   :canonical: vector_backend.VectorBackend | vector_view.VectorView | fracvector.FracVector | surdvector.SurdVector | tuple[Any, ...] | list[Any] | 'numpy.ndarray'
+
+
+.. py:function:: numpy_available()
+
+   Return whether the optional numpy dependency is available for the numeric helpers.
+
+   This reads the vectors package's ``_numpy_available`` flag freshly on each call (the flag set
+   when :mod:`httk.core.vectors` conditionally imports/registers the numpy backend), so tests may
+   monkeypatch ``httk.core.vectors._numpy_available`` to exercise the numpy-absent path.
+
+   :return: ``True`` when numpy is available, otherwise ``False``.
+
+
+.. py:function:: to_numeric(obj)
+
+   Present ``obj`` as plain numpy numbers: a :class:`numpy.ndarray` for a tensor, a ``float`` for a
+   scalar.
+
+   A tensor becomes a base-class ``float64`` :class:`numpy.ndarray` (never a view subclass) via
+   :class:`~httk.core.vectors.vector_numpy_view.VectorNumpyView`; a **scalar** input (shape ``()``)
+   returns a plain :class:`float` via :func:`to_numeric_scalar` (never a 0-d array).
+
+   The numeric presentation is numpy-backed, so this **always requires numpy**: it raises
+   :class:`ImportError` (naming the ``httk-core[numpy]`` extra) when numpy is not installed,
+   uniformly, so the contract is predictable regardless of the input shape. Use
+   :func:`to_numeric_scalar` directly for a single float without a numpy requirement.
+
+   :param obj: The vector-like value to present numerically.
+   :return: The converted scalar or tensor value.
+   :raises ImportError: If numpy is unavailable.
+   :raises TypeError: If the value cannot be converted to the numeric presentation.
+
+
+.. py:function:: to_numeric_scalar(obj)
+
+   Convert a single scalar value to a plain :class:`float`, deterministically.
+
+   A :class:`~httk.core.vectors.surdvector.SurdScalar` (or scalar
+   :class:`~httk.core.vectors.surdvector.SurdVector`) and a scalar
+   :class:`~httk.core.vectors.fracvector.FracVector` render through their own exact
+   ``to_float()``; a :class:`~fractions.Fraction`, ``int``, ``float``, or numeric ``str`` render via
+   :func:`~httk.core.exactmath.any_to_fraction`. A non-scalar shape raises
+   :class:`TypeError`.
+
+   Unlike :func:`to_numeric`, this needs **no numpy**: a plain ``float`` conversion has no numpy
+   dependency, so it works unconditionally and never raises for a missing numpy.
+
+   :param obj: The scalar value to convert.
+   :return: The converted scalar value.
+   :raises TypeError: If ``obj`` is not scalar or cannot be converted to a scalar float.
+
+
+.. py:class:: Backend[BackendT: Backend](backend, **hints)
+
+   Bases: :py:obj:`abc.ABC`
+
+
+   Abstract base class to be subclassed into classes that keep track of alternative
+   representations of certain types of data, all adhering to a common API interface.
+
+   The class variable backend_classes is a list of all classes that can carry the kind of data the subclass represents.
+
+   A system of "hints" are used primarily to disambiguate between multiple valid interpretations of the same input object.
+   Unless otherwise documented for a specific backend, extra hints that do not affect this interpretation are ignored.
+
+   A set of backends are meant to be combined with a set of Views.
+
+   Concrete backends implement ``_backend_adopt`` to accept an object and return an initialized
+   backend instance, or ``None`` to decline it. The ``kind`` hint convention is used to
+   disambiguate between multiple valid interpretations.
+
+   :param backend: Source value or backend being adopted by the concrete backend.
+   :param \**hints: Backend-specific initialization hints.
+
+
+   .. py:attribute:: backend_classes
+      :type:  ClassVar[list[type[Backend[Any]]]]
+
+
+   .. py:method:: unwrap()
+
+      Return the most raw representation possible of this backend, i.e., if it uses a backend with an internal representaion -
+      or if it can (possibly lossly) convert itself into a more raw representation that still would be recognized as a <Something>Like type,
+      that representation will be returned. If this is not possible, the instance itself is returned.
+
+      :return: The backend's most raw available representation.
+
+
+
+.. py:class:: View[BackendT: httk.core.views.backend.Backend]
+
+   A set of views allow manipulating data and state of a backend through different interfaces.
+   Hence, creating a View from a Backend, or from another View, allows to read and operate on the data through the interface of that view,
+   even if it is not the natural representation of the underlying data.
+
+   Important: views are always meant to reference the data and state of *the same* underlying object, hence, e.g.:
+
+   * If a function is given an X object, and the function applies an Xvariant1View and then calls, e.g., close() via that view,
+     the expectation should be that the original X object is also closed.
+   * When, e.g., a TextstreamStringView is created on an already partially read stream, only the unread data will appear through that string interface.
+
+   All backends and views of the same kind of data (X) should be combined into a type union XLike that functions use to declare they support this kind of data.
+   Such functions should start with creating a View on the passed data, giving them access to the data in a single desired format.
+
+   Views are lazy by default: construction stores only the backend, while
+   ``cached_property`` shadows and group fills materialize presentation state on first access.
+   Size fills to the subset served by each backend call; validate before assigning, never read a
+   shadowed attribute from a fill, and document why a view must remain eager. The explicit
+   ``coerce_view()``/``coerce()`` paths materialize via ``_ensure_materialized()``; laziness is
+   for pass-through use.
+
+
+   .. py:method:: unwrap()
+
+      Return the most raw representation possible of this view, i.e., if it uses a backend with an internal representaion -
+      or if it can (possibly lossly) convert itself into a more raw representation that still would be recognized as a <Something>Like type,
+      that representation will be returned. If this is not possible, the instance itself is returned.
+
+      :return: The backend's most raw available representation.
+
+
+
+   .. py:method:: unview()
+
+      Return the view's presented representation as a plain, non-View instance.
+
+      Concrete views that mimic a value type override this to shed the httk wrapper; the result
+      may alias the view's storage (no copy is promised). The default raises ``TypeError``,
+      which is the correct behavior for views that only adapt an interface and have no faithful
+      standalone value.
+
+      :return: The presented value as a plain, non-View instance.
+      :raises TypeError: If this interface-only view has no standalone plain value.
+
+
+
+.. py:function:: coerce(value, target)
+
+   Coerce ``value`` strictly: return a non-View instance of the requested target or raise.
+
+   The exact string ``"natural"`` returns ``value`` unchanged (no coercion, even for a View).
+   Otherwise the resolution of :func:`coerce_view` applies, and then: an httk View result is
+   shed via :func:`~httk.core.views.unviewing.unview` unless the requested target is itself a
+   View class; a View result that cannot shed raises ``unview``'s own ``TypeError``; and the
+   final result must satisfy ``isinstance(result, target)`` — a lossless fallback of another
+   type (available through :func:`coerce_view`) makes strict coercion fail with ``TypeError``. An
+   existing non-View subtype of the target is an identity result.
+
+   :param value: Value to convert.
+   :param target: Target class, prototype instance, or the ``"natural"`` sentinel.
+   :return: A non-View instance matching the requested target.
+   :raises TypeError: If strict conversion cannot produce the requested target.
+
+
+.. py:function:: coerce_view(value, target)
+
+   Coerce ``value`` to a target class or prototype instance, backend-aware and best-effort.
+
+   The exact string ``"natural"`` is a documented sentinel that returns ``value`` unchanged.
+   Otherwise, a class target is used directly and an instance target is treated as a prototype,
+   using its type. Values already matching the target are returned unchanged — including httk
+   Views that subclass the target, so the exact backend is retained. A target that is a
+   :class:`~httk.core.views.view.View` subclass is then tried directly as a view conversion of
+   ``value``, so any view family works without a registered coercer. Failing that, registered
+   coercers whose declared targets match are tried in registration order, and the first
+   non-``None`` result wins. If none succeeds, ``TypeError`` is raised naming the value type and
+   target. Coercion is best effort and favors lossless view wrapping; a coercer may return a
+   lossless fallback of another type (e.g. ``Fraction(1, 2)`` for target ``int``), and
+   individual coercers document any deliberately lossy conversion. Callers that need a plain,
+   exactly-typed result use :func:`coerce` instead.
+
+   :param value: Value to convert.
+   :param target: Target class, prototype instance, or the ``"natural"`` sentinel.
+   :return: The best available backend-aware conversion.
+   :raises TypeError: If no registered or direct conversion succeeds.
+
+
+.. py:function:: unview(obj)
+
+   Shed the httk View wrapper from ``obj``, returning a plain instance of the presented type.
+
+   Unlike :func:`~httk.core.views.unwrapping.unwrap`, which goes *down* to the backend's raw
+   source representation, ``unview`` goes *sideways*: it removes the httk wrapper while keeping
+   the presentation the view exposes. The result is not promised to be a copy — it may alias
+   the view's (or the original input's) storage; use the target representation's normal copy
+   operation when independent mutation is required. A non-View input is returned unchanged.
+   Views that only adapt an interface and have no faithful standalone value raise ``TypeError``.
+
+   :param obj: Value or view to shed.
+   :return: The presented value without its httk view wrapper.
+   :raises TypeError: If a view has no faithful standalone value.
+
+
+.. py:function:: unwrap(obj)
+
+   Given a Backend or a View, return the most raw representation possible, i.e., if the backend has an internal representaion -
+   or if it can (possibly lossly) convert itself into a more raw representation that still would be recognized as a <Something>Like type,
+   that representation will be returned. If this is not possible, the instance itself is returned.
+
+   :param obj: Value, backend, or view to unwrap.
+   :return: The most raw available representation.
+
+

@@ -1,0 +1,135 @@
+httk.core.docs.config
+=====================
+
+.. py:module:: httk.core.docs.config
+
+.. autoapi-nested-parse::
+
+   Load the strict ``docs/versioning.toml`` site configuration.
+
+   The supported shape is::
+
+       [site]
+       slug = "httk-atomistic"
+       repository-url = "https://github.com/httk/httk-atomistic"
+       main-branch = "main"
+       import-roots = ["httk/atomistic", "httk/registry"]
+
+       [[internal-dependency]]
+       distribution = "httk-core"
+       slug = "httk-core"
+       repository-url = "https://github.com/httk/httk-core"
+       main-branch = "main"
+
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   httk.core.docs.config.ConfigError
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.docs.config.InternalDependency
+   httk.core.docs.config.VersioningConfig
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.docs.config.load_versioning_config
+
+
+Module Contents
+---------------
+
+.. py:exception:: ConfigError
+
+   Bases: :py:obj:`ValueError`
+
+
+   Raised when a versioning TOML file is missing, malformed, or unsafe.
+
+
+.. py:class:: InternalDependency
+
+   Describe one internal httk distribution used by a documentation site.
+
+   :param distribution: Distribution name used by dependency metadata.
+   :param slug: Documentation-site slug for the dependency.
+   :param repository_url: Repository URL for the dependency.
+   :param main_branch: Branch containing the dependency's development docs.
+
+
+   .. py:attribute:: distribution
+      :type:  str
+
+
+   .. py:attribute:: slug
+      :type:  str
+
+
+   .. py:attribute:: repository_url
+      :type:  str
+
+
+   .. py:attribute:: main_branch
+      :type:  str
+      :value: 'main'
+
+
+
+.. py:class:: VersioningConfig
+
+   Configure one versioned documentation site.
+
+   :param slug: Documentation-site slug.
+   :param repository_url: Repository URL for the site.
+   :param main_branch: Branch containing the site's development docs.
+   :param import_roots: Import roots whose documentation is generated.
+   :param internal_dependencies: Internal distributions documented alongside the site.
+
+
+   .. py:attribute:: slug
+      :type:  str
+
+
+   .. py:attribute:: repository_url
+      :type:  str
+
+
+   .. py:attribute:: main_branch
+      :type:  str
+      :value: 'main'
+
+
+
+   .. py:attribute:: import_roots
+      :type:  tuple[str, Ellipsis]
+      :value: ()
+
+
+
+   .. py:attribute:: internal_dependencies
+      :type:  tuple[InternalDependency, Ellipsis]
+      :value: ()
+
+
+
+.. py:function:: load_versioning_config(path)
+
+   Read and validate a versioning TOML file, rejecting unknown keys.
+
+   :param path: Versioning TOML file to read.
+   :return: Validated documentation-site configuration.
+   :raises ConfigError: If the file cannot be read or contains invalid configuration.
+
+

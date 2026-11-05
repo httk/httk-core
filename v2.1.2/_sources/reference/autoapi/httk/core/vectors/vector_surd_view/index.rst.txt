@@ -1,0 +1,64 @@
+httk.core.vectors.vector_surd_view
+==================================
+
+.. py:module:: httk.core.vectors.vector_surd_view
+
+.. autoapi-nested-parse::
+
+   A view presenting any vector backend as a SurdVector (the exact squarefree-radical representation).
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.vectors.vector_surd_view.VectorSurdView
+
+
+Module Contents
+---------------
+
+.. py:class:: VectorSurdView(obj, **hints)
+
+   Bases: :py:obj:`httk.core.vectors.vector_view.VectorView`, :py:obj:`httk.core.vectors.surdvector.SurdVector`
+
+
+   A view presenting an underlying vector backend as an exact
+   :class:`~httk.core.vectors.surdvector.SurdVector`.
+
+   This view is a genuine SurdVector, so it exposes the full exact surd algebra
+   (``det``/``inv``/``*``/``length``/``...). It is built lazily on first access, following the
+   immutable-subclass pattern of
+   :class:`~httk.core.vectors.vector_frac_view.VectorFracView`: from a surd backend it adopts the
+   exact SurdVector directly, and from a frac/native/numpy backend it embeds the backend's exact
+   rational ``fractions`` at radicand 1 — exactly, since every rational is a surd.
+
+   (numpy values are binary rationals, so a numpy source embeds the exact float64 rational, not
+   necessarily the original decimal fraction — the same caveat as
+   :class:`~httk.core.vectors.vector_frac_view.VectorFracView`.)
+
+   :param obj: The source value to present.
+   :param \**hints: Backend-selection and view-conversion hints.
+
+
+   .. py:property:: fractions_exact
+      :type: bool
+
+
+      Return whether this view's Fraction interchange is exact.
+
+
+   .. py:method:: unwrap()
+
+      Return the underlying unwrapped vector, or this value when no backend remains.
+
+
+
+   .. py:method:: unview()
+
+      Return a plain SurdVector containing this view's presented data.
+
+
+

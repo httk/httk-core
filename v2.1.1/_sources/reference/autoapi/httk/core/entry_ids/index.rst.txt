@@ -1,0 +1,134 @@
+httk.core.entry_ids
+===================
+
+.. py:module:: httk.core.entry_ids
+
+.. autoapi-nested-parse::
+
+   Format, parse, and validate human-readable httk entry identifiers.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.entry_ids.ENTRY_ID_PATTERN
+   httk.core.entry_ids.IMMUTABLE_ID_PATTERN
+   httk.core.entry_ids.ALTERNATIVE_KIND_PATTERN
+   httk.core.entry_ids.ALTERNATIVE_ID_PATTERN
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.entry_ids.format_entry_id
+   httk.core.entry_ids.format_immutable_id
+   httk.core.entry_ids.format_alternative_id
+   httk.core.entry_ids.parse_entry_id
+   httk.core.entry_ids.parse_immutable_id
+   httk.core.entry_ids.parse_alternative_id
+   httk.core.entry_ids.is_url_safe_id
+   httk.core.entry_ids.check_entry_id
+   httk.core.entry_ids.check_immutable_id
+
+
+Module Contents
+---------------
+
+.. py:data:: ENTRY_ID_PATTERN
+
+.. py:data:: IMMUTABLE_ID_PATTERN
+
+.. py:data:: ALTERNATIVE_KIND_PATTERN
+
+.. py:data:: ALTERNATIVE_ID_PATTERN
+
+.. py:function:: format_entry_id(base, series, number)
+
+   Format a recommended entry identifier.
+
+   :param base: Dot-separated identifier namespace.
+   :param series: Identifier series token.
+   :param number: Positive entry number.
+   :return: The formatted entry identifier.
+   :raises TypeError: If ``number`` is not a non-boolean integer.
+   :raises ValueError: If the formatted identifier does not match the recommended syntax.
+
+
+.. py:function:: format_immutable_id(entry_id, revision)
+
+   Format an immutable identifier for an entry revision.
+
+   :param entry_id: URL-safe entry identifier, including non-conforming user identifiers.
+   :param revision: Positive revision number.
+   :return: The formatted immutable identifier.
+   :raises TypeError: If ``revision`` is not a non-boolean integer.
+   :raises ValueError: If ``entry_id`` is not URL-safe or ``revision`` is less than one.
+
+
+.. py:function:: format_alternative_id(entry_id, kind, revision = None)
+
+   Format an alternative identifier for a named alternative representation of an entry.
+
+   :param entry_id: URL-safe entry identifier, including non-conforming user identifiers.
+   :param kind: Alternative-kind token matching ``[a-z][a-z0-9_]*``.
+   :param revision: Optional positive revision number of the alternative.
+   :return: The formatted alternative identifier.
+   :raises TypeError: If ``revision`` is given and is not a non-boolean integer.
+   :raises ValueError: If ``kind`` is malformed, ``entry_id`` is not URL-safe, or ``revision`` is less than one.
+
+
+.. py:function:: parse_entry_id(value)
+
+   Parse a recommended entry identifier.
+
+   :param value: Entry identifier to parse.
+   :return: The ``(base, series, number)`` parts, or ``None`` if invalid.
+
+
+.. py:function:: parse_immutable_id(value)
+
+   Parse an immutable identifier with a recommended embedded entry id.
+
+   :param value: Immutable identifier to parse.
+   :return: The ``(entry_id, revision)`` parts, or ``None`` if invalid.
+
+
+.. py:function:: parse_alternative_id(value)
+
+   Parse an alternative identifier with a recommended embedded entry id.
+
+   :param value: Alternative identifier to parse.
+   :return: The ``(entry_id, kind, revision)`` parts (``revision`` ``None`` when absent), or ``None`` if invalid.
+
+
+.. py:function:: is_url_safe_id(value)
+
+   Return whether an identifier is safe for use in a URL path segment.
+
+   :param value: Identifier to inspect.
+   :return: ``True`` if the value is non-empty printable ASCII without ``/``.
+
+
+.. py:function:: check_entry_id(value)
+
+   Check an entry identifier, warning for recommended-syntax deviations.
+
+   :param value: Entry identifier to check.
+   :return: The unchanged identifier.
+   :raises ValueError: If the identifier is not URL-safe.
+
+
+.. py:function:: check_immutable_id(value)
+
+   Check an immutable identifier, warning for recommended-syntax deviations.
+
+   :param value: Immutable identifier to check.
+   :return: The unchanged identifier.
+   :raises ValueError: If the identifier is not URL-safe.
+
+

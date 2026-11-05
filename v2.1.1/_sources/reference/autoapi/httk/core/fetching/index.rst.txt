@@ -1,0 +1,45 @@
+httk.core.fetching
+==================
+
+.. py:module:: httk.core.fetching
+
+.. autoapi-nested-parse::
+
+   Fetch URL sources through OPTIMADE or the registered file-reader pipeline.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.fetching.fetch
+
+
+Module Contents
+---------------
+
+.. py:function:: fetch(url, *, raw = False, timeout = None, kind = None, **kwargs)
+
+   Fetch a URL as an OPTIMADE entry or a registered file format.
+
+   ``kind="optimade"`` forces OPTIMADE handling and ``kind="load"`` forces
+   file-reader handling. With no ``kind``, a reader-claimed extension wins over
+   an OPTIMADE-shaped path; a reader-claimed basename is ambiguous and requires
+   an explicit ``kind``. ``file://`` URLs are supported in either branch.
+   Redirects follow ``urllib`` defaults.
+
+   As the explicit URL entry point, this function supplies the same network
+   consent represented by :class:`~httk.core.DatastreamURL`; it does not use
+   implicit bare-string network access for the reader branch.
+
+   :param url: URL to fetch.
+   :param raw: Whether to return a neutral payload without a format adapter.
+   :param timeout: Optional timeout for URL-backed reader access or OPTIMADE requests.
+   :param kind: Optional branch selector: ``"optimade"`` or ``"load"``.
+   :param \**kwargs: Additional options passed to the file reader.
+   :return: The fetched OPTIMADE resource or loaded file value.
+   :raises ValueError: If the URL, ``kind``, or automatic branch selection is invalid.
+
+

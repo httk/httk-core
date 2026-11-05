@@ -1,0 +1,250 @@
+httk.core.report
+================
+
+.. py:module:: httk.core.report
+
+.. autoapi-nested-parse::
+
+   Unified reporting for the ``httk`` logger hierarchy.
+
+   Library code reports diagnostics with :func:`logging.getLogger` under
+   ``httk.*``. Console/file handlers and per-task collections are consumers of
+   that same record stream. Context is supplied at emission sites with
+   ``extra={"context": ...}``, as one string or a list of strings. A general
+   level and optional per-context levels control each consumer; a context level
+   can also demote a context by being higher than the general level.
+
+   :func:`rearm` lets a new task collect warnings already seen by an earlier
+   task. With no configuration or collection, importing this module changes no
+   logging or warnings state. Installing any handler on ``"httk"``, including
+   the collecting handler, suppresses ``logging.lastResort`` for this hierarchy,
+   so server processes using :func:`collect_reports` should also call
+   :func:`configure_reporting` for console output.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.report.DEFAULT_LOGGER
+   httk.core.report.LOG_LEVELS
+   httk.core.report.DEFAULT_MAXIMUM_BYTES
+   httk.core.report.DEFAULT_BACKUP_COUNT
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.report.JsonFormatter
+   httk.core.report.ReportFilter
+   httk.core.report.ReportCollection
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.report.resolve_level
+   httk.core.report.context_logger
+   httk.core.report.configure_reporting
+   httk.core.report.add_report_file
+   httk.core.report.reset_reporting
+   httk.core.report.collect_reports
+   httk.core.report.active_collections
+   httk.core.report.rearm
+
+
+Module Contents
+---------------
+
+.. py:data:: DEFAULT_LOGGER
+   :value: 'httk'
+
+
+.. py:data:: LOG_LEVELS
+   :value: ('debug', 'info', 'warning', 'error', 'critical')
+
+
+.. py:data:: DEFAULT_MAXIMUM_BYTES
+   :value: 4194304
+
+
+.. py:data:: DEFAULT_BACKUP_COUNT
+   :value: 3
+
+
+.. py:class:: JsonFormatter(fmt=None, datefmt=None, style='%', validate=True, *, defaults=None)
+
+   Bases: :py:obj:`logging.Formatter`
+
+
+   Render one record as a single line of JSON.
+
+
+   .. py:method:: format(record)
+
+      Render ``record`` as one JSON line, including non-standard fields.
+
+      :param record: Log record to serialize.
+      :return: JSON text containing the record's report fields.
+
+
+
+.. py:function:: resolve_level(level)
+
+   Return the numeric level for a protocol log-level name.
+
+   :param level: Numeric level or case-insensitive logging level name.
+   :return: Numeric logging threshold.
+   :raises ValueError: If ``level`` is not a recognized logging level name.
+
+
+.. py:class:: ReportFilter(level = 'warning', context_levels = None)
+
+   Bases: :py:obj:`logging.Filter`
+
+
+   Accept records at a general or context-specific threshold.
+
+   A context threshold replaces the general threshold for records carrying
+   that context, so it can deliberately demote a noisy context by using a
+   higher level.
+
+   :param level: General minimum level for records without an overriding context.
+   :param context_levels: Optional per-context minimum levels.
+
+
+   .. py:attribute:: level
+
+
+   .. py:attribute:: context_levels
+
+
+   .. py:attribute:: minimum_level
+
+
+   .. py:method:: filter(record)
+
+      Return whether ``record`` meets its applicable reporting threshold.
+
+      :param record: Log record to test against the general or context level.
+      :return: Whether the record should be handled.
+
+
+
+.. py:function:: context_logger(logger, *contexts)
+
+   Return an adapter which attaches ``contexts`` to every record.
+
+   Passed adapters are flattened so their ``extra`` values survive logging's
+   default adapter processing. Custom adapter :meth:`~logging.LoggerAdapter.process` logic is
+   deliberately bypassed.
+
+   :param logger: Logger or adapter whose records receive the contexts.
+   :param \*contexts: Context names to attach to each emitted record.
+   :return: A logger adapter that merges these contexts with call-specific ones.
+
+
+.. py:function:: configure_reporting(*, level = 'warning', json_logs = False, context_levels = None, capture_warnings = False, logger = DEFAULT_LOGGER)
+
+   Install one console handler for a reporting logger hierarchy.
+
+   The general level and optional per-context levels control admission to the
+   handler. When requested, warning capture is rearmed and kept in the same
+   logging pipeline.
+
+   :param level: General minimum level for reports.
+   :param json_logs: Whether to render records as JSON lines.
+   :param context_levels: Optional minimum levels for named contexts.
+   :param capture_warnings: Whether to route Python warnings through logging.
+   :param logger: Logger hierarchy that receives the handler.
+   :raises ValueError: If a supplied log level is not recognized.
+
+
+.. py:function:: add_report_file(path, *, level = 'info', json_logs = False, context_levels = None, maximum_bytes = DEFAULT_MAXIMUM_BYTES, backup_count = DEFAULT_BACKUP_COUNT, logger = DEFAULT_LOGGER)
+
+   Add one rotating report file handler and return the path it writes.
+
+   :param path: File path for the rotating report log.
+   :param level: General minimum level for reports.
+   :param json_logs: Whether to render records as JSON lines.
+   :param context_levels: Optional minimum levels for named contexts.
+   :param maximum_bytes: Maximum size of one report file before rotation.
+   :param backup_count: Number of rotated report files to retain.
+   :param logger: Logger hierarchy that receives the handler.
+   :return: The report path supplied by the caller.
+   :raises ValueError: If a supplied log level is not recognized.
+
+
+.. py:function:: reset_reporting(logger = DEFAULT_LOGGER)
+
+   Remove the reporting handlers installed for ``logger``.
+
+   :param logger: Logger hierarchy whose handlers are reset.
+
+
+.. py:class:: ReportCollection(report_filter)
+
+   Store append-only records accepted by one :func:`collect_reports` block.
+
+   :param report_filter: Threshold policy used to accept records.
+
+
+   .. py:attribute:: records
+      :type:  list[logging.LogRecord]
+      :value: []
+
+
+
+   .. py:attribute:: filter
+
+
+.. py:function:: collect_reports(level = 'warning', *, context_levels = None, rearm = True)
+
+   Collect records for the current context until the ``with`` block exits.
+
+   Warning-registry invalidation is process-global. Concurrent collection
+   scopes can double-collect or zero-collect repeated warnings, so callers
+   should avoid task switches inside the block or pass ``rearm=False``.
+
+   The active collections are stored in a :class:`contextvars.ContextVar`, so
+   nested and copied execution contexts retain their own collection scope.
+   Entering a collection installs the shared collecting handler and captures
+   warnings; by default it rearms warning registries first. Exiting restores
+   the prior collection scope and warning-capture state.
+
+   :param level: General minimum level for collected records.
+   :param context_levels: Optional minimum levels for named contexts.
+   :param rearm: Whether to invalidate warning deduplication before collection.
+   :return: A context manager yielding the collection for the current context.
+   :raises ValueError: If a supplied log level is not recognized.
+
+
+.. py:function:: active_collections()
+
+   Return the :func:`collect_reports` collections active in this context.
+
+   Outermost first; the last entry is the innermost enclosing block. Code that
+   presents collected records (for example a server building a response) reads
+   them from here instead of threading a collection through call signatures.
+
+   :return: Active collections from the outermost to the innermost scope.
+
+
+.. py:function:: rearm()
+
+   Invalidate warning deduplication caches without changing warning policy.
+
+   CPython's ``warnings._filters_mutated`` is the primary mechanism used by
+   :class:`warnings.catch_warnings`. Other implementations get an identical
+   temporary public filter entry, whose version bump is retained after it is
+   removed. This is process-global: overlapping collection scopes in tasks can
+   double-collect or zero-collect repeated warnings; avoid task switches in a
+   collection block or use ``rearm=False``.
+
+

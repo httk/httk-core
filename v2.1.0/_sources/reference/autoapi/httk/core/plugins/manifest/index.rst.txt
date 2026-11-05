@@ -1,0 +1,114 @@
+httk.core.plugins.manifest
+==========================
+
+.. py:module:: httk.core.plugins.manifest
+
+.. autoapi-nested-parse::
+
+   Parse and validate installed httk plugin manifests.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.plugins.manifest.PLUGIN_MANIFEST
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.plugins.manifest.PluginProgram
+   httk.core.plugins.manifest.PluginManifest
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.plugins.manifest.parse_plugin_manifest
+
+
+Module Contents
+---------------
+
+.. py:data:: PLUGIN_MANIFEST
+   :value: 'httk_plugin.toml'
+
+
+.. py:class:: PluginProgram
+
+   Describe one declared plugin program.
+
+   :param name: Name the program and its shim.
+   :param file: Name the program member relative to the plugin root.
+   :param description: Describe the program, when supplied.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: file
+      :type:  str
+
+
+   .. py:attribute:: description
+      :type:  str | None
+
+
+.. py:class:: PluginManifest
+
+   Describe a validated plugin manifest.
+
+   :param name: Name the plugin.
+   :param description: Describe the plugin, when supplied.
+   :param templates: Name project-template directories.
+   :param workflows: Name workflow-package directories.
+   :param programs: Describe declared utility programs.
+   :param build: Describe the optional build.
+   :param root: Locate the parsed plugin directory.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: description
+      :type:  str | None
+
+
+   .. py:attribute:: templates
+      :type:  tuple[str, Ellipsis]
+
+
+   .. py:attribute:: workflows
+      :type:  tuple[str, Ellipsis]
+
+
+   .. py:attribute:: programs
+      :type:  tuple[PluginProgram, Ellipsis]
+
+
+   .. py:attribute:: build
+      :type:  httk.core.building.BuildSpec | None
+
+
+   .. py:attribute:: root
+      :type:  pathlib.Path
+
+
+.. py:function:: parse_plugin_manifest(directory)
+
+   Parse and validate one plugin manifest.
+
+   :param directory: Locate the plugin directory.
+   :return: The validated plugin manifest.
+   :raises ValueError: If the plugin directory or manifest is malformed.
+
+
