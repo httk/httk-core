@@ -4,6 +4,8 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Annotated, Any
 
+import pytest
+
 from httk.core import (
     Calculation,
     EntryTypeDefinition,
@@ -149,14 +151,15 @@ def test_scalar_and_list_element_type_mismatches_are_reported() -> None:
     assert any("field 'labels'" in message and "property 'labels'" in message for message in messages)
 
 
-def test_shape_marker_matches_dimensions_and_variable_rows() -> None:
+@pytest.mark.parametrize("base", [FracVector, tuple[tuple[float, ...], ...]])
+def test_shape_marker_matches_dimensions_and_variable_rows(base: Any) -> None:
     @dataclass
     class Fixed:
-        vectors: Annotated[FracVector, Shape(3, 3)]
+        vectors: Annotated[base, Shape(3, 3)]
 
     @dataclass
     class Variable:
-        vectors: Annotated[FracVector, Shape(0, 3)]
+        vectors: Annotated[base, Shape(0, 3)]
 
     fixed = EntryTypeDefinition(
         "synthetic",
@@ -173,7 +176,7 @@ def test_shape_marker_matches_dimensions_and_variable_rows() -> None:
     )
     assert check_record_matches_definition(Fixed, fixed) == []
 
-    wrong_shape = Annotated[FracVector, Shape(2, 3)]
+    wrong_shape = Annotated[base, Shape(2, 3)]
 
     @dataclass
     class Wrong:

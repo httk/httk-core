@@ -16,7 +16,8 @@ keys.
 The v2 value-node shapes are:
 
 * ``null``; ``bool`` with a JSON boolean; ``int`` with decimal text; ``float``
-  with :meth:`float.hex` text; ``string``; and hexadecimal ``bytes``;
+  with :meth:`float.hex` text, ``-0.0`` written as ``0.0`` (signed zero is not
+  content; see below); ``string``; and hexadecimal ``bytes``;
 * ``rational`` for :class:`fractions.Fraction`, :class:`decimal.Decimal`, and
   :class:`~httk.core.vectors.fracvector.FracScalar`, with reduced ``"p/q"``
   text and an explicit positive denominator (including ``"0/1"`` and
@@ -36,12 +37,18 @@ guarantee is computational binding: producing two distinct well-formed
 canonical value trees, modulo the documented deliberate equivalences
 (shared-vs-duplicated equal children, ``IdentitySkip`` exclusions, an
 ``IdentitySkipWhenNone`` field that is ``None`` being indistinguishable from
-the field being absent,
+the field being absent, ``-0.0`` with ``0.0``,
 ``identity_name``-based record unification, ``Decimal`` equivalence with
 ``Fraction``, builtin-subclass leaf unification, and annotation-normalized
 list/tuple values), with equal digests requires a SHA-256 collision. A
 ``record_ref`` is sound domain separation because user data is always enclosed
 in its own tagged value node and can never forge a bare reference node.
+
+The signed-zero fold is a value rule added within canonical version 2 as of
+*httk-core* 2.1.3. The ``"version": 2`` header is deliberately unchanged: it is
+part of every hashed tree, so a bump would change every content ID. Content IDs
+computed by earlier releases differ only for content that contains a ``-0.0``
+float.
 """
 
 import dataclasses
@@ -135,6 +142,13 @@ def resolve_storage_record(source: Any, *, as_record: type[Any] | None = None) -
     else:
         source_type = type(source)
         target = vars(source_type).get(STORAGE_RECORD_ATTRIBUTE, source_type)
+        params = getattr(target, "__dataclass_params__", None)
+        if target is source_type and (params is None or not params.frozen):
+            raise TypeError(
+                f"{source_type.__name__} is not storable: it declares no {STORAGE_RECORD_ATTRIBUTE} and is not a "
+                f"frozen dataclass; store a value class that declares a storage record (for a view, the value "
+                f"class it presents) or a frozen dataclass record"
+            )
     _validate_record_type(target)
     return target
 
@@ -536,7 +550,8 @@ class _Encoder:
             if kind == _LEAF_FLOAT:
                 if not math.isfinite(value):
                     raise ValueError("nonfinite float values cannot have a content identity")
-                return {"type": "float", "value": value.hex()}
+                # Signed zero is not content: + 0.0 folds -0.0 to 0.0 before hashing.
+                return {"type": "float", "value": (value + 0.0).hex()}
             if kind == _LEAF_STR:
                 return {"type": "string", "value": value}
             if kind == _LEAF_BOOL:

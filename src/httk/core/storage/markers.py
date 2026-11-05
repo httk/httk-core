@@ -140,6 +140,12 @@ class Shape:
     with ``cols`` fixed columns each, stored out-of-line (one row per entry,
     in insertion order).
 
+    It applies to an exact :class:`~httk.core.FracVector` field and to a float
+    tensor ``tuple[tuple[float, ...], ...]``. A float tensor is stored as plain
+    doubles with no exact text; its value must be the canonical tuple form,
+    which :func:`~httk.core.storage.float_matrix` produces from nested
+    sequences or arrays.
+
     :param rows: Number of rows; ``0`` means variable-length.
     :param cols: Number of columns per row; must be at least ``1``.
     :raises ValueError: If ``rows`` is negative or ``cols`` is less than ``1``.

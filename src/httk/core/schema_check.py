@@ -27,6 +27,8 @@ _JSON_TYPES = {
     "timestamp": datetime,
 }
 _UNION_ORIGINS = (Union, types.UnionType)
+# The value types a Shape marker applies to: an exact tensor and a float tensor.
+_SHAPED_TYPES = (FracVector, tuple[tuple[float, ...], ...])
 
 
 def _unwrap(annotation: Any) -> tuple[Any, tuple[Any, ...]]:
@@ -224,7 +226,7 @@ def check_record_matches_definition(
             marker = _shape_marker(annotation)
             if (
                 marker is not None
-                and _without_none(annotation) is FracVector
+                and _without_none(annotation) in _SHAPED_TYPES
                 and not _shape_matches_dimensions(marker, properties[property_name])
             ):
                 messages.append(

@@ -303,7 +303,7 @@ node table is:
 | `bool` | `{"type":"bool","value":<JSON boolean>}` |
 | `int` | `{"type":"int","value":"<decimal integer>"}` |
 | `Fraction`, finite `Decimal`, direct `FracScalar` | `{"type":"rational","value":"p/q"}` |
-| finite `float` | `{"type":"float","value":"<float.hex() text>"}` |
+| finite `float` | `{"type":"float","value":"<float.hex() text>"}`; `-0.0` is written as `0.0` (signed zero is not content) |
 | `str` / `bytes` | `string` with the text / `bytes` with lowercase hexadecimal text |
 | `date` | `date` with ISO text |
 | `datetime` | `datetime` with microsecond ISO text and an `aware` Boolean; aware values are converted to UTC |
@@ -313,6 +313,12 @@ node table is:
 | string-keyed mapping | `mapping` with sorted `[key, canonical node]` pairs |
 | registered exact custom type | `custom` with `python_type` and a canonically tagged encoder result |
 | standalone record / annotated child record | version-2 `record` / `record_ref` as above |
+
+The signed-zero fold is a value rule added within canonical version 2 as of
+*httk-core* 2.1.3; the `"version": 2` header is deliberately unchanged, because
+it is part of every hashed tree and a bump would change every content ID.
+Content IDs computed by earlier releases differ only for content that contains
+a `-0.0` float.
 
 The rational grammar is exactly
 `f"{fraction.numerator}/{fraction.denominator}"` after conversion to

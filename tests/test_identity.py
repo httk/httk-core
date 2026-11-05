@@ -94,7 +94,7 @@ def _operator_key_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tupl
 
 def test_plain_identity_tags_bool_int_and_signed_zero() -> None:
     assert content_id(_Plain(True)) != content_id(_Plain(1))
-    assert content_id(_Plain(0.0)) != content_id(_Plain(-0.0))
+    assert content_id(_Plain(0.0)) == content_id(_Plain(-0.0))  # signed zero is not content
     assert '"version":2' in canonical_form(_Plain(1))
     assert '"type":"int"' in canonical_form(_Plain(1))
     with pytest.raises(ValueError, match="nonfinite"):
@@ -204,6 +204,22 @@ def test_binding_is_exact_class_only() -> None:
 
     assert resolve_storage_record(Source(1)) is Record
     assert resolve_storage_record(Child(1)) is Child
+
+
+def test_resolve_storage_record_names_an_unstorable_source_class() -> None:
+    class PresentationView:
+        pass
+
+    @dataclass
+    class MutableRecord:
+        value: int
+
+    for source in (PresentationView(), MutableRecord(1)):
+        name = type(source).__name__
+        with pytest.raises(TypeError, match=rf"^{name} is not storable: it declares no __httk_storage_record__"):
+            resolve_storage_record(source)
+    with pytest.raises(TypeError, match="must be a dataclass"):
+        resolve_storage_record(1, as_record=PresentationView)
 
 
 def test_nested_projection_does_not_construct_records_and_as_record_is_alternate() -> None:

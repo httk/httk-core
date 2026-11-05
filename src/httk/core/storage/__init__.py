@@ -25,6 +25,7 @@ from .markers import (
     WeakLink,
     stored_property,
 )
+from .numeric import float_matrix
 from .stored_properties import (
     STORED_PROPERTY_PROJECTIONS_ATTRIBUTE,
     QueryContext,
@@ -72,6 +73,7 @@ __all__ = [
     "ZipLiteral",
     "canonical_form",
     "content_id",
+    "float_matrix",
     "project_storage_record",
     "register_canonical_encoder",
     "resolve_storage_record",
