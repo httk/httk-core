@@ -94,6 +94,9 @@ from .storage.markers import (
 )
 from .typed_records import MemberLayout, TypedRecord, TypedRecordSpec, member_layout
 from .vectors import (
+    DecimalGap,
+    DecimalScalar,
+    DecimalVector,
     FracScalar,
     FracVector,
     MutableFracVector,
@@ -133,6 +136,9 @@ __all__ = [
     "DatasetRecord",
     "DatastreamLike",
     "DatastreamURL",
+    "DecimalGap",
+    "DecimalScalar",
+    "DecimalVector",
     "DerivedDataRecord",
     "EntryProvider",
     "EntryRecord",

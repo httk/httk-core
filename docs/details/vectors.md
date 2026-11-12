@@ -485,6 +485,47 @@ assert ((SurdVector.one() + SurdVector.sqrt_of(5)) / 4)._as_scalar().acos_degree
 assert SurdVector(F(1, 3))._as_scalar().acos_degrees() is None
 ```
 
+## Decimals as written: `DecimalVector`
+
+A number in a CIF file says more than its value: `0.50` claims more digits than `0.5`,
+`1.2345(6)` carries the standard uncertainty `0.0006`, and an unquoted `007` or `+1.0` may be an
+identifier rather than a quantity. `DecimalVector` (and `DecimalScalar` for one number) keeps all
+of it exactly: each entry is a `decimal.Decimal` built from the token, a sparse map holds the
+stated uncertainties (in the value's unit), another holds the spellings that the canonical
+rendering would not reproduce, and the CIF gaps `?` and `.` stay distinct as `DecimalGap` members.
+Any shape `FracVector` supports is accepted, including empty dimensions.
+
+The token text is the canonical form, so equality and hashing compare tokens; compare values with
+`numerically_equal`. There is no arithmetic: convert to `FracVector` (exact) or floats for that.
+
+```python
+from decimal import Decimal
+from fractions import Fraction
+
+from httk.core.vectors import DecimalGap, DecimalScalar, DecimalVector, FracVector
+
+su = DecimalScalar("1.2345(6)")
+assert su.value == Decimal("1.2345") and su.uncertainty == Decimal("0.0006")
+assert su.precision == Fraction(1, 10000)        # httk.core.precision.decimal_precision
+
+assert DecimalScalar("007").spelling == "007"    # kept: rendering 7 would not reproduce it
+assert DecimalScalar("0.50") != DecimalScalar("0.5")
+assert DecimalScalar("0.50").numerically_equal(DecimalScalar("0.5"))
+
+coords = DecimalVector([["0.25", "0.1250(3)", "?"], [".", "1.5e-3", "0.50"]])
+assert coords.tokens == (("0.25", "0.1250(3)", "?"), (".", "1.5e-3", "0.50"))
+assert coords.uncertainties == {(0, 1): Decimal("0.0003")}
+assert coords[0][2].value is DecimalGap.UNKNOWN
+assert FracVector(DecimalVector(["0.25", "1.5e-3"])) == FracVector(["1/4", "3/2000"])
+assert eval(repr(coords)) == coords
+```
+
+Converting a gap (`to_fractions`, `to_floats`, `FracVector(dv)`) raises `ValueError` naming the
+entry. Construction, equality, rendering and content identity never expand a number, so a valid
+token such as `1e-999999999` is cheap to hold; only the conversions and `precisions` apply the
+exact-size bound of `httk.core.exactmath`. In a stored record a `DecimalVector`/`DecimalScalar`
+field is identified by its tokens, so `0.50` and `0.5` have different content IDs.
+
 ## Representations and views
 
 Vectors get the same backend/view treatment as the rest of *httk₂*. A **backend** wraps one

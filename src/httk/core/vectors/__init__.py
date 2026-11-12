@@ -16,7 +16,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Exact-rational vectors (:class:`FracVector`/:class:`FracScalar`/:class:`~httk.core.vectors.mutablefracvector.MutableFracVector`) and
+Exact-rational vectors (:class:`FracVector`/:class:`FracScalar`/:class:`~httk.core.vectors.mutablefracvector.MutableFracVector`),
+exact CIF decimals as written (:class:`DecimalVector`/:class:`DecimalScalar`, no arithmetic), and
 the Vector backend/view family that lets the same tensor data be viewed as the exact
 representation, plain nested sequences, or (optionally) numpy arrays.
 
@@ -33,6 +34,7 @@ from typing import Any
 from httk.core import exactmath  # noqa: F401
 from httk.core.views import register_coercer, view_class_coercer
 
+from .decimalvector import DecimalGap, DecimalScalar, DecimalVector
 from .fracvector import FracScalar, FracVector, FracVectorBase
 from .leaf_codecs import LeafCodec, known_leaf_codecs, register_leaf_codec
 from .mutablefracvector import MutableFracVector
@@ -135,6 +137,9 @@ register_coercer(
 )
 
 __all__ = [
+    "DecimalGap",
+    "DecimalScalar",
+    "DecimalVector",
     "FracScalar",
     "FracVector",
     "LeafCodec",

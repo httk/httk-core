@@ -37,5 +37,6 @@ recovers the exact original.
 The full guide, {doc}`details/vectors`, covers creation from every numeric
 type, the laziness/`simplify` contract, `MutableFracVector`, exact radicals
 (`SurdVector` — hexagonal bases, exact degree trigonometry), leaf codecs
-(`"float"`, `"decimal"`, custom), zero-copy numpy adoption and shedding, and
-the `NumericVector` presentation.
+(`"float"`, `"decimal"`, custom), zero-copy numpy adoption and shedding,
+the `NumericVector` presentation, and `DecimalVector` — CIF numbers exactly as written,
+with standard uncertainties, spellings and `?`/`.` gaps.

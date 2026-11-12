@@ -309,6 +309,7 @@ node table is:
 | `datetime` | `datetime` with microsecond ISO text and an `aware` Boolean; aware values are converted to UTC |
 | `FracVector` | `frac_vector` with the v1 structural `denominator` and nested `nominators` payload |
 | `SurdScalar`, `SurdVector` | v1 structural `surd_scalar` / `surd_vector` with dimension and radicand/coefficient pairs |
+| `DecimalScalar`, `DecimalVector` (exact types) | `decimal_scalar` with the CIF token text / `decimal_vector` with nested token lists, so `0.50` and `0.5` differ |
 | list / tuple | `list` / `tuple` with an ordered array of canonical nodes |
 | string-keyed mapping | `mapping` with sorted `[key, canonical node]` pairs |
 | registered exact custom type | `custom` with `python_type` and a canonically tagged encoder result |

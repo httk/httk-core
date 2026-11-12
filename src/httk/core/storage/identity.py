@@ -24,6 +24,10 @@ The v2 value-node shapes are:
   ``"5/1"``);
 * structural ``frac_vector``, ``surd_scalar``, and ``surd_vector`` nodes,
   unchanged from format v1;
+* ``decimal_scalar`` and ``decimal_vector`` nodes for the exact types
+  :class:`~httk.core.vectors.decimalvector.DecimalScalar` and
+  :class:`~httk.core.vectors.decimalvector.DecimalVector`, holding the token
+  text (or nested token lists), so ``0.50`` and ``0.5`` differ;
 * ``date`` and ``datetime`` nodes, the latter recording whether the original
   value was timezone-aware;
 * ``list`` and ``tuple`` nodes containing value nodes, and ``mapping`` nodes
@@ -572,6 +576,10 @@ class _Encoder:
                 }
             if kind == _LEAF_DATE:
                 return {"type": "date", "value": value.isoformat()}
+            if kind == _LEAF_DECIMAL_SCALAR:
+                return {"type": "decimal_scalar", "value": value.token}
+            if kind == _LEAF_DECIMAL_VECTOR:
+                return {"type": "decimal_vector", "value": value.tokens}
             return _surd(value)  # _LEAF_SURD
         if plan.is_mapping and isinstance(value, Mapping):
             return self._mapping(value, plan.mapping_value_plan or _ANY_PLAN, path)
@@ -720,10 +728,13 @@ _LEAF_DATETIME = 8
 _LEAF_DATE = 9
 _LEAF_FRAC = 10
 _LEAF_SURD = 11
+_LEAF_DECIMAL_SCALAR = 12
+_LEAF_DECIMAL_VECTOR = 13
 
-# (FracScalar, FracVector, SurdScalar, SurdVector), imported lazily once to keep
-# the isinstance/leaf-codec dispatch off the local-import path per value.
-_VECTOR_TYPES: tuple[type[Any], type[Any], type[Any], type[Any]] | None = None
+# (FracScalar, FracVector, SurdScalar, SurdVector, DecimalScalar, DecimalVector),
+# imported lazily once to keep the isinstance/leaf-codec dispatch off the
+# local-import path per value.
+_VECTOR_TYPES: tuple[type[Any], ...] | None = None
 
 _LEAF_KINDS: dict[type[Any], int] = {}
 _FIELD_PLANS: dict[type[Any], dict[str, "_AnnotationPlan"]] = {}
@@ -731,12 +742,12 @@ _IDENTITY_EXCLUDED: dict[type[Any], frozenset[str]] = {}
 _IDENTITY_SKIP_WHEN_NONE: dict[type[Any], frozenset[str]] = {}
 
 
-def _vector_types() -> tuple[type[Any], type[Any], type[Any], type[Any]]:
+def _vector_types() -> tuple[type[Any], ...]:
     global _VECTOR_TYPES
     if _VECTOR_TYPES is None:
-        from ..vectors import FracScalar, FracVector, SurdScalar, SurdVector
+        from ..vectors import DecimalScalar, DecimalVector, FracScalar, FracVector, SurdScalar, SurdVector
 
-        _VECTOR_TYPES = (FracScalar, FracVector, SurdScalar, SurdVector)
+        _VECTOR_TYPES = (FracScalar, FracVector, SurdScalar, SurdVector, DecimalScalar, DecimalVector)
     return _VECTOR_TYPES
 
 
@@ -762,8 +773,13 @@ def _compute_leaf_kind(value_type: type[Any]) -> int:
     vectors = _vector_types()
     if issubclass(value_type, vectors[:2]):
         return _LEAF_FRAC
-    if issubclass(value_type, vectors[2:]):
+    if issubclass(value_type, vectors[2:4]):
         return _LEAF_SURD
+    # Exact types only: the token encoding is defined for these two classes.
+    if value_type is vectors[4]:
+        return _LEAF_DECIMAL_SCALAR
+    if value_type is vectors[5]:
+        return _LEAF_DECIMAL_VECTOR
     return _LEAF_NOT
 
 
