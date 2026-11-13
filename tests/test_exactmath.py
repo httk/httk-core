@@ -14,6 +14,7 @@ import math
 import pytest
 
 from httk.core import exactmath
+from httk.core.vectors import SurdScalar
 
 F = fractions.Fraction
 D = decimal.Decimal
@@ -176,6 +177,50 @@ def test_cos_degrees() -> None:
     # cos(60 degrees) == 1/2 exactly (after simplification of the rational approximation).
     result = exactmath.cos(F(60), degrees=True).limit_denominator(1000)
     assert result == F(1, 2)
+
+
+def test_approximate_degree_cos_and_sin_are_exact_at_rational_values() -> None:
+    # every quadrant, negative angles and angles above 360: where the value is rational (0, +-1/2,
+    # +-1) the approximation is that value exactly (sin 180 was -4e-12 before), and the Decimal
+    # mode agrees; elsewhere the value stays an approximation
+    rational = 0
+    for d in range(-720, 1080, 15):
+        for function, surd in ((exactmath.cos, SurdScalar.cos_degrees), (exactmath.sin, SurdScalar.sin_degrees)):
+            value = function(F(d), degrees=True, exact=False)
+            expected = surd(d)
+            assert isinstance(value, fractions.Fraction) and expected is not None
+            if expected.is_rational:
+                rational += 1
+                assert value == expected._rational_fraction(), (function.__name__, d)
+                assert function(D(d), degrees=True) == D(value.numerator) / D(value.denominator)
+            else:
+                assert abs(value - float(expected)) < 1e-9
+    assert rational == 2 * 8 * 5  # eight points per 360 for each, over five turns
+    assert exactmath.cos(0, exact=False) == 1 and exactmath.sin(0, exact=False) == 0  # radians
+
+
+def test_approximations_at_irrational_points_are_unchanged() -> None:
+    assert exactmath.cos(F(30), degrees=True, exact=False) == F(6004943465, 6933911452)
+    assert exactmath.sin(F(45), degrees=True, exact=False) == F(6943371715, 9819410448)
+    assert exactmath.cos(F(181, 2), degrees=True, exact=False) == F(-70554847, 8085092530)
+    assert exactmath.cos(F(1, 3)) == F(7609803554, 8053069067)
+
+
+def test_approximate_degree_tangent_is_in_degrees_and_exact_at_rational_values() -> None:
+    # it used to compute the tangent of the angle in radians (tan 45 was 1.62)
+    for d, expected in ((45, 1), (135, -1), (-45, -1), (0, 0), (180, 0)):
+        assert exactmath.tan(F(d), degrees=True, exact=False) == expected
+    for d in (90, -90, 270):
+        with pytest.raises(ValueError, match="undefined"):
+            exactmath.tan(F(d), degrees=True, exact=False)
+    tan30 = exactmath.tan(F(30), degrees=True, exact=False)  # the surd 1/sqrt(3)
+    assert tan30 > 0 and abs(3 * tan30 * tan30 - 1) < 1e-9
+    assert exactmath.tan(F(1, 4)) == F(1795830729, 7033043068)  # radians unchanged
+
+
+def test_decimal_tangent_is_undefined_where_the_cosine_is_zero() -> None:
+    with pytest.raises(ValueError, match="undefined"):
+        exactmath.tan(D(90), degrees=True)
 
 
 def test_returns_are_fractions() -> None:

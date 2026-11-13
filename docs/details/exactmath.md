@@ -82,7 +82,9 @@ approximation. `sqrt` and the degree-mode trigonometric functions expose this as
   approximation below is returned instead. `float`, `Decimal`, numpy and `digits=` inputs never go
   symbolic: they stay in their own domain.
 - `exact=True`: demand the symbolic result; `ValueError` where none exists.
-- `exact=False`: always the approximation.
+- `exact=False`: always the approximation, except that a perfect-square root and a degree-mode
+  cosine or sine whose value is 0, ±1/2 or ±1 (`cos 90°`, `sin 30°`, `cos 120°`, ...) come back
+  exactly. In radians only `cos 0` and `sin 0` are rational, and they are exact too.
 
 ```python
 import fractions
@@ -95,6 +97,7 @@ assert exactmath.cos(30, degrees=True) == SurdVector.sqrt_of(3) / 2  # exact spe
 assert exactmath.acos(fractions.Fraction(1, 2), degrees=True) == 60  # exactly 60, not 60.0000000001
 assert isinstance(exactmath.cos(17, degrees=True), fractions.Fraction)  # no exact form: approximation
 assert isinstance(exactmath.sqrt(3, exact=False), fractions.Fraction)   # approximation on request
+assert exactmath.cos(90, degrees=True, exact=False) == 0               # rational values stay exact
 assert isinstance(exactmath.sqrt(3.0), float)                           # float domain is never symbolic
 ```
 

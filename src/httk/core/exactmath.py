@@ -400,9 +400,12 @@ def _frac_cos(
     :param prec: The target precision.
     :param limit: If True, limit the denominator of the result to at most ``1/prec``.
     :param degrees: If True, interpret ``x`` in degrees.
-    :return: A rational approximation of the cosine.
+    :return: A rational approximation of the cosine, exact where it is rational (0, ±1/2 or ±1).
     """
     if degrees:
+        special = _exact_trig_degrees(x, _COS_EXACT_DEG)
+        if special is not None:
+            return special
         x *= _frac_pi(prec=prec, limit=True) / 180
     if abs(x) > 4:
         twopi = 2 * _frac_pi(prec=prec, limit=True)
@@ -444,9 +447,12 @@ def _frac_sin(
     :param prec: The target precision.
     :param limit: If True, limit the denominator of the result to at most ``1/prec``.
     :param degrees: If True, interpret ``x`` in degrees.
-    :return: A rational approximation of the sine.
+    :return: A rational approximation of the sine, exact where it is rational (0, ±1/2 or ±1).
     """
     if degrees:
+        special = _exact_trig_degrees(x, _SIN_EXACT_DEG)
+        if special is not None:
+            return special
         x *= _frac_pi(prec=prec) / 180
     if abs(x) > 4:
         twopi = 2 * _frac_pi(prec=prec)
@@ -619,9 +625,17 @@ def _frac_tan(
     limit: bool = True,
 ) -> fractions.Fraction:
     """
-    Return a rational approximation of the tangent of ``x`` to precision ``prec``.
+    Return a rational approximation of the tangent of ``x`` to precision ``prec``, exact where it
+    is rational in degree mode (0 or ±1).
     """
-    s = _frac_sin(x, prec=prec, limit=False) / _frac_cos(x, prec=prec, limit=False)
+    if degrees:
+        special = _exact_trig_degrees(x, _TAN_EXACT_DEG)
+        if special is not None:
+            return special
+    cosine = _frac_cos(x, prec=prec, limit=False, degrees=degrees)
+    if cosine == 0:
+        raise ValueError("tangent is undefined where the cosine is zero")
+    s = _frac_sin(x, prec=prec, limit=False, degrees=degrees) / cosine
     if limit:
         s = s.limit_denominator(int(1 / prec))
     return s
@@ -1080,7 +1094,9 @@ def _tan_core(x: fractions.Fraction, prec: fractions.Fraction, degrees: bool) ->
             return exact, True
     cos_val, cos_exact = _cos_core(x, prec, degrees)
     sin_val, sin_exact = _sin_core(x, prec, degrees)
-    if cos_exact and sin_exact and cos_val != 0:
+    if cos_exact and cos_val == 0:
+        raise ValueError("tangent is undefined where the cosine is zero")
+    if cos_exact and sin_exact:
         return sin_val / cos_val, True
     # Approximation as the ratio of the (degrees-aware) sin and cos approximations.
     approx = _frac_sin(x, prec=prec, limit=False, degrees=degrees) / _frac_cos(
@@ -1689,7 +1705,7 @@ def cos(
     :param digits: Significant digits for Decimal mode, or ``None`` for Fraction mode unless ``x`` is Decimal.
     :param rounding: Decimal rounding mode: ``"half_even"`` or ``"down"``.
     :param max_refinements: Maximum Decimal refinements, or ``None`` for the normal adaptive limit.
-    :param exact: ``None`` (default) returns the exact degree-mode surd for supported angles of exact-domain input, otherwise the domain approximation; ``True`` requires it or raises; ``False`` always approximates.
+    :param exact: ``None`` (default) returns the exact degree-mode surd for supported angles of exact-domain input, otherwise the domain approximation; ``True`` requires it or raises; ``False`` always approximates, except that a value of 0, ±1/2 or ±1 (degrees, or ``0`` radians) is exact.
     :param coerce: Optional output view or value type; ``"natural"`` disables presentation coercion.
     :return: The cosine in the selected output domain, preserving vector shape.
     :raises ValueError: If exact mode is not degree mode, the angle is unsupported, or Decimal-mode parameters are invalid.
@@ -1766,7 +1782,7 @@ def sin(
     :param digits: Significant digits for Decimal mode, or ``None`` for Fraction mode unless ``x`` is Decimal.
     :param rounding: Decimal rounding mode: ``"half_even"`` or ``"down"``.
     :param max_refinements: Maximum Decimal refinements, or ``None`` for the normal adaptive limit.
-    :param exact: ``None`` (default) returns the exact degree-mode surd for supported angles of exact-domain input, otherwise the domain approximation; ``True`` requires it or raises; ``False`` always approximates.
+    :param exact: ``None`` (default) returns the exact degree-mode surd for supported angles of exact-domain input, otherwise the domain approximation; ``True`` requires it or raises; ``False`` always approximates, except that a value of 0, ±1/2 or ±1 (degrees, or ``0`` radians) is exact.
     :param coerce: Optional output view or value type; ``"natural"`` disables presentation coercion.
     :return: The sine in the selected output domain, preserving vector shape.
     :raises ValueError: If exact mode is not degree mode, the angle is unsupported, or Decimal-mode parameters are invalid.
