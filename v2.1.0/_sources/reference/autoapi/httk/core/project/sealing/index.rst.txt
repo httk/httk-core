@@ -1,0 +1,431 @@
+httk.core.project.sealing
+=========================
+
+.. py:module:: httk.core.project.sealing
+
+.. autoapi-nested-parse::
+
+   Write, read, sign, and verify project seal documents.
+
+   A *seal* is a signed statement of what a subject contained at one moment. A
+   project seal records the project's loose files and, for every registered member,
+   the digest of that member's own seal, so a project seal transitively pins whole
+   member subtrees without re-hashing them: a change to any covered byte becomes a
+   discrepancy the moment the seal is verified.
+
+   The signature is over a domain-separated digest of the document body, exactly as
+   a signed project manifest is signed, so a digest signed as a seal can never be
+   replayed as anything else. Verification answers the two independent questions a
+   signature always raises separately — does the seal still describe this subject,
+   and was it made by a key this project trusts — and reports both.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.project.sealing.VALID_TRUSTED
+   httk.core.project.sealing.VALID_UNKNOWN_KEY
+   httk.core.project.sealing.INVALID
+   httk.core.project.sealing.SealKey
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   httk.core.project.sealing.SealError
+   httk.core.project.sealing.SealedError
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.project.sealing.SealKeys
+   httk.core.project.sealing.Discrepancy
+   httk.core.project.sealing.Seal
+   httk.core.project.sealing.SealVerification
+   httk.core.project.sealing.SealReport
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.project.sealing.project_seal_path
+   httk.core.project.sealing.is_project_sealed
+   httk.core.project.sealing.resolve_seal_keys
+   httk.core.project.sealing.default_project_keys
+   httk.core.project.sealing.build_seal_body
+   httk.core.project.sealing.sign_seal_body
+   httk.core.project.sealing.write_seal
+   httk.core.project.sealing.read_seal
+   httk.core.project.sealing.normalize_trusted_keys
+   httk.core.project.sealing.verify_signed_body
+   httk.core.project.sealing.verify_seal
+   httk.core.project.sealing.diff_records
+   httk.core.project.sealing.seal_project
+   httk.core.project.sealing.unseal_project
+   httk.core.project.sealing.verify_project
+
+
+Module Contents
+---------------
+
+.. py:data:: VALID_TRUSTED
+   :value: 'valid_trusted'
+
+
+.. py:data:: VALID_UNKNOWN_KEY
+   :value: 'valid_unknown_key'
+
+
+.. py:data:: INVALID
+   :value: 'invalid'
+
+
+.. py:data:: SealKey
+
+.. py:exception:: SealError
+
+   Bases: :py:obj:`RuntimeError`
+
+
+   A seal cannot be written or verified.
+
+   This is the *cannot proceed* failure: no signing key is available, or a
+   member a project seal must cover is itself unsealed or has no handler. It
+   never means an action was refused because something was already sealed; that
+   is :class:`SealedError`.
+
+
+.. py:exception:: SealedError
+
+   Bases: :py:obj:`RuntimeError`
+
+
+   An action was refused because the subject, or its enclosure, is sealed.
+
+   Changing a project's members while the project is sealed is refused rather
+   than silently allowed: a seal a project commits to must not change beneath
+   it.
+
+
+.. py:class:: SealKeys
+
+   The signing keys resolved for one seal, and the roles that were missing.
+
+   :param keys: The available signing keys, in the order their refs resolved.
+   :param missing_roles: The roles requested but which could not be resolved.
+
+
+   .. py:attribute:: keys
+      :type:  tuple[SealKey, Ellipsis]
+
+
+   .. py:attribute:: missing_roles
+      :type:  tuple[str, Ellipsis]
+
+
+.. py:class:: Discrepancy
+
+   One way a sealed subject no longer matches its seal.
+
+   :param path: The record path or member relpath that disagrees.
+   :param kind: The disagreement: ``missing``, ``extra``, ``mismatch``,
+       ``unsealed`` (present but not recorded), or ``missing_job`` (recorded but
+       absent).
+
+
+   .. py:attribute:: path
+      :type:  str
+
+
+   .. py:attribute:: kind
+      :type:  str
+
+
+.. py:class:: Seal
+
+   One parsed seal document.
+
+   :param kind: The sealed level (``project`` for a project seal).
+   :param subject: The identifiers of the sealed subject.
+   :param created_at: When the seal was written.
+   :param records: The recorded contents of the sealed subject.
+   :param body_sha256: The recorded digest of the signed body.
+   :param signatures: The detached signatures over the body digest.
+   :param body_bytes: The canonical bytes the recorded digest is taken over.
+   :param path: Where the seal was read from.
+
+
+   .. py:attribute:: kind
+      :type:  str
+
+
+   .. py:attribute:: subject
+      :type:  dict[str, object]
+
+
+   .. py:attribute:: created_at
+      :type:  str
+
+
+   .. py:attribute:: records
+      :type:  tuple[dict[str, object], Ellipsis]
+
+
+   .. py:attribute:: body_sha256
+      :type:  str
+
+
+   .. py:attribute:: signatures
+      :type:  tuple[dict[str, object], Ellipsis]
+
+
+   .. py:attribute:: body_bytes
+      :type:  bytes
+
+
+   .. py:attribute:: path
+      :type:  pathlib.Path
+
+
+.. py:class:: SealVerification
+
+   What verifying one seal established.
+
+   :param valid: Whether the seal describes its subject and a signature verified.
+   :param verdict: One of ``VALID_TRUSTED``, ``VALID_UNKNOWN_KEY``, or
+       ``INVALID``.
+   :param reason: A human-readable explanation of the verdict.
+   :param signers: The fingerprints of the signatures that verified.
+   :param missing_signers: The expected roles that the seal did not carry.
+   :param discrepancies: How the subject diverges from the seal, if at all.
+
+
+   .. py:attribute:: valid
+      :type:  bool
+
+
+   .. py:attribute:: verdict
+      :type:  str
+
+
+   .. py:attribute:: reason
+      :type:  str
+
+
+   .. py:attribute:: signers
+      :type:  tuple[str, Ellipsis]
+
+
+   .. py:attribute:: missing_signers
+      :type:  tuple[str, Ellipsis]
+
+
+   .. py:attribute:: discrepancies
+      :type:  tuple[Discrepancy, Ellipsis]
+
+
+   .. py:method:: as_entry(level, subject)
+
+      Return this verdict as one whole-tree report entry.
+
+      :param level: The subject level this verdict is for.
+      :param subject: The subject identifier this verdict is for.
+      :return: The JSON-compatible report entry.
+
+
+
+.. py:class:: SealReport
+
+   The verdicts of verifying a seal and, when deep, every seal below it.
+
+   :param entries: A flat sequence of report-entry mappings, parent before
+       child, each in the shape :meth:`SealVerification.as_entry` produces.
+   :param ok: Whether every entry is valid and at least one entry exists.
+
+
+   .. py:attribute:: entries
+      :type:  tuple[dict[str, object], Ellipsis]
+
+
+   .. py:attribute:: ok
+      :type:  bool
+
+
+.. py:function:: project_seal_path(project_root)
+
+   Return where one project's seal lives.
+
+   :param project_root: The project root whose seal path to build.
+   :return: The project seal path.
+
+
+.. py:function:: is_project_sealed(project_root)
+
+   Return whether one project carries a seal.
+
+   :param project_root: The project root to check.
+   :return: Whether the project seal file exists.
+
+
+.. py:function:: resolve_seal_keys(refs, *, project_root)
+
+   Resolve seal-key refs to the signing keys that are actually available.
+
+   A ref is ``project`` (the project's own signing seed, discovered from
+   *project_root*), ``identity`` (the default operator identity),
+   ``identity:<short>`` (a named identity), or the path of a base64 Ed25519 seed
+   file. An unavailable ref is skipped and logged rather than fatal; only
+   resolving no key at all is an error.
+
+   :param refs: The key refs to resolve, in order.
+   :param project_root: The tree the ``project`` ref is discovered from.
+   :return: The resolved keys and the roles that could not be resolved.
+   :raises SealError: If no key at all could be resolved.
+
+
+.. py:function:: default_project_keys(root, refs = None)
+
+   Resolve a project's signing keys from its ``seal_keys`` member or *refs*.
+
+   :param root: The project root whose ``seal_keys`` member is read.
+   :param refs: Key refs to use instead of the project member, when given.
+   :return: The resolved signing keys and the roles that could not be resolved.
+   :raises SealError: If the member is malformed or no key resolves.
+
+
+.. py:function:: build_seal_body(kind, subject, records)
+
+   Assemble the signed body of one seal document.
+
+   The returned mapping is the exact, canonical body a signature is taken over
+   — its ``created_at`` is stamped now — so a caller signs and writes it with
+   :func:`sign_seal_body` and :func:`write_seal`.
+
+   :param kind: The sealed level, such as ``project`` or a member kind.
+   :param subject: The identifiers of the sealed subject.
+   :param records: The recorded contents of the sealed subject.
+   :return: The unsigned seal body.
+
+
+.. py:function:: sign_seal_body(body, keys)
+
+   Digest a seal body and produce one detached signature per key.
+
+   :param body: The seal body from :func:`build_seal_body`.
+   :param keys: The signing keys, each a ``(role, seed)`` pair.
+   :return: The hex body digest and the detached signatures.
+
+
+.. py:function:: write_seal(path, body, keys)
+
+   Sign a seal body and write the seal document atomically.
+
+   :param path: Where to write the seal document.
+   :param body: The seal body from :func:`build_seal_body`.
+   :param keys: The signing keys, each a ``(role, seed)`` pair.
+   :return: The written seal path.
+   :raises SealError: If no signing key is available.
+
+
+.. py:function:: read_seal(path)
+
+   Read and structurally validate one seal document.
+
+   :param path: The seal file to read.
+   :return: The parsed seal.
+   :raises ValueError: If the file is not a valid seal document.
+   :raises OSError: If the file cannot be read.
+
+
+.. py:function:: normalize_trusted_keys(trusted_keys)
+
+   Return trust anchors as canonical keys and fingerprints, skipping junk.
+
+   :param trusted_keys: Trust anchors as ``ed25519:`` keys or ``sha256:`` fingerprints.
+   :return: The canonical keys and fingerprints, with unparseable entries dropped.
+
+
+.. py:function:: verify_signed_body(body_bytes, body_sha256, signatures, *, trusted_keys = (), expected_roles = ())
+
+   Verify one signed body's digest and signatures, and classify the signers.
+
+   This is the signature core shared by :func:`verify_seal` and any other
+   caller signing a body with :func:`sign_seal_body`: the recorded digest must
+   match the canonical ``body_bytes``, at least one signature must verify, any
+   signature that does not makes the body invalid, and the body is trusted when
+   a verifying signer is a pinned key or fingerprint.
+
+   :param body_bytes: The canonical bytes the recorded digest is taken over.
+   :param body_sha256: The recorded hex digest of the signed body.
+   :param signatures: The detached signatures over the body digest.
+   :param trusted_keys: Trust anchors as ``ed25519:`` keys or ``sha256:`` fingerprints.
+   :param expected_roles: Signing roles the body is expected to carry.
+   :return: The signature verdict.
+
+
+.. py:function:: verify_seal(path, *, trusted_keys = (), expected_roles = ())
+
+   Verify one seal's body digest and signatures, and classify the signers.
+
+   This checks the seal against itself, not against the subject: at least one
+   signature must verify, any signature that does not makes the seal invalid,
+   and the seal is trusted when a verifying signer is a pinned key or
+   fingerprint. Subject-level checks are done by :func:`verify_project`.
+
+   :param path: The seal file to verify.
+   :param trusted_keys: Trust anchors as ``ed25519:`` keys or ``sha256:`` fingerprints.
+   :param expected_roles: Signing roles the seal is expected to carry.
+   :return: The signature verdict.
+   :raises ValueError: If the file is not a valid seal document.
+   :raises OSError: If the file cannot be read.
+
+
+.. py:function:: diff_records(recorded, actual)
+
+   Diff two path-keyed record lists into discrepancies.
+
+   :param recorded: The records a seal recorded.
+   :param actual: The records the tree holds now.
+   :return: The per-path discrepancies, sorted by path.
+
+
+.. py:function:: seal_project(project_root, *, keys = None)
+
+   Seal a project's loose files and every member's seal digest.
+
+   Every registered member must already be sealed, and every member kind must
+   have a registered handler; otherwise the project cannot be sealed.
+
+   :param project_root: The project root to seal.
+   :param keys: The signing keys, or ``None`` to use the project default.
+   :return: The project seal path.
+   :raises SealError: If a member is unsealed, a kind has no handler, or no key resolves.
+
+
+.. py:function:: unseal_project(project_root)
+
+   Remove a project's seal.
+
+   :param project_root: The project root to unseal.
+
+
+.. py:function:: verify_project(project_root, *, trusted_keys = (), deep = True)
+
+   Verify a project's seal and, when deep, every member seal it references.
+
+   :param project_root: The project root to verify.
+   :param trusted_keys: Trust anchors to classify the signers against.
+   :param deep: Whether to delegate to each member handler's own verification.
+   :return: The flat report of every verdict, with an overall ``ok``.
+
+

@@ -1,0 +1,58 @@
+httk.registry.entries.core
+==========================
+
+.. py:module:: httk.registry.entries.core
+
+.. autoapi-nested-parse::
+
+   Register core entry families, records, and typed OPTIMADE bindings lazily.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.registry.entries.core.register_entry_family
+   httk.registry.entries.core.register_entry_record
+   httk.registry.entries.core.register_optimade_entry_binding
+
+
+Package Contents
+----------------
+
+.. py:function:: register_entry_family(*, name, family, definition_id = None)
+
+   Register a lazy entry-family class reference without importing it.
+
+   :param name: The entry-family registry name.
+   :param family: The lazy ``"module:class"`` family reference.
+   :param definition_id: The family's definition IRI, if any.
+   :raises ValueError: If validation fails or ``name`` is already registered.
+
+
+.. py:function:: register_entry_record(*, name, record, family = None, definition_id = None)
+
+   Register a lazy record-class reference and optional family and definition IRI.
+
+   :param name: The record registry name.
+   :param record: The lazy ``"module:class"`` record reference.
+   :param family: The logical entry-family name, if any.
+   :param definition_id: The record's definition IRI, if any.
+   :raises ValueError: If validation fails or ``name`` is already registered.
+
+
+.. py:function:: register_optimade_entry_binding(*, name, definition_id, backend, view, property_decoders = None, query_fields = None)
+
+   Register one lazy typed binding, selected only by exact definition IRI.
+
+   :param name: The binding registry name.
+   :param definition_id: The exact entry-type definition IRI selected by the binding.
+   :param backend: The lazy backend class reference.
+   :param view: The lazy view class reference.
+   :param property_decoders: Property definition IRIs mapped to lazy decoder references.
+   :param query_fields: Property definition IRIs supported for querying, if restricted.
+   :raises ValueError: If the definition IRI is already registered or input is invalid.
+
+

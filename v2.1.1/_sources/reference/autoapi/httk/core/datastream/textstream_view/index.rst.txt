@@ -1,0 +1,27 @@
+httk.core.datastream.textstream_view
+====================================
+
+.. py:module:: httk.core.datastream.textstream_view
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.datastream.textstream_view.TextstreamView
+
+
+Module Contents
+---------------
+
+.. py:class:: TextstreamView
+
+   Bases: :py:obj:`httk.core.views.View`\ [\ :py:obj:`httk.core.datastream.textstream_backend.TextstreamBackend`\ ]
+
+
+   Abstract base class for all views of streaming text data.
+
+   Views retain the backend and expose it through a text-stream interface.
+
+

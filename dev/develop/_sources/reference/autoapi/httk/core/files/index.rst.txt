@@ -1,0 +1,207 @@
+httk.core.files
+===============
+
+.. py:module:: httk.core.files
+
+.. autoapi-nested-parse::
+
+   Stdlib-only storage records for OPTIMADE ``files`` entries.
+
+   ``FileRecord`` stores file metadata and a flat ``sha256`` digest. Files are
+   deduplicated by content: identity is the media type, the httk format name when
+   set, and the SHA-256 digest, so every path to the same bytes is one entry.
+   A record with ``url=None`` names content whose bytes are lost (known only by
+   digest) and serves its ``url`` as an RFC 6920 ``ni:///sha-256;...`` URI.
+   The mapping-valued ``checksums`` field is skipped because SQL storage cannot
+   persist mappings; use ``sha256`` for the storable digest.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.files.FILES_DEFINITION_ID
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.files.FileRecord
+   httk.core.files.FileEntry
+
+
+Module Contents
+---------------
+
+.. py:data:: FILES_DEFINITION_ID
+   :value: 'https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files'
+
+
+.. py:class:: FileRecord
+
+   Bases: :py:obj:`httk.core.entry_types.File`
+
+
+   Store one OPTIMADE ``files`` entry with content identity metadata.
+
+   A file record is identified by its content: the media type, the httk
+   ``format`` name when set, and the SHA-256 digest of the bytes. URL and name
+   remain required positional fields, but they only say where the bytes
+   currently live and are excluded from content identity; a record may be
+   re-pointed to any copy whose bytes still match ``sha256``, and the same
+   bytes used in many places are one entry. The human-readable and immutable
+   identifiers, size, version, description, timestamps, and other metadata
+   are excluded from content identity as well. A repeated save of the same
+   content keeps each stored non-null location and metadata value and fills
+   each stored null from the incoming record (first non-null wins), so a lost
+   file (``url=None``) gets its location from a later save of the same bytes.
+   ``checksums`` is skipped because mapping fields are not SQL-storable;
+   store the flat ``sha256`` value when a storable digest is needed.
+   ``url`` is None when the bytes are lost: the record then names content that
+   existed (its digest) but has no location; served as an ``ni:`` URI.
+
+   :param url: The URL to get the contents of the file, or None when the bytes are lost.
+   :param name: The base name of the file.
+   :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+   :param immutable_id: The per-revision immutable id; minted by the store when None.
+   :param last_modified: The optional timezone-aware metadata timestamp.
+   :param url_stable_until: The optional URL stability deadline.
+   :param size: The file size in bytes, if known.
+   :param media_type: The file MIME type; ``"application/octet-stream"`` when nothing more specific is known.
+   :param version: The file version, if known.
+   :param modification_timestamp: The optional content modification timestamp.
+   :param description: An optional free-form file description.
+   :param checksums: Optional checksums, kept out of SQL storage.
+   :param atime: The optional POSIX access timestamp.
+   :param ctime: The optional POSIX status-change timestamp.
+   :param mtime: The optional POSIX modification timestamp.
+   :param sha256: The flat SHA-256 hexadecimal digest of the file bytes; required, keyword-only.
+   :param format: The httk reader format name usable as ``httk.core.load(path, format=...)`` (e.g. ``"poscar"``), if known; part of identity only when set.
+   :raises TypeError: If ``url`` is neither a string nor None.
+   :raises ValueError: If ``sha256`` is not a lowercase hexadecimal SHA-256 digest.
+
+
+   .. py:attribute:: url
+      :type:  Annotated[str | None, IdentitySkip(), KeepStored()]
+
+
+   .. py:attribute:: name
+      :type:  Annotated[str, IdentitySkip(), KeepStored()]
+
+
+   .. py:attribute:: id
+      :type:  Annotated[str | None, IdentitySkip(), Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: immutable_id
+      :type:  Annotated[str | None, IdentitySkip(), Unique()]
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  Annotated[datetime.datetime | None, IdentitySkip(), KeepStored()]
+      :value: None
+
+
+
+   .. py:attribute:: url_stable_until
+      :type:  Annotated[datetime.datetime | None, IdentitySkip(), KeepStored()]
+      :value: None
+
+
+
+   .. py:attribute:: size
+      :type:  Annotated[int | None, IdentitySkip(), KeepStored()]
+      :value: None
+
+
+
+   .. py:attribute:: media_type
+      :type:  str
+      :value: 'application/octet-stream'
+
+
+
+   .. py:attribute:: version
+      :type:  Annotated[str | None, IdentitySkip(), KeepStored()]
+      :value: None
+
+
+
+   .. py:attribute:: modification_timestamp
+      :type:  Annotated[datetime.datetime | None, IdentitySkip(), KeepStored()]
+      :value: None
+
+
+
+   .. py:attribute:: description
+      :type:  Annotated[str | None, IdentitySkip(), KeepStored()]
+      :value: None
+
+
+
+   .. py:attribute:: checksums
+      :type:  Annotated[collections.abc.Mapping[str, str] | None, Skip()]
+      :value: None
+
+
+
+   .. py:attribute:: atime
+      :type:  Annotated[datetime.datetime | None, IdentitySkip(), KeepStored()]
+      :value: None
+
+
+
+   .. py:attribute:: ctime
+      :type:  Annotated[datetime.datetime | None, IdentitySkip(), KeepStored()]
+      :value: None
+
+
+
+   .. py:attribute:: mtime
+      :type:  Annotated[datetime.datetime | None, IdentitySkip(), KeepStored()]
+      :value: None
+
+
+
+   .. py:attribute:: sha256
+      :type:  str
+
+
+   .. py:attribute:: format
+      :type:  Annotated[str | None, IdentitySkipWhenNone()]
+      :value: None
+
+
+
+   .. py:property:: type
+      :type: str
+
+
+      Return the served entry type name.
+
+
+.. py:class:: FileEntry
+
+   Logical entry family for served :class:`FileRecord` records.
+
+   This family is not itself storable; store a ``FileRecord`` directly.
+
+
+   .. py:attribute:: type
+      :value: 'files'
+
+
+
+   .. py:attribute:: definition_id
+      :value: 'https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files'
+
+
+

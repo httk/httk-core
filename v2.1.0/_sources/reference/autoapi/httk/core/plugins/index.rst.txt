@@ -1,0 +1,229 @@
+httk.core.plugins
+=================
+
+.. py:module:: httk.core.plugins
+
+.. autoapi-nested-parse::
+
+   Re-export the httk plugin APIs.
+
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /reference/autoapi/httk/core/plugins/cli/index
+   /reference/autoapi/httk/core/plugins/install/index
+   /reference/autoapi/httk/core/plugins/installed/index
+   /reference/autoapi/httk/core/plugins/manifest/index
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.plugins.PLUGIN_MANIFEST
+   httk.core.plugins.PLUGIN_METADATA
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.plugins.InstalledPlugin
+   httk.core.plugins.PluginManifest
+   httk.core.plugins.PluginProgram
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.plugins.build_plugin
+   httk.core.plugins.install_plugin
+   httk.core.plugins.uninstall_plugin
+   httk.core.plugins.installed_plugins
+   httk.core.plugins.plugin_program
+   httk.core.plugins.plugin_root
+   httk.core.plugins.plugins_home
+   httk.core.plugins.shims_home
+   httk.core.plugins.parse_plugin_manifest
+
+
+Package Contents
+----------------
+
+.. py:function:: build_plugin(name)
+
+   Build and publish the declared programs of an installed plugin.
+
+
+.. py:function:: install_plugin(source, *, force = False)
+
+   Install one plugin from an existing local directory.
+
+   ``source_sha256`` is pre-build provenance: build output and the build log
+   may change the installed tree after this digest is recorded.
+
+   :param source: Supply the local plugin directory.
+   :param force: Replace an installed plugin with the same name.
+   :return: The installed plugin.
+   :raises ValueError: If the source or plugin is invalid or cannot be built.
+
+
+.. py:function:: uninstall_plugin(name)
+
+   Remove an installed plugin and its still-owned shims.
+
+
+.. py:data:: PLUGIN_MANIFEST
+   :value: 'httk_plugin.toml'
+
+
+.. py:data:: PLUGIN_METADATA
+   :value: 'plugin.json'
+
+
+.. py:class:: InstalledPlugin
+
+   Describe one installed plugin and its installer metadata.
+
+   :param name: Name the installed plugin directory.
+   :param root: Locate the installed plugin directory.
+   :param manifest: Provide the parsed plugin.json object.
+   :param metadata: Provide the parsed plugin.json object.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: root
+      :type:  pathlib.Path
+
+
+   .. py:attribute:: manifest
+      :type:  httk.core.plugins.manifest.PluginManifest
+
+
+   .. py:attribute:: metadata
+      :type:  collections.abc.Mapping[str, object]
+
+
+.. py:function:: installed_plugins()
+
+   Read all valid installed plugins.
+
+   :return: Valid installed plugins in directory-name order.
+
+
+.. py:function:: plugin_program(name, program)
+
+   Return the absolute path of an installed plugin program.
+
+   :param name: Name the installed plugin.
+   :param program: Name the declared program.
+   :return: The program's absolute path.
+   :raises ValueError: If the plugin or program is unavailable.
+
+
+.. py:function:: plugin_root(name)
+
+   Return the root of an installed plugin.
+
+   :param name: Name the installed plugin directory.
+   :return: The installed plugin directory.
+   :raises ValueError: If the plugin is not installed.
+
+
+.. py:function:: plugins_home()
+
+   Return the installed plugin directory.
+
+   :return: The plugin data directory.
+
+
+.. py:function:: shims_home()
+
+   Return the plugin shim directory.
+
+   :return: The shim data directory.
+
+
+.. py:class:: PluginManifest
+
+   Describe a validated plugin manifest.
+
+   :param name: Name the plugin.
+   :param description: Describe the plugin, when supplied.
+   :param templates: Name project-template directories.
+   :param workflows: Name workflow-package directories.
+   :param programs: Describe declared utility programs.
+   :param build: Describe the optional build.
+   :param root: Locate the parsed plugin directory.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: description
+      :type:  str | None
+
+
+   .. py:attribute:: templates
+      :type:  tuple[str, Ellipsis]
+
+
+   .. py:attribute:: workflows
+      :type:  tuple[str, Ellipsis]
+
+
+   .. py:attribute:: programs
+      :type:  tuple[PluginProgram, Ellipsis]
+
+
+   .. py:attribute:: build
+      :type:  httk.core.building.BuildSpec | None
+
+
+   .. py:attribute:: root
+      :type:  pathlib.Path
+
+
+.. py:class:: PluginProgram
+
+   Describe one declared plugin program.
+
+   :param name: Name the program and its shim.
+   :param file: Name the program member relative to the plugin root.
+   :param description: Describe the program, when supplied.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: file
+      :type:  str
+
+
+   .. py:attribute:: description
+      :type:  str | None
+
+
+.. py:function:: parse_plugin_manifest(directory)
+
+   Parse and validate one plugin manifest.
+
+   :param directory: Locate the plugin directory.
+   :return: The validated plugin manifest.
+   :raises ValueError: If the plugin directory or manifest is malformed.
+
+

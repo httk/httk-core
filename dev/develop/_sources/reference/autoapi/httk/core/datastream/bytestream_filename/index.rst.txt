@@ -1,0 +1,44 @@
+httk.core.datastream.bytestream_filename
+========================================
+
+.. py:module:: httk.core.datastream.bytestream_filename
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.datastream.bytestream_filename.BytestreamFilename
+
+
+Module Contents
+---------------
+
+.. py:class:: BytestreamFilename(filename, **hints)
+
+   Bases: :py:obj:`httk.core.datastream.bytestream_common.BytestreamCommon`, :py:obj:`httk.core.datastream.bytestream_backend.BytestreamBackend`
+
+
+   Backend for streaming byte data via operations on a file specified by a filename.
+   Compressed content is transparently decompressed according to the compression hint.
+
+   :param filename: File path to open lazily for binary reading.
+   :param \**hints: Backend-selection and compression hints.
+   :raises ValueError: If the compression hint is unknown.
+
+
+   .. py:property:: name
+      :type: str | None
+
+
+      Return the configured filename.
+
+
+   .. py:property:: closed
+      :type: bool
+
+
+      Report whether the filename backend is closed.
+
+

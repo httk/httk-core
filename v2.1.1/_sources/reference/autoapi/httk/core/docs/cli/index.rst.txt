@@ -1,0 +1,40 @@
+httk.core.docs.cli
+==================
+
+.. py:module:: httk.core.docs.cli
+
+.. autoapi-nested-parse::
+
+   The ``httk docs`` command-line adapter over the documentation library.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.docs.cli.build_parser
+   httk.core.docs.cli.command
+
+
+Module Contents
+---------------
+
+.. py:function:: build_parser(program)
+
+   Build the ``httk docs`` parser.
+
+   :param program: Program name displayed by the parser.
+   :return: Configured command-line parser.
+
+
+.. py:function:: command(argv, context)
+
+   Handle the registered top-level ``docs`` command.
+
+   :param argv: Command-line arguments after the ``docs`` subcommand.
+   :param context: CLI execution context supplied by the top-level command runner.
+   :return: Process-style exit status.
+
+

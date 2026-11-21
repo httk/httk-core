@@ -1,0 +1,80 @@
+httk.core.project.cli
+=====================
+
+.. py:module:: httk.core.project.cli
+
+.. autoapi-nested-parse::
+
+   The core-owned ``httk project`` command.
+
+   ``httk project`` owns the anchor: ``init`` creates one (like ``git init``),
+   ``show`` describes it, ``export`` creates a signed redistribution,
+   ``verify-export`` checks one, and ``import-v1`` migrates a legacy project.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.project.cli.Handler
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.project.cli.describe_project
+   httk.core.project.cli.project_repair
+   httk.core.project.cli.build_parser
+   httk.core.project.cli.command
+
+
+Module Contents
+---------------
+
+.. py:data:: Handler
+
+.. py:function:: describe_project(root = None)
+
+   Describe one project's anchor.
+
+   :param root: Project root, or None to discover the nearest project.
+   :return: JSON-ready description of project metadata and trust keys.
+   :raises ValueError: If no project exists or its metadata is invalid.
+
+
+.. py:function:: project_repair(project_root = None, *, apply = True, adopt = True)
+
+   Repair a project's anchor and every member, or report only under dry run.
+
+   Core owns the anchor checks — the key pin and the manifest — and each member
+   handler contributes its own findings, concatenated after them. Repairs are
+   applied by default; ``apply=False`` is a dry run that mutates nothing. Member
+   adoption is driven through each kind's project-scope scan, gated by *adopt*.
+
+   :param project_root: Project root, or None to discover the nearest project.
+   :param apply: Whether to apply repairs; ``False`` reports only.
+   :param adopt: Whether the kind-scope scan should adopt members on this machine.
+   :return: JSON-compatible repair report.
+
+
+.. py:function:: build_parser(program)
+
+   Build the core-owned project command tree.
+
+   :param program: Program name used by the parser in help and errors.
+   :return: Configured project command parser.
+
+
+.. py:function:: command(argv, context)
+
+   Handle the registered top-level project command.
+
+   :param argv: Arguments following the project command name.
+   :param context: Root CLI invocation context.
+   :return: Command exit status.
+
+

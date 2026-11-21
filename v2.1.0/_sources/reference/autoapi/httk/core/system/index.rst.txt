@@ -1,0 +1,31 @@
+httk.core.system
+================
+
+.. py:module:: httk.core.system
+
+.. autoapi-nested-parse::
+
+   The core-owned ``httk system`` command for managing per-user state.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.system.command
+
+
+Module Contents
+---------------
+
+.. py:function:: command(argv, context)
+
+   Handle the registered top-level system command.
+
+   :param argv: Arguments following the system command name.
+   :param context: Root CLI invocation context.
+   :return: Command exit status.
+
+

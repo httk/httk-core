@@ -1,0 +1,55 @@
+httk.core.datastream.textstream_url
+===================================
+
+.. py:module:: httk.core.datastream.textstream_url
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.datastream.textstream_url.TextstreamURL
+
+
+Module Contents
+---------------
+
+.. py:class:: TextstreamURL(url, **hints)
+
+   Bases: :py:obj:`httk.core.datastream.textstream_common.TextstreamCommon`, :py:obj:`httk.core.datastream.textstream_backend.TextstreamBackend`
+
+
+   Backend for streaming text fetched from a URL string.
+   A bare string is interpreted as a URL when its scheme is one of http, https, ftp, or file,
+   or when an explicit kind="url" hint is given.
+   Network access from an implicit bare network URL requires explicit consent before opening;
+   URL views and ``kind="url"`` provide that consent. Content is transparently decompressed
+   before text decoding.
+
+   :param url: URL to fetch lazily when text is first read.
+   :param \**hints: Backend-selection, consent, encoding, timeout, and compression hints.
+   :raises ValueError: If the compression hint is unknown.
+
+
+   .. py:property:: name
+      :type: str | None
+
+
+      Report that a URL backend has no filename.
+
+
+   .. py:property:: url
+      :type: str
+
+
+      Return the source URL.
+
+
+   .. py:property:: closed
+      :type: bool
+
+
+      Report whether the URL backend is closed.
+
+

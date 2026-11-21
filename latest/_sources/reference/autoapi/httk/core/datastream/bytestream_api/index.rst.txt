@@ -1,0 +1,70 @@
+httk.core.datastream.bytestream_api
+===================================
+
+.. py:module:: httk.core.datastream.bytestream_api
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.datastream.bytestream_api.BytestreamAPI
+
+
+Module Contents
+---------------
+
+.. py:class:: BytestreamAPI
+
+   Bases: :py:obj:`abc.ABC`
+
+
+   Abstract base class for a bare minimum API for streamable byte data.
+
+   Supports:
+   * read, close, name, and closed with the meanings defined by io.IOBase
+
+   Since it is a *minimal* streaming data API it deliberately omits:
+   seek, tell, etc.; there should be no assumption that the underlying
+   data source is seekable. However, many backend implementations
+   may choose to support them.
+
+
+   .. py:method:: read(size = -1)
+      :abstractmethod:
+
+
+      Read up to ``size`` bytes, or all remaining bytes when ``size`` is negative.
+
+      :param size: Maximum number of bytes to read.
+      :return: The bytes read from the stream.
+
+
+
+   .. py:method:: close()
+      :abstractmethod:
+
+
+      Close the stream.
+
+
+
+   .. py:property:: name
+      :type: str | None
+
+      :abstractmethod:
+
+
+      Expose the source name when one exists.
+
+
+   .. py:property:: closed
+      :type: bool
+
+      :abstractmethod:
+
+
+      Report whether the stream is closed.
+
+

@@ -1,0 +1,32 @@
+httk.core.datastream.textstream_backend
+=======================================
+
+.. py:module:: httk.core.datastream.textstream_backend
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.datastream.textstream_backend.TextstreamBackend
+
+
+Module Contents
+---------------
+
+.. py:class:: TextstreamBackend(backend, **hints)
+
+   Bases: :py:obj:`httk.core.views.Backend`\ [\ :py:obj:`TextstreamBackend`\ ], :py:obj:`httk.core.datastream.textstream_api.TextstreamAPI`
+
+
+   Abstract base class for all backends of streaming text data.
+
+   :param backend: Initial backend value accepted by the backend family.
+   :param \**hints: Backend-selection hints used by concrete backends.
+
+
+   .. py:attribute:: backend_classes
+      :type:  ClassVar[list[type[httk.core.views.Backend[Any]]]]
+
+

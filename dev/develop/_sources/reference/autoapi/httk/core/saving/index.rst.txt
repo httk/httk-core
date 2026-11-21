@@ -1,0 +1,53 @@
+httk.core.saving
+================
+
+.. py:module:: httk.core.saving
+
+.. autoapi-nested-parse::
+
+   Dispatch local file writers and format serializers.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.saving.has_writer_for
+   httk.core.saving.save
+
+
+Module Contents
+---------------
+
+.. py:function:: has_writer_for(name)
+
+   Return whether ``name`` matches a registered writer key.
+
+   :param name: Destination filename whose writer registration is checked.
+   :return: Whether the name matches a registered extension or exact basename.
+
+
+.. py:function:: save(obj, destination, *, format = None, **kwargs)
+
+   Save ``obj`` to a local destination selected by its name or ``format`` hint.
+
+   The writer registry selects by extension first and exact basename second,
+   case-insensitively after stripping one recognized compression suffix, unless
+   ``format`` selects a registered writer directly. The format-serializer
+   registry converts non-neutral objects before writing, and a recognized
+   compression suffix wraps the destination transparently.
+
+   Filename output replaces its destination only after writing and closing
+   successfully, so lazy inputs may safely be saved over their source file.
+   Existing symlinks are followed and permission bits retained; other hard
+   links retain the old data. This is not a crash-durability guarantee.
+
+   :param obj: Object or neutral payload to serialize and write.
+   :param destination: Local filename or path to write.
+   :param format: Optional registered format name that selects the writer.
+   :param \**kwargs: Additional options passed to the selected writer.
+   :raises ValueError: If the destination or format has no writer, no serializer exists, or the destination is a URL.
+
+
