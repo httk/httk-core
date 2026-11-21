@@ -1,5 +1,6 @@
 import bz2
 import gzip
+import importlib
 import io
 import lzma
 from collections.abc import Callable
@@ -211,7 +212,23 @@ def _open_lzma(stream: io.IOBase) -> io.IOBase:
     return lzma.LZMAFile(cast(IO[bytes], stream), format=lzma.FORMAT_ALONE)
 
 
+def _open_zstd(stream: io.IOBase) -> io.IOBase:
+    # Lazy import keeps httk-core stdlib-only: compression.zstd is stdlib from Python 3.14
+    # (PEP 784); earlier interpreters need the backports.zstd package (declared by httk-workflow).
+    try:
+        zstd = importlib.import_module("compression.zstd")
+    except ImportError:
+        try:
+            zstd = importlib.import_module("backports.zstd")
+        except ImportError:
+            raise ModuleNotFoundError(
+                "reading Zstandard (.zst) data needs Python 3.14 or the backports.zstd package"
+            ) from None
+    return cast(io.IOBase, zstd.ZstdFile(cast(IO[bytes], stream)))
+
+
 register_compression(CompressionCodec("gzip", (".gz",), (b"\x1f\x8b",), _open_gzip))
 register_compression(CompressionCodec("bzip2", (".bz2",), (b"BZh",), _open_bzip2))
 register_compression(CompressionCodec("xz", (".xz",), (b"\xfd7zXZ\x00",), _open_xz))
 register_compression(CompressionCodec("lzma", (".lzma",), (), _open_lzma))
+register_compression(CompressionCodec("zstd", (".zst",), (b"\x28\xb5\x2f\xfd",), _open_zstd))

@@ -2,6 +2,7 @@ import bz2
 import gzip
 import io
 import lzma
+import sys
 from collections.abc import Iterator
 
 import pytest
@@ -133,14 +134,14 @@ def test_open_compressed_hint_semantics() -> None:
 
 def test_open_compressed_unknown_codec_raises() -> None:
     with pytest.raises(ValueError):
-        open_compressed(io.BytesIO(b"x"), compression="zstd")
+        open_compressed(io.BytesIO(b"x"), compression="brotli")
 
 
 def test_validate_compression() -> None:
     for value in ("auto", "detect", "extension", "none", "gzip", "GZIP", "xz"):
         validate_compression(value)
     with pytest.raises(ValueError):
-        validate_compression("zstd")
+        validate_compression("brotli")
     with pytest.raises(ValueError):
         validate_compression("bogus")
 
@@ -184,3 +185,22 @@ def test_custom_codec_registration(clean_registry: None) -> None:
     assert open_compressed(io.BytesIO(b"FOObar"), compression="foo").read() == b"bar"
     assert open_compressed(io.BytesIO(b"FOObar"), compression="extension", name="x.foo").read() == b"bar"
     validate_compression("foo")
+
+
+def test_zstd_roundtrip_and_sniff() -> None:
+    zstd = pytest.importorskip("compression.zstd" if sys.version_info >= (3, 14) else "backports.zstd")
+    data = b"zstandard payload " * 100
+    packed = zstd.compress(data)
+
+    assert open_compressed(io.BytesIO(packed), compression="extension", name="OUTCAR.zst").read() == data
+    assert open_compressed(io.BytesIO(packed), compression="detect").read() == data
+    codec = codec_for_name("OUTCAR.ZST")
+    assert codec is not None and codec.name == "zstd"
+
+
+def test_zstd_missing_module_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    # A None entry in sys.modules makes importing that module raise ImportError.
+    monkeypatch.setitem(sys.modules, "compression.zstd", None)
+    monkeypatch.setitem(sys.modules, "backports.zstd", None)
+    with pytest.raises(ModuleNotFoundError, match=r"backports\.zstd"):
+        open_compressed(io.BytesIO(b"\x28\xb5\x2f\xfd"), compression="zstd")

@@ -222,7 +222,10 @@ Compression is an orthogonal layer *below* the backends: it turns a compressed b
 an uncompressed one (and, for text, before decoding), independently of where the bytes come from.
 The same codecs therefore apply to filenames, open files, raw bytes, and remote responses, so a
 `data.json.gz` filename or a gzipped URL loads with no extra ceremony. The stdlib codecs `gzip`,
-`bzip2`, `xz`, and `lzma` are built in.
+`bzip2`, `xz`, and `lzma` are built in. Zstandard (`zstd`, `.zst`) is registered too; it reads
+through the stdlib `compression.zstd` module on Python 3.14+ and needs the `backports.zstd`
+package on older interpreters (installed with *httk-workflow*), otherwise opening `.zst` data
+raises `ModuleNotFoundError`.
 
 A `compression` hint (parallel to `kind`) selects how a codec is chosen:
 

@@ -20,7 +20,7 @@ count_nonempty_lines("a\n\nb", kind="content")  # raw content, disambiguated
 ```
 
 Two parallel families exist: `Textstream*` for text and `Bytestream*` for
-bytes. Compressed files (`.gz`, `.bz2`, `.xz`) decompress transparently on
+bytes. Compressed files (`.gz`, `.bz2`, `.xz`, `.zst`) decompress transparently on
 read, and in-memory gzip is sniffed by default.
 
 Bare URL strings never open the network — they raise `PermissionError`.

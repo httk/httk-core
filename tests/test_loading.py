@@ -1,6 +1,7 @@
 """Tests for :func:`httk.core.load` dispatch (extensions + basenames + compression)."""
 
 import io
+import sys
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
@@ -258,3 +259,15 @@ def test_register_reader_format_conflict_and_idempotence(_format_cleanup: None) 
         register_reader(name="other", reader=f"{__name__}:_other_format_reader", format="demo-fmt")
     with pytest.raises(ValueError, match="nonempty"):
         register_reader(name="bad", reader=f"{__name__}:_format_reader", format="")
+
+
+def test_load_zstd_compressed_poscar(tmp_path: Path) -> None:
+    zstd = pytest.importorskip("compression.zstd" if sys.version_info >= (3, 14) else "backports.zstd")
+    pytest.importorskip("httk.atomistic")
+    poscar = "Si\n1.0\n0 2.715 2.715\n2.715 0 2.715\n2.715 2.715 0\nSi\n2\nDirect\n0 0 0\n0.25 0.25 0.25\n"
+    # ``.poscar`` rather than the ``POSCAR`` basename: the stub fixture above unregisters "poscar".
+    (tmp_path / "Si.poscar").write_text(poscar, encoding="utf-8")
+    (tmp_path / "Si.poscar.zst").write_bytes(zstd.compress(poscar.encode()))
+    plain = load(str(tmp_path / "Si.poscar"))
+    packed = load(str(tmp_path / "Si.poscar.zst"))
+    assert packed == plain

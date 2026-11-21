@@ -501,7 +501,7 @@ def test_bytestream_unknown_codec_raises_eagerly(tmp_path: Path) -> None:
     p = tmp_path / "x.bin"
     p.write_bytes(b"x")
     with pytest.raises(ValueError):
-        BytestreamBytesView(str(p), compression="zstd")
+        BytestreamBytesView(str(p), compression="brotli")
 
 
 def test_textstream_string_rejects_non_noop_compression() -> None:
