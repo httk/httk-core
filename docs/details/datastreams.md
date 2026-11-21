@@ -282,6 +282,15 @@ register_compression(
 Archives (`.tar.*`, `.zip`), write-side compression, and HTTP `Content-Encoding` negotiation are
 out of scope for this layer.
 
+The registry also names the content of a compressed file on disk:
+`httk.core.digests.content_sha256_file(path)` returns the SHA-256 of the decompressed bytes when
+the name carries a registered suffix (`None` otherwise), and `FileRecord.from_file(path, url)`
+describes a stored file with its stored-bytes `size`, `sha256` and media type plus that
+`content_sha256`, which stays outside the record's content identity. Pass `max_bytes=` to
+`content_sha256_file` to bound the decompression of untrusted files. The new `core_file` column
+and index change a store's `entry_schemas` fingerprint, so an existing store holding files
+reopens only with `upgrade=True` (the change is additive) or after a rebuild.
+
 ## Loading files by type
 
 `httk.core.load` and its reader registry are documented in {doc}`registry`;

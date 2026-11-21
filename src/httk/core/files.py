@@ -11,11 +11,14 @@ persist mappings; use ``sha256`` for the storable digest.
 
 import base64
 import datetime
+import os
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Annotated, Any, ClassVar, Self, cast
 
+from .digests import content_sha256_file, sha256_file
 from .entry_types import File
 from .references import ReferenceRecord
 from .storage import (
@@ -32,6 +35,15 @@ from .storage import (
 
 FILES_DEFINITION_ID = "https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files"
 
+# Media types of the stored bytes of a file compressed with a registered codec.
+_COMPRESSION_MEDIA_TYPES = {
+    "zstd": "application/zstd",
+    "bzip2": "application/x-bzip2",
+    "gzip": "application/gzip",
+    "xz": "application/x-xz",
+    "lzma": "application/x-lzma",
+}
+
 
 @dataclass(frozen=True)
 class FileRecord(File):
@@ -44,7 +56,8 @@ class FileRecord(File):
     re-pointed to any copy whose bytes still match ``sha256``, and the same
     bytes used in many places are one entry. The human-readable and immutable
     identifiers, size, version, description, timestamps, and other metadata
-    are excluded from content identity as well. A repeated save of the same
+    are excluded from content identity as well, and so is ``content_sha256``,
+    the digest of the decompressed bytes of a compressed file. A repeated save of the same
     content keeps each stored non-null location and metadata value and fills
     each stored null from the incoming record (first non-null wins), so a lost
     file (``url=None``) gets its location from a later save of the same bytes.
@@ -70,8 +83,9 @@ class FileRecord(File):
     :param mtime: The optional POSIX modification timestamp.
     :param sha256: The flat SHA-256 hexadecimal digest of the file bytes; required, keyword-only.
     :param format: The httk reader format name usable as ``httk.core.load(path, format=...)`` (e.g. ``"poscar"``), if known; part of identity only when set.
+    :param content_sha256: The lowercase hexadecimal SHA-256 digest of the decompressed bytes of a compressed file; None when the file is not compressed or the digest is unknown; keyword-only.
     :raises TypeError: If ``url`` is neither a string nor None.
-    :raises ValueError: If ``sha256`` is not a lowercase hexadecimal SHA-256 digest.
+    :raises ValueError: If ``sha256``, or ``content_sha256`` when set, is not a lowercase hexadecimal SHA-256 digest.
     """
 
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
@@ -105,6 +119,7 @@ class FileRecord(File):
     mtime: Annotated[datetime.datetime | None, IdentitySkip(), KeepStored()] = field(default=None, compare=False)
     sha256: str = field(kw_only=True)
     format: Annotated[str | None, IdentitySkipWhenNone()] = None
+    content_sha256: Annotated[str | None, IdentitySkip(), KeepStored(), Indexed()] = field(default=None, kw_only=True)
 
     def __post_init__(self) -> None:
         super().__post_init__()
@@ -112,6 +127,57 @@ class FileRecord(File):
             raise TypeError(f"FileRecord url must be a str or None, got {type(self.url).__name__}")
         if not isinstance(self.sha256, str) or re.fullmatch(r"[0-9a-f]{64}", self.sha256) is None:
             raise ValueError(f"FileRecord sha256 must be a lowercase hex SHA-256 digest, got {self.sha256!r}")
+        if self.content_sha256 is not None and (
+            not isinstance(self.content_sha256, str) or re.fullmatch(r"[0-9a-f]{64}", self.content_sha256) is None
+        ):
+            raise ValueError(
+                f"FileRecord content_sha256 must be a lowercase hex SHA-256 digest, got {self.content_sha256!r}"
+            )
+
+    @classmethod
+    def from_file(
+        cls,
+        path: str | os.PathLike[str],
+        url: str | None,
+        *,
+        name: str | None = None,
+        media_type: str | None = None,
+        format: str | None = None,
+    ) -> Self:
+        """Describe the file on disk at *path*, stored at *url*.
+
+        ``size`` and ``sha256`` describe the bytes on disk. A file whose name
+        ends in a registered compression suffix gets the compression's media
+        type, whatever *media_type* says, and the ``content_sha256`` of its
+        decompressed bytes, computed without a size bound; a file that fails
+        to decompress raises the codec's own exception (e.g. zstd's
+        ``ZstdError``).
+
+        :param path: The file to describe.
+        :param url: Where the bytes are stored, or None when they are lost.
+        :param name: The record name; the base name of *path* when None.
+        :param media_type: The media type of an uncompressed file; ``"application/octet-stream"`` when None.
+        :param format: The httk reader format name, passed through.
+        :return: The file record.
+        :raises OSError: If *path* cannot be read.
+        :raises ValueError: If *path* is not a regular file.
+        """
+        file = Path(path)
+        # Lazy: lean CLI paths must not load httk.core.datastream.
+        from .datastream.compression import codec_for_name
+
+        codec = codec_for_name(file.name)
+        if codec is not None:
+            media_type = _COMPRESSION_MEDIA_TYPES.get(codec.name, "application/octet-stream")
+        return cls(
+            url,
+            file.name if name is None else name,
+            size=file.stat().st_size,
+            media_type="application/octet-stream" if media_type is None else media_type,
+            sha256=sha256_file(file),
+            content_sha256=content_sha256_file(file),
+            format=format,
+        )
 
     @property
     def type(self) -> str:

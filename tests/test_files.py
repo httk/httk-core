@@ -1,7 +1,10 @@
 """Tests for the core file records."""
 
 import datetime
+import gzip
+import hashlib
 from dataclasses import replace
+from pathlib import Path
 from typing import Any, cast
 
 import pytest
@@ -169,3 +172,36 @@ def test_file_record_lost_bytes_url_none() -> None:
 
     with pytest.raises(TypeError, match="url must be a str or None"):
         FileRecord(cast(Any, b"data/x"), "x", sha256=digest)
+
+
+def test_file_record_content_sha256_is_outside_identity() -> None:
+    record = _record()
+    assert record.content_sha256 is None
+    digest = hashlib.sha256(b"plain").hexdigest()
+    assert content_id(replace(record, content_sha256=digest)) == content_id(record)
+    for bad in ("AB" * 32, "ab" * 31, cast(Any, 1)):
+        with pytest.raises(ValueError, match="content_sha256 must be a lowercase hex SHA-256 digest"):
+            replace(record, content_sha256=bad)
+
+
+def test_file_record_from_file(tmp_path: Path) -> None:
+    plain = b"POSCAR body\n"
+    path = tmp_path / "POSCAR"
+    path.write_bytes(plain)
+    record = FileRecord.from_file(path, "run/POSCAR")
+    assert record == FileRecord("run/POSCAR", "POSCAR", size=len(plain), sha256=hashlib.sha256(plain).hexdigest())
+    assert record.media_type == "application/octet-stream"
+    assert record.content_sha256 is None
+    explicit = FileRecord.from_file(str(path), None, media_type="text/plain", format="poscar")
+    assert (explicit.url, explicit.media_type, explicit.format) == (None, "text/plain", "poscar")
+
+    packed = gzip.compress(plain)
+    compressed = tmp_path / "POSCAR.gz"
+    compressed.write_bytes(packed)
+    record = FileRecord.from_file(compressed, "run/POSCAR.gz", media_type="text/plain")
+    assert record.name == "POSCAR.gz"
+    assert record.media_type == "application/gzip"
+    assert record.size == len(packed)
+    assert record.sha256 == hashlib.sha256(packed).hexdigest()
+    assert record.content_sha256 == hashlib.sha256(plain).hexdigest()
+    assert FileRecord.from_file(compressed, "x", name="renamed").name == "renamed"

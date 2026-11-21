@@ -10,7 +10,7 @@ import stat
 from collections.abc import Callable
 from pathlib import Path
 
-__all__ = ["sha256_file", "tree_digest"]
+__all__ = ["content_sha256_file", "sha256_file", "tree_digest"]
 
 
 def sha256_file(path: Path) -> str:
@@ -31,12 +31,53 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _hash_regular_file(update: Callable[[bytes], object], path: Path, *, follow_symlinks: bool) -> None:
-    """Feed one regular file to *update*, refusing anything else without blocking.
+def content_sha256_file(path: str | os.PathLike[str], *, max_bytes: int | None = None) -> str | None:
+    """Return the SHA-256 digest of the decompressed bytes of a compressed file.
+
+    The file counts as compressed when its name ends in a registered
+    compression suffix (e.g. ``.zst``, ``.gz``); its bytes are decompressed
+    with that codec and hashed in chunks, never sniffed. Like
+    :func:`sha256_file`, a symlink is followed and a special file is refused
+    without blocking. The cost scales with the decompressed size, so bound it
+    with *max_bytes* for untrusted files.
+
+    :param path: File to hash.
+    :param max_bytes: The most decompressed bytes to accept; None for no limit.
+    :return: Lowercase SHA-256 digest of the decompressed bytes, or ``None``
+        when the name carries no registered compression suffix.
+    :raises ValueError: If *path* is a FIFO, device, socket, or other special
+        file, or decompresses to more than *max_bytes* bytes (checked per chunk,
+        so at most one chunk is read past the limit).
+    :raises OSError: If *path* cannot be opened or read, or is a directory.
+    :raises Exception: Data that fails to decompress raises the codec's own
+        exception (e.g. zstd's ``ZstdError``), uncaught.
+    """
+
+    # Lazy: lean CLI paths must not load httk.core.datastream.
+    from .datastream.compression import codec_for_name
+
+    codec = codec_for_name(Path(path).name)
+    if codec is None:
+        return None
+    digest = hashlib.sha256()
+    total = 0
+    # Opened like sha256_file: a FIFO or device swapped in is refused, not read.
+    with os.fdopen(_open_regular_file(path, follow_symlinks=True), "rb") as raw, codec.open_stream(raw) as stream:
+        while chunk := stream.read(1024 * 1024):
+            total += len(chunk)
+            if max_bytes is not None and total > max_bytes:
+                raise ValueError(f"{path} decompresses to more than max_bytes={max_bytes} bytes")
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _open_regular_file(path: str | os.PathLike[str], *, follow_symlinks: bool) -> int:
+    """Return a blocking read descriptor of one regular file, refusing anything else without blocking.
 
     The file is opened ``O_NONBLOCK`` (and ``O_NOFOLLOW`` unless
     *follow_symlinks*) and checked with ``fstat`` before any read, so an entry
     swapped for a FIFO, device or symlink after it was classified is refused.
+    The caller owns (closes) the returned descriptor.
     """
 
     nonblocking = getattr(os, "O_NONBLOCK", 0)
@@ -58,6 +99,17 @@ def _hash_regular_file(update: Callable[[bytes], object], path: Path, *, follow_
             raise ValueError(f"not a regular file: {path}")
         if nonblocking:
             os.set_blocking(descriptor, True)
+    except BaseException:
+        os.close(descriptor)
+        raise
+    return descriptor
+
+
+def _hash_regular_file(update: Callable[[bytes], object], path: Path, *, follow_symlinks: bool) -> None:
+    """Feed one regular file to *update*, refusing anything else without blocking."""
+
+    descriptor = _open_regular_file(path, follow_symlinks=follow_symlinks)
+    try:
         while chunk := os.read(descriptor, 1024 * 1024):
             update(chunk)
     finally:
