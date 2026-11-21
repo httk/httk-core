@@ -13,8 +13,8 @@ top of the anchor without making the anchor depend on them.
 
 ## The command line
 
-The core-owned `httk project` command has five subcommands:
-`init`, `show`, `import-v1`, `export`, and `verify-export`.
+The core-owned `httk project` command describes and redistributes the anchor
+with `init`, `show`, `import-v1`, `export`, and `verify`:
 
 ```console
 httk project init [--description TEXT] PATH...
@@ -24,7 +24,7 @@ httk project show --json PATH...
 httk project import-v1 PATH...
 httk project import-v1 --source DIR --name NAME PATH
 httk project export OUT.ZIP
-httk project verify-export [--expect-key FINGERPRINT] [--trusted-key FINGERPRINT ...] ZIP...
+httk project verify [--expect-key FINGERPRINT] [--trusted-key KEY ...] ZIP...
 ```
 
 `init` makes each `PATH` a project. At least one path is required. `--name`
@@ -42,9 +42,14 @@ project. Human output is target-delimited and `--json` always emits an array.
 
 `export` packages the nearest project tree into a signed redistribution ZIP,
 excluding the private key, and signs it with the project's Ed25519 key.
-`verify-export` checks such a ZIP and prints the signer's public key and
-fingerprint; `--expect-key` requires a specific signer fingerprint and
-`--trusted-key` (repeatable) supplies fingerprints to trust. The programmatic
+`httk project verify` given ZIP targets (a `.zip` suffix in any case, or an
+existing file with ZIP content) checks each ZIP and prints the signer's public
+key and fingerprint; ZIPs cannot be mixed with project targets.
+`--expect-key` requires a specific signer fingerprint or public key and
+`--trusted-key` (repeatable) supplies fingerprints or public keys to trust.
+Without a ZIP target, `verify` checks the seal of the given project directory
+(default: the nearest project) or, with `--manifest`, its manifest (see
+{doc}`sealing`); an option of another mode is a usage error. The programmatic
 equivalents are `export_project` and `verify_export` in `httk.core.project`.
 
 Root options are processed before command dispatch. `-C DIR` changes directory
@@ -57,8 +62,9 @@ httk -C ~/proj project show --json
 
 See {doc}`cli` for the root command-line rules. The `httk project` namespace
 belongs to *httk-core*, which owns every verb on it: `init | show | import-v1 |
-export | verify-export` for the anchor, and `repair | manifest | seal | unseal |
-verify-seal` for checking and pinning the tree (see {doc}`sealing`).
+export` for the anchor, `check | repair | manifest | seal | unseal | verify` for
+checking and pinning the tree (see {doc}`sealing`), and `template` for project
+templates.
 
 (project-members)=
 
@@ -72,7 +78,7 @@ member only teaches core how to treat its own subtree. Three pieces cooperate:
   (from `httk.core`) records a lazy `"module:callable"` reference that resolves
   to an object implementing `ProjectMemberHandler` — the methods core drives:
   `manifest_exclusions`, `guard`, `seal_digest`, `verify`, `repair`, and the
-  optional `scan_project`. (A member seals through its own module; core only
+  optional `scan_project` and `adopt`. (A member seals through its own module; core only
   records the resulting digest.)
 - **A project records its members.** `register_project_member(project_root,
   path, kind, *, name=None)` writes `httk_project/members.json`, mapping a
@@ -80,20 +86,25 @@ member only teaches core how to treat its own subtree. Three pieces cooperate:
   set, are unique within a project). Registration is refused while the project
   is sealed. `project_members` reads them back; `set_project_member_name` sets
   or clears a member's name.
-- **Core drives the verbs.** `httk project seal`, `manifest`, `repair`, and
-  `verify-seal` hand each registered member's subtree to its handler and fold the
+- **Core drives the verbs.** `httk project seal`, `manifest`, `check`, `repair`,
+  and `verify` hand each registered member's subtree to its handler and fold the
   results into one project-wide answer — a project seal records each member's own
   seal digest, so it transitively pins whole subtrees without re-hashing them.
 
 A member whose kind no module has installed is reported clearly rather than
-silently skipped: sealing refuses it, and `repair` and `verify-seal` flag it.
+silently skipped: sealing refuses it, and `check`, `repair` and `verify` flag
+it.
 
-`httk project adopt` (re)establishes each member's machine-local links on the
-current machine — the per-user or machine-local bindings a member needs to be
-usable here, such as httk-workflow registering the member's workspace in the
-per-user name registry under its recorded name. Adoption is idempotent and never
-touches sealed state; a member whose handler defines no adopt hook is simply
-skipped, and adopting a project with no such members is a no-op.
+`httk project repair` also adopts the project's members, unless `--no-adopt` is
+given: it (re)establishes each member's machine-local links on the current
+machine — the per-user or machine-local bindings a member needs to be usable
+here, such as httk-workflow registering the member's workspace in the per-user
+name registry under its recorded name. A kind whose handler defines
+`scan_project` owns adoption through that project-scope scan; for a kind
+without one, each member's `adopt` hook runs once under its recorded name.
+Adoption is idempotent and never touches sealed state; a member whose handler
+defines neither is simply skipped. `httk project check` reports the repair and
+scan findings without changing anything or adopting.
 
 ## Project templates
 
@@ -117,8 +128,7 @@ httk project init --template starter my-project
 ```
 
 List plugin and installed templates with their explicit selectors (add
-`--json` for a machine-readable listing; `httk project init --list-templates`
-prints the same list):
+`--json` for a machine-readable listing):
 
 ```console
 httk project template list

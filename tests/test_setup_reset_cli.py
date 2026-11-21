@@ -1,4 +1,4 @@
-"""Tests for the ``httk system`` command."""
+"""Tests for ``httk setup --reset``, which removes all per-user httk state."""
 
 import io
 import sys
@@ -23,21 +23,24 @@ def _populate(*homes: Path) -> None:
         (home / "state").write_text("state", encoding="utf-8")
 
 
-def test_force_reset_removes_both_homes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_yes_reset_removes_both_homes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     config, data = _homes(tmp_path, monkeypatch)
     _populate(config, data)
 
-    assert main(["system", "reset", "--force"]) == 0
+    assert main(["setup", "--reset", "--yes"]) == 0
     assert not config.exists()
     assert not data.exists()
 
 
-def test_non_tty_reset_refuses_without_force(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_non_tty_reset_refuses_without_yes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
     config, data = _homes(tmp_path, monkeypatch)
     _populate(config, data)
     monkeypatch.setattr(sys, "stdin", io.StringIO("y\n"))
 
-    assert main(["system", "reset"]) == 2
+    assert main(["setup", "--reset"]) == 2
+    assert "httk setup: refusing to reset without --yes" in capsys.readouterr().err
     assert config.is_dir()
     assert data.is_dir()
 
@@ -65,21 +68,21 @@ def test_prompt_reset(
     _populate(config, data)
     monkeypatch.setattr(sys, "stdin", _PromptStdin(answer))
 
-    assert main(["system", "reset"]) == status
+    assert main(["setup", "--reset"]) == status
     assert config.exists() is not removed
     assert data.exists() is not removed
 
 
-def test_force_reset_allows_absent_homes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_yes_reset_allows_absent_homes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     config, data = _homes(tmp_path, monkeypatch)
 
-    assert main(["system", "reset", "--force"]) == 0
+    assert main(["setup", "--reset", "--yes"]) == 0
     assert not config.exists()
     assert not data.exists()
 
 
 @pytest.mark.parametrize("config_target", ["/", "home"])
-def test_force_reset_refuses_root_or_home(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, config_target: str) -> None:
+def test_yes_reset_refuses_root_or_home(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, config_target: str) -> None:
     config = Path(config_target) if config_target == "/" else tmp_path
     monkeypatch.setenv("HTTK_CONFIG_HOME", str(config))
     monkeypatch.setenv("HTTK_DATA_HOME", str(tmp_path / "data"))
@@ -87,5 +90,30 @@ def test_force_reset_refuses_root_or_home(tmp_path: Path, monkeypatch: pytest.Mo
     survivor = tmp_path / "survivor"
     survivor.write_text("keep", encoding="utf-8")
 
-    assert main(["system", "reset", "--force"]) == 2
+    assert main(["setup", "--reset", "--yes"]) == 2
     assert survivor.read_text(encoding="utf-8") == "keep"
+
+
+@pytest.mark.parametrize(
+    ("argv", "message"),
+    [
+        (["setup", "--reset", "--name", "A"], "--reset cannot be combined"),
+        (["setup", "--reset", "--email", "a@example.test"], "--reset cannot be combined"),
+        (["setup", "--reset", "--non-interactive"], "--reset cannot be combined"),
+        (["setup", "--yes"], "--yes requires --reset"),
+    ],
+)
+def test_reset_option_combinations_are_parser_errors(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], argv: list[str], message: str
+) -> None:
+    config, data = _homes(tmp_path, monkeypatch)
+    _populate(config, data)
+
+    assert main(argv) == 2
+    assert message in capsys.readouterr().err
+    assert config.is_dir() and data.is_dir()
+
+
+def test_system_command_is_gone(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["system", "reset", "--force"]) == 2
+    assert "unknown command" in capsys.readouterr().err

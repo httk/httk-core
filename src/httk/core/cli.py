@@ -31,7 +31,20 @@ def _version() -> str:
         return "unknown"
 
 
+#: Root-help section order; other sections follow alphabetically, then ``Other``.
+_SECTIONS = ("Setup", "Organize", "Run", "Results", "Data", "Legacy")
+
+
 def _root_help(program: str) -> str:
+    sections: dict[str, list[tuple[str, str]]] = {}
+    for name in known_cli_commands():
+        command = cli_command(name)
+        assert command is not None
+        if not command.hidden:
+            sections.setdefault(command.section or "Other", []).append((name, command.summary))
+    extra = sorted(section for section in sections if section not in _SECTIONS and section != "Other")
+    order = [section for section in (*_SECTIONS, *extra, "Other") if section in sections]
+    width = max([len("help"), *(len(name) for rows in sections.values() for name, _ in rows)])
     lines = [
         f"usage: {program} [-C DIR] [--help] [--version] COMMAND [ARG ...]",
         "",
@@ -43,12 +56,11 @@ def _root_help(program: str) -> str:
         "  --version    show the httk-core version",
         "",
         "commands:",
-        "  help         show help for the root, a command, or a subcommand",
+        f"  {'help':<{width}s}  show help for the root, a command, or a subcommand",
     ]
-    for name in known_cli_commands():
-        command = cli_command(name)
-        assert command is not None
-        lines.append(f"  {name:<12s} {command.summary}")
+    for section in order:
+        lines += ["", f"{section}:"]
+        lines += [f"  {name:<{width}s}  {summary}" for name, summary in sections[section]]
     return "\n".join(lines)
 
 

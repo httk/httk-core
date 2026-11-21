@@ -27,8 +27,16 @@ register_cli_command(
     "example",
     "example_package.cli:command",
     "run the example capability",
+    section="Run",
 )
 ```
+
+Root help groups the visible commands under section headings in a fixed order:
+`Setup`, `Organize`, `Run`, `Results`, `Data` and `Legacy`, then any other
+section names alphabetically, and finally `Other` for commands registered
+without a `section`. A command registered with `hidden=True` is left out of root
+help but dispatches normally, also through `httk help NAME`; core hides its
+maintenance commands `docs`, `registry` and `memguard` this way.
 
 The handler contract is
 `(argv: Sequence[str], context: CLIContext) -> int`, where
@@ -70,38 +78,38 @@ httk plugin uninstall NAME...
 
 See {doc}`plugins` for source forms, manifests, builds, and program shims.
 
-## httk system
+## httk setup
 
-The core-owned `httk system reset` command removes both per-user httk state
-directories: the configuration directory (`~/.config/httk`) and the data
-directory (`~/.local/share/httk`). `HTTK_CONFIG_HOME` and `HTTK_DATA_HOME`
-environment overrides are honored:
-
-```console
-httk system reset
-httk system reset --force
-```
-
-Reset asks for confirmation when standard input is a terminal. Use `--force`
-for non-interactive use. It exits with `0` after resetting, `1` when the
-operation is declined, and `2` for invalid usage or an operational error.
-
-## httk init
-
-The core-owned `httk init` command gets a user started by creating a named
+The core-owned `httk setup` command gets a user started by creating a named
 operator identity as the default in `identity.json` and ensuring its Ed25519
 signing key exists:
 
 ```console
-httk init --name "A User" --email a@example.test
-httk init --non-interactive --name "A User" --email a@example.test
+httk setup --name "A User" --email a@example.test
+httk setup --non-interactive --name "A User" --email a@example.test
 ```
 
 A missing `--name` or `--email` is prompted for when standard input is a
 terminal; `--non-interactive` refuses a missing value instead. The short name
-is derived from the email's local part. `init` is idempotent: when a default
+is derived from the email's local part. `setup` is idempotent: when a default
 identity already exists it reports that setup and changes nothing. It exits
 `0` on success and `2` for invalid usage or an operational error.
+
+`httk setup --reset` instead removes both per-user httk state directories: the
+configuration directory (`~/.config/httk`) and the data directory
+(`~/.local/share/httk`). `HTTK_CONFIG_HOME` and `HTTK_DATA_HOME` environment
+overrides are honored:
+
+```console
+httk setup --reset
+httk setup --reset --yes
+```
+
+Reset asks for confirmation when standard input is a terminal and refuses
+without a terminal unless `--yes` pre-confirms the prompt. It cannot be combined
+with `--name`, `--email` or `--non-interactive`, and `--yes` requires `--reset`. It exits with `0`
+after resetting, `1` when the operation is declined, and `2` for invalid usage
+or an operational error.
 
 ## httk identity
 
@@ -136,14 +144,13 @@ on disk, so a signature it already produced stays verifiable. See
 httk project init [--description TEXT] PATH...
 httk project init --name NAME --template SELECTOR PATH
 httk project init --template SELECTOR --parameter NAME=VALUE PATH...
-httk project init --list-templates
 httk project template install [--json] URI...
 httk project template uninstall SELECTOR...
 httk project template list [--json]
 ```
 
-`--parameter` is repeatable. `--list-templates` lists plugin and installed
-templates, like `httk project template list`. `--template` may name a
+`--parameter` is repeatable. `httk project template list` lists plugin and
+installed templates. `--template` may name a
 directory, a `git+…` URI (fetched and installed), `PLUGIN:NAME`, or a bare
 name. `template install` fetches templates by git URI, and `template uninstall`
 removes installed ones by URI or name; each continues after a failing item and

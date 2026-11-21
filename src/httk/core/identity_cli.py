@@ -1,10 +1,11 @@
-"""The core-owned ``httk init`` and ``httk identity`` commands.
+"""The core-owned ``httk setup`` and ``httk identity`` commands.
 
 These configure the per-user operator identities that live in
-``identity.json``: :command:`httk init` establishes the first named default
+``identity.json``: :command:`httk setup` establishes the first named default
 identity, and :command:`httk identity` manages that same store. Future
-per-user initialization will also live under :command:`httk init`. Both are
-thin command-line wrappers over :mod:`httk.core.identity`.
+per-user initialization will also live under :command:`httk setup`, and
+``httk setup --reset`` removes all per-user state. Both are thin command-line
+wrappers over :mod:`httk.core.identity` and :mod:`httk.core.system`.
 """
 
 import argparse
@@ -27,6 +28,7 @@ from httk.core.identity import (
     resolve_operator_identity,
     set_default_identity,
 )
+from httk.core.system import _reset_user_state
 
 #: Everything a handler may raise that is an operator's problem rather than a
 #: defect. Anything here is reported as ``PROGRAM: message`` and exits ``2``.
@@ -59,29 +61,39 @@ def _identity_report(short: str, name: str, email: str, is_default: bool) -> dic
     }
 
 
-def init_command(argv: Sequence[str], context: CLIContext) -> int:
+def setup_command(argv: Sequence[str], context: CLIContext) -> int:
     """Set up httk for this user by establishing the default operator identity.
 
     This getting-started command is idempotent: once a default identity exists,
     it reports that setup without prompting or changing the identity store.
-    Future per-user initialization will also live here.
+    Future per-user initialization will also live here. With ``--reset`` it
+    instead removes all per-user httk configuration and data, after a
+    confirmation that ``--yes`` pre-confirms.
 
-    :param argv: Arguments following the ``init`` command name.
+    :param argv: Arguments following the ``setup`` command name.
     :param context: Root CLI invocation context.
     :return: Command exit status.
     """
 
     parser = argparse.ArgumentParser(
-        prog=f"{context.program} init",
+        prog=f"{context.program} setup",
         description="Set up httk for this user and establish the default operator identity",
     )
     parser.add_argument("--name", metavar="NAME", help="the operator's name")
     parser.add_argument("--email", metavar="EMAIL", help="the operator's email address")
     parser.add_argument("--non-interactive", action="store_true", help="never prompt; refuse a missing value")
+    parser.add_argument("--reset", action="store_true", help="remove all per-user httk configuration and data")
+    parser.add_argument("--yes", action="store_true", help="pre-confirm the --reset prompt")
     try:
         arguments = parser.parse_args(list(argv))
+        if arguments.reset and (arguments.name or arguments.email or arguments.non_interactive):
+            parser.error("--reset cannot be combined with --name, --email or --non-interactive")
+        if arguments.yes and not arguments.reset:
+            parser.error("--yes requires --reset")
     except SystemExit as exc:
         return exc.code if isinstance(exc.code, int) else 1
+    if arguments.reset:
+        return _reset_user_state(yes=arguments.yes)
 
     try:
         current_identity = configured_operator_identity()
@@ -172,7 +184,7 @@ def _selected_identity(short: str | None) -> OperatorIdentity:
     if short is not None and "<" in short:
         raise ValueError(f"expected a configured identity short name, not {short!r}")
     if short is None and configured_operator_identity() is None:
-        raise ValueError("no operator identity is configured; set one up with `httk init`")
+        raise ValueError("no operator identity is configured; set one up with `httk setup`")
     return resolve_operator_identity(short)
 
 

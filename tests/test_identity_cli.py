@@ -1,9 +1,9 @@
-"""The core-owned ``httk init`` and ``httk identity`` command-line wiring.
+"""The core-owned ``httk setup`` and ``httk identity`` command-line wiring.
 
 The library-level behaviour of operator identity — resolution order, literal
 selectors, signing, seed handling, key permissions — lives in
 ``httk.core.identity`` and is covered by ``tests/test_operator_identity.py``.
-What is covered here is only the command-line wiring: that ``httk init`` and
+What is covered here is only the command-line wiring: that ``httk setup`` and
 ``httk identity add|list|show|key|default|remove`` drive the identity store in
 ``identity.json`` and report it the way operators depend on.
 """
@@ -20,7 +20,7 @@ from httk.core.identity import (
     read_identity_config,
     write_identity_config,
 )
-from httk.core.identity_cli import identity_command, init_command
+from httk.core.identity_cli import identity_command, setup_command
 
 
 @pytest.fixture(autouse=True)
@@ -39,16 +39,17 @@ def _identity(*arguments: str) -> int:
     return identity_command(list(arguments), _context())
 
 
-def _init(*arguments: str) -> int:
-    return init_command(list(arguments), _context())
+def _setup(*arguments: str) -> int:
+    return setup_command(list(arguments), _context())
 
 
-def test_root_help_lists_init_and_identity() -> None:
+def test_root_help_lists_setup_and_identity() -> None:
     import httk.core  # noqa: F401, I001  # trigger command discovery
 
     from httk.core.register import known_cli_commands
 
-    assert "init" in known_cli_commands()
+    assert "setup" in known_cli_commands()
+    assert "init" not in known_cli_commands()
     assert "identity" in known_cli_commands()
 
 
@@ -57,13 +58,13 @@ def test_root_help_prints_the_summaries(capsys: pytest.CaptureFixture[str]) -> N
 
     assert main(["--help"]) == 0
     printed = capsys.readouterr().out
-    assert "init" in printed and "identity" in printed
+    assert "setup" in printed and "identity" in printed
     assert "set up httk for this user" in printed
     assert "manage named operator identities" in printed
 
 
-def test_init_is_xdg_isolated_and_private_key_is_0600(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    assert _init("--name", "A User", "--email", "a@example.test", "--non-interactive") == 0
+def test_setup_is_xdg_isolated_and_private_key_is_0600(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    assert _setup("--name", "A User", "--email", "a@example.test", "--non-interactive") == 0
     private, public = identity_key_paths("a")
     assert private.is_file() and public.is_file()
     assert private.stat().st_mode & 0o777 == 0o600
@@ -82,12 +83,12 @@ def test_init_is_xdg_isolated_and_private_key_is_0600(tmp_path: Path, capsys: py
     }
 
 
-def test_init_reports_existing_identity_without_modifying_store(capsys: pytest.CaptureFixture[str]) -> None:
-    assert _init("--name", "First", "--email", "first@example.test", "--non-interactive") == 0
+def test_setup_reports_existing_identity_without_modifying_store(capsys: pytest.CaptureFixture[str]) -> None:
+    assert _setup("--name", "First", "--email", "first@example.test", "--non-interactive") == 0
     capsys.readouterr()
     seed_before = identity_key_paths("first")[0].read_bytes()
     config_before = read_identity_config()
-    assert _init("--name", "Second", "--email", "second@example.test", "--non-interactive") == 0
+    assert _setup("--name", "Second", "--email", "second@example.test", "--non-interactive") == 0
     report = json.loads(capsys.readouterr().out)
     assert report["created"] is False
     assert report["short"] == "first"
@@ -95,13 +96,13 @@ def test_init_reports_existing_identity_without_modifying_store(capsys: pytest.C
     assert identity_key_paths("first")[0].read_bytes() == seed_before
 
 
-def test_init_non_interactive_refuses_a_missing_value(capsys: pytest.CaptureFixture[str]) -> None:
-    assert _init("--non-interactive") == 2
+def test_setup_non_interactive_refuses_a_missing_value(capsys: pytest.CaptureFixture[str]) -> None:
+    assert _setup("--non-interactive") == 2
     assert "missing required value 'name'" in capsys.readouterr().err
     assert not identity_key_paths("operator")[0].exists()
 
 
-def test_init_refuses_ambiguous_identities_with_default_guidance(capsys: pytest.CaptureFixture[str]) -> None:
+def test_setup_refuses_ambiguous_identities_with_default_guidance(capsys: pytest.CaptureFixture[str]) -> None:
     write_identity_config(
         {
             "identities": {
@@ -110,7 +111,7 @@ def test_init_refuses_ambiguous_identities_with_default_guidance(capsys: pytest.
             },
         }
     )
-    assert _init("--non-interactive") == 2
+    assert _setup("--non-interactive") == 2
     assert "httk identity default" in capsys.readouterr().err
 
 
@@ -188,13 +189,13 @@ def test_identity_add_rejects_unforwardable_labels(capsys: pytest.CaptureFixture
     assert not identity_key_paths("bad")[0].exists()
 
 
-def test_init_reports_corrupt_identity_config_cleanly(capsys: pytest.CaptureFixture[str]) -> None:
+def test_setup_reports_corrupt_identity_config_cleanly(capsys: pytest.CaptureFixture[str]) -> None:
     from httk.core.identity import identity_config_path
 
     path = identity_config_path()
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text('{"format": "not-httk-identity"}', encoding="utf-8")
-    assert _init("--name", "A", "--email", "a@example.test", "--non-interactive") == 2
+    assert _setup("--name", "A", "--email", "a@example.test", "--non-interactive") == 2
     assert "identity configuration is not" in capsys.readouterr().err
 
 
@@ -233,7 +234,7 @@ def test_identity_show_and_key_refuse_without_a_usable_identity(
     subcommand: str, capsys: pytest.CaptureFixture[str]
 ) -> None:
     assert _identity(subcommand) == 2
-    assert "set one up with `httk init`" in capsys.readouterr().err
+    assert "set one up with `httk setup`" in capsys.readouterr().err
     assert _identity("add", "alice", "--name", "Alice", "--email", "alice@example.test") == 0
     capsys.readouterr()
     assert _identity(subcommand, "bogus") == 2

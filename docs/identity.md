@@ -14,14 +14,14 @@ isolated runs keep out of a real user's configuration.
 
 ## Command line
 
-The identity store is set up and managed from the root command line. `httk init`
+The identity store is set up and managed from the root command line. `httk setup`
 is the getting-started command: it creates the first named operator identity as
 the default. It is idempotent; re-running it reports the existing setup and
 changes nothing. `httk identity` manages identities in that same store,
 including adding more identities and choosing a different default.
 
 ```console
-httk init --name "Alice" --email alice@example.test
+httk setup --name "Alice" --email alice@example.test
 httk identity add ci_bot --name "CI" --email ci@example.test --default
 httk identity list --json
 httk identity show
@@ -35,7 +35,7 @@ httk identity remove ci_bot
 identity when `SHORT` is omitted. `httk identity key` is the way to hand your
 public key to someone who must trust it, such as a workspace daemon operator.
 
-`httk init` prompts for a missing name or email on a terminal and, with
+`httk setup` prompts for a missing name or email on a terminal and, with
 `--non-interactive`, refuses one instead. The short name is derived from the
 email's local part. See {doc}`cli` for the full command reference.
 

@@ -136,9 +136,11 @@ class ProjectMemberHandler(Protocol):
         present on disk but missing from ``members.json`` — the exact rescue an
         empty registry needs. Repairs are applied by default; ``apply=False`` is a
         dry run that mutates nothing, and *adopt* tells the scan whether to also
-        (re)establish members' machine-local links on this machine. It is
-        optional: core invokes it only when the handler defines it. Findings use
-        the same mapping shape as :meth:`repair`.
+        (re)establish members' machine-local links on this machine. A kind that
+        defines this scan owns adoption through it: core then never calls the
+        kind's :meth:`adopt` hook. It is optional: core invokes it only when the
+        handler defines it, after every member's repair and adopt findings.
+        Findings use the same mapping shape as :meth:`repair`.
 
         :param project_root: The project root to scan.
         :param apply: Whether to apply repairs; ``False`` reports only.
@@ -155,8 +157,11 @@ class ProjectMemberHandler(Protocol):
         links a member needs to be usable *here* — for example, httk-workflow
         registers the member's workspace in the per-user name registry under its
         recorded *name*. It is idempotent and never mutates sealed state. Core
-        invokes it only when the handler defines it, passing the member's
-        recorded name; findings use the same mapping shape as :meth:`repair`.
+        invokes it from an applying, adopting project repair, right after the
+        member's :meth:`repair` findings, only when the handler defines it and
+        does not define :meth:`scan_project` (which then owns adoption), passing
+        the member's recorded name; findings use the same mapping shape as
+        :meth:`repair`.
 
         :param member_root: This member's root directory.
         :param name: The member's recorded name, or ``None`` when it has none.

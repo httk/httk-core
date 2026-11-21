@@ -54,13 +54,19 @@ mean *who* signed, not merely *that it is self-consistent*.
 ## The manifest
 
 ```console
-httk project manifest create            # write httk_project/manifest.jsonl.bz2
-httk project manifest verify            # verify it against the tree
-httk project manifest verify --trusted-key keys/collaborator.pub
+httk project manifest                   # write httk_project/manifest.jsonl.bz2
+httk project verify --manifest          # verify it against the tree
+httk project verify --manifest --trusted-key keys/collaborator.pub
+httk project verify --manifest-file OTHER.jsonl.bz2 PROJECT
 ```
 
-`verify` prints `valid`/`invalid`, then a `<verdict>: <reason>` line, and exits
-with the verdict's code. The programmatic equivalents are `create_manifest` and
+`httk project manifest --manifest PATH` writes the manifest elsewhere, and
+`verify --manifest-file PATH` verifies that file (it implies `--manifest`);
+`--manifest` verifies the project's own manifest. Both take an optional
+`PROJECT`, the nearest project by default. Manifest
+verification prints `valid`/`invalid`, then a `<verdict>: <reason>` line, and
+exits with the verdict's code. Its `--trusted-key` takes an `ed25519:` key or a
+`*.pub` file. The programmatic equivalents are `create_manifest` and
 `verify_manifest` in `httk.core.project`.
 
 ## Key refs
@@ -84,9 +90,9 @@ resolved is skipped with a warning rather than failing the seal; only resolving
 ```console
 httk project seal                       # seal loose files + every member's digest
 httk project seal --keys project,identity
-httk project verify-seal                # verify the project and every member seal
-httk project verify-seal --shallow      # verify only the project seal
-httk project unseal                     # remove the seal (prompts; --force to skip)
+httk project verify                     # verify the project and every member seal
+httk project verify --shallow           # verify only the project seal
+httk project unseal                     # remove the seal (prompts; --yes to pre-confirm)
 ```
 
 Every registered member must already be sealed, and every member kind must have a
@@ -94,12 +100,12 @@ registered handler; `seal` refuses otherwise, naming what is wrong. Registering
 or moving a member is refused while the project is sealed — a seal a project
 commits to must not change beneath it — so unseal first.
 
-`verify-seal` prints one line per entry — `<level> <subject> <verdict> <reason>`
+Seal verification (`verify` without `--manifest`, `--manifest-file` or a ZIP target) prints one line per entry — `<level> <subject> <verdict> <reason>`
 — with indented `<kind> <path>` discrepancy lines beneath any failing entry, then
 a final `ok` / `UNTRUSTED` / `FAILED` word whose exit code matches the table
 above. By default the project's pinned keys and the local operator identities'
 public keys are trusted, so a tree sealed by its own project or identity verifies as
-`valid_trusted` without naming a key (those identities are the ones `httk init`
+`valid_trusted` without naming a key (those identities are the ones `httk setup`
 and `httk identity` configure; see {doc}`identity`); `--trusted-key` adds more, as an `ed25519:`
 key, a `sha256:` fingerprint, or a `*.pub` file. `--json` prints
 `{ "entries": [...], "ok": ..., "trusted": ... }`.

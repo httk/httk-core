@@ -36,11 +36,15 @@ class CLICommand:
     :param name: The lowercase hyphen-separated command name.
     :param handler: The command callable or lazy reference.
     :param summary: The one-line command summary.
+    :param section: The root-help section heading, or ``None`` for the trailing ``Other`` section.
+    :param hidden: Whether root help omits the command; it still dispatches normally.
     """
 
     name: str
     handler: str | Callable[..., Any]
     summary: str
+    section: str | None = None
+    hidden: bool = False
 
     def resolve(self) -> CLIHandler:
         """Import and return the registered command implementation.
@@ -57,20 +61,31 @@ _CLI_RESERVED = frozenset({"help", "version"})
 _cli_commands: dict[str, CLICommand] = {}
 
 
-def register_cli_command(name: str, handler: str | Callable[..., Any], summary: str) -> None:
+def register_cli_command(
+    name: str,
+    handler: str | Callable[..., Any],
+    summary: str,
+    *,
+    section: str | None = None,
+    hidden: bool = False,
+) -> None:
     """Register a lazy top-level :command:`httk` command.
 
     A handler is either a callable or a lazy ``"module:callable"`` reference
     with the contract ``(argv: Sequence[str], context: CLIContext) -> int``.
     Names use lowercase, hyphen-separated command syntax. Registration is
     intentionally strict: reserved names and duplicate registrations are
-    errors rather than order-dependent overrides.
+    errors rather than order-dependent overrides. Root help groups visible
+    commands under their *section* heading; a *hidden* command is left out of
+    root help but dispatches like any other.
 
     :param name: The lowercase hyphen-separated command name.
     :param handler: The command callable or lazy ``"module:callable"`` reference.
     :param summary: The nonempty one-line command summary.
+    :param section: The nonempty one-line root-help section heading, or ``None`` for ``Other``.
+    :param hidden: Whether root help omits the command.
     :raises TypeError: If ``handler`` is neither callable nor a lazy reference.
-    :raises ValueError: If the name, handler reference, summary, or registration is invalid.
+    :raises ValueError: If the name, handler reference, summary, section, or registration is invalid.
     """
 
     if not isinstance(name, str) or _CLI_NAME.fullmatch(name) is None:
@@ -87,7 +102,15 @@ def register_cli_command(name: str, handler: str | Callable[..., Any], summary: 
             raise ValueError("lazy CLI command handler must use 'module:callable' syntax")
     if not isinstance(summary, str) or not summary.strip() or "\n" in summary:
         raise ValueError("CLI command summary must be a nonempty single line")
-    _cli_commands[name] = CLICommand(name=name, handler=handler, summary=summary.strip())
+    if section is not None and (not isinstance(section, str) or not section.strip() or "\n" in section):
+        raise ValueError("CLI command section must be a nonempty single line")
+    _cli_commands[name] = CLICommand(
+        name=name,
+        handler=handler,
+        summary=summary.strip(),
+        section=None if section is None else section.strip(),
+        hidden=bool(hidden),
+    )
 
 
 def known_cli_commands() -> list[str]:

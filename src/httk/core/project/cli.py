@@ -2,7 +2,9 @@
 
 ``httk project`` owns the anchor: ``init`` creates one (like ``git init``),
 ``show`` describes it, ``export`` creates a signed redistribution,
-``verify-export`` checks one, ``import-v1`` migrates a legacy project, and
+``import-v1`` migrates a legacy project, ``check`` and ``repair`` report and
+fix project health, ``manifest``, ``seal`` and ``unseal`` sign the tree,
+``verify`` checks a seal, a manifest or a redistribution, and
 ``template install|uninstall|list`` manages git-installed project templates.
 """
 
@@ -10,6 +12,7 @@ import argparse
 import json
 import shutil
 import sys
+import zipfile
 from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
@@ -195,22 +198,17 @@ def _init_one(path: Path, arguments: argparse.Namespace) -> None:
         print(f"note: {note}")
 
 
-def _print_templates() -> bool:
-    """Print one ``selector  description`` line per template; return whether any exist."""
+def _print_templates() -> None:
+    """Print one ``selector  description`` line per template."""
 
     templates = available_templates()
     if not templates:
         print("no templates available")
     for source, template in templates:
         print(f"{_selector(source, template)}  {template.description or ''}")
-    return bool(templates)
 
 
 def _handle_init(arguments: argparse.Namespace, context: CLIContext) -> int:
-    if arguments.list_templates:
-        if _print_templates():
-            print("templates can also be given as a directory path or a git+ URI")
-        return 0
     failed = False
     for raw_path in arguments.paths:
         label: str | Path = raw_path
@@ -278,15 +276,15 @@ def _handle_export(arguments: argparse.Namespace, context: CLIContext) -> int:
 
 
 def _handle_verify_export(arguments: argparse.Namespace, context: CLIContext) -> int:
-    """Verify a signed redistribution ZIP and print its signer."""
+    """Verify signed redistribution ZIPs and print each signer."""
 
     failed = False
-    for raw_path in arguments.zip_paths:
+    for raw_path in arguments.targets:
         try:
             report = verify_export(
                 raw_path,
                 expect_key=arguments.expect_key,
-                trusted_keys=arguments.trusted_keys,
+                trusted_keys=arguments.trusted_key,
             )
         except _ERRORS as exc:
             failed = True
@@ -402,7 +400,6 @@ def _build_init(parser: argparse.ArgumentParser) -> None:
         metavar="NAME=VALUE",
         help="set a template parameter (repeatable)",
     )
-    parser.add_argument("--list-templates", action="store_true", help="list available project templates")
 
 
 def _build_show(parser: argparse.ArgumentParser) -> None:
@@ -430,40 +427,27 @@ def _build_export(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("out_zip", metavar="OUT.ZIP", help="destination signed redistribution ZIP")
 
 
-def _build_verify_export(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("zip_paths", metavar="ZIP", nargs="+", help="signed redistribution ZIPs to verify")
-    parser.add_argument("--expect-key", metavar="FINGERPRINT", help="require this signer fingerprint")
-    parser.add_argument(
-        "--trusted-key",
-        dest="trusted_keys",
-        metavar="FINGERPRINT",
-        action="append",
-        default=[],
-        help="trust this signer fingerprint",
-    )
-
-
 # ---------------------------------------------------------------------------
-# repair, manifest, seal, unseal, verify-seal
+# check, repair, manifest, seal, unseal, verify
 # ---------------------------------------------------------------------------
 
 
-def _confirm(prompt: str, *, force: bool) -> bool:
+def _confirm(prompt: str, *, yes: bool) -> bool:
     """Gate one destructive action behind a terminal confirmation.
 
-    ``--force`` answers yes without asking; without a terminal and without
-    ``--force`` the action is refused with a hint rather than blocking on an
+    ``--yes`` pre-confirms without asking; without a terminal and without
+    ``--yes`` the action is refused with a hint rather than blocking on an
     unanswerable prompt.
 
     :param prompt: The question to ask, without the ``[y/N]`` suffix.
-    :param force: Whether ``--force`` was given, answering yes unconditionally.
+    :param yes: Whether ``--yes`` was given, answering yes unconditionally.
     :return: Whether the action was confirmed.
     """
 
-    if force:
+    if yes:
         return True
     if not sys.stdin.isatty():
-        print("this operation without a terminal requires --force", file=sys.stderr)
+        print("this operation without a terminal requires --yes", file=sys.stderr)
         return False
     if input(f"{prompt} [y/N] ").strip().lower() in {"y", "yes"}:
         return True
@@ -533,12 +517,16 @@ def project_repair(
 
     Core owns the anchor checks — the key pin and the manifest — and each member
     handler contributes its own findings, concatenated after them. Repairs are
-    applied by default; ``apply=False`` is a dry run that mutates nothing. Member
-    adoption is driven through each kind's project-scope scan, gated by *adopt*.
+    applied by default; ``apply=False`` is a dry run that mutates nothing. A kind
+    whose handler defines ``scan_project`` owns adoption through that scan, which
+    receives *adopt*; for a kind without one, each registered member's ``adopt``
+    hook runs under its recorded name when both *apply* and *adopt* hold.
+    Findings come in order: anchor checks, per-member repair, per-member adopt
+    (scan-less kinds), then the kind scans.
 
     :param project_root: Project root, or None to discover the nearest project.
     :param apply: Whether to apply repairs; ``False`` reports only.
-    :param adopt: Whether the kind-scope scan should adopt members on this machine.
+    :param adopt: Whether to adopt members on this machine.
     :return: JSON-compatible repair report.
     """
 
@@ -552,6 +540,9 @@ def project_repair(
         try:
             handler = project_member_handler(member.kind)
             findings.extend(handler.repair(project / member.path, apply=apply))
+            adopt_member = getattr(handler, "adopt", None)
+            if apply and adopt and adopt_member is not None and not hasattr(handler, "scan_project"):
+                findings.extend(adopt_member(project / member.path, name=member.name))
         except LookupError:
             findings.append(
                 _finding(
@@ -582,12 +573,12 @@ def project_repair(
 
 
 def _handle_repair(arguments: argparse.Namespace, context: CLIContext) -> int:
-    """Repair one or more projects, or report only under --dry-run."""
+    """Repair one or more projects, or report only for ``check``."""
 
     paths = arguments.paths or [str(context.cwd)]
     reports: list[dict[str, object]] = []
     failed = False
-    apply = not arguments.dry_run
+    apply = arguments.apply
     adopt = not arguments.no_adopt
     for raw_path in paths:
         try:
@@ -615,55 +606,7 @@ def _handle_repair(arguments: argparse.Namespace, context: CLIContext) -> int:
     return 1 if failed else 0
 
 
-def _handle_adopt(arguments: argparse.Namespace, context: CLIContext) -> int:
-    """(Re)establish local links for each member whose handler adopts them."""
-
-    paths = arguments.paths or [str(context.cwd)]
-    reports: list[dict[str, object]] = []
-    failed = False
-    any_hook = False
-    for raw_path in paths:
-        try:
-            project = require_project(Path(raw_path).expanduser().resolve())
-            members = project_members(project)
-        except _ERRORS as exc:
-            failed = True
-            print(f"{context.program} project: {raw_path}: {exc}", file=sys.stderr)
-            continue
-        findings: list[dict[str, object]] = []
-        for member in members:
-            try:
-                handler = project_member_handler(member.kind)
-            except LookupError:
-                findings.append(
-                    _finding(
-                        f"member:{member.path}",
-                        "error",
-                        f"member kind {member.kind!r} has no registered handler; install the module that provides it",
-                    )
-                )
-                continue
-            adopt = getattr(handler, "adopt", None)
-            if adopt is None:
-                continue
-            any_hook = True
-            findings.extend(adopt(project / member.path, name=member.name))
-        reports.append({"root": str(project), "findings": findings})
-        if not arguments.json:
-            if len(paths) > 1:
-                print(f"=== {project} ===")
-            for finding in findings:
-                print(f"{finding['status']}\t{finding['check']}\t{finding['message']}")
-        if any(finding.get("status") == "error" for finding in findings):
-            failed = True
-    if arguments.json:
-        print(json.dumps(reports if len(paths) > 1 else reports[0] if reports else {}, indent=2, sort_keys=True))
-    elif not any_hook and not failed:
-        print("no project member has an adopt hook; nothing to adopt")
-    return 1 if failed else 0
-
-
-def _handle_manifest_create(arguments: argparse.Namespace, context: CLIContext) -> int:
+def _handle_manifest(arguments: argparse.Namespace, context: CLIContext) -> int:
     """Write the signed manifest of the nearest project."""
 
     print(create_manifest(arguments.project or context.cwd, output=arguments.manifest))
@@ -674,8 +617,8 @@ def _handle_manifest_verify(arguments: argparse.Namespace, context: CLIContext) 
     """Verify one project manifest against the tree and its trust anchors."""
 
     verification = verify_manifest(
-        arguments.project or context.cwd,
-        manifest=arguments.manifest,
+        arguments.targets[0] if arguments.targets else context.cwd,
+        manifest=arguments.manifest_file,
         trusted_keys=arguments.trusted_key,
     )
     print("valid" if verification.valid else "invalid")
@@ -700,7 +643,7 @@ def _handle_unseal(arguments: argparse.Namespace, context: CLIContext) -> int:
     """Remove a project's seal, after confirmation."""
 
     root = require_project(arguments.project or context.cwd)
-    if not _confirm(f"Unseal the project at {root}?", force=arguments.force):
+    if not _confirm(f"Unseal the project at {root}?", yes=arguments.yes):
         return 1
     unseal_project(root)
     print(f"{root}\tunsealed")
@@ -708,7 +651,7 @@ def _handle_unseal(arguments: argparse.Namespace, context: CLIContext) -> int:
 
 
 def _default_trusted_keys(project: Path, explicit: list[str]) -> list[str]:
-    """Return the trust anchors ``verify-seal`` uses by default.
+    """Return the trust anchors seal verification uses by default.
 
     A tree sealed by its own project or its own operator identities verifies as
     trusted without the operator naming a key: the project's pinned keys, every
@@ -725,7 +668,7 @@ def _default_trusted_keys(project: Path, explicit: list[str]) -> list[str]:
 def _handle_verify_seal(arguments: argparse.Namespace, context: CLIContext) -> int:
     """Verify the project seal and, unless shallow, every member seal it references."""
 
-    root = require_project(arguments.path or context.cwd)
+    root = require_project(arguments.targets[0] if arguments.targets else context.cwd)
     trusted = _default_trusted_keys(root, list(arguments.trusted_key))
     report = verify_project(root, trusted_keys=trusted, deep=not arguments.shallow)
     verdicts = [str(entry["verdict"]) for entry in report.entries]
@@ -753,7 +696,20 @@ def _handle_verify_seal(arguments: argparse.Namespace, context: CLIContext) -> i
     return exit_code
 
 
+def _build_check(parser: argparse.ArgumentParser) -> None:
+    # A dry run of repair: reports the repair and scan findings without changing anything or adopting.
+    parser.set_defaults(apply=False, no_adopt=False)
+    parser.add_argument(
+        "paths",
+        metavar="PATH",
+        nargs="*",
+        help="the project to check (default: the nearest project of the working directory)",
+    )
+    parser.add_argument("--json", action="store_true", help="print the report as one JSON document")
+
+
 def _build_repair(parser: argparse.ArgumentParser) -> None:
+    parser.set_defaults(apply=True)
     parser.add_argument(
         "paths",
         metavar="PATH",
@@ -761,38 +717,12 @@ def _build_repair(parser: argparse.ArgumentParser) -> None:
         help="the project to repair (default: the nearest project of the working directory)",
     )
     parser.add_argument("--no-adopt", action="store_true", help="perform other repairs but skip adopting members here")
-    parser.add_argument("--dry-run", action="store_true", help="report findings only; mutate nothing")
     parser.add_argument("--json", action="store_true", help="print the report as one JSON document")
 
 
-def _build_adopt(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument(
-        "paths",
-        metavar="PATH",
-        nargs="*",
-        help="the project to adopt (default: the nearest project of the working directory)",
-    )
-    parser.add_argument("--json", action="store_true", help="print the findings as one JSON document")
-
-
-def _build_manifest_create(parser: argparse.ArgumentParser) -> None:
+def _build_manifest(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("project", metavar="PROJECT", nargs="?", help="the project (default: the nearest one)")
     parser.add_argument("--manifest", metavar="PATH", help="write the manifest here rather than in the project")
-
-
-def _build_manifest_verify(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("project", metavar="PROJECT", nargs="?", help="the project (default: the nearest one)")
-    parser.add_argument("--manifest", metavar="PATH", help="verify this manifest rather than the project's")
-    parser.add_argument(
-        "--trusted-key",
-        action="append",
-        default=[],
-        metavar="PATH_OR_VALUE",
-        help=(
-            "trust this Ed25519 public key as well: an ed25519:BASE64 value or the path of a *.pub file "
-            "(repeatable). The project's pinned key is always trusted"
-        ),
-    )
 
 
 def _build_seal(parser: argparse.ArgumentParser) -> None:
@@ -808,41 +738,88 @@ def _build_unseal(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "project", metavar="PROJECT", nargs="?", help="the project to unseal (default: the nearest one)"
     )
-    parser.add_argument("--force", action="store_true", help="skip the confirmation prompt")
+    parser.add_argument("--yes", action="store_true", help="pre-confirm the confirmation prompt")
 
 
-def _build_verify_seal(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("path", metavar="PATH", nargs="?", help="a project to verify (default: the nearest one)")
-    parser.add_argument("--json", action="store_true", help="print the report as one JSON document")
+def _build_verify(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "targets",
+        metavar="TARGET",
+        nargs="*",
+        help=(
+            "signed redistribution ZIPs (a .zip suffix or ZIP content selects export verification), or the "
+            "project directory whose seal or manifest to verify (default: the nearest one)"
+        ),
+    )
+    parser.add_argument("--manifest", action="store_true", help="verify the project's own manifest instead of the seal")
+    parser.add_argument(
+        "--manifest-file",
+        metavar="PATH",
+        help="verify this manifest file instead of the seal (implies --manifest)",
+    )
     parser.add_argument(
         "--trusted-key",
         action="append",
         default=[],
-        metavar="KEY_OR_FINGERPRINT",
+        metavar="KEY",
         help=(
-            "trust this key as well: an ed25519:BASE64 value, a sha256: fingerprint, or the path of a *.pub file "
-            "(repeatable). The project's pinned keys and local operator identities are always trusted"
+            "trust this key as well (repeatable). Seals: an ed25519:BASE64 value, a sha256: fingerprint, or the "
+            "path of a *.pub file; the project's pinned keys and local operator identities are always trusted. "
+            "Manifests: an ed25519:BASE64 value or the path of a *.pub file; the project's pinned key is always "
+            "trusted. ZIPs: a signer fingerprint or public key"
         ),
     )
-    parser.add_argument("--shallow", action="store_true", help="verify only the project seal, not the member seals")
-
-
-def _add_manifest_group(subparsers: "argparse._SubParsersAction[argparse.ArgumentParser]") -> None:
-    """Mount the ``manifest create|verify`` group under the project command."""
-
-    manifest = subparsers.add_parser(
-        "manifest", help="create and verify the signed project manifest", description="Create and verify the manifest"
+    parser.add_argument(
+        "--expect-key", metavar="FINGERPRINT", help="ZIPs only: require this signer fingerprint or public key"
     )
-    manifest.set_defaults(handler=None, help_parser=manifest)
-    actions = manifest.add_subparsers(dest="manifest_action", metavar="ACTION")
-    create = actions.add_parser("create", help="write the signed manifest", description="Write the signed manifest")
-    create.set_defaults(handler=_handle_manifest_create, help_parser=create)
-    _build_manifest_create(create)
-    verify = actions.add_parser(
-        "verify", help="verify the manifest against the tree", description="Verify one project manifest"
+    parser.add_argument(
+        "--shallow", action="store_true", help="seals only: verify only the project seal, not the member seals"
     )
-    verify.set_defaults(handler=_handle_manifest_verify, help_parser=verify)
-    _build_manifest_verify(verify)
+    parser.add_argument("--json", action="store_true", help="seals only: print the report as one JSON document")
+
+
+def _is_export_target(target: str) -> bool:
+    """Whether *target* names a redistribution ZIP: a ``.zip`` suffix (existing or not) or ZIP content."""
+
+    path = Path(target)
+    return path.suffix.lower() == ".zip" or (path.is_file() and zipfile.is_zipfile(path))
+
+
+def _select_verify_handler(arguments: argparse.Namespace) -> Handler:
+    """Pick the ``verify`` mode from the targets and options, refusing options that do not apply.
+
+    :param arguments: The parsed ``verify`` arguments.
+    :return: The handler of the selected mode.
+    :raises ValueError: If an option or the target count does not fit the selected mode.
+    """
+
+    targets: list[str] = arguments.targets
+    exports = [_is_export_target(target) for target in targets]
+    if any(exports):
+        if not all(exports):
+            raise ValueError("cannot mix export ZIPs and project targets")
+        mode, handler = "export", _handle_verify_export
+        refused = {
+            "--manifest": arguments.manifest,
+            "--manifest-file": arguments.manifest_file,
+            "--shallow": arguments.shallow,
+            "--json": arguments.json,
+        }
+    elif arguments.manifest or arguments.manifest_file is not None:
+        mode, handler = "manifest", _handle_manifest_verify
+        refused = {"--expect-key": arguments.expect_key, "--shallow": arguments.shallow, "--json": arguments.json}
+    else:
+        mode, handler = "seal", _handle_verify_seal
+        refused = {"--expect-key": arguments.expect_key}
+    for option, given in refused.items():
+        if given:
+            raise ValueError(f"{option} does not apply to {mode} verification")
+    if mode != "export":
+        if len(targets) > 1:
+            raise ValueError(f"{mode} verification takes at most one project TARGET")
+        if targets and not Path(targets[0]).is_dir():
+            raise ValueError(f"{mode} verification TARGET is not a directory: {targets[0]}")
+    return handler
 
 
 # ---------------------------------------------------------------------------
@@ -897,26 +874,32 @@ def build_parser(program: str) -> argparse.ArgumentParser:
     )
     _add_leaf(
         subparsers,
-        "verify-export",
-        summary="verify a signed project redistribution",
-        handler=_handle_verify_export,
-        build=_build_verify_export,
+        "check",
+        summary="report this project's health; change nothing",
+        handler=_handle_repair,
+        build=_build_check,
     )
     _add_leaf(
         subparsers,
         "repair",
-        summary="repair this project, or report only with --dry-run",
+        summary="repair this project and adopt its members on this machine",
         handler=_handle_repair,
         build=_build_repair,
     )
     _add_leaf(
         subparsers,
-        "adopt",
-        summary="(re)establish this project's members on this machine",
-        handler=_handle_adopt,
-        build=_build_adopt,
+        "manifest",
+        summary="write the signed project manifest",
+        handler=_handle_manifest,
+        build=_build_manifest,
     )
-    _add_manifest_group(subparsers)
+    _add_leaf(
+        subparsers,
+        "verify",
+        summary="verify the project seal, the project manifest, or signed redistribution ZIPs",
+        handler=_handle_verify_seal,
+        build=_build_verify,
+    )
     _add_template_group(subparsers)
     _add_leaf(
         subparsers,
@@ -931,13 +914,6 @@ def build_parser(program: str) -> argparse.ArgumentParser:
         summary="remove the project's seal",
         handler=_handle_unseal,
         build=_build_unseal,
-    )
-    _add_leaf(
-        subparsers,
-        "verify-seal",
-        summary="verify a sealed project tree against its seals",
-        handler=_handle_verify_seal,
-        build=_build_verify_seal,
     )
     return parser
 
@@ -957,16 +933,7 @@ def command(argv: Sequence[str], context: CLIContext) -> int:
         return exc.code if isinstance(exc.code, int) else 1
     try:
         if arguments.subcommand == "init":
-            if arguments.list_templates:
-                if (
-                    arguments.paths
-                    or arguments.name
-                    or arguments.description
-                    or arguments.template
-                    or arguments.parameter
-                ):
-                    parser.error("--list-templates cannot be combined with PATH or project/template options")
-            elif not arguments.paths:
+            if not arguments.paths:
                 parser.error("init requires at least one PATH")
             elif arguments.name and len(arguments.paths) != 1:
                 parser.error("--name requires exactly one PATH")
@@ -974,6 +941,11 @@ def command(argv: Sequence[str], context: CLIContext) -> int:
                 parser.error("--parameter requires --template")
         elif arguments.subcommand == "import-v1" and (arguments.source or arguments.name) and len(arguments.paths) != 1:
             parser.error("--source and --name require exactly one PATH")
+        elif arguments.subcommand == "verify":
+            try:
+                arguments.handler = _select_verify_handler(arguments)
+            except ValueError as exc:
+                parser.error(str(exc))
     except SystemExit as exc:
         return exc.code if isinstance(exc.code, int) else 2
     handler: Handler | None = getattr(arguments, "handler", None)

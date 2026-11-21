@@ -84,11 +84,10 @@ def test_plugin_selectors_ambiguity_and_list(tmp_path: Path, capsys) -> None:
     _plugin("one", "same")
     _plugin("two", "same")
 
-    assert command(["init", "--list-templates"], _context(tmp_path)) == 0
+    assert command(["template", "list"], _context(tmp_path)) == 0
     output = capsys.readouterr().out
     assert "alpha:unique  A unique template" in output
     assert "one:same  " in output and "two:same  " in output
-    assert output.endswith("templates can also be given as a directory path or a git+ URI\n")
 
     qualified = tmp_path / "qualified"
     assert command(["init", "--template", "alpha:unique", str(qualified)], _context(tmp_path)) == 0
@@ -107,7 +106,7 @@ def test_plugin_selectors_ambiguity_and_list(tmp_path: Path, capsys) -> None:
 
 
 def test_list_templates_when_none_are_installed(tmp_path: Path, capsys) -> None:
-    assert command(["init", "--list-templates"], _context(tmp_path)) == 0
+    assert command(["template", "list"], _context(tmp_path)) == 0
     assert capsys.readouterr().out == "no templates available\n"
 
 
@@ -169,14 +168,14 @@ print(json.dumps({'notes': ['parameters checked']}))
     assert "declares no parameters" in capsys.readouterr().err
 
 
-def test_parameter_and_list_combinations_fail(tmp_path: Path, capsys) -> None:
+def test_parameter_without_template_and_removed_list_option_fail(tmp_path: Path, capsys) -> None:
     target = tmp_path / "plain"
     assert command(["init", "--parameter", "x=1", str(target)], _context(tmp_path)) == 2
     assert not target.exists()
     assert "requires --template" in capsys.readouterr().err
 
-    assert command(["init", "--list-templates", str(target)], _context(tmp_path)) == 2
-    assert "cannot be combined" in capsys.readouterr().err
+    assert command(["init", "--list-templates"], _context(tmp_path)) == 2
+    assert "unrecognized arguments: --list-templates" in capsys.readouterr().err
 
 
 def test_hook_failure_rolls_back_fresh_target_and_preserves_nonempty_target(tmp_path: Path, capsys) -> None:

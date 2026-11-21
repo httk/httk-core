@@ -123,7 +123,7 @@ def test_cli_marks_untrusted_exports_as_unauthenticated(tmp_path: Path, capsys: 
     export = tmp_path / "export.zip"
     initialize_project(project, name="exported")
     export_project(export, project)
-    assert command(["verify-export", str(export)], CLIContext("httk", tmp_path)) == 0
+    assert command(["verify", str(export)], CLIContext("httk", tmp_path)) == 0
     assert "self-consistent but UNAUTHENTICATED (trust-on-first-use)" in capsys.readouterr().out
 
 

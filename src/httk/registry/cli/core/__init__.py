@@ -20,39 +20,47 @@
 # httk-store, httk-atomistic) provide their own httk.registry.* package that
 # self-registers providers during httk.core discovery.
 #
-# The two commands core registers are the umbrella `httk project` and versioned
-# documentation maintenance. The project anchor lives in httk.core.project, so
-# its command line is a built-in of a
-# core installation. The handler is a lazy "module:callable" reference, so root
-# help resolves nothing and `httk project` imports argparse only when it runs.
+# Core registers the per-user setup, identity, plugin, project and convert
+# commands, grouped into root-help sections, plus hidden maintenance commands
+# (docs, registry, memguard). Handlers are lazy "module:callable" references, so
+# root help resolves nothing and a command imports argparse only when it runs.
 from httk.core import register_cli_command
 
 register_cli_command(
-    "project",
-    "httk.core.project.cli:command",
-    "initialize and inspect httk projects",
-)
-register_cli_command("plugin", "httk.core.plugins.cli:command", "install and manage httk plugins")
-register_cli_command(
-    "docs",
-    "httk.core.docs.cli:command",
-    "maintain versioned httk documentation sites",
-)
-register_cli_command(
-    "registry",
-    "httk.core._registry_tool:command",
-    "generate and verify entry record classes from schemas",
-)
-register_cli_command("memguard", "httk.core.memguard:command", "run a command under a memory guard")
-register_cli_command("convert", "httk.core.converting:command", "convert a loadable file into a saveable format")
-register_cli_command("system", "httk.core.system:command", "reset per-user httk state")
-register_cli_command(
-    "init",
-    "httk.core.identity_cli:init_command",
+    "setup",
+    "httk.core.identity_cli:setup_command",
     "set up httk for this user (establishes the default operator identity)",
+    section="Setup",
 )
 register_cli_command(
     "identity",
     "httk.core.identity_cli:identity_command",
     "manage named operator identities",
+    section="Setup",
 )
+register_cli_command("plugin", "httk.core.plugins.cli:command", "install and manage httk plugins", section="Setup")
+register_cli_command(
+    "project",
+    "httk.core.project.cli:command",
+    "initialize and inspect httk projects",
+    section="Organize",
+)
+register_cli_command(
+    "convert",
+    "httk.core.converting:command",
+    "convert a loadable file into a saveable format",
+    section="Data",
+)
+register_cli_command(
+    "docs",
+    "httk.core.docs.cli:command",
+    "maintain versioned httk documentation sites",
+    hidden=True,
+)
+register_cli_command(
+    "registry",
+    "httk.core._registry_tool:command",
+    "generate and verify entry record classes from schemas",
+    hidden=True,
+)
+register_cli_command("memguard", "httk.core.memguard:command", "run a command under a memory guard", hidden=True)

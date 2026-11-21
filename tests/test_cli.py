@@ -136,3 +136,69 @@ def test_convert_help_end_to_end(capsys) -> None:
 def test_project_help_lists_subcommands(capsys) -> None:
     assert main(["project", "help"]) == 0
     assert "init" in capsys.readouterr().out
+
+
+def test_root_help_groups_sections_and_hides_hidden_commands(monkeypatch, capsys) -> None:
+    import httk.core.register.cli as registry
+
+    monkeypatch.setattr(registry, "_cli_commands", {})
+    calls: list[list[str]] = []
+
+    def handler(argv, context):
+        calls.append(list(argv))
+        return 0
+
+    register_cli_command("plain", handler, "no section")
+    register_cli_command("zeta-cmd", handler, "custom late", section="Zeta")
+    register_cli_command("run-cmd", handler, "runs", section="Run")
+    register_cli_command("alpha-cmd", handler, "custom early", section="Alpha")
+    register_cli_command("long-setup-command", handler, "sets up", section="Setup")
+    register_cli_command("secret", handler, "never listed", hidden=True)
+    assert main(["--help"]) == 0
+    out = capsys.readouterr().out
+    commands = out[out.index("commands:") :]
+    assert commands.splitlines() == [
+        "commands:",
+        "  help                show help for the root, a command, or a subcommand",
+        "",
+        "Setup:",
+        "  long-setup-command  sets up",
+        "",
+        "Run:",
+        "  run-cmd             runs",
+        "",
+        "Alpha:",
+        "  alpha-cmd           custom early",
+        "",
+        "Zeta:",
+        "  zeta-cmd            custom late",
+        "",
+        "Other:",
+        "  plain               no section",
+    ]
+    assert "secret" not in out
+    # Hidden commands still dispatch, directly and through `httk help NAME`.
+    assert main(["secret", "x"]) == 0
+    assert main(["help", "secret"]) == 0
+    assert calls == [["x"], ["--help"]]
+
+
+@pytest.mark.parametrize("section", ["", "  ", "two\nlines"])
+def test_invalid_section_is_rejected(section: str) -> None:
+    with pytest.raises(ValueError, match="section"):
+        register_cli_command("bad-section-cli-test", lambda argv, context: 0, "s", section=section)
+
+
+def test_core_root_help_sections(capsys) -> None:
+    import httk.core  # noqa: F401  # trigger command discovery
+
+    assert main(["--help"]) == 0
+    out = capsys.readouterr().out
+    setup = out.index("\nSetup:\n")
+    assert setup < out.index("\nOrganize:\n") < out.index("\nData:\n")
+    assert out.index("  setup ") > setup
+    for hidden in ("docs", "registry", "memguard"):
+        assert f"\n  {hidden} " not in out
+        assert hidden in known_cli_commands()
+    assert "system" not in known_cli_commands()
+    assert "init" not in known_cli_commands()
