@@ -403,8 +403,10 @@ class OptimadeEntryView:
     _backend: OptimadeEntryBackend
     _record: object | None = field(default=None, init=False, repr=False, compare=False, hash=False)
 
-    backend_class: ClassVar[type[OptimadeEntryBackend]]
-    record_class: ClassVar[type[Reference] | type[File] | type[Calculation]]
+    # Bare ClassVar: the `type` property below shadows the builtin under 3.14 deferred annotations,
+    # which would turn these markers into dataclass fields and slots.
+    backend_class: ClassVar
+    record_class: ClassVar
 
     def __new__(cls, backend: object) -> Self:
         if isinstance(backend, cls):
