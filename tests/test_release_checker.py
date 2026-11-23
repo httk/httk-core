@@ -139,7 +139,7 @@ def test_environment_removes_workspace_and_gate_overrides(tmp_path: Path, monkey
 
 
 def test_supported_python_versions_use_normal_tests() -> None:
-    assert CHECKER["_SUPPORTED_PYTHON_VERSIONS"] == ("3.12", "3.13", "3.14")
+    assert CHECKER["_SUPPORTED_PYTHON_VERSIONS"] == ("3.12", "3.13", "3.14", "3.15")
     assert CHECKER["_normal_test_command"]("3.14") == [
         "uv",
         "run",
