@@ -32,6 +32,11 @@ register_entry_family(
     family="httk.core.curation:ExternalDatabaseEntryFamily",
     definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/external_database_entries",
 )
+register_entry_family(
+    name="imports",
+    family="httk.core.import_records:ImportEntry",
+    definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/imports",
+)
 register_entry_record(
     name="core-run",
     record="httk.core.provenance:Run",
@@ -55,6 +60,12 @@ register_entry_record(
     record="httk.core.curation:ExternalDatabaseEntry",
     family="external_database_entries",
     definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/external_database_entries",
+)
+register_entry_record(
+    name="core-import",
+    record="httk.core.import_records:ImportRecord",
+    family="imports",
+    definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/imports",
 )
 register_entry_record(
     name="core-data-record",

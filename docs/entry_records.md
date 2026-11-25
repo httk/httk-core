@@ -115,6 +115,18 @@ Entry records also receive the standard weak links `references`, `notes`, `tags`
 and `external` automatically when stored with *httk-store*; their target records
 are in ``httk.core.curation``.
 
+An importer records what happened while importing one thing into a store as an
+`ImportRecord` (entry type `imports`, in ``httk.core.import_records``): the
+`source_uri`, the `importer` with its version, the `status` (`"imported"`,
+`"failed"` or `"excluded"`), the `error` of a failed or excluded import, and every
+warning, notice and exception as an ordered tuple of `ImportReport`s, which
+`ImportReport.from_log_record` builds from the records collected by
+`httk.core.report.collect_reports`. Source, importer, outcome and reports form the
+content identity, so a new importer version gives a new record. The base record
+holds failures and exclusions only; a successful import is recorded by a typed
+subclass, defined in another module, that adds one record-valued field holding
+the imported entry.
+
 The decorator does not register global plugins. With *httk-store*, pass
 `records=[Measurement]` when creating **and reopening** the store. Keep the record
 definition in an importable module shared by your importer and server. The store

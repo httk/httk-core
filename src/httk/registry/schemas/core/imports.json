@@ -1,0 +1,399 @@
+{
+    "$id": "https://schemas.httk.org/defs/v0.1/entrytypes/imports",
+    "$schema": "https://schemas.optimade.org/meta/v1.2/optimade/entrytype_definition.json",
+    "type": "object",
+    "title": "httk imports entry type",
+    "x-optimade-definition": {
+        "kind": "entrytype",
+        "format": "1.3",
+        "version": "0.1.0",
+        "name": "imports",
+        "label": "imports_entrytype_httk"
+    },
+    "description": "An imports entry records everything that happened while importing one thing into a store: where it came from, which importer imported it, the outcome, and every warning, notice, and exception reported on the way.\nA source holding several things gives one imports entry per thing.",
+    "properties": {
+        "id": {
+            "$id": "https://schemas.optimade.org/defs/v1.2/properties/core/id",
+            "x-optimade-requirements": {
+                "support": "must",
+                "sortable": true,
+                "query-support": "all mandatory",
+                "response-level": "always"
+            },
+            "title": "ID",
+            "x-optimade-type": "string",
+            "x-optimade-definition": {
+                "label": "id_core",
+                "kind": "property",
+                "version": "1.2.0",
+                "format": "1.2",
+                "name": "id"
+            },
+            "type": [
+                "string"
+            ],
+            "description": "A unique string referencing a specific entry in the database.\n\n**Requirements/Conventions:**\n\n- Taken together, the ID and entry type MUST uniquely identify the entry.\n- Reasonably short IDs are encouraged and SHOULD NOT be longer than 255 characters.\n- IDs MAY change over time.",
+            "examples": [
+                "db/1234567",
+                "cod/2000000",
+                "cod/2000000@1234567",
+                "nomad/L1234567890",
+                "42"
+            ],
+            "x-optimade-unit": "inapplicable"
+        },
+        "type": {
+            "$id": "https://schemas.optimade.org/defs/v1.2/properties/core/type",
+            "x-optimade-requirements": {
+                "support": "must",
+                "sortable": true,
+                "query-support": "all mandatory",
+                "response-level": "always"
+            },
+            "title": "type",
+            "x-optimade-type": "string",
+            "x-optimade-definition": {
+                "label": "type_core",
+                "kind": "property",
+                "version": "1.2.0",
+                "format": "1.2",
+                "name": "type"
+            },
+            "type": [
+                "string"
+            ],
+            "description": "The name of the type of an entry.\n\n**Requirements/Conventions:**\n\n- MUST be an existing entry type.\n- The entry of type <type> and ID <id> MUST be returned in response to a request for /<type>/<id> under the versioned or unversioned base URL serving the API.",
+            "examples": [
+                "structures"
+            ],
+            "x-optimade-unit": "inapplicable"
+        },
+        "immutable_id": {
+            "$id": "https://schemas.optimade.org/defs/v1.2/properties/core/immutable_id",
+            "x-optimade-requirements": {
+                "support": "may",
+                "sortable": false,
+                "query-support": "all mandatory",
+                "response-level": "may"
+            },
+            "title": "immutable ID",
+            "x-optimade-type": "string",
+            "x-optimade-definition": {
+                "label": "immutable_id_core",
+                "kind": "property",
+                "version": "1.2.0",
+                "format": "1.2",
+                "name": "immutable_id"
+            },
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "The entry's immutable ID (e.g., a UUID).\n\n**Requirements/Conventions:**\n\n- This is important for databases having preferred IDs that point to \"the latest version\" of a record, but still offer access to older variants.\n- This ID maps to the version-specific record, in case it changes in the future.",
+            "examples": [
+                "8bd3e750-b477-41a0-9b11-3a799f21b44f",
+                "fjeiwoj,54;@=%<>#32"
+            ],
+            "x-optimade-unit": "inapplicable"
+        },
+        "last_modified": {
+            "$id": "https://schemas.optimade.org/defs/v1.2/properties/core/last_modified",
+            "x-optimade-requirements": {
+                "support": "should",
+                "sortable": false,
+                "query-support": "all mandatory",
+                "response-level": "must"
+            },
+            "title": "last modified",
+            "x-optimade-type": "timestamp",
+            "x-optimade-definition": {
+                "label": "last_modified_core",
+                "kind": "property",
+                "version": "1.2.0",
+                "format": "1.2",
+                "name": "last_modified"
+            },
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time",
+            "description": "Date and time representing when the entry was last modified.",
+            "examples": [
+                "2007-04-05T14:30:20Z"
+            ],
+            "x-optimade-unit": "inapplicable"
+        },
+        "source_uri": {
+            "$id": "https://schemas.httk.org/defs/v0.1/properties/imports/source_uri",
+            "x-optimade-requirements": {
+                "support": "must",
+                "sortable": true,
+                "query-support": "all mandatory",
+                "response-level": "must"
+            },
+            "title": "import source URI",
+            "x-optimade-type": "string",
+            "x-optimade-definition": {
+                "kind": "property",
+                "version": "0.1.0",
+                "format": "1.3",
+                "name": "source_uri",
+                "label": "source_uri_property_httk"
+            },
+            "x-optimade-unit": "inapplicable",
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "Where the imported thing was imported from, as chosen by the importer: a stable path, URL, or identifier, not a machine-specific absolute path."
+        },
+        "source_item": {
+            "$id": "https://schemas.httk.org/defs/v0.1/properties/imports/source_item",
+            "x-optimade-requirements": {
+                "support": "must",
+                "sortable": true,
+                "query-support": "all mandatory",
+                "response-level": "must"
+            },
+            "title": "import source item",
+            "x-optimade-type": "string",
+            "x-optimade-definition": {
+                "kind": "property",
+                "version": "0.1.0",
+                "format": "1.3",
+                "name": "source_item",
+                "label": "source_item_property_httk"
+            },
+            "x-optimade-unit": "inapplicable",
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "The item within the source when the source holds several, e.g. a CIF data block name; null when the source holds one item."
+        },
+        "importer": {
+            "$id": "https://schemas.httk.org/defs/v0.1/properties/imports/importer",
+            "x-optimade-requirements": {
+                "support": "must",
+                "sortable": true,
+                "query-support": "all mandatory",
+                "response-level": "must"
+            },
+            "title": "importer",
+            "x-optimade-type": "string",
+            "x-optimade-definition": {
+                "kind": "property",
+                "version": "0.1.0",
+                "format": "1.3",
+                "name": "importer",
+                "label": "importer_property_httk"
+            },
+            "x-optimade-unit": "inapplicable",
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "The program that imported the thing, together with its version. A new importer version gives a new import record."
+        },
+        "status": {
+            "$id": "https://schemas.httk.org/defs/v0.1/properties/imports/status",
+            "x-optimade-requirements": {
+                "support": "must",
+                "sortable": true,
+                "query-support": "all mandatory",
+                "response-level": "must"
+            },
+            "title": "import status",
+            "x-optimade-type": "string",
+            "x-optimade-definition": {
+                "kind": "property",
+                "version": "0.1.0",
+                "format": "1.3",
+                "name": "status",
+                "label": "status_property_httk"
+            },
+            "x-optimade-unit": "inapplicable",
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "The outcome of the import: \"imported\" when the thing was imported, \"failed\" when the import raised an error, and \"excluded\" when the importer deliberately did not import it.",
+            "enum": [
+                "imported",
+                "failed",
+                "excluded",
+                null
+            ]
+        },
+        "error": {
+            "$id": "https://schemas.httk.org/defs/v0.1/properties/imports/error",
+            "x-optimade-requirements": {
+                "support": "must",
+                "sortable": true,
+                "query-support": "all mandatory",
+                "response-level": "must"
+            },
+            "title": "import error",
+            "x-optimade-type": "string",
+            "x-optimade-definition": {
+                "kind": "property",
+                "version": "0.1.0",
+                "format": "1.3",
+                "name": "error",
+                "label": "error_property_httk"
+            },
+            "x-optimade-unit": "inapplicable",
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "The exception or exclusion text of a failed or excluded import; null when the thing was imported."
+        },
+        "repaired": {
+            "$id": "https://schemas.httk.org/defs/v0.1/properties/imports/repaired",
+            "x-optimade-requirements": {
+                "support": "must",
+                "sortable": true,
+                "query-support": "all mandatory",
+                "response-level": "must"
+            },
+            "title": "import repaired",
+            "x-optimade-type": "boolean",
+            "x-optimade-definition": {
+                "kind": "property",
+                "version": "0.1.0",
+                "format": "1.3",
+                "name": "repaired",
+                "label": "repaired_property_httk"
+            },
+            "x-optimade-unit": "inapplicable",
+            "type": [
+                "boolean",
+                "null"
+            ],
+            "description": "Whether the importer had to repair the source to import it. Only an imported thing can have been repaired."
+        },
+        "reports": {
+            "$id": "https://schemas.httk.org/defs/v0.1/properties/imports/reports",
+            "x-optimade-requirements": {
+                "support": "must",
+                "sortable": false,
+                "query-support": "none",
+                "response-level": "must"
+            },
+            "title": "import reports",
+            "x-optimade-type": "list",
+            "x-optimade-definition": {
+                "kind": "property",
+                "version": "0.1.0",
+                "format": "1.3",
+                "name": "reports",
+                "label": "reports_property_httk"
+            },
+            "x-optimade-dimensions": {
+                "names": [
+                    "dim_import_reports"
+                ],
+                "sizes": [
+                    null
+                ]
+            },
+            "x-optimade-unit": "inapplicable",
+            "type": [
+                "array",
+                "null"
+            ],
+            "description": "The diagnostics (warnings, notices, and exceptions) reported while importing the thing, in emission order.\n\n**Requirements/Conventions**:\n\n- It MUST be a list of dictionaries.\n- `level` is the lowercase logging level name of the report, e.g. \"warning\".\n- `message` is the report message.\n- `context` is the report context tag, e.g. \"cif\", or null when the report has none.\n- `logger` is the name of the logger that emitted the report, or null when unknown.",
+            "items": {
+                "title": "import report",
+                "x-optimade-type": "dictionary",
+                "x-optimade-unit": "inapplicable",
+                "type": [
+                    "object"
+                ],
+                "description": "One diagnostic reported while importing the thing.",
+                "properties": {
+                    "level": {
+                        "x-optimade-type": "string",
+                        "x-optimade-unit": "inapplicable",
+                        "type": [
+                            "string"
+                        ],
+                        "description": "The lowercase logging level name of the report, e.g. \"warning\"."
+                    },
+                    "message": {
+                        "x-optimade-type": "string",
+                        "x-optimade-unit": "inapplicable",
+                        "type": [
+                            "string"
+                        ],
+                        "description": "The report message."
+                    },
+                    "context": {
+                        "x-optimade-type": "string",
+                        "x-optimade-unit": "inapplicable",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The report context tag, e.g. \"cif\"; null when the report has none."
+                    },
+                    "logger": {
+                        "x-optimade-type": "string",
+                        "x-optimade-unit": "inapplicable",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The name of the logger that emitted the report; null when unknown."
+                    }
+                },
+                "required": [
+                    "level",
+                    "message",
+                    "context",
+                    "logger"
+                ]
+            },
+            "examples": [
+                [
+                    {
+                        "level": "warning",
+                        "message": "Dropped an auxiliary loop to make the CIF parsable.",
+                        "context": "cif",
+                        "logger": "httk.atomistic.io.cif"
+                    }
+                ]
+            ]
+        },
+        "imported_at": {
+            "$id": "https://schemas.httk.org/defs/v0.1/properties/imports/imported_at",
+            "x-optimade-requirements": {
+                "support": "must",
+                "sortable": true,
+                "query-support": "all mandatory",
+                "response-level": "must"
+            },
+            "title": "import time",
+            "x-optimade-type": "timestamp",
+            "x-optimade-definition": {
+                "kind": "property",
+                "version": "0.1.0",
+                "format": "1.3",
+                "name": "imported_at",
+                "label": "imported_at_property_httk"
+            },
+            "x-optimade-unit": "inapplicable",
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time",
+            "description": "When the import was made, as a timezone-aware timestamp, if recorded.",
+            "examples": [
+                "2007-04-05T14:30:20Z"
+            ]
+        }
+    }
+}

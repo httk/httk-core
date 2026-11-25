@@ -34,6 +34,10 @@ register_entry_type_definition(
     definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/external_database_entries",
     resource="httk.registry.schemas.core:external_database_entries.json",
 )
+register_entry_type_definition(
+    definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/imports",
+    resource="httk.registry.schemas.core:imports.json",
+)
 
 register_property_definition(
     definition_id="https://schemas.httk.org/defs/v0.1/properties/core/total_energy",

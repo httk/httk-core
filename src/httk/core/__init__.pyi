@@ -56,6 +56,7 @@ from .entry_records import DataEntryRecord, EntryRecord, Property, entry_record
 from .entry_types import Calculation, File, Reference
 from .fetching import fetch
 from .files import FileEntry, FileRecord
+from .import_records import ImportEntry, ImportRecord, ImportReport
 from .loading import has_reader_for, load, load_many, load_source, reader_format_for
 from .precision import combined_precision, decimal_precision
 from .property_definitions import (
@@ -163,6 +164,9 @@ __all__ = [
     "FracVector",
     "IdentitySkip",
     "IdentitySkipWhenNone",
+    "ImportEntry",
+    "ImportRecord",
+    "ImportReport",
     "Indexed",
     "KeepStored",
     "MemberLayout",
