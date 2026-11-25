@@ -22,12 +22,13 @@ import logging
 import re
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Annotated, Any, ClassVar, Self
+from typing import Annotated, Any, ClassVar, Self, cast
 
 from .curation import _check_text, _check_timestamp
+from .entry_records import _projection
 from .files import FileRecord
 from .report import _contexts
-from .storage import IdentitySkip, Indexed, KeepStored, StorageInfo, Unique
+from .storage import IdentitySkip, Indexed, KeepStored, StorageInfo, StoredPropertyProjection, Unique
 
 IMPORTS_DEFINITION_ID = "https://schemas.httk.org/defs/v0.1/entrytypes/imports"
 IMPORT_STATUSES = ("imported", "failed", "excluded")
@@ -189,6 +190,28 @@ class ImportRecord:
                 "A base ImportRecord records failures and exclusions only; record an import"
                 " with a typed ImportRecord subclass that embeds the imported entry."
             )
+
+
+def _served_reports(record: object) -> list[dict[str, str | None]]:
+    """Serve ``reports`` as OPTIMADE dictionaries, keeping every key even when its value is None."""
+    return [
+        {"level": report.level, "message": report.message, "context": report.context, "logger": report.logger}
+        for report in cast(tuple[ImportReport, ...], getattr(record, "reports"))  # noqa: B009
+    ]
+
+
+# A stored family serves an unprojected property as null, so every served
+# ``imports`` property is projected (``id``/``immutable_id``/``type`` are
+# intrinsic to the store). Keys are the served (wire) property names. Projections
+# are never inherited: each typed subclass assigns this same mapping.
+cast(Any, ImportRecord).__httk_stored_properties__ = {
+    **{
+        f"_httk_{name}": _projection(name)
+        for name in ("source_uri", "source_item", "importer", "status", "error", "repaired", "imported_at")
+    },
+    "_httk_reports": StoredPropertyProjection(response=_served_reports),
+    "last_modified": _projection("last_modified"),
+}
 
 
 class ImportEntry:
