@@ -51,31 +51,31 @@ def _check_timestamp(value: Any, name: str, *, required: bool) -> None:
 class Note:
     """A dated remark by some entity, linked from the entries it is about.
 
-    Notes are content-deduplicated: the same date, author, and text is one
+    Notes are content-deduplicated: the same date, source, and text is one
     entry, possibly linked from many entries. Code that wants to change a note
     for one linking entry only must therefore unlink the shared note and link a
     new one, rather than replace the shared note.
 
     :param date: When the note was made, a timezone-aware datetime chosen by its
-        author; not the time it was stored.
-    :param author: The entity that made the note: a person, a group, or a
+        source; not the time it was stored.
+    :param source: The entity that made the note: a person, a group, or a
         program with its version.
     :param text: The note itself, as free text.
     :param id: The human-readable entry id shared by all revisions; minted by the store when None.
     :param immutable_id: The per-revision immutable id; minted by the store when None.
     :param last_modified: The optional timezone-aware metadata timestamp.
     :raises TypeError: If a field has the wrong type.
-    :raises ValueError: If ``author`` or ``text`` is blank, or a timestamp is naive.
+    :raises ValueError: If ``source`` or ``text`` is blank, or a timestamp is naive.
     """
 
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
         storage_name="core_note",
         identity_name="core_note",
-        indexes=(("date",), ("author",)),
+        indexes=(("date",), ("source",)),
     )
 
     date: datetime.datetime
-    author: str
+    source: str
     text: str
     id: Annotated[str | None, IdentitySkip(), Indexed()] = field(default=None, compare=False)
     immutable_id: Annotated[str | None, IdentitySkip(), Unique()] = field(default=None, compare=False)
@@ -88,7 +88,7 @@ class Note:
 
     def __post_init__(self) -> None:
         _check_timestamp(self.date, "date", required=True)
-        _check_text(self.author, "author", required=True)
+        _check_text(self.source, "source", required=True)
         _check_text(self.text, "text", required=True)
         _check_timestamp(self.last_modified, "last_modified", required=False)
 

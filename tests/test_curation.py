@@ -87,7 +87,7 @@ def test_records_reject_bad_values(build: Any, error: type[Exception]) -> None:
 def test_content_identity_golden_pins() -> None:
     # A changed value means a storage-identity break.
     pins = {
-        _note(): "1ce09f6e1f7233f2e3afbb75a05b0242aa8235c4bd5ce2324d06f1c876d0cbef",
+        _note(): "8dc3f659c207c49690f086fa5918a63cd2e41016cad6dd62613843b198c29f2a",
         Tag("source", "cod"): "57ec6bc301a0852ae3963b79c03daa20dfb942780748328157889520c1fcbe3b",
         _external(): "a3cd6d6458f823b2834d34de2e1514f0f0a0390bdc4edde8f85460abe9451b4c",
     }
