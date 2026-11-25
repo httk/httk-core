@@ -20,7 +20,6 @@ from typing import Annotated, Any, ClassVar, Self, cast
 
 from .digests import content_sha256_file, sha256_file
 from .entry_types import File
-from .references import ReferenceRecord
 from .storage import (
     IdentitySkip,
     IdentitySkipWhenNone,
@@ -30,7 +29,6 @@ from .storage import (
     StorageInfo,
     StoredPropertyProjection,
     Unique,
-    WeakLink,
 )
 
 FILES_DEFINITION_ID = "https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files"
@@ -92,7 +90,6 @@ class FileRecord(File):
         storage_name="core_file",
         identity_name="core_file",
         indexes=(("url",), ("name",), ("sha256",)),
-        links=(WeakLink("references", ReferenceRecord, exposed_relationship=True),),
     )
 
     # A lost-bytes record widens the generated ``File.url: str``; served as an ``ni:`` URI.

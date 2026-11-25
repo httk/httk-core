@@ -17,11 +17,44 @@ register_entry_family(
     family="httk.core.files:FileEntry",
     definition_id="https://schemas.optimade.org/defs/v1.2/entrytypes/optimade/files",
 )
+register_entry_family(
+    name="notes",
+    family="httk.core.curation:NoteEntry",
+    definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/notes",
+)
+register_entry_family(
+    name="tags",
+    family="httk.core.curation:TagEntry",
+    definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/tags",
+)
+register_entry_family(
+    name="external_database_entries",
+    family="httk.core.curation:ExternalDatabaseEntryFamily",
+    definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/external_database_entries",
+)
 register_entry_record(
     name="core-run",
     record="httk.core.provenance:Run",
     family="runs",
     definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/runs",
+)
+register_entry_record(
+    name="core-note",
+    record="httk.core.curation:Note",
+    family="notes",
+    definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/notes",
+)
+register_entry_record(
+    name="core-tag",
+    record="httk.core.curation:Tag",
+    family="tags",
+    definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/tags",
+)
+register_entry_record(
+    name="core-external-database-entry",
+    record="httk.core.curation:ExternalDatabaseEntry",
+    family="external_database_entries",
+    definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/external_database_entries",
 )
 register_entry_record(
     name="core-data-record",

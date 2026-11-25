@@ -15,8 +15,7 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field, fields
 from typing import Annotated, Any, ClassVar, Self
 
-from .references import ReferenceRecord
-from .storage import IdentitySkip, Indexed, StorageInfo, StrongLink, Unique, WeakLink
+from .storage import IdentitySkip, Indexed, StorageInfo, StrongLink, Unique
 
 RUNS_DEFINITION_ID = "https://schemas.httk.org/defs/v0.1/entrytypes/runs"
 _TIMESTAMP_FIELDS = frozenset({"last_modified", "started_at", "finished_at"})
@@ -156,7 +155,6 @@ class Run:
         storage_name="core_run",
         identity_name="core_run",
         indexes=(("workflow_declaration_uri",), ("workflow_definition_uri",), ("last_modified",)),
-        links=(WeakLink("references", ReferenceRecord, exposed_relationship=True),),
     )
 
     workflow_declaration_uri: str | None = None

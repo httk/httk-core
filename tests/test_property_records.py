@@ -10,7 +10,15 @@ from typing import Any, cast
 
 import pytest
 
-from httk.core import DataRecord, PropertyDefinition, ReferenceRecord, RunEdge, WeakLink, typed_records
+from httk.core import (
+    DataRecord,
+    PropertyDefinition,
+    ReferenceRecord,
+    RunEdge,
+    WeakLink,
+    standard_links,
+    typed_records,
+)
 from httk.core._typed_record_tool import generate_typed_records
 from httk.core.data_records import DataRecordEntry
 from httk.core.definition_ids import CARTESIAN_SITE_FORCES, STRESS_TENSOR, TEMPERATURE
@@ -43,7 +51,8 @@ def test_generated_record_kind(cls: type[TypedRecord]) -> None:
     assert fields(cast(Any, cls))[0].name == item.field
     name = spec.definition.name
     assert vars(cls)["__httk_storage__"].storage_name == f"core_{name}"
-    assert vars(cls)["__httk_storage__"].links == (WeakLink("references", ReferenceRecord, exposed_relationship=True),)
+    assert vars(cls)["__httk_storage__"].links == ()
+    assert WeakLink("references", ReferenceRecord, exposed_relationship=True) in standard_links(cls)
     assert list(vars(cls)["__httk_property_definitions__"]) == [spec.served_name]
     assert vars(cls)["__httk_property_definitions__"][spec.served_name].name == spec.served_name
     assert list(vars(cls)["__httk_stored_properties__"]) == [spec.served_name]

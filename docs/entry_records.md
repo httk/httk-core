@@ -111,6 +111,10 @@ When their target is a served family, *httk-store* and *httk-serve* expose them 
 OPTIMADE relationships. The storage reference pins the nested record; it is not
 a mutable weak link.
 
+Entry records also receive the standard weak links `references`, `notes`, `tags`
+and `external` automatically when stored with *httk-store*; their target records
+are in ``httk.core.curation``.
+
 The decorator does not register global plugins. With *httk-store*, pass
 `records=[Measurement]` when creating **and reopening** the store. Keep the record
 definition in an importable module shared by your importer and server. The store

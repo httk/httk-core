@@ -17,6 +17,7 @@ from httk.core import (
     Run,
     TotalEnergyRecord,
     WeakLink,
+    standard_links,
 )
 from httk.core.references import REFERENCES_DEFINITION_ID
 from httk.core.register import entry_record_info, known_entry_records, resolve_entry_family, resolve_entry_record
@@ -131,6 +132,7 @@ def test_reference_entry_family_registration() -> None:
 @pytest.mark.parametrize(
     "record", [Run, DataRecord, DerivedDataRecord, TotalEnergyRecord, AverageTotalEnergyRecord, FileRecord]
 )
-def test_core_records_declare_exposed_references_link(record: type) -> None:
-    links = cast(Any, record).__httk_storage__.links
-    assert WeakLink("references", ReferenceRecord, exposed_relationship=True) in links
+def test_core_records_get_references_link_as_standard_link(record: type) -> None:
+    # The store adds the standard links; the records no longer declare ``references`` themselves.
+    assert all(link.name != "references" for link in cast(Any, record).__httk_storage__.links)
+    assert WeakLink("references", ReferenceRecord, exposed_relationship=True) in standard_links(record)

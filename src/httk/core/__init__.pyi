@@ -10,6 +10,16 @@ from . import exactmath as exactmath
 from ._sentinel import MISSING, MissingType
 from .citations import credits, register_citation
 from .cli import CLIContext
+from .curation import (
+    STANDARD_LINKS,
+    ExternalDatabaseEntry,
+    ExternalDatabaseEntryFamily,
+    Note,
+    NoteEntry,
+    Tag,
+    TagEntry,
+    standard_links,
+)
 from .data_records import AverageTotalEnergyRecord, DataRecord, DataRecordEntry, DerivedDataRecord, TotalEnergyRecord
 from .dataset_loader import DatasetLoader, DatasetLoaderRecord, DatasetMeta
 from .datasets import Dataset, DatasetDistribution, DatasetRecord
@@ -117,6 +127,7 @@ __all__ = [
     "ENTRY_ID_PATTERN",
     "IMMUTABLE_ID_PATTERN",
     "MISSING",
+    "STANDARD_LINKS",
     "AverageTotalEnergyRecord",
     "Backend",
     "BytestreamFileView",
@@ -143,6 +154,8 @@ __all__ = [
     "EntryProvider",
     "EntryRecord",
     "EntryTypeDefinition",
+    "ExternalDatabaseEntry",
+    "ExternalDatabaseEntryFamily",
     "File",
     "FileEntry",
     "FileRecord",
@@ -156,6 +169,8 @@ __all__ = [
     "MissingType",
     "MutableFracVector",
     "Normalization",
+    "Note",
+    "NoteEntry",
     "NumericVector",
     "PersonRecord",
     "ProductLink",
@@ -178,6 +193,8 @@ __all__ = [
     "StrongLink",
     "SurdScalar",
     "SurdVector",
+    "Tag",
+    "TagEntry",
     "TextstreamFileView",
     "TextstreamLike",
     "TextstreamURLView",
@@ -238,6 +255,7 @@ __all__ = [
     "register_writer",
     "save",
     "standard_entry_type",
+    "standard_links",
     "stored_property",
     "to_numeric",
     "to_numeric_scalar",

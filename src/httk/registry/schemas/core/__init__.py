@@ -22,6 +22,18 @@ register_entry_type_definition(
     definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/records",
     resource="httk.registry.schemas.core:records.json",
 )
+register_entry_type_definition(
+    definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/notes",
+    resource="httk.registry.schemas.core:notes.json",
+)
+register_entry_type_definition(
+    definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/tags",
+    resource="httk.registry.schemas.core:tags.json",
+)
+register_entry_type_definition(
+    definition_id="https://schemas.httk.org/defs/v0.1/entrytypes/external_database_entries",
+    resource="httk.registry.schemas.core:external_database_entries.json",
+)
 
 register_property_definition(
     definition_id="https://schemas.httk.org/defs/v0.1/properties/core/total_energy",

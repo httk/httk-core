@@ -35,6 +35,9 @@ re-copying from the build output.
 | --- | --- | --- | --- |
 | `runs.json` | `https://schemas.httk.org/defs/v0.1/entrytypes/runs` | `schemas-source/output/defs/v0.1/entrytypes/runs.json` | [`LICENSE.httk`](./LICENSE.httk) |
 | `records.json` | `https://schemas.httk.org/defs/v0.1/entrytypes/records` | `schemas-source/output/defs/v0.1/entrytypes/records.json` | [`LICENSE.httk`](./LICENSE.httk) |
+| `notes.json` | `https://schemas.httk.org/defs/v0.1/entrytypes/notes` | `schemas-source/output/defs/v0.1/entrytypes/notes.json` | [`LICENSE.httk`](./LICENSE.httk) |
+| `tags.json` | `https://schemas.httk.org/defs/v0.1/entrytypes/tags` | `schemas-source/output/defs/v0.1/entrytypes/tags.json` | [`LICENSE.httk`](./LICENSE.httk) |
+| `external_database_entries.json` | `https://schemas.httk.org/defs/v0.1/entrytypes/external_database_entries` | `schemas-source/output/defs/v0.1/entrytypes/external_database_entries.json` | [`LICENSE.httk`](./LICENSE.httk) |
 
 ## httk-authored property definitions
 
@@ -78,7 +81,8 @@ The httk-authored definitions are distributed under the MIT License; see
 
 Run `make optimade-defs` from the repository root to re-fetch the three
 Materials-Consortia files (and the `LICENSE`) from the URLs above. Refresh the
-httk-authored files by re-copying `runs.json` and `records.json` from the local
+httk-authored files by re-copying `runs.json`, `records.json`, `notes.json`, `tags.json` and
+`external_database_entries.json` from the local
 `schemas-source/output/defs/v0.1/entrytypes/` build output and
 the httk-authored property definitions (`total_energy.json`, `average_total_energy.json`, `potential_energy.json`, `kinetic_energy.json`, `enthalpy.json`, `temperature.json`, `volume.json`, `pressure.json`, `stress_tensor.json`, `atomic_force.json`, `cartesian_site_forces.json`) from `schemas-source/output/defs/v0.1/properties/core/`, and `natoms.json` and `nformula_units.json` from `schemas-source/output/defs/v0.1/properties/structure/`. These are source
 tasks; ordinary builds and tests read the committed copies offline. After a
