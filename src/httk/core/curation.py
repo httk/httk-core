@@ -133,11 +133,11 @@ class Tag:
 class ExternalDatabaseEntry:
     """One entry of an external database, linked from the entries related to it.
 
-    ``database`` names the external database: the OPTIMADE provider prefix (as
-    registered in the OPTIMADE providers list) when that is enough to
-    distinguish entry ids, e.g. ``"cod"``, ``"oqmd"``, ``"mp"``;
-    ``"<prefix>:<short database id>"`` when one provider has several databases;
-    and an equivalent short lowercase name when no registered prefix exists.
+    ``database_provider`` names the provider of the external database: its
+    OPTIMADE provider prefix (as registered in the OPTIMADE providers list),
+    e.g. ``"cod"``, ``"oqmd"``, ``"mp"``, or an equivalent short lowercase name
+    when no registered prefix exists. ``database`` identifies the specific
+    database of that provider; None means the provider's only or main database.
 
     ``role`` says how the linking entry relates to the external entry and is
     part of the content identity: None for a general relation, ``"origin"``
@@ -151,7 +151,8 @@ class ExternalDatabaseEntry:
     The reference describing the whole external database is linked through this
     record's own ``references`` weak link.
 
-    :param database: The external database, by the convention above.
+    :param database_provider: The provider of the external database, by the convention above.
+    :param database: The short identifier of the provider's database; None for its only or main one.
     :param entry_id: The identifier of the entry in that database, as that database writes it.
     :param url: A URL of the entry in that database, if available.
     :param role: How the linking entry relates to the external entry: None or ``"origin"``.
@@ -159,18 +160,20 @@ class ExternalDatabaseEntry:
     :param immutable_id: The per-revision immutable id; minted by the store when None.
     :param last_modified: The optional timezone-aware metadata timestamp.
     :raises TypeError: If a field has the wrong type.
-    :raises ValueError: If ``database``, ``entry_id`` or ``role`` is blank or has surrounding
-        whitespace, ``database`` contains whitespace, or ``last_modified`` is naive.
+    :raises ValueError: If ``database_provider``, ``database``, ``entry_id`` or ``role`` is blank
+        or has surrounding whitespace, ``database_provider`` or ``database`` contains whitespace, or
+        ``last_modified`` is naive.
     """
 
     __httk_storage__: ClassVar[StorageInfo] = StorageInfo(
         storage_name="core_external_database_entry",
         identity_name="core_external_database_entry",
-        indexes=(("database", "entry_id"), ("role",)),
+        indexes=(("database_provider", "database", "entry_id"), ("role",)),
         links=(WeakLink("references", ReferenceRecord, exposed_relationship=True),),
     )
 
-    database: str
+    database_provider: str
+    database: str | None
     entry_id: str
     url: Annotated[str | None, IdentitySkip(), KeepStored()] = field(default=None, compare=False)
     role: str | None = None
@@ -184,9 +187,11 @@ class ExternalDatabaseEntry:
         return "external_database_entries"
 
     def __post_init__(self) -> None:
-        _check_text(self.database, "database", required=True, stripped=True)
-        if any(character.isspace() for character in self.database):
-            raise ValueError("Field 'database' must not contain whitespace.")
+        _check_text(self.database_provider, "database_provider", required=True, stripped=True)
+        _check_text(self.database, "database", required=self.database is not None, stripped=True)
+        for name in ("database_provider", "database"):
+            if any(character.isspace() for character in getattr(self, name) or ""):
+                raise ValueError(f"Field '{name}' must not contain whitespace.")
         _check_text(self.entry_id, "entry_id", required=True, stripped=True)
         _check_text(self.url, "url", required=False)
         _check_text(self.role, "role", required=self.role is not None, stripped=True)
