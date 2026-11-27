@@ -17,6 +17,7 @@ from httk.core.storage import (
     Unique,
     WeakLink,
     stored_property,
+    validate_storage_record,
 )
 
 
@@ -180,3 +181,67 @@ def test_stored_property_requires_a_return_annotation():
         @stored_property
         def value(_):
             return 1
+
+
+@dataclass(frozen=True)
+class _Checked:
+    value: int
+
+    @classmethod
+    def __httk_validate__(cls, record: "_Checked") -> None:
+        _VALIDATED.append(record)
+        if record.value < 0:
+            raise ValueError("negative value")
+
+
+@dataclass(frozen=True)
+class _CheckedChild(_Checked):
+    """Inherits the parent's validator, which storage does not use."""
+
+
+@dataclass(frozen=True)
+class _Plain:
+    one: _Checked
+    many: tuple[_Checked, ...]
+    nested: list[tuple[_Checked, ...]]
+    inherited: _CheckedChild
+
+
+@dataclass(frozen=True)
+class _WithSkipped:
+    kept: _Checked
+    scratch: Annotated[object, Skip()] = None
+
+
+_CheckedRow = type("_CheckedRow", (_Checked,), {"__httk_row_base__": _Checked})
+
+
+_VALIDATED: list[_Checked] = []
+
+
+def test_validate_storage_record_walks_nested_records_once_each() -> None:
+    _VALIDATED.clear()
+    shared = _Checked(1)
+    other = _Checked(2)
+    record = _Plain(shared, (shared, other), [(other, _Checked(3))], _CheckedChild(-1))
+    validate_storage_record(record)
+    assert [item.value for item in _VALIDATED] == [1, 2, 3]
+
+
+def test_validate_storage_record_without_validator_and_propagation() -> None:
+    _VALIDATED.clear()
+    validate_storage_record(_Target(1))
+    assert _VALIDATED == []
+    with pytest.raises(ValueError, match="negative value"):
+        validate_storage_record(_Plain(_Checked(0), (_Checked(-5),), [], _CheckedChild(0)))
+    with pytest.raises(TypeError, match="record instance"):
+        validate_storage_record(_Checked)
+
+
+def test_validate_storage_record_skips_skip_fields_and_uses_row_base() -> None:
+    _VALIDATED.clear()
+    validate_storage_record(_WithSkipped(_Checked(1), scratch=_Checked(-1)))
+    assert [item.value for item in _VALIDATED] == [1]
+    with pytest.raises(ValueError, match="negative value"):
+        validate_storage_record(_CheckedRow(-2))
+    assert [item.value for item in _VALIDATED] == [1, -2]

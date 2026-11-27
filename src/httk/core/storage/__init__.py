@@ -8,6 +8,7 @@ from .identity import (
     register_canonical_encoder,
     resolve_storage_record,
     storage_identity_name,
+    validate_storage_record,
 )
 from .markers import (
     STORAGE_INFO_ATTRIBUTE,
@@ -80,4 +81,5 @@ __all__ = [
     "storage_identity_name",
     "stored_property",
     "stored_property_projections",
+    "validate_storage_record",
 ]

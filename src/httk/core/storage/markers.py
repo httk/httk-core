@@ -27,8 +27,10 @@ for derived, queryable properties — so that any httk module (or application)
 can declare storable classes while depending only on httk-core. All schema
 resolution and storage work happens in the storage layer.
 
-Storage may optionally call a record class's ``__httk_validate__`` classmethod
-when saving a record instance; implementations may raise to reject invalid data.
+A record class may define a ``__httk_validate__(cls, record)`` classmethod that
+raises to reject an invalid instance. Storage trusts what it is given and calls
+it only when asked to (a store-level setting or a per-call argument);
+:func:`~httk.core.storage.validate_storage_record` is the direct call.
 
 Markers are used like this::
 

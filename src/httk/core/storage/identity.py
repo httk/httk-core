@@ -79,6 +79,7 @@ __all__ = [
     "register_canonical_encoder",
     "resolve_storage_record",
     "storage_identity_name",
+    "validate_storage_record",
 ]
 
 STORAGE_RECORD_ATTRIBUTE = "__httk_storage_record__"
@@ -217,6 +218,46 @@ def project_storage_record(record_type: type[Any], source: Any) -> Mapping[str, 
             raise ValueError(f"projection for {record_type.__name__} omitted field {field.name!r}")
         result[field.name] = values[field.name]
     return result
+
+
+def validate_storage_record(record: Any) -> None:
+    """Run the ``__httk_validate__`` validators of ``record`` and of every record nested in it.
+
+    Each dataclass instance is checked against its exact class's own
+    ``__httk_validate__`` classmethod (an inherited one is not used, a store's
+    lazy row counts as its record class, and a class without one passes),
+    depth first through dataclass fields and tuples/lists of them, each
+    distinct object once. Fields marked :class:`~httk.core.storage.Skip` are
+    not stored and are not walked. This is a superset of what a validating
+    store checks for ``record``: a store does not descend into the children of
+    a content-id deduplication hit. Only record instances are walked; a domain
+    object stored through ``__httk_storage_record__`` is validated by
+    constructing it.
+
+    :param record: The record instance (a dataclass instance) to validate.
+    :raises TypeError: If ``record`` is not a dataclass instance.
+    """
+    if not dataclasses.is_dataclass(record) or isinstance(record, type):
+        raise TypeError(f"validate_storage_record expects a record instance, got {type(record).__name__}")
+    seen: set[int] = set()
+
+    def visit(value: Any) -> None:
+        if isinstance(value, (tuple, list)):
+            for item in value:
+                visit(item)
+            return
+        if not dataclasses.is_dataclass(value) or isinstance(value, type) or id(value) in seen:
+            return
+        seen.add(id(value))
+        record_type = getattr(type(value), "__httk_row_base__", type(value))
+        validator = vars(record_type).get("__httk_validate__")
+        if validator is not None:
+            validator.__get__(None, record_type)(value)
+        for field in dataclasses.fields(record_type):
+            if not _field_has_marker(record_type, field.name, field.type, Skip):
+                visit(getattr(value, field.name))
+
+    visit(record)
 
 
 def storage_identity_name(record_type: type[Any]) -> str:

@@ -52,6 +52,12 @@ from that identity. A directly declared `StorageInfo` can supply indexes or an
 explicit physical name. Every concrete subclass needs its own decorator and
 identity; generated property mappings are specific to that class.
 
+A record class may define a `__httk_validate__(cls, record)` classmethod that
+raises to reject an invalid instance. Stores trust what they are given and call
+it only when asked to (a store setting or a per-call argument);
+{func}`httk.core.storage.validate_storage_record` runs it directly, for example
+in parallel workers before handing records to a store.
+
 Only fields marked with `Property` or `PropertyDefinition` are published as
 attributes. In the example, `energy` becomes `_httk_custom_energy` and `natoms`
 becomes `_httk_custom_natoms`, while `label` remains local bookkeeping and still contributes to content identity.
