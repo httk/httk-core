@@ -57,7 +57,7 @@ def _golden_tree(root: Path) -> None:
 
 
 def _reference_tree_digest(root: Path) -> str:
-    """The tree digest exactly as it was computed before the hardened open."""
+    """The tree digest computed naively: framed path entries plus each file's content SHA-256."""
 
     digest = hashlib.sha256()
     for entry in sorted(root.rglob("*"), key=lambda item: item.relative_to(root).as_posix()):
@@ -65,7 +65,7 @@ def _reference_tree_digest(root: Path) -> str:
         if entry.is_dir():
             digest.update(b"D\0" + relative + b"\0")
         else:
-            digest.update(b"F\0" + relative + b"\0" + entry.read_bytes())
+            digest.update(b"F\0" + relative + b"\0" + hashlib.sha256(entry.read_bytes()).hexdigest().encode())
     return digest.hexdigest()
 
 

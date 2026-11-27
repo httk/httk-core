@@ -42,6 +42,26 @@ def test_file_changes_and_renames_change_digest(tmp_path: Path) -> None:
     assert tree_digest(root) != changed
 
 
+def test_file_content_cannot_forge_further_entries(tmp_path: Path) -> None:
+    forged = tmp_path / "forged"
+    forged.mkdir()
+    (forged / "a").write_bytes(b"xF\0b\0y")
+    genuine = tmp_path / "genuine"
+    genuine.mkdir()
+    (genuine / "a").write_bytes(b"x")
+    (genuine / "b").write_bytes(b"y")
+
+    assert tree_digest(forged) != tree_digest(genuine)
+
+
+def test_tree_digest_format_is_pinned(tmp_path: Path) -> None:
+    (tmp_path / "d").mkdir()
+    (tmp_path / "d" / "f").write_bytes(b"1")
+    (tmp_path / "g").write_bytes(b"")
+
+    assert tree_digest(tmp_path) == "789cd296d9e9b58245fa1e76222f33fc7fb741400bb21b1f61fd70f7f469d2ac"
+
+
 def test_directory_entries_affect_digest(tmp_path: Path) -> None:
     root = tmp_path / "tree"
     root.mkdir()

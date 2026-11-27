@@ -369,7 +369,10 @@ def verify_export(
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(_read_member(archive, member, "project file"))
             if tree_digest(root) != manifest_tree_digest:
-                raise ValueError("export tree digest mismatch")
+                raise ValueError(
+                    "export tree digest mismatch; an export made by an older httk computed its tree digest"
+                    " differently, so re-export it with this version"
+                )
         expected_fingerprint = _fingerprint(expect_key) if expect_key is not None else None
         trusted_values = (trusted_keys,) if isinstance(trusted_keys, str) else trusted_keys
         trusted_fingerprints = {_fingerprint(key) for key in trusted_values}

@@ -124,6 +124,14 @@ def tree_digest(
 ) -> str:
     """Hash a tree without following symlinks.
 
+    Entries are taken in sorted order of their relative POSIX paths. A
+    directory contributes ``D\\0<path>\\0`` and a regular file
+    ``F\\0<path>\\0<sha256>``, where ``<sha256>`` is the 64 lowercase hex
+    characters of the SHA-256 of its content; the digest is the SHA-256 of the
+    concatenated entries. Paths cannot contain NUL and the content digest has a
+    fixed length, so every entry is self-delimiting. (Before this framing, file
+    content was hashed in unframed, so older stored digests do not match.)
+
     *skip* names top-level entries to leave out of the digest entirely.
     *exclude* names relative POSIX paths to leave out; excluding a directory
     also leaves out its descendants.
@@ -154,10 +162,11 @@ def tree_digest(
         if entry.is_dir():
             digest.update(b"D\0" + relative + b"\0")
         elif entry.is_file():
-            digest.update(b"F\0" + relative + b"\0")
+            content = hashlib.sha256()
             # Opened without following or blocking: an entry swapped for a
             # symlink or FIFO since it was classified is refused, not read.
-            _hash_regular_file(digest.update, entry, follow_symlinks=False)
+            _hash_regular_file(content.update, entry, follow_symlinks=False)
+            digest.update(b"F\0" + relative + b"\0" + content.hexdigest().encode())
         else:
             raise ValueError(f"special file is forbidden in immutable bundle: {entry}")
     return digest.hexdigest()
