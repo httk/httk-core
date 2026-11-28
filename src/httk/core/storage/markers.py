@@ -62,6 +62,7 @@ __all__ = [
     "IdentitySkip",
     "IdentitySkipWhenNone",
     "Indexed",
+    "Inline",
     "KeepStored",
     "Related",
     "Shape",
@@ -130,6 +131,16 @@ class KeepStored:
     A stored non-null value is always kept and a differing incoming value is
     ignored; a stored null is filled in place by a non-null incoming value.
     Only meaningful together with :class:`IdentitySkip`.
+    """
+
+
+@dataclass(frozen=True)
+class Inline:
+    """Field marker: store the elements of a tuple/list-of-dataclass field as rows of one child table.
+
+    Each row carries the element dataclass's own columns; elements have no
+    identity of their own and are never shared. Storage layout only: content
+    identity ignores the marker.
     """
 
 

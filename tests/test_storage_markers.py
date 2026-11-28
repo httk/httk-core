@@ -9,6 +9,7 @@ import pytest
 from httk.core.storage import (
     STORAGE_INFO_ATTRIBUTE,
     Indexed,
+    Inline,
     KeepStored,
     Related,
     Shape,
@@ -16,6 +17,7 @@ from httk.core.storage import (
     StorageInfo,
     Unique,
     WeakLink,
+    content_id,
     stored_property,
     validate_storage_record,
 )
@@ -41,6 +43,35 @@ def test_field_markers_are_frozen_and_equal_by_value():
     assert Skip() == Skip()
     with pytest.raises(dataclasses.FrozenInstanceError):
         Indexed().anything = 1
+
+
+@dataclass(frozen=True)
+class _InlineSite:
+    symbol: str
+    x: int
+
+
+@dataclass(frozen=True)
+class _LinkedSites:
+    __httk_storage__: ClassVar[StorageInfo] = StorageInfo(identity_name="test.sites")
+    sites: tuple[_InlineSite, ...]
+
+
+@dataclass(frozen=True)
+class _InlineSites:
+    __httk_storage__: ClassVar[StorageInfo] = StorageInfo(identity_name="test.sites")
+    sites: Annotated[tuple[_InlineSite, ...], Inline()]
+
+
+def test_inline_marker_is_layout_only_and_ignored_by_content_identity():
+    import httk.core
+
+    assert httk.core.Inline is Inline
+    assert Inline() == Inline()
+    sites = (_InlineSite("Si", 1), _InlineSite("O", 2))
+    assert content_id(_InlineSites(sites)) == content_id(_LinkedSites(sites))
+    assert content_id(_InlineSites(())) == content_id(_LinkedSites(()))
+    assert content_id(_InlineSites(sites)) != content_id(_InlineSites(sites[:1]))
 
 
 def test_shape_fixed_and_variable():
