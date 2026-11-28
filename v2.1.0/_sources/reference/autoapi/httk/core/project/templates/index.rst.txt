@@ -1,0 +1,174 @@
+httk.core.project.templates
+===========================
+
+.. py:module:: httk.core.project.templates
+
+.. autoapi-nested-parse::
+
+   Parse, resolve, and instantiate httk project templates.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.project.templates.TEMPLATE_MANIFEST
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.project.templates.TemplateParameter
+   httk.core.project.templates.ProjectTemplate
+   httk.core.project.templates.TemplateInstantiateRequest
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.project.templates.parse_template_manifest
+   httk.core.project.templates.available_templates
+   httk.core.project.templates.resolve_template
+   httk.core.project.templates.check_parameters
+   httk.core.project.templates.instantiate_template
+   httk.core.project.templates.template_instantiate_main
+
+
+Module Contents
+---------------
+
+.. py:data:: TEMPLATE_MANIFEST
+   :value: 'httk_project_template.toml'
+
+
+.. py:class:: TemplateParameter
+
+   Describe one template instantiate parameter.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: type
+      :type:  str
+
+
+   .. py:attribute:: description
+      :type:  str | None
+
+
+   .. py:attribute:: default
+      :type:  object | None
+
+
+   .. py:attribute:: has_default
+      :type:  bool
+
+
+.. py:class:: ProjectTemplate
+
+   Describe a validated project template.
+
+
+   .. py:attribute:: id
+      :type:  str
+
+
+   .. py:attribute:: description
+      :type:  str | None
+
+
+   .. py:attribute:: files
+      :type:  tuple[str, Ellipsis]
+
+
+   .. py:attribute:: instantiate_file
+      :type:  str | None
+
+
+   .. py:attribute:: parameters
+      :type:  tuple[TemplateParameter, Ellipsis]
+
+
+   .. py:attribute:: root
+      :type:  pathlib.Path
+
+
+.. py:class:: TemplateInstantiateRequest
+
+   Describe the request received by a template instantiate hook.
+
+
+   .. py:attribute:: template
+      :type:  str
+
+
+   .. py:attribute:: parameters
+      :type:  collections.abc.Mapping[str, object]
+
+
+   .. py:attribute:: project
+      :type:  collections.abc.Mapping[str, object]
+
+
+.. py:function:: parse_template_manifest(directory)
+
+   Parse and validate one project-template manifest.
+
+   :param directory: Locate the template directory.
+   :return: The validated project template.
+   :raises ValueError: If the template directory or manifest is malformed.
+
+
+.. py:function:: available_templates()
+
+   Return all valid templates from installed plugins, sorted by name and id.
+
+
+.. py:function:: resolve_template(selector)
+
+   Resolve a template path, qualified plugin selector, or bare template id.
+
+   :param selector: Select an explicit directory, ``plugin:id``, or bare id.
+   :return: The selected project template.
+   :raises ValueError: If the selector cannot identify exactly one template.
+
+
+.. py:function:: check_parameters(template, supplied)
+
+   Validate supplied parameters and apply declared defaults.
+
+   :param template: Validate against this template's declaration.
+   :param supplied: Supply user parameter values.
+   :return: Supplied values combined with optional defaults.
+   :raises ValueError: If names or values do not match the declaration.
+
+
+.. py:function:: instantiate_template(template, project_root, parameters, *, project_info, timeout = 3600.0)
+
+   Copy a template into an initialized project and run its optional hook.
+
+   :param template: Instantiate this validated template.
+   :param project_root: Initialized project root to populate.
+   :param parameters: Supply template parameter values.
+   :param project_info: Supply project metadata for the hook request.
+   :param timeout: Limit hook execution time in seconds.
+   :return: Hook notes, or an empty tuple when no notes are returned.
+   :raises ValueError: If validation, copying, or hook execution fails.
+
+
+.. py:function:: template_instantiate_main(fn)
+
+   Run a template hook function using the v1 JSON stdin/stdout protocol.
+
+   :param fn: Handle the decoded template instantiate request.
+   :return: Nothing; the response is written as one JSON document.
+
+

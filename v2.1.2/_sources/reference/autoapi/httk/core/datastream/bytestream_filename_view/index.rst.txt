@@ -1,0 +1,49 @@
+httk.core.datastream.bytestream_filename_view
+=============================================
+
+.. py:module:: httk.core.datastream.bytestream_filename_view
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.datastream.bytestream_filename_view.BytestreamFilenameView
+
+
+Module Contents
+---------------
+
+.. py:class:: BytestreamFilenameView(obj, **hints)
+
+   Bases: :py:obj:`httk.core.datastream.bytestream_view.BytestreamView`, :py:obj:`str`
+
+
+   A view presenting an underlying data streaming backend via a filename.
+   This view is mostly useful for providing filenames to functions that will open them.
+   Note: this view is not lazy (this is impossible for views inheriting str, since str is immutable).
+
+   Raises TypeError if created with a streaming data source that does not come with a name.
+
+   :param obj: Byte-stream source whose filename should be presented.
+   :param \**hints: Backend-selection and compression hints.
+   :raises TypeError: If the source has no filename.
+
+
+   .. py:method:: unwrap()
+
+      Return the raw representation of the wrapped backend.
+
+      :return: The backend's most raw available representation.
+
+
+
+   .. py:method:: unview()
+
+      Return the presented filename as a plain string.
+
+      :return: The filename represented by this view.
+
+
+

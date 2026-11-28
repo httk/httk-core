@@ -1,0 +1,38 @@
+httk.registry.cli.core
+======================
+
+.. py:module:: httk.registry.cli.core
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.registry.cli.core.register_cli_command
+
+
+Package Contents
+----------------
+
+.. py:function:: register_cli_command(name, handler, summary, *, section = None, hidden = False)
+
+   Register a lazy top-level :command:`httk` command.
+
+   A handler is either a callable or a lazy ``"module:callable"`` reference
+   with the contract ``(argv: Sequence[str], context: CLIContext) -> int``.
+   Names use lowercase, hyphen-separated command syntax. Registration is
+   intentionally strict: reserved names and duplicate registrations are
+   errors rather than order-dependent overrides. Root help groups visible
+   commands under their *section* heading; a *hidden* command is left out of
+   root help but dispatches like any other.
+
+   :param name: The lowercase hyphen-separated command name.
+   :param handler: The command callable or lazy ``"module:callable"`` reference.
+   :param summary: The nonempty one-line command summary.
+   :param section: The nonempty one-line root-help section heading, or ``None`` for ``Other``.
+   :param hidden: Whether root help omits the command.
+   :raises TypeError: If ``handler`` is neither callable nor a lazy reference.
+   :raises ValueError: If the name, handler reference, summary, section, or registration is invalid.
+
+

@@ -1,0 +1,218 @@
+httk.core.vectors.decimalvector
+===============================
+
+.. py:module:: httk.core.vectors.decimalvector
+
+.. autoapi-nested-parse::
+
+   Exact decimal numbers as written in a CIF file: value, standard uncertainty and spelling.
+
+   A :class:`DecimalVector` keeps what a number token says, not only what it is worth: ``0.50``
+   claims more digits than ``0.5``, ``1.2345(6)`` carries the standard uncertainty ``0.0006``, and
+   an unquoted ``007`` may be an identifier. The token text is the canonical form of the value,
+   uncertainty and spelling, so equality and hashing compare tokens and distinguish ``0.50`` from
+   ``0.5``; :meth:`DecimalVector.numerically_equal` compares values. Entries may be the CIF gaps
+   ``?`` and ``.`` (:class:`DecimalGap`).
+
+   Nothing here computes with the numbers: construction, equality, rendering and storage never
+   expand a value, so ``1e-999999999`` is cheap. Convert to :class:`~httk.core.vectors.FracVector`
+   (``FracVector(dv)``) or floats for arithmetic; those conversions, and
+   :attr:`DecimalVector.precisions`, apply the size bound of :mod:`httk.core.exactmath`.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.vectors.decimalvector.DecimalIndex
+   httk.core.vectors.decimalvector.DecimalEntry
+   httk.core.vectors.decimalvector.Nested
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.vectors.decimalvector.DecimalGap
+   httk.core.vectors.decimalvector.DecimalVector
+   httk.core.vectors.decimalvector.DecimalScalar
+
+
+Module Contents
+---------------
+
+.. py:class:: DecimalGap(*args, **kwds)
+
+   Bases: :py:obj:`enum.Enum`
+
+
+   A CIF entry without a value: unknown (``?``) or inapplicable (``.``).
+
+
+   .. py:attribute:: UNKNOWN
+      :value: '?'
+
+
+
+   .. py:attribute:: INAPPLICABLE
+      :value: '.'
+
+
+
+.. py:type:: DecimalIndex
+   :canonical: tuple[int, ...]
+
+
+.. py:type:: DecimalEntry
+   :canonical: decimal.Decimal | DecimalGap
+
+
+.. py:type:: Nested
+   :canonical: T | tuple[Nested[T], ...]
+
+
+.. py:class:: DecimalVector(values)
+
+   Exact decimal numbers as written, with optional standard uncertainties.
+
+   Any shape :class:`~httk.core.vectors.FracVector` supports, including empty dimensions.
+   Each leaf is a CIF numeric token, ``"?"`` or ``"."`` (nothing is stripped), a finite
+   :class:`decimal.Decimal` (canonical spelling, no uncertainty), an ``int`` (not ``bool``), a
+   :class:`DecimalGap` or a :class:`DecimalScalar`. Containers are lists, tuples or
+   DecimalVectors and must be rectangular. A bare leaf needs :class:`DecimalScalar`.
+
+   :param values: The nested entries.
+   :raises TypeError: For a ``float``, ``Fraction``, ``bool`` or other unsupported leaf, or a
+       bare leaf.
+   :raises ValueError: For a non-numeric string, a non-finite ``Decimal`` or ragged nesting.
+
+
+   .. py:property:: dim
+      :type: tuple[int, ...]
+
+
+      The dimensions, ``()`` for a scalar.
+
+
+   .. py:property:: values
+      :type: Nested[DecimalEntry]
+
+
+      The entries as nested tuples of :class:`decimal.Decimal` and :class:`DecimalGap`.
+
+
+   .. py:property:: uncertainties
+      :type: collections.abc.Mapping[DecimalIndex, decimal.Decimal]
+
+
+      The stated standard uncertainties by index (read-only, sparse), in the value's unit.
+
+
+   .. py:property:: spellings
+      :type: collections.abc.Mapping[DecimalIndex, str]
+
+
+      The tokens that differ from the canonical rendering, by index (read-only, sparse).
+
+
+   .. py:property:: tokens
+      :type: Nested[str]
+
+
+      The entries as CIF tokens (the spelling or else the canonical rendering, and ``?``/``.`` for gaps).
+
+
+   .. py:property:: precisions
+      :type: Nested[fractions.Fraction | None]
+
+
+      The precision each entry's token implies (:func:`~httk.core.precision.decimal_precision`).
+
+      The uncertainty is not part of the claim; gaps, integers and trailing points give ``None``.
+      A token whose exact value exceeds the size bound raises :class:`ValueError`.
+
+
+   .. py:method:: numerically_equal(other)
+
+      Compare values exactly, ignoring uncertainties and spelling.
+
+      :param other: The vector to compare with.
+      :return: Whether both have the same dimensions and, at every index, either the same gap
+          kind or equal values.
+      :raises TypeError: If ``other`` is not a DecimalVector.
+
+
+
+   .. py:method:: to_fractions()
+
+      Return the exact values as nested tuples of fractions, ignoring uncertainties.
+
+      This is the leaf protocol :class:`~httk.core.vectors.FracVector` reads, so
+      ``FracVector(dv)`` is the exact conversion.
+
+      :return: The exact values.
+      :raises ValueError: For a gap entry, or a value beyond the exact-size bound.
+
+
+
+   .. py:method:: to_floats()
+
+      Return the values as nested tuples of floats, ignoring uncertainties.
+
+      :return: The values rounded to floats.
+      :raises ValueError: For a gap entry, or a value beyond the exact-size bound.
+      :raises OverflowError: For a value beyond the float range.
+
+
+
+.. py:class:: DecimalScalar(value)
+
+   Bases: :py:obj:`DecimalVector`
+
+
+   One exact decimal number as written, or a gap (``dim == ()``).
+
+   :param value: A numeric token, ``"?"`` or ``"."``, a finite :class:`decimal.Decimal`, an
+       ``int``, a :class:`DecimalGap` or a DecimalScalar.
+   :raises TypeError: For an unsupported leaf or a container.
+   :raises ValueError: For a non-numeric string or a non-finite ``Decimal``.
+
+
+   .. py:property:: value
+      :type: DecimalEntry
+
+
+      The value, or the gap.
+
+
+   .. py:property:: uncertainty
+      :type: decimal.Decimal | None
+
+
+      The standard uncertainty, or ``None`` when none was stated.
+
+
+   .. py:property:: spelling
+      :type: str | None
+
+
+      The token when it differs from the canonical rendering, else ``None``.
+
+
+   .. py:property:: token
+      :type: str
+
+
+      The CIF token.
+
+
+   .. py:property:: precision
+      :type: fractions.Fraction | None
+
+
+      The precision the token implies (see :attr:`DecimalVector.precisions`).
+
+

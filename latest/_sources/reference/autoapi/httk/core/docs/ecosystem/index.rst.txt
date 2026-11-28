@@ -1,0 +1,79 @@
+httk.core.docs.ecosystem
+========================
+
+.. py:module:: httk.core.docs.ecosystem
+
+.. autoapi-nested-parse::
+
+   Discover and validate the module pins used by the aggregate documentation site.
+
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   httk.core.docs.ecosystem.EcosystemManifestError
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.docs.ecosystem.build_ecosystem_manifest
+   httk.core.docs.ecosystem.read_ecosystem_manifest
+   httk.core.docs.ecosystem.write_ecosystem_manifest
+   httk.core.docs.ecosystem.verify_ecosystem_manifest
+
+
+Module Contents
+---------------
+
+.. py:exception:: EcosystemManifestError
+
+   Bases: :py:obj:`RuntimeError`
+
+
+   Raised when an ecosystem checkout cannot produce a valid manifest.
+
+
+.. py:function:: build_ecosystem_manifest(submodules_dir, *, require_release_tags = False)
+
+   Build the sorted manifest for direct Git checkouts under *submodules_dir*.
+
+   :param submodules_dir: Directory containing the expected direct checkouts.
+   :param require_release_tags: Require each checkout tag to match its distribution version.
+   :return: Manifest describing the checked-out modules.
+   :raises EcosystemManifestError: If checkout structure, Git state, or release metadata is invalid.
+
+
+.. py:function:: read_ecosystem_manifest(path)
+
+   Read a JSON manifest and report malformed files as typed errors.
+
+   :param path: Manifest file to read.
+   :return: Validated ecosystem manifest.
+   :raises EcosystemManifestError: If the file cannot be read or has an invalid schema.
+
+
+.. py:function:: write_ecosystem_manifest(manifest, output)
+
+   Write *manifest* as sorted, newline-terminated JSON using an atomic replace.
+
+   :param manifest: Ecosystem manifest to serialize.
+   :param output: Destination manifest path.
+   :raises EcosystemManifestError: If the destination cannot safely be written.
+
+
+.. py:function:: verify_ecosystem_manifest(submodules_dir, manifest_path, *, require_release_tags = False)
+
+   Verify a committed manifest against the current checkout state.
+
+   :param submodules_dir: Directory containing the expected direct checkouts.
+   :param manifest_path: Committed manifest to compare with the checkout state.
+   :param require_release_tags: Require each checkout tag to match its distribution version.
+   :raises EcosystemManifestError: If the checkout or manifest differs from the expected state.
+
+

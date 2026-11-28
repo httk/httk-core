@@ -1,0 +1,326 @@
+httk.core.curation
+==================
+
+.. py:module:: httk.core.curation
+
+.. autoapi-nested-parse::
+
+   Stdlib-only curation records: notes, tags, and external database entries.
+
+   Any stored entry can be weakly linked to a :class:`Note` (a dated remark), a
+   :class:`Tag` (a key with an optional value), and an :class:`ExternalDatabaseEntry`
+   (one entry of an external database), besides a
+   :class:`~httk.core.references.ReferenceRecord`. :data:`STANDARD_LINKS` declares
+   these four links and :func:`standard_links` tells which classes get them: every
+   entry record, that is a dataclass with both an ``id`` and an ``immutable_id``
+   field, except the four link targets themselves.
+
+   The records carry the internal, unprefixed entry-type names ``notes``, ``tags``
+   and ``external_database_entries``; the provider prefix is applied at the
+   serving edge. Like every record they are content-deduplicated, and weak links
+   bind lineages, so they stay local to one store.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.curation.NOTES_DEFINITION_ID
+   httk.core.curation.TAGS_DEFINITION_ID
+   httk.core.curation.EXTERNAL_DATABASE_ENTRIES_DEFINITION_ID
+   httk.core.curation.STANDARD_LINKS
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.curation.Note
+   httk.core.curation.Tag
+   httk.core.curation.ExternalDatabaseEntry
+   httk.core.curation.NoteEntry
+   httk.core.curation.TagEntry
+   httk.core.curation.ExternalDatabaseEntryFamily
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.curation.standard_links
+
+
+Module Contents
+---------------
+
+.. py:data:: NOTES_DEFINITION_ID
+   :value: 'https://schemas.httk.org/defs/v0.1/entrytypes/notes'
+
+
+.. py:data:: TAGS_DEFINITION_ID
+   :value: 'https://schemas.httk.org/defs/v0.1/entrytypes/tags'
+
+
+.. py:data:: EXTERNAL_DATABASE_ENTRIES_DEFINITION_ID
+   :value: 'https://schemas.httk.org/defs/v0.1/entrytypes/external_database_entries'
+
+
+.. py:class:: Note
+
+   A dated remark by some entity, linked from the entries it is about.
+
+   Notes are content-deduplicated: the same date, source, and text is one
+   entry, possibly linked from many entries. Code that wants to change a note
+   for one linking entry only must therefore unlink the shared note and link a
+   new one, rather than replace the shared note.
+
+   :param date: When the note was made, a timezone-aware datetime chosen by its
+       source; not the time it was stored.
+   :param source: The entity that made the note: a person, a group, or a
+       program with its version.
+   :param text: The note itself, as free text.
+   :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+   :param immutable_id: The per-revision immutable id; minted by the store when None.
+   :param last_modified: The optional timezone-aware metadata timestamp.
+   :raises TypeError: If a field has the wrong type.
+   :raises ValueError: If ``source`` or ``text`` is blank, or a timestamp is naive.
+
+
+   .. py:attribute:: date
+      :type:  datetime.datetime
+
+
+   .. py:attribute:: source
+      :type:  str
+
+
+   .. py:attribute:: text
+      :type:  str
+
+
+   .. py:attribute:: id
+      :type:  Annotated[str | None, IdentitySkip(), Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: immutable_id
+      :type:  Annotated[str | None, IdentitySkip(), Unique()]
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+   .. py:property:: type
+      :type: str
+
+
+      Return the internal (unprefixed) entry type name.
+
+
+.. py:class:: Tag
+
+   A key with an optional value that entries link to, to aid searching.
+
+   :param key: The tag key.
+   :param value: The optional tag value; None for a tag that only marks presence.
+   :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+   :param immutable_id: The per-revision immutable id; minted by the store when None.
+   :param last_modified: The optional timezone-aware metadata timestamp.
+   :raises TypeError: If a field has the wrong type.
+   :raises ValueError: If ``key`` is blank or has surrounding whitespace, or ``last_modified`` is naive.
+
+
+   .. py:attribute:: key
+      :type:  str
+
+
+   .. py:attribute:: value
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: id
+      :type:  Annotated[str | None, IdentitySkip(), Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: immutable_id
+      :type:  Annotated[str | None, IdentitySkip(), Unique()]
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+   .. py:property:: type
+      :type: str
+
+
+      Return the internal (unprefixed) entry type name.
+
+
+.. py:class:: ExternalDatabaseEntry
+
+   One entry of an external database, linked from the entries related to it.
+
+   ``database_provider`` names the provider of the external database: its
+   OPTIMADE provider prefix (as registered in the OPTIMADE providers list),
+   e.g. ``"cod"``, ``"oqmd"``, ``"mp"``, or an equivalent short lowercase name
+   when no registered prefix exists. ``database`` identifies the specific
+   database of that provider; None means the provider's only or main database.
+
+   ``role`` says how the linking entry relates to the external entry and is
+   part of the content identity: None for a general relation, ``"origin"``
+   when the linking entry was obtained from the external entry. An entry may
+   have several origins, unordered. ``url`` is outside the content identity, so
+   the same external entry with and without a known URL is one entry. On a
+   deduplicating save the first non-null ``url`` is kept and a later, different
+   ``url`` is ignored (``KeepStored``); once a non-null ``url`` is stored it is
+   kept: neither ``save`` nor ``replace`` changes it.
+
+   The reference describing the whole external database is linked through this
+   record's own ``references`` weak link.
+
+   :param database_provider: The provider of the external database, by the convention above.
+   :param database: The short identifier of the provider's database; None for its only or main one.
+   :param entry_id: The identifier of the entry in that database, as that database writes it.
+   :param url: A URL of the entry in that database, if available.
+   :param role: How the linking entry relates to the external entry: None or ``"origin"``.
+   :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+   :param immutable_id: The per-revision immutable id; minted by the store when None.
+   :param last_modified: The optional timezone-aware metadata timestamp.
+   :raises TypeError: If a field has the wrong type.
+   :raises ValueError: If ``database_provider``, ``database``, ``entry_id`` or ``role`` is blank
+       or has surrounding whitespace, ``database_provider`` or ``database`` contains whitespace, or
+       ``last_modified`` is naive.
+
+
+   .. py:attribute:: database_provider
+      :type:  str
+
+
+   .. py:attribute:: database
+      :type:  str | None
+
+
+   .. py:attribute:: entry_id
+      :type:  str
+
+
+   .. py:attribute:: url
+      :type:  Annotated[str | None, IdentitySkip(), KeepStored()]
+      :value: None
+
+
+
+   .. py:attribute:: role
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: id
+      :type:  Annotated[str | None, IdentitySkip(), Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: immutable_id
+      :type:  Annotated[str | None, IdentitySkip(), Unique()]
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+   .. py:property:: type
+      :type: str
+
+
+      Return the internal (unprefixed) entry type name.
+
+
+.. py:class:: NoteEntry
+
+   Logical entry family for served :class:`Note` records.
+
+   This family is not itself storable; store a ``Note`` directly.
+
+
+   .. py:attribute:: type
+      :value: 'notes'
+
+
+
+   .. py:attribute:: definition_id
+      :value: 'https://schemas.httk.org/defs/v0.1/entrytypes/notes'
+
+
+
+.. py:class:: TagEntry
+
+   Logical entry family for served :class:`Tag` records.
+
+   This family is not itself storable; store a ``Tag`` directly.
+
+
+   .. py:attribute:: type
+      :value: 'tags'
+
+
+
+   .. py:attribute:: definition_id
+      :value: 'https://schemas.httk.org/defs/v0.1/entrytypes/tags'
+
+
+
+.. py:class:: ExternalDatabaseEntryFamily
+
+   Logical entry family for served :class:`ExternalDatabaseEntry` records.
+
+   This family is not itself storable; store an ``ExternalDatabaseEntry`` directly.
+
+
+   .. py:attribute:: type
+      :value: 'external_database_entries'
+
+
+
+   .. py:attribute:: definition_id
+      :value: 'https://schemas.httk.org/defs/v0.1/entrytypes/external_database_entries'
+
+
+
+.. py:data:: STANDARD_LINKS
+   :type:  tuple[httk.core.storage.WeakLink, ...]
+
+.. py:function:: standard_links(cls)
+
+   Return the standard weak links of a storable class.
+
+   :param cls: The class to inspect.
+   :return: :data:`STANDARD_LINKS` when ``cls`` is an entry record, a dataclass
+       with both an ``id`` and an ``immutable_id`` field, other than the four link
+       targets themselves; otherwise an empty tuple.
+
+

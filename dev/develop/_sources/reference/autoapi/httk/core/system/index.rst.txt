@@ -1,0 +1,11 @@
+httk.core.system
+================
+
+.. py:module:: httk.core.system
+
+.. autoapi-nested-parse::
+
+   Per-user httk state reset, driven by ``httk setup --reset``.
+
+
+

@@ -1,0 +1,86 @@
+httk.core.digests
+=================
+
+.. py:module:: httk.core.digests
+
+.. autoapi-nested-parse::
+
+   Compute deterministic SHA-256 digests for files and directory trees.
+
+   Hash tree paths and entries in sorted order without following symlinks.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.digests.sha256_file
+   httk.core.digests.content_sha256_file
+   httk.core.digests.tree_digest
+
+
+Module Contents
+---------------
+
+.. py:function:: sha256_file(path)
+
+   Return the lowercase SHA-256 digest of one regular file.
+
+   The file is opened without blocking and checked with ``fstat`` before any
+   read, so a FIFO or device in its place is refused instead of hanging or
+   feeding the digest. A symlink is followed, as before.
+
+   :param path: Regular file to hash.
+   :return: Lowercase SHA-256 digest.
+   :raises ValueError: If *path* is a FIFO, device, socket, or other special file.
+   :raises OSError: If *path* cannot be opened, or is a directory.
+
+
+.. py:function:: content_sha256_file(path, *, max_bytes = None)
+
+   Return the SHA-256 digest of the decompressed bytes of a compressed file.
+
+   The file counts as compressed when its name ends in a registered
+   compression suffix (e.g. ``.zst``, ``.gz``); its bytes are decompressed
+   with that codec and hashed in chunks, never sniffed. Like
+   :func:`sha256_file`, a symlink is followed and a special file is refused
+   without blocking. The cost scales with the decompressed size, so bound it
+   with *max_bytes* for untrusted files.
+
+   :param path: File to hash.
+   :param max_bytes: The most decompressed bytes to accept; None for no limit.
+   :return: Lowercase SHA-256 digest of the decompressed bytes, or ``None``
+       when the name carries no registered compression suffix.
+   :raises ValueError: If *path* is a FIFO, device, socket, or other special
+       file, or decompresses to more than *max_bytes* bytes (checked per chunk,
+       so at most one chunk is read past the limit).
+   :raises OSError: If *path* cannot be opened or read, or is a directory.
+   :raises Exception: Data that fails to decompress raises the codec's own
+       exception (e.g. zstd's ``ZstdError``), uncaught.
+
+
+.. py:function:: tree_digest(path, *, skip = None, exclude = None)
+
+   Hash a tree without following symlinks.
+
+   Entries are taken in sorted order of their relative POSIX paths. A
+   directory contributes ``D\0<path>\0`` and a regular file
+   ``F\0<path>\0<sha256>``, where ``<sha256>`` is the 64 lowercase hex
+   characters of the SHA-256 of its content; the digest is the SHA-256 of the
+   concatenated entries. Paths cannot contain NUL and the content digest has a
+   fixed length, so every entry is self-delimiting. (Before this framing, file
+   content was hashed in unframed, so older stored digests do not match.)
+
+   *skip* names top-level entries to leave out of the digest entirely.
+   *exclude* names relative POSIX paths to leave out; excluding a directory
+   also leaves out its descendants.
+
+   :param path: Root directory to hash.
+   :param skip: Optional predicate for top-level entries to omit.
+   :param exclude: Optional predicate for relative POSIX paths to omit.
+   :return: Lowercase SHA-256 digest.
+   :raises ValueError: If the tree contains a symlink or special file.
+
+

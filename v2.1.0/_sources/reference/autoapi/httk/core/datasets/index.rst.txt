@@ -1,0 +1,172 @@
+httk.core.datasets
+==================
+
+.. py:module:: httk.core.datasets
+
+.. autoapi-nested-parse::
+
+   Neutral dataset identity, distribution, and publication metadata contracts.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.datasets.DatasetDistribution
+   httk.core.datasets.Dataset
+   httk.core.datasets.DatasetRecord
+
+
+Module Contents
+---------------
+
+.. py:class:: DatasetDistribution
+
+   Describe one retrievable representation of a dataset.
+
+   Identifier and vocabulary fields must be well-formed absolute IRIs.
+   ``access_url`` may instead be a root-relative URL for later resolution by
+   a serving application. ``byte_size`` is a non-negative integer, and
+   ``sha256`` is a lowercase hexadecimal digest.
+
+   :param id: An optional identifier for this representation.
+   :param access_url: An optional URL from which the representation can be retrieved.
+   :param media_type_iri: An optional IRI identifying the media type.
+   :param format_iri: An optional IRI identifying the representation format.
+   :param byte_size: The optional representation size in bytes.
+   :param sha256: The optional lowercase SHA-256 digest.
+
+
+   .. py:attribute:: id
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: access_url
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: media_type_iri
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: format_iri
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: byte_size
+      :type:  int | None
+      :value: None
+
+
+
+   .. py:attribute:: sha256
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+      Coerce a distribution instance or exact-field mapping.
+
+      :param obj: A distribution instance or a mapping of distribution fields.
+      :return: The existing or newly constructed distribution.
+      :raises TypeError: If ``obj`` is neither a distribution nor a mapping.
+      :raises ValueError: If the mapping has unknown or invalid fields.
+
+
+
+.. py:class:: Dataset
+
+   Describe one published dataset independently of a transport or provider.
+
+   ``id`` and ``publisher_id`` are absolute IRIs.  The remaining fields are
+   human-readable metadata and retain their supplied text exactly.
+
+   :param id: The dataset's absolute IRI.
+   :param title: The dataset's human-readable title.
+   :param description: A non-empty description of the dataset.
+   :param publisher_id: The publisher's absolute IRI.
+   :param publisher_name: The publisher's human-readable name.
+   :param distributions: The dataset's retrievable representations.
+
+
+   .. py:attribute:: id
+      :type:  str
+
+
+   .. py:attribute:: title
+      :type:  str
+
+
+   .. py:attribute:: description
+      :type:  str
+
+
+   .. py:attribute:: publisher_id
+      :type:  str
+
+
+   .. py:attribute:: publisher_name
+      :type:  str
+
+
+   .. py:attribute:: distributions
+      :type:  tuple[DatasetDistribution, Ellipsis]
+      :value: ()
+
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+      Coerce a mapping or existing dataset into a :class:`Dataset`.
+
+      :param obj: A dataset instance or a mapping with exactly the dataset fields.
+      :return: The existing or newly constructed dataset.
+      :raises TypeError: If ``obj`` is neither a dataset nor a mapping.
+      :raises ValueError: If the mapping has missing, unknown, or invalid fields.
+
+
+
+.. py:class:: DatasetRecord
+
+   Bases: :py:obj:`Dataset`
+
+
+   Store one :class:`Dataset` using the core dataset storage contract.
+
+   :param id: The dataset's absolute IRI.
+   :param title: The dataset's human-readable title.
+   :param description: A non-empty description of the dataset.
+   :param publisher_id: The publisher's absolute IRI.
+   :param publisher_name: The publisher's human-readable name.
+   :param distributions: The dataset's retrievable representations.
+
+
+   .. py:method:: from_obj(obj)
+      :classmethod:
+
+
+      Coerce a dataset record, neutral dataset, or field mapping.
+
+      :param obj: A dataset record, neutral dataset, or exact-field mapping.
+      :return: The existing or newly constructed dataset record.
+      :raises TypeError: If ``obj`` is not a dataset or mapping.
+      :raises ValueError: If the mapping has unknown, missing, or invalid fields.
+
+
+

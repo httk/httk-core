@@ -1,0 +1,102 @@
+httk.core.requirements
+======================
+
+.. py:module:: httk.core.requirements
+
+.. autoapi-nested-parse::
+
+   Parse and check minimum-version requirements on installed distributions.
+
+   Manifests declare ``requires = ["httk-workflow>=2.2.0", ...]``. Only the
+   ``>=`` operator is supported, with a plain release ``N(.N)*`` on the right.
+   Installed versions are compared in PEP 440 order without a ``packaging``
+   dependency: a pre or dev release of the required release does not satisfy
+   it, while a post release or local label does.
+
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   httk.core.requirements.RequirementError
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.requirements.Requirement
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.requirements.parse_requirements
+   httk.core.requirements.unmet_requirements
+   httk.core.requirements.check_requirements
+
+
+Module Contents
+---------------
+
+.. py:exception:: RequirementError
+
+   Bases: :py:obj:`ValueError`
+
+
+   Report that installed distributions do not meet declared requirements.
+
+
+.. py:class:: Requirement
+
+   Describe one minimum-version requirement.
+
+   :param name: Name the distribution, normalized per PEP 503.
+   :param minimum: Give the minimum release segments.
+   :param text: Give the requirement as declared, without whitespace.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: minimum
+      :type:  tuple[int, ...]
+
+
+   .. py:attribute:: text
+      :type:  str
+
+
+.. py:function:: parse_requirements(values, where)
+
+   Parse a ``requires`` list of ``NAME>=VERSION`` strings.
+
+   :param values: Supply the raw manifest value.
+   :param where: Name the manifest key in error messages.
+   :return: The parsed requirements in declaration order.
+   :raises ValueError: If the value is not a list of valid, distinct requirement strings.
+
+
+.. py:function:: unmet_requirements(requirements)
+
+   Describe the requirements the running interpreter does not meet.
+
+   :param requirements: Check these requirements.
+   :return: One message per unmet requirement, e.g. ``"httk-workflow>=2.2.0 (installed: 2.1.1)"``.
+
+
+.. py:function:: check_requirements(requirements, what)
+
+   Require every requirement to be met by the running interpreter.
+
+   :param requirements: Check these requirements.
+   :param what: Name the requiring manifest in the error message.
+   :raises RequirementError: If any requirement is unmet; the message lists every one.
+
+

@@ -1,0 +1,54 @@
+httk.core.identity_cli
+======================
+
+.. py:module:: httk.core.identity_cli
+
+.. autoapi-nested-parse::
+
+   The core-owned ``httk setup`` and ``httk identity`` commands.
+
+   These configure the per-user operator identities that live in
+   ``identity.json``: :command:`httk setup` establishes the first named default
+   identity, and :command:`httk identity` manages that same store. Future
+   per-user initialization will also live under :command:`httk setup`, and
+   ``httk setup --reset`` removes all per-user state. Both are thin command-line
+   wrappers over :mod:`httk.core.identity` and :mod:`httk.core.system`.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.identity_cli.setup_command
+   httk.core.identity_cli.identity_command
+
+
+Module Contents
+---------------
+
+.. py:function:: setup_command(argv, context)
+
+   Set up httk for this user by establishing the default operator identity.
+
+   This getting-started command is idempotent: once a default identity exists,
+   it reports that setup without prompting or changing the identity store.
+   Future per-user initialization will also live here. With ``--reset`` it
+   instead removes all per-user httk configuration and data, after a
+   confirmation that ``--yes`` pre-confirms.
+
+   :param argv: Arguments following the ``setup`` command name.
+   :param context: Root CLI invocation context.
+   :return: Command exit status.
+
+
+.. py:function:: identity_command(argv, context)
+
+   Manage named operator identities.
+
+   :param argv: Arguments following the ``identity`` command name.
+   :param context: Root CLI invocation context.
+   :return: Command exit status.
+
+

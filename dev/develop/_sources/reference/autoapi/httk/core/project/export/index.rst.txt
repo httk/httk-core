@@ -1,0 +1,66 @@
+httk.core.project.export
+========================
+
+.. py:module:: httk.core.project.export
+
+.. autoapi-nested-parse::
+
+   Create and verify signed, private-key-free project redistributions.
+
+   Path and suffix exclusions are the primary private-key protection.  The
+   content guard catches exact and re-encoded copies of known private material;
+   arbitrarily transformed or truncated secrets are outside its scope.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.project.export.PROJECT_PRIVATE_KEY_RELATIVE_PATH
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   httk.core.project.export.export_project
+   httk.core.project.export.verify_export
+
+
+Module Contents
+---------------
+
+.. py:data:: PROJECT_PRIVATE_KEY_RELATIVE_PATH
+   :value: 'httk_project/keys/project.seed'
+
+
+   The exact private-key path created by the project identity implementation.
+
+.. py:function:: export_project(out_path, project_path = None)
+
+   Create a signed ZIP containing a project without private keys.
+
+   The path and suffix exclusions are primary.  The content guard catches
+   exact and re-encoded copies of known private material; transformed or
+   truncated secrets are outside that guard's scope.
+
+   :param out_path: Destination ZIP path.
+   :param project_path: Project root, or None to discover the nearest project.
+   :return: The destination path.
+   :raises ValueError: If the project is unsafe to export or its identity is invalid.
+
+
+.. py:function:: verify_export(zip_path, *, expect_key = None, trusted_keys = ())
+
+   Verify an exported project ZIP and return signer information.
+
+   :param zip_path: Export ZIP to verify.
+   :param expect_key: Expected signer fingerprint or public key.
+   :param trusted_keys: Trusted signer fingerprints or public keys.
+   :return: A JSON-ready verification report.
+   :raises ValueError: If the ZIP, manifest, files, tree digest, or signature is invalid.
+
+

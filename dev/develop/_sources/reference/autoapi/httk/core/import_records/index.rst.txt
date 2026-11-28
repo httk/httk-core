@@ -1,0 +1,238 @@
+httk.core.import_records
+========================
+
+.. py:module:: httk.core.import_records
+
+.. autoapi-nested-parse::
+
+   Stdlib-only import records: what happened while importing one thing into a store.
+
+   An :class:`ImportRecord` is the canonical record of one import: where the thing
+   came from, which importer imported it, the outcome, and every warning, notice
+   and exception reported on the way, as :class:`ImportReport` children in
+   emission order. A source holding several things gives one import record per
+   thing, each with the reports that apply to it.
+
+   ``ImportRecord`` itself records failures and exclusions only, which embed no
+   entry, e.g. a failure before the kind of the imported thing is known. A
+   successful import is recorded by a typed subclass that adds one record-valued
+   field holding the imported entry and extends ``__post_init__`` to require it
+   exactly when ``status == "imported"``; it gives its own
+   :class:`~httk.core.storage.StorageInfo` and registers in the ``imports`` family.
+
+   The record carries the internal, unprefixed entry-type name ``imports``; the
+   provider prefix is applied at the serving edge.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   httk.core.import_records.IMPORTS_DEFINITION_ID
+   httk.core.import_records.IMPORT_STATUSES
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   httk.core.import_records.ImportReport
+   httk.core.import_records.ImportRecord
+   httk.core.import_records.ImportEntry
+
+
+Module Contents
+---------------
+
+.. py:data:: IMPORTS_DEFINITION_ID
+   :value: 'https://schemas.httk.org/defs/v0.1/entrytypes/imports'
+
+
+.. py:data:: IMPORT_STATUSES
+   :value: ('imported', 'failed', 'excluded')
+
+
+.. py:class:: ImportReport
+
+   One diagnostic reported while importing a thing.
+
+   :param level: The lowercase logging level name, e.g. ``"warning"``.
+   :param message: The report message.
+   :param context: The :mod:`httk.core.report` context tag, e.g. ``"cif"``, if any.
+   :param logger: The name of the logger that emitted the report, if known.
+   :raises TypeError: If a field has the wrong type.
+   :raises ValueError: If ``level`` is blank, not lowercase or has surrounding whitespace, or ``message`` is blank.
+
+
+   .. py:attribute:: level
+      :type:  str
+
+
+   .. py:attribute:: message
+      :type:  str
+
+
+   .. py:attribute:: context
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: logger
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:method:: from_log_record(record)
+      :classmethod:
+
+
+      Build a report from a log record, e.g. one collected by :func:`~httk.core.report.collect_reports`.
+
+      The message is reduced to what identifies the diagnostic on any machine:
+
+      - A captured Python warning (logger ``py.warnings``) becomes
+        ``"<Category>: <text>"`` from the first line of its formatted text,
+        without the ``path:line:`` prefix and the source line; continuation
+        lines of a multi-line warning message are dropped.
+      - A blank message becomes ``"(empty message)"``, so a silent record does
+        not abort the import.
+      - An attached exception adds one line ``"<ExceptionType>: <text>"``;
+        the traceback is left out, since it holds absolute paths.
+
+      The ``context`` extra becomes one context, several joined with ``", "``,
+      or None when there is none.
+
+      :param record: The log record.
+      :return: The report.
+
+
+
+.. py:class:: ImportRecord
+
+   The record of importing one thing into a store.
+
+   This base class records failures and exclusions only; a successful import
+   is recorded by a typed subclass that embeds the imported entry.
+
+   Two imports are one record when source, importer, outcome and reports are
+   equal; a new importer version gives a new record. ``imported_at`` and the
+   entry metadata are outside content identity and equality. Equality also
+   compares the embedded ``source_file``, whose ``url`` and ``name`` are outside
+   its identity, so two records with equal content ids compare unequal when the
+   file was recorded under another location.
+
+   :param source_uri: Where the thing was imported from, as chosen by the importer:
+       a stable path, URL or identifier, not a machine-specific absolute path.
+   :param importer: The program that imported the thing, with its version.
+   :param status: The outcome: ``"imported"``, ``"failed"`` or ``"excluded"``.
+   :param source_item: The item within the source when it holds several, e.g. a CIF data block name.
+   :param source_file: The source bytes, if recorded.
+   :param reports: The diagnostics, in emission order; any iterable, stored as a tuple.
+   :param error: The exception or exclusion text; required unless ``status`` is
+       ``"imported"``, and None when it is.
+   :param repaired: Whether the importer had to repair the source; only with ``status == "imported"``.
+   :param imported_at: When the import was made, a timezone-aware datetime; kept from the first save.
+   :param id: The human-readable entry id shared by all revisions; minted by the store when None.
+   :param immutable_id: The per-revision immutable id; minted by the store when None.
+   :param last_modified: The optional timezone-aware metadata timestamp.
+   :raises TypeError: If a field has the wrong type.
+   :raises ValueError: If a required string is blank, ``source_uri``, ``importer`` or ``source_item``
+       has surrounding whitespace, ``status`` is unknown, ``error`` or ``repaired`` disagrees with
+       ``status``, a timestamp is naive, or a base ``ImportRecord`` has ``status == "imported"``.
+
+
+   .. py:attribute:: source_uri
+      :type:  str
+
+
+   .. py:attribute:: importer
+      :type:  str
+
+
+   .. py:attribute:: status
+      :type:  str
+
+
+   .. py:attribute:: source_item
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: source_file
+      :type:  httk.core.files.FileRecord | None
+      :value: None
+
+
+
+   .. py:attribute:: reports
+      :type:  tuple[ImportReport, ...]
+      :value: ()
+
+
+
+   .. py:attribute:: error
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: repaired
+      :type:  bool
+      :value: False
+
+
+
+   .. py:attribute:: imported_at
+      :type:  Annotated[datetime.datetime | None, IdentitySkip(), KeepStored()]
+      :value: None
+
+
+
+   .. py:attribute:: id
+      :type:  Annotated[str | None, IdentitySkip(), Indexed()]
+      :value: None
+
+
+
+   .. py:attribute:: immutable_id
+      :type:  Annotated[str | None, IdentitySkip(), Unique()]
+      :value: None
+
+
+
+   .. py:attribute:: last_modified
+      :type:  Annotated[datetime.datetime | None, IdentitySkip()]
+      :value: None
+
+
+
+   .. py:property:: type
+      :type: str
+
+
+      Return the internal (unprefixed) entry type name.
+
+
+.. py:class:: ImportEntry
+
+   Logical entry family for served :class:`ImportRecord` records and their typed subclasses.
+
+   This family is not itself storable; store an ``ImportRecord`` directly.
+
+
+   .. py:attribute:: type
+      :value: 'imports'
+
+
+
+   .. py:attribute:: definition_id
+      :value: 'https://schemas.httk.org/defs/v0.1/entrytypes/imports'
+
+
+
